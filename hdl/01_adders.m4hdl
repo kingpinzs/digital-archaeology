@@ -1,0 +1,175 @@
+# ============================================
+# Micro4 HDL - Adder Circuits
+# ============================================
+# Building up from half adder to 4-bit ripple carry adder
+
+# ============================================
+# Half Adder
+# ============================================
+# Inputs: A, B
+# Outputs: S (sum), C (carry)
+#
+# Truth table:
+#   A B | S C
+#   0 0 | 0 0
+#   0 1 | 1 0
+#   1 0 | 1 0
+#   1 1 | 0 1
+#
+# S = A XOR B
+# C = A AND B
+
+wire a;
+wire b;
+wire ha_sum;
+wire ha_carry;
+
+xor HA_XOR (input: a b, output: ha_sum);
+and HA_AND (input: a b, output: ha_carry);
+
+# ============================================
+# Full Adder
+# ============================================
+# Inputs: A, B, Cin
+# Outputs: S (sum), Cout (carry out)
+#
+# Built from two half adders and an OR gate:
+#   HA1: A + B -> S1, C1
+#   HA2: S1 + Cin -> S, C2
+#   Cout = C1 OR C2
+#
+# Truth table:
+#   A B Cin | S Cout
+#   0 0 0   | 0 0
+#   0 0 1   | 1 0
+#   0 1 0   | 1 0
+#   0 1 1   | 0 1
+#   1 0 0   | 1 0
+#   1 0 1   | 0 1
+#   1 1 0   | 0 1
+#   1 1 1   | 1 1
+
+wire fa_a;
+wire fa_b;
+wire fa_cin;
+wire fa_sum;
+wire fa_cout;
+
+# Internal wires
+wire fa_s1;      # Output of first XOR
+wire fa_c1;      # Carry from A AND B
+wire fa_c2;      # Carry from S1 AND Cin
+
+# First half adder: A XOR B, A AND B
+xor FA_XOR1 (input: fa_a fa_b, output: fa_s1);
+and FA_AND1 (input: fa_a fa_b, output: fa_c1);
+
+# Second half adder: S1 XOR Cin, S1 AND Cin
+xor FA_XOR2 (input: fa_s1 fa_cin, output: fa_sum);
+and FA_AND2 (input: fa_s1 fa_cin, output: fa_c2);
+
+# Carry out: C1 OR C2
+or FA_OR (input: fa_c1 fa_c2, output: fa_cout);
+
+# ============================================
+# 4-Bit Ripple Carry Adder
+# ============================================
+# Inputs: A[3:0], B[3:0], Cin
+# Outputs: S[3:0], Cout
+#
+# Chain 4 full adders together:
+#   FA0: A[0] + B[0] + Cin -> S[0], C0
+#   FA1: A[1] + B[1] + C0  -> S[1], C1
+#   FA2: A[2] + B[2] + C1  -> S[2], C2
+#   FA3: A[3] + B[3] + C2  -> S[3], Cout
+
+wire [3:0] rca_a;
+wire [3:0] rca_b;
+wire rca_cin;
+wire [3:0] rca_sum;
+wire rca_cout;
+
+# Internal carry chain
+wire rca_c0;
+wire rca_c1;
+wire rca_c2;
+
+# Internal wires for FA0
+wire rca_s0_t;
+wire rca_c0_t1;
+wire rca_c0_t2;
+
+# FA0
+xor RCA_FA0_X1 (input: rca_a[0] rca_b[0], output: rca_s0_t);
+and RCA_FA0_A1 (input: rca_a[0] rca_b[0], output: rca_c0_t1);
+xor RCA_FA0_X2 (input: rca_s0_t rca_cin, output: rca_sum[0]);
+and RCA_FA0_A2 (input: rca_s0_t rca_cin, output: rca_c0_t2);
+or  RCA_FA0_O1 (input: rca_c0_t1 rca_c0_t2, output: rca_c0);
+
+# Internal wires for FA1
+wire rca_s1_t;
+wire rca_c1_t1;
+wire rca_c1_t2;
+
+# FA1
+xor RCA_FA1_X1 (input: rca_a[1] rca_b[1], output: rca_s1_t);
+and RCA_FA1_A1 (input: rca_a[1] rca_b[1], output: rca_c1_t1);
+xor RCA_FA1_X2 (input: rca_s1_t rca_c0, output: rca_sum[1]);
+and RCA_FA1_A2 (input: rca_s1_t rca_c0, output: rca_c1_t2);
+or  RCA_FA1_O1 (input: rca_c1_t1 rca_c1_t2, output: rca_c1);
+
+# Internal wires for FA2
+wire rca_s2_t;
+wire rca_c2_t1;
+wire rca_c2_t2;
+
+# FA2
+xor RCA_FA2_X1 (input: rca_a[2] rca_b[2], output: rca_s2_t);
+and RCA_FA2_A1 (input: rca_a[2] rca_b[2], output: rca_c2_t1);
+xor RCA_FA2_X2 (input: rca_s2_t rca_c1, output: rca_sum[2]);
+and RCA_FA2_A2 (input: rca_s2_t rca_c1, output: rca_c2_t2);
+or  RCA_FA2_O1 (input: rca_c2_t1 rca_c2_t2, output: rca_c2);
+
+# Internal wires for FA3
+wire rca_s3_t;
+wire rca_c3_t1;
+wire rca_c3_t2;
+
+# FA3
+xor RCA_FA3_X1 (input: rca_a[3] rca_b[3], output: rca_s3_t);
+and RCA_FA3_A1 (input: rca_a[3] rca_b[3], output: rca_c3_t1);
+xor RCA_FA3_X2 (input: rca_s3_t rca_c2, output: rca_sum[3]);
+and RCA_FA3_A2 (input: rca_s3_t rca_c2, output: rca_c3_t2);
+or  RCA_FA3_O1 (input: rca_c3_t1 rca_c3_t2, output: rca_cout);
+
+# ============================================
+# Summary
+# ============================================
+# Half Adder: 2 gates (XOR, AND)
+# Full Adder: 5 gates (2 XOR, 2 AND, 1 OR)
+# 4-Bit RCA:  20 gates (4 full adders)
+#
+# Transistor counts (CMOS):
+#   XOR: ~12 transistors
+#   AND: ~6 transistors
+#   OR:  ~6 transistors
+#
+# Half Adder: ~18 transistors
+# Full Adder: ~42 transistors
+# 4-Bit RCA:  ~168 transistors
+
+# ============================================
+# HOMEWORK: Carry Lookahead Adder
+# ============================================
+# The ripple carry adder is slow because each
+# full adder must wait for the carry from the
+# previous stage.
+#
+# A carry lookahead adder (CLA) computes all
+# carries in parallel using generate (G) and
+# propagate (P) signals:
+#   G[i] = A[i] AND B[i]
+#   P[i] = A[i] XOR B[i]
+#   C[i+1] = G[i] OR (P[i] AND C[i])
+#
+# Try implementing a 4-bit CLA!

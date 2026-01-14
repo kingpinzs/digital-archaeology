@@ -1,0 +1,118 @@
+# ============================================
+# Micro4 HDL - Primitive Gates
+# ============================================
+# This file shows how basic gates are built from transistors.
+# For simulation, we use the built-in gate primitives,
+# but understanding the transistor level is important!
+
+# ============================================
+# TRANSISTOR LEVEL (Educational Reference)
+# ============================================
+#
+# NMOS Transistor:
+#   - Conducts (connects drain to source) when gate is HIGH (1)
+#   - Does not conduct when gate is LOW (0)
+#   - Used in pull-down networks
+#
+# PMOS Transistor:
+#   - Conducts (connects drain to source) when gate is LOW (0)
+#   - Does not conduct when gate is HIGH (1)
+#   - Used in pull-up networks
+#
+# CMOS Gate Design:
+#   - Pull-up network (PMOS) connects output to VDD (1)
+#   - Pull-down network (NMOS) connects output to GND (0)
+#   - Networks are complementary (exactly one is on at a time)
+
+# ============================================
+# NOT Gate (Inverter) - From Transistors
+# ============================================
+#
+#        VDD
+#         |
+#       [PMOS]--+
+#         |     |
+#   in ---+-----+--- out
+#         |
+#       [NMOS]
+#         |
+#        GND
+#
+# When in=0: PMOS on, NMOS off -> out=1
+# When in=1: PMOS off, NMOS on -> out=0
+
+# ============================================
+# NAND Gate - From Transistors
+# ============================================
+#
+#          VDD    VDD
+#           |      |
+#         [PMOS] [PMOS]
+#           |      |
+#    a -----+      +---- b
+#           |      |
+#           +--+---+
+#              |
+#              +-------- out
+#              |
+#           [NMOS]
+#    a -----+
+#              |
+#           [NMOS]
+#    b -----+
+#              |
+#            GND
+#
+# NAND: out = NOT(a AND b)
+# - If a=0 OR b=0: at least one PMOS on, out=1
+# - If a=1 AND b=1: both NMOS on, out=0
+
+# ============================================
+# Using Primitive Gates
+# ============================================
+# The simulator has these built-in:
+#   not  - Inverter
+#   and  - AND gate
+#   or   - OR gate
+#   nand - NAND gate
+#   nor  - NOR gate
+#   xor  - XOR gate
+#   xnor - XNOR gate
+#   buf  - Buffer
+#   dff  - D Flip-Flop
+#   mux2 - 2:1 Multiplexer
+
+# ============================================
+# Gate Count Reference (Transistors)
+# ============================================
+# NOT:  2 transistors (1 NMOS + 1 PMOS)
+# NAND: 4 transistors (2 NMOS + 2 PMOS)
+# NOR:  4 transistors (2 NMOS + 2 PMOS)
+# AND:  6 transistors (NAND + NOT)
+# OR:   6 transistors (NOR + NOT)
+# XOR:  8-12 transistors (various designs)
+# MUX2: 12 transistors (transmission gates)
+
+# ============================================
+# Example: Building OR from NOR + NOT
+# ============================================
+
+wire a;
+wire b;
+wire nor_out;
+wire or_out;
+
+nor N1 (input: a b, output: nor_out);
+not N2 (input: nor_out, output: or_out);
+
+# ============================================
+# Example: Half Adder
+# ============================================
+
+wire ha_a;
+wire ha_b;
+wire ha_sum;
+wire ha_carry;
+
+xor HA_X1 (input: ha_a ha_b, output: ha_sum);
+and HA_A1 (input: ha_a ha_b, output: ha_carry);

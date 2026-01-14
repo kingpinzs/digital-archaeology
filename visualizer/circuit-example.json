@@ -1,0 +1,469 @@
+{
+  "cycle": 0,
+  "stable": true,
+  "wires": [
+    {
+      "id": 0,
+      "name": "gnd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 1,
+      "name": "vdd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 2,
+      "name": "a",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 3,
+      "name": "b",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 4,
+      "name": "ha_sum",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 5,
+      "name": "ha_carry",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 6,
+      "name": "fa_a",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 7,
+      "name": "fa_b",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 8,
+      "name": "fa_cin",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 9,
+      "name": "fa_sum",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 10,
+      "name": "fa_cout",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 11,
+      "name": "fa_s1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 12,
+      "name": "fa_c1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 13,
+      "name": "fa_c2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 14,
+      "name": "rca_a",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 15,
+      "name": "rca_b",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 16,
+      "name": "rca_cin",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 17,
+      "name": "rca_sum",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 18,
+      "name": "rca_cout",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 19,
+      "name": "rca_c0",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 20,
+      "name": "rca_c1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 21,
+      "name": "rca_c2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 22,
+      "name": "rca_s0_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 23,
+      "name": "rca_c0_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 24,
+      "name": "rca_c0_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 25,
+      "name": "rca_s1_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 26,
+      "name": "rca_c1_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 27,
+      "name": "rca_c1_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 28,
+      "name": "rca_s2_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 29,
+      "name": "rca_c2_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 30,
+      "name": "rca_c2_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 31,
+      "name": "rca_s3_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 32,
+      "name": "rca_c3_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 33,
+      "name": "rca_c3_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    }
+  ],
+  "gates": [
+    {
+      "id": 0,
+      "name": "HA_XOR",
+      "type": "XOR",
+      "inputs": [{"wire": 2, "bit": 0}, {"wire": 3, "bit": 0}],
+      "outputs": [{"wire": 4, "bit": 0}]
+    },
+    {
+      "id": 1,
+      "name": "HA_AND",
+      "type": "AND",
+      "inputs": [{"wire": 2, "bit": 0}, {"wire": 3, "bit": 0}],
+      "outputs": [{"wire": 5, "bit": 0}]
+    },
+    {
+      "id": 2,
+      "name": "FA_XOR1",
+      "type": "XOR",
+      "inputs": [{"wire": 6, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 11, "bit": 0}]
+    },
+    {
+      "id": 3,
+      "name": "FA_AND1",
+      "type": "AND",
+      "inputs": [{"wire": 6, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 12, "bit": 0}]
+    },
+    {
+      "id": 4,
+      "name": "FA_XOR2",
+      "type": "XOR",
+      "inputs": [{"wire": 11, "bit": 0}, {"wire": 8, "bit": 0}],
+      "outputs": [{"wire": 9, "bit": 0}]
+    },
+    {
+      "id": 5,
+      "name": "FA_AND2",
+      "type": "AND",
+      "inputs": [{"wire": 11, "bit": 0}, {"wire": 8, "bit": 0}],
+      "outputs": [{"wire": 13, "bit": 0}]
+    },
+    {
+      "id": 6,
+      "name": "FA_OR",
+      "type": "OR",
+      "inputs": [{"wire": 12, "bit": 0}, {"wire": 13, "bit": 0}],
+      "outputs": [{"wire": 10, "bit": 0}]
+    },
+    {
+      "id": 7,
+      "name": "RCA_FA0_X1",
+      "type": "XOR",
+      "inputs": [{"wire": 14, "bit": 0}, {"wire": 15, "bit": 0}],
+      "outputs": [{"wire": 22, "bit": 0}]
+    },
+    {
+      "id": 8,
+      "name": "RCA_FA0_A1",
+      "type": "AND",
+      "inputs": [{"wire": 14, "bit": 0}, {"wire": 15, "bit": 0}],
+      "outputs": [{"wire": 23, "bit": 0}]
+    },
+    {
+      "id": 9,
+      "name": "RCA_FA0_X2",
+      "type": "XOR",
+      "inputs": [{"wire": 22, "bit": 0}, {"wire": 16, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 0}]
+    },
+    {
+      "id": 10,
+      "name": "RCA_FA0_A2",
+      "type": "AND",
+      "inputs": [{"wire": 22, "bit": 0}, {"wire": 16, "bit": 0}],
+      "outputs": [{"wire": 24, "bit": 0}]
+    },
+    {
+      "id": 11,
+      "name": "RCA_FA0_O1",
+      "type": "OR",
+      "inputs": [{"wire": 23, "bit": 0}, {"wire": 24, "bit": 0}],
+      "outputs": [{"wire": 19, "bit": 0}]
+    },
+    {
+      "id": 12,
+      "name": "RCA_FA1_X1",
+      "type": "XOR",
+      "inputs": [{"wire": 14, "bit": 1}, {"wire": 15, "bit": 1}],
+      "outputs": [{"wire": 25, "bit": 0}]
+    },
+    {
+      "id": 13,
+      "name": "RCA_FA1_A1",
+      "type": "AND",
+      "inputs": [{"wire": 14, "bit": 1}, {"wire": 15, "bit": 1}],
+      "outputs": [{"wire": 26, "bit": 0}]
+    },
+    {
+      "id": 14,
+      "name": "RCA_FA1_X2",
+      "type": "XOR",
+      "inputs": [{"wire": 25, "bit": 0}, {"wire": 19, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 1}]
+    },
+    {
+      "id": 15,
+      "name": "RCA_FA1_A2",
+      "type": "AND",
+      "inputs": [{"wire": 25, "bit": 0}, {"wire": 19, "bit": 0}],
+      "outputs": [{"wire": 27, "bit": 0}]
+    },
+    {
+      "id": 16,
+      "name": "RCA_FA1_O1",
+      "type": "OR",
+      "inputs": [{"wire": 26, "bit": 0}, {"wire": 27, "bit": 0}],
+      "outputs": [{"wire": 20, "bit": 0}]
+    },
+    {
+      "id": 17,
+      "name": "RCA_FA2_X1",
+      "type": "XOR",
+      "inputs": [{"wire": 14, "bit": 2}, {"wire": 15, "bit": 2}],
+      "outputs": [{"wire": 28, "bit": 0}]
+    },
+    {
+      "id": 18,
+      "name": "RCA_FA2_A1",
+      "type": "AND",
+      "inputs": [{"wire": 14, "bit": 2}, {"wire": 15, "bit": 2}],
+      "outputs": [{"wire": 29, "bit": 0}]
+    },
+    {
+      "id": 19,
+      "name": "RCA_FA2_X2",
+      "type": "XOR",
+      "inputs": [{"wire": 28, "bit": 0}, {"wire": 20, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 2}]
+    },
+    {
+      "id": 20,
+      "name": "RCA_FA2_A2",
+      "type": "AND",
+      "inputs": [{"wire": 28, "bit": 0}, {"wire": 20, "bit": 0}],
+      "outputs": [{"wire": 30, "bit": 0}]
+    },
+    {
+      "id": 21,
+      "name": "RCA_FA2_O1",
+      "type": "OR",
+      "inputs": [{"wire": 29, "bit": 0}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 21, "bit": 0}]
+    },
+    {
+      "id": 22,
+      "name": "RCA_FA3_X1",
+      "type": "XOR",
+      "inputs": [{"wire": 14, "bit": 3}, {"wire": 15, "bit": 3}],
+      "outputs": [{"wire": 31, "bit": 0}]
+    },
+    {
+      "id": 23,
+      "name": "RCA_FA3_A1",
+      "type": "AND",
+      "inputs": [{"wire": 14, "bit": 3}, {"wire": 15, "bit": 3}],
+      "outputs": [{"wire": 32, "bit": 0}]
+    },
+    {
+      "id": 24,
+      "name": "RCA_FA3_X2",
+      "type": "XOR",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 3}]
+    },
+    {
+      "id": 25,
+      "name": "RCA_FA3_A2",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 33, "bit": 0}]
+    },
+    {
+      "id": 26,
+      "name": "RCA_FA3_O1",
+      "type": "OR",
+      "inputs": [{"wire": 32, "bit": 0}, {"wire": 33, "bit": 0}],
+      "outputs": [{"wire": 18, "bit": 0}]
+    }
+  ]
+}

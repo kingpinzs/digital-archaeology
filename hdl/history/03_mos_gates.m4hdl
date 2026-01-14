@@ -1,0 +1,298 @@
+# ============================================
+# Era 5: MOS Technology (1960s-1970s)
+# ============================================
+# Homework 5.1-5.4: The Technology of the 4004
+#
+# MOS (Metal-Oxide-Semiconductor) enabled microprocessors!
+# Key advantages over bipolar (TTL):
+# - MUCH higher density (smaller transistors)
+# - Lower power consumption
+# - Simpler manufacturing
+# - Self-isolating (no need for junction isolation)
+#
+# The 4004 used PMOS technology.
+
+# ============================================
+# NMOS Inverter
+# ============================================
+#       Vdd (+5V)
+#         |
+#     [Depletion NMOS] - Load device (always partially ON)
+#         |
+#         +-------- Output
+#         |
+#     [Enhancement NMOS] - Driver (controlled by input)
+#         |
+# Input--Gate
+#         |
+#        GND
+#
+# When Input=0: Driver OFF, Output pulled to Vdd
+# When Input=1: Driver ON, Output pulled to GND
+
+wire nmos_inv_in;
+wire nmos_inv_out;
+
+not NMOS_INV (input: nmos_inv_in, output: nmos_inv_out);
+
+# ============================================
+# PMOS Inverter (4004 style!)
+# ============================================
+#        GND (Yes, GND at top!)
+#         |
+#     [Depletion PMOS] - Load device
+#         |
+#         +-------- Output
+#         |
+#     [Enhancement PMOS] - Driver
+#         |
+# Input--Gate
+#         |
+#        Vdd (-15V for original 4004!)
+#
+# Note: PMOS uses NEGATIVE voltages!
+# Logic 1 = GND (0V)
+# Logic 0 = Vdd (-15V)
+#
+# The 4004 ran on -15V supply!
+# (Later versions used +5V with different design)
+
+wire pmos_inv_in;
+wire pmos_inv_out;
+
+not PMOS_INV (input: pmos_inv_in, output: pmos_inv_out);
+
+# ============================================
+# NMOS NOR Gate (Natural NMOS gate)
+# ============================================
+#       Vdd
+#         |
+#     [Load NMOS]
+#         |
+#         +-------- Output
+#        /|\
+#       / | \
+#      N1 N2 N3   (NMOS transistors in parallel)
+#      |  |  |
+#      A  B  C    (Gates)
+#      |  |  |
+#      GND GND GND
+#
+# If ANY input is HIGH, that transistor conducts,
+# pulling output LOW. This is NOR!
+
+wire nmos_nor_a;
+wire nmos_nor_b;
+wire nmos_nor_out;
+
+# HOMEWORK: Implement NOR
+# nor NMOS_NOR (input: nmos_nor_a nmos_nor_b, output: nmos_nor_out);
+
+# ============================================
+# NMOS NAND Gate (Series transistors)
+# ============================================
+#       Vdd
+#         |
+#     [Load NMOS]
+#         |
+#         +-------- Output
+#     [N1]--A
+#         |
+#     [N2]--B
+#         |
+#        GND
+#
+# Both must be ON to pull output low = NAND!
+# But: Series transistors have higher resistance
+#      = Slower than NOR in NMOS
+
+wire nmos_nand_a;
+wire nmos_nand_b;
+wire nmos_nand_out;
+
+# HOMEWORK: Implement NAND
+# nand NMOS_NAND (input: nmos_nand_a nmos_nand_b, output: nmos_nand_out);
+
+# ============================================
+# CMOS Inverter (Modern standard)
+# ============================================
+#       Vdd
+#         |
+#     [PMOS]----+---- Input
+#         |
+#         +--------- Output
+#         |
+#     [NMOS]----+---- Input
+#         |
+#        GND
+#
+# When Input=0: PMOS ON, NMOS OFF, Output=1
+# When Input=1: PMOS OFF, NMOS ON, Output=0
+#
+# KEY INSIGHT: One transistor is ALWAYS OFF!
+# Therefore: Almost ZERO static power consumption!
+
+wire cmos_inv_in;
+wire cmos_inv_out;
+
+not CMOS_INV (input: cmos_inv_in, output: cmos_inv_out);
+
+# ============================================
+# CMOS NAND Gate
+# ============================================
+#       Vdd
+#        |
+#    +--[P1]---A
+#    |   |
+#    +--[P2]---B   (PMOS in parallel)
+#        |
+#        +-------- Output
+#        |
+#       [N1]---A
+#        |
+#       [N2]---B   (NMOS in series)
+#        |
+#       GND
+#
+# PMOS in parallel: Either OFF = output high
+# NMOS in series: Both ON = output low
+# Result: NAND gate!
+
+wire cmos_nand_a;
+wire cmos_nand_b;
+wire cmos_nand_out;
+
+nand CMOS_NAND (input: cmos_nand_a cmos_nand_b, output: cmos_nand_out);
+
+# ============================================
+# CMOS NOR Gate
+# ============================================
+#       Vdd
+#        |
+#       [P1]---A
+#        |
+#       [P2]---B   (PMOS in series)
+#        |
+#        +-------- Output
+#        |
+#    +--[N1]---A
+#    |   |
+#    +--[N2]---B   (NMOS in parallel)
+#        |
+#       GND
+#
+# PMOS in series: Both OFF = output high
+# NMOS in parallel: Either ON = output low
+# Result: NOR gate!
+
+wire cmos_nor_a;
+wire cmos_nor_b;
+wire cmos_nor_out;
+
+nor CMOS_NOR (input: cmos_nor_a cmos_nor_b, output: cmos_nor_out);
+
+# ============================================
+# Why 4004 Used PMOS (Not NMOS or CMOS)
+# ============================================
+# In 1971:
+# - PMOS was easiest to manufacture reliably
+# - NMOS had contamination problems (sodium ions)
+# - CMOS was too complex (twice the transistors)
+# - PMOS was "good enough" for 740 kHz
+#
+# PMOS disadvantages:
+# - Slower than NMOS (holes slower than electrons)
+# - Needed negative voltage supply
+# - Higher power than CMOS
+#
+# But it WORKED and could be manufactured!
+
+# ============================================
+# HOMEWORK: Compare Technologies
+# ============================================
+# Fill in this table:
+#
+# | Technology | Year | Transistors/gate | Speed | Power |
+# |------------|------|------------------|-------|-------|
+# | RTL        | 1961 | 2-3              | Slow  | High  |
+# | DTL        | 1962 | ???              | ???   | ???   |
+# | TTL        | 1963 | 4-6              | Fast  | Med   |
+# | PMOS       | 1968 | 2-4              | Slow  | Med   |
+# | NMOS       | 1970 | 2-4              | Med   | Med   |
+# | CMOS       | 1963* | 4-6             | Med   | LOW   |
+#
+# *CMOS invented 1963 but not practical for CPUs until ~1980s
+
+# ============================================
+# HOMEWORK: 4004 Gate Count Analysis
+# ============================================
+# The 4004 had ~2,300 transistors.
+# Assuming PMOS gates average 3 transistors:
+#
+# 1. Estimate number of gates: 2300/3 = ~767 gates
+#
+# 2. Break down by function:
+#    - ALU (4-bit): ~150 gates
+#    - Registers (16x4 = 64 bits): ~200 gates
+#    - Control unit: ~200 gates
+#    - Address logic: ~100 gates
+#    - I/O: ~100 gates
+#    Total: ~750 gates (close!)
+#
+# 3. Your Micro4 has how many gates?
+#    Compare to this analysis.
+
+# ============================================
+# CMOS Full Adder (Modern Style)
+# ============================================
+# Build a full adder using CMOS-style logic
+# (We'll use ideal gates, but think about transistor count)
+
+wire cmos_fa_a;
+wire cmos_fa_b;
+wire cmos_fa_cin;
+wire cmos_fa_sum;
+wire cmos_fa_cout;
+
+wire cmos_fa_t1, cmos_fa_t2, cmos_fa_t3;
+
+# XOR for sum calculation
+xor CMOS_FA_XOR1 (input: cmos_fa_a cmos_fa_b, output: cmos_fa_t1);
+xor CMOS_FA_XOR2 (input: cmos_fa_t1 cmos_fa_cin, output: cmos_fa_sum);
+
+# Carry logic
+and CMOS_FA_AND1 (input: cmos_fa_a cmos_fa_b, output: cmos_fa_t2);
+and CMOS_FA_AND2 (input: cmos_fa_t1 cmos_fa_cin, output: cmos_fa_t3);
+or  CMOS_FA_OR1  (input: cmos_fa_t2 cmos_fa_t3, output: cmos_fa_cout);
+
+# ============================================
+# REFLECTION: Why MOS Won
+# ============================================
+# 1. DENSITY: MOS transistors are smaller than bipolar
+#    - Bipolar needs deep diffusions for isolation
+#    - MOS is self-isolating (oxide does it)
+#
+# 2. POWER: MOS uses less power
+#    - TTL gate: ~10mW
+#    - MOS gate: ~1mW
+#    - CMOS gate: ~0.01mW (static)
+#
+# 3. SCALING: MOS scales better
+#    - Make transistors smaller = faster AND less power
+#    - This is why we went from 2,300 to billions!
+#
+# 4. COST: MOS is cheaper to manufacture
+#    - Fewer process steps than bipolar
+#    - Higher yield on complex chips
+
+# ============================================
+# FINAL THOUGHT
+# ============================================
+# The 4004's 2,300 PMOS transistors in 1971 led to:
+# - 8080: 6,000 NMOS transistors (1974)
+# - 8086: 29,000 NMOS transistors (1978)
+# - 80386: 275,000 CMOS transistors (1985)
+# - Pentium: 3.1 million (1993)
+# - Modern CPUs: 10+ BILLION
+#
+# All because MOS technology could SCALE!

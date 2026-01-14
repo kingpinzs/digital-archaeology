@@ -1,0 +1,151 @@
+{
+  "cycle": 0,
+  "stable": true,
+  "wires": [
+    {
+      "id": 0,
+      "name": "gnd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 1,
+      "name": "vdd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 2,
+      "name": "relay_input",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 3,
+      "name": "relay_output",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 4,
+      "name": "and_a",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 5,
+      "name": "and_b",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 6,
+      "name": "and_out",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 7,
+      "name": "or_a",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 8,
+      "name": "or_b",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 9,
+      "name": "or_out",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 10,
+      "name": "nand_a",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 11,
+      "name": "nand_b",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 12,
+      "name": "nand_out",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 13,
+      "name": "rs_set",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 14,
+      "name": "rs_reset",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 15,
+      "name": "rs_q",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 16,
+      "name": "rs_qn",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    }
+  ],
+  "gates": [
+    {
+      "id": 0,
+      "name": "RELAY_NOT",
+      "type": "NOT",
+      "inputs": [{"wire": 2, "bit": 0}],
+      "outputs": [{"wire": 3, "bit": 0}]
+    }
+  ]
+}

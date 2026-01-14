@@ -1,0 +1,206 @@
+# ============================================
+# Micro4 HDL - Flip-Flops and Registers
+# ============================================
+
+# ============================================
+# SR Latch (Set-Reset)
+# ============================================
+# The most basic memory element.
+# Built from two cross-coupled NOR gates.
+#
+#      S ----+
+#            |
+#         [NOR]----+---- Q
+#            |     |
+#            +-----+
+#            |     |
+#         [NOR]----+---- Qn
+#            |
+#      R ----+
+#
+# Truth Table:
+#   S R | Q  Qn | Action
+#   0 0 | Q  Qn | Hold (no change)
+#   0 1 | 0   1 | Reset
+#   1 0 | 1   0 | Set
+#   1 1 | ?   ? | Invalid (both 0, unstable)
+#
+# Gate count: 2 NOR gates
+# Transistor count: ~8 transistors
+
+wire sr_s;
+wire sr_r;
+wire sr_q;
+wire sr_qn;
+
+nor SR_NOR1 (input: sr_r sr_qn, output: sr_q);
+nor SR_NOR2 (input: sr_s sr_q, output: sr_qn);
+
+# ============================================
+# D Latch (Level-Sensitive)
+# ============================================
+# Transparent when enable is HIGH.
+# Holds value when enable is LOW.
+#
+#              +---[NOT]---+
+#      D ------+           |
+#              |           |
+#      E ------+--[AND]----+---- S
+#              |           |
+#              +--[AND]---------> R
+#                     |
+#                    [NOT]
+#                     |
+#      D ------------+
+#
+# When E=1: D passes through to Q
+# When E=0: Q holds previous value
+#
+# Gate count: 4 gates (2 AND + 1 NOT + SR latch)
+# Transistor count: ~20 transistors
+
+wire dlatch_d;
+wire dlatch_e;
+wire dlatch_q;
+wire dlatch_qn;
+wire dlatch_dn;
+wire dlatch_s;
+wire dlatch_r;
+
+not DLATCH_NOT (input: dlatch_d, output: dlatch_dn);
+and DLATCH_AND_S (input: dlatch_d dlatch_e, output: dlatch_s);
+and DLATCH_AND_R (input: dlatch_dn dlatch_e, output: dlatch_r);
+nor DLATCH_NOR1 (input: dlatch_r dlatch_qn, output: dlatch_q);
+nor DLATCH_NOR2 (input: dlatch_s dlatch_q, output: dlatch_qn);
+
+# ============================================
+# D Flip-Flop (Edge-Triggered)
+# ============================================
+# Captures D input only on the rising edge of CLK.
+# Much more useful than a latch for synchronous design.
+#
+# Implementation: Master-Slave configuration
+# - Master latch: transparent when CLK=0
+# - Slave latch: transparent when CLK=1
+# - Together: captures on CLK 0->1 transition
+#
+#                 MASTER              SLAVE
+#      D ----->[D-Latch]---+--->[D-Latch]----> Q
+#                  |       |        |
+#      CLK ---[NOT]+       +--------+
+#                  |                |
+#                  +---- !CLK       +---- CLK
+#
+# The simulator has a built-in DFF primitive that handles
+# edge detection properly.
+#
+# Gate count: ~12 gates
+# Transistor count: ~40 transistors
+
+wire dff_d;
+wire dff_clk;
+wire dff_q;
+
+dff DFF1 (input: dff_d dff_clk, output: dff_q);
+
+# ============================================
+# D Flip-Flop with Reset
+# ============================================
+# Adds asynchronous reset capability.
+# When RST=1, Q=0 regardless of CLK.
+#
+# Implementation: Add gates to force Q=0 when reset
+
+wire dff_rst_d;
+wire dff_rst_clk;
+wire dff_rst_rst;
+wire dff_rst_q;
+wire dff_rst_d_gated;
+wire dff_rst_q_raw;
+wire dff_rst_rstn;
+
+# Gate the D input when reset
+not DFFRST_NOT1 (input: dff_rst_rst, output: dff_rst_rstn);
+and DFFRST_AND1 (input: dff_rst_d dff_rst_rstn, output: dff_rst_d_gated);
+
+# The flip-flop
+dff DFFRST_DFF (input: dff_rst_d_gated dff_rst_clk, output: dff_rst_q_raw);
+
+# Force output low when reset
+and DFFRST_AND2 (input: dff_rst_q_raw dff_rst_rstn, output: dff_rst_q);
+
+# ============================================
+# 4-Bit Register
+# ============================================
+# Four D flip-flops with shared clock and reset.
+# Loads data on rising edge of CLK when LOAD=1.
+# Holds data when LOAD=0.
+#
+#                    +---[MUX2]--->[DFF]----+
+#      D[0] ---------+     |               |
+#                    |     |               +---> Q[0]
+#      Q[0] ---------+     |
+#                          |
+#      LOAD ---------------+
+#      CLK  -------------------------------->
+#
+# Gate count: ~32 gates (4 x (MUX + DFF))
+# Transistor count: ~160 transistors
+
+wire [3:0] reg4_d;
+wire [3:0] reg4_q;
+wire reg4_clk;
+wire reg4_rst;
+wire reg4_load;
+wire [3:0] reg4_d_mux;  # MUX output (new or old value)
+
+# Bit 0
+wire reg4_loadn_0;
+wire reg4_hold_0;
+wire reg4_new_0;
+not REG4_NOT0 (input: reg4_load, output: reg4_loadn_0);
+and REG4_HOLD0 (input: reg4_q[0] reg4_loadn_0, output: reg4_hold_0);
+and REG4_NEW0 (input: reg4_d[0] reg4_load, output: reg4_new_0);
+or  REG4_MUX0 (input: reg4_hold_0 reg4_new_0, output: reg4_d_mux[0]);
+dff REG4_DFF0 (input: reg4_d_mux[0] reg4_clk, output: reg4_q[0]);
+
+# Bit 1
+wire reg4_hold_1;
+wire reg4_new_1;
+and REG4_HOLD1 (input: reg4_q[1] reg4_loadn_0, output: reg4_hold_1);
+and REG4_NEW1 (input: reg4_d[1] reg4_load, output: reg4_new_1);
+or  REG4_MUX1 (input: reg4_hold_1 reg4_new_1, output: reg4_d_mux[1]);
+dff REG4_DFF1 (input: reg4_d_mux[1] reg4_clk, output: reg4_q[1]);
+
+# Bit 2
+wire reg4_hold_2;
+wire reg4_new_2;
+and REG4_HOLD2 (input: reg4_q[2] reg4_loadn_0, output: reg4_hold_2);
+and REG4_NEW2 (input: reg4_d[2] reg4_load, output: reg4_new_2);
+or  REG4_MUX2 (input: reg4_hold_2 reg4_new_2, output: reg4_d_mux[2]);
+dff REG4_DFF2 (input: reg4_d_mux[2] reg4_clk, output: reg4_q[2]);
+
+# Bit 3
+wire reg4_hold_3;
+wire reg4_new_3;
+and REG4_HOLD3 (input: reg4_q[3] reg4_loadn_0, output: reg4_hold_3);
+and REG4_NEW3 (input: reg4_d[3] reg4_load, output: reg4_new_3);
+or  REG4_MUX3 (input: reg4_hold_3 reg4_new_3, output: reg4_d_mux[3]);
+dff REG4_DFF3 (input: reg4_d_mux[3] reg4_clk, output: reg4_q[3]);
+
+# ============================================
+# HOMEWORK: Counter
+# ============================================
+# Build a 4-bit counter that increments on each clock.
+# Hint: Feed back Q through an adder to D
+#
+#   Q ---> [+1] ---> D
+#          CLK
+#
+# ============================================
+# HOMEWORK: Shift Register
+# ============================================
+# Build a 4-bit shift register.
+# On each clock, bits shift left or right.
+#
+#   D --> [DFF0] --> [DFF1] --> [DFF2] --> [DFF3] --> Q

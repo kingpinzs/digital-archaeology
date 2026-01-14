@@ -1,0 +1,126 @@
+# ============================================
+# Era 1: Relay Logic (1930s-1940s)
+# ============================================
+# Homework 1.1 & 1.2: Build logic gates using relay concepts
+#
+# A relay is a switch controlled by an electromagnet:
+# - When current flows through coil, contacts move
+# - NO (Normally Open): Open when no current, closed when current
+# - NC (Normally Closed): Closed when no current, open when current
+#
+# For simulation, we'll model relays as ideal switches.
+# The key insight: Relays have DELAY and can FAIL.
+
+# ============================================
+# Relay NOT Gate
+# ============================================
+# Uses the Normally Closed contact
+# When input=0: coil off, NC closed, output=1
+# When input=1: coil on, NC opens, output=0
+
+wire relay_input;
+wire relay_output;
+
+# In a real relay, this would be a NC contact
+# We simulate with a NOT gate (which is what NC implements)
+not RELAY_NOT (input: relay_input, output: relay_output);
+
+# ============================================
+# Relay AND Gate
+# ============================================
+# Two relays in SERIES
+# Both must be energized (closed) for current to flow
+#
+# +V ---[Relay A NO]---[Relay B NO]--- Output
+#
+# A=0, B=0: Both open, output=0
+# A=0, B=1: A open, output=0
+# A=1, B=0: B open, output=0
+# A=1, B=1: Both closed, output=1
+
+wire and_a;
+wire and_b;
+wire and_out;
+
+# HOMEWORK: Implement this using the 'and' gate
+# Think about: Two NO contacts in series = AND
+# and RELAY_AND (input: ???, output: ???);
+
+# ============================================
+# Relay OR Gate
+# ============================================
+# Two relays in PARALLEL
+# Either one energized = current flows
+#
+#     +---[Relay A NO]---+
+# +V--+                   +--- Output
+#     +---[Relay B NO]---+
+#
+# A=0, B=0: Both open, output=0
+# A=0, B=1: B closed, output=1
+# A=1, B=0: A closed, output=1
+# A=1, B=1: Both closed, output=1
+
+wire or_a;
+wire or_b;
+wire or_out;
+
+# HOMEWORK: Implement this using the 'or' gate
+# Think about: Two NO contacts in parallel = OR
+# or RELAY_OR (input: ???, output: ???);
+
+# ============================================
+# Relay NAND Gate (Important!)
+# ============================================
+# Two NC contacts in parallel
+# OR: Two NC contacts in series
+#
+# Think about De Morgan's law:
+# NOT(A AND B) = (NOT A) OR (NOT B)
+# Two NC contacts in series, then use both as output
+
+wire nand_a;
+wire nand_b;
+wire nand_out;
+
+# HOMEWORK: Implement NAND using NC contacts concept
+# Hint: NOT(A AND B) - use nand gate or build from NOT and AND
+
+# ============================================
+# CHALLENGE: 1-Bit Memory (RS Latch from Relays)
+# ============================================
+# A relay can "latch" itself on using feedback!
+#
+#       +--[NO contact]--+
+#       |                |
+# Set---+--[Coil]--------+---Output
+#       |
+# Reset-[NC contact]
+#
+# HOMEWORK: Research how relay latches work
+# Then implement a Set-Reset latch using gates
+
+wire rs_set;
+wire rs_reset;
+wire rs_q;
+wire rs_qn;
+
+# Your implementation here...
+# Hint: Cross-coupled NOR gates make an SR latch
+
+# ============================================
+# REFLECTION QUESTIONS
+# ============================================
+# 1. Each relay takes ~10ms to switch. If you chain
+#    10 gates, what's the total delay?
+#
+# 2. Relays make an audible "click". What would
+#    a relay computer sound like?
+#
+# 3. Relay contacts can "bounce" - rapidly open/close
+#    when switching. How would this affect a computer?
+#
+# 4. The Zuse Z3 used 2,600 relays. If each relay
+#    has MTBF of 10,000 hours, how often would
+#    the computer fail on average?
+#    (Hint: 1/system_MTBF = sum(1/component_MTBF))

@@ -1,0 +1,311 @@
+# ============================================
+# Micro4 CPU - Complete Implementation
+# ============================================
+# A minimal 4-bit CPU built from logic gates
+#
+# Architecture:
+#   - 4-bit data bus
+#   - 8-bit address bus (256 nibble locations)
+#   - Accumulator-based (single working register)
+#   - 8 instructions
+
+# ============================================
+# CPU Block Diagram
+# ============================================
+#
+#  +------------------------------------------------------------------+
+#  |                         MICRO4 CPU                               |
+#  |                                                                  |
+#  |   +--------+    +--------+    +--------+                        |
+#  |   |   PC   |    |   IR   |    |   A    |                        |
+#  |   | 8-bit  |    | 8-bit  |    | 4-bit  |                        |
+#  |   +---+----+    +---+----+    +---+----+                        |
+#  |       |             |             |                              |
+#  |       v             v             v                              |
+#  |   +--------+    +--------+    +--------+                        |
+#  |   |  MAR   |    | DECODE |    |  ALU   |                        |
+#  |   | 8-bit  |    |        |    | 4-bit  |                        |
+#  |   +---+----+    +---+----+    +---+----+                        |
+#  |       |             |             |                              |
+#  |       v             v             v                              |
+#  |   +--------+    +--------+    +--------+                        |
+#  |   |  MDR   |<-->|CONTROL |    |   Z    |                        |
+#  |   | 4-bit  |    | UNIT   |    |  flag  |                        |
+#  |   +---+----+    +--------+    +--------+                        |
+#  |       |                                                          |
+#  +-------+----------------------------------------------------------+
+#          |
+#          v
+#      MEMORY BUS
+
+# ============================================
+# Registers
+# ============================================
+
+# Program Counter (8-bit)
+wire [7:0] pc;
+wire [7:0] pc_next;
+wire pc_load;       # Load new value (for jumps)
+wire pc_inc;        # Increment by 1 or 2
+wire pc_inc2;       # Increment by 2 (for 2-byte instructions)
+wire clk;
+wire rst;
+
+# Accumulator (4-bit)
+wire [3:0] acc;
+wire [3:0] acc_next;
+wire acc_load;
+
+# Zero Flag
+wire z_flag;
+wire z_flag_next;
+wire z_load;
+
+# Instruction Register (8-bit = opcode + operand nibbles)
+wire [7:0] ir;
+wire ir_load;
+
+# Memory Address Register (8-bit)
+wire [7:0] mar;
+wire mar_load;
+
+# Memory Data Register (4-bit)
+wire [3:0] mdr;
+wire mdr_load;
+
+# ============================================
+# Instruction Decoder
+# ============================================
+# Opcode is upper nibble of IR: IR[7:4]
+#
+# Opcodes:
+#   0000 = HLT
+#   0001 = LDA addr
+#   0010 = STA addr
+#   0011 = ADD addr
+#   0100 = SUB addr
+#   0101 = JMP addr
+#   0110 = JZ addr
+#   0111 = LDI imm
+
+wire [3:0] opcode;
+wire is_hlt;
+wire is_lda;
+wire is_sta;
+wire is_add;
+wire is_sub;
+wire is_jmp;
+wire is_jz;
+wire is_ldi;
+
+# Extract opcode from IR
+buf DEC_OP0 (input: ir[4], output: opcode[0]);
+buf DEC_OP1 (input: ir[5], output: opcode[1]);
+buf DEC_OP2 (input: ir[6], output: opcode[2]);
+buf DEC_OP3 (input: ir[7], output: opcode[3]);
+
+# Decode individual instructions
+# HLT: 0000
+wire op0n, op1n, op2n, op3n;
+not DEC_NOT0 (input: opcode[0], output: op0n);
+not DEC_NOT1 (input: opcode[1], output: op1n);
+not DEC_NOT2 (input: opcode[2], output: op2n);
+not DEC_NOT3 (input: opcode[3], output: op3n);
+
+# is_hlt = !op3 & !op2 & !op1 & !op0
+wire hlt_t1, hlt_t2;
+and DEC_HLT1 (input: op3n op2n, output: hlt_t1);
+and DEC_HLT2 (input: op1n op0n, output: hlt_t2);
+and DEC_HLT3 (input: hlt_t1 hlt_t2, output: is_hlt);
+
+# is_lda = !op3 & !op2 & !op1 & op0  (0001)
+wire lda_t;
+and DEC_LDA1 (input: hlt_t1 op1n, output: lda_t);
+and DEC_LDA2 (input: lda_t opcode[0], output: is_lda);
+
+# is_sta = !op3 & !op2 & op1 & !op0  (0010)
+wire sta_t1, sta_t2;
+and DEC_STA1 (input: op3n op2n, output: sta_t1);
+and DEC_STA2 (input: opcode[1] op0n, output: sta_t2);
+and DEC_STA3 (input: sta_t1 sta_t2, output: is_sta);
+
+# is_add = !op3 & !op2 & op1 & op0  (0011)
+wire add_t;
+and DEC_ADD1 (input: opcode[1] opcode[0], output: add_t);
+and DEC_ADD2 (input: sta_t1 add_t, output: is_add);
+
+# is_sub = !op3 & op2 & !op1 & !op0  (0100)
+wire sub_t1, sub_t2;
+and DEC_SUB1 (input: op3n opcode[2], output: sub_t1);
+and DEC_SUB2 (input: op1n op0n, output: sub_t2);
+and DEC_SUB3 (input: sub_t1 sub_t2, output: is_sub);
+
+# is_jmp = !op3 & op2 & !op1 & op0  (0101)
+wire jmp_t;
+and DEC_JMP1 (input: op1n opcode[0], output: jmp_t);
+and DEC_JMP2 (input: sub_t1 jmp_t, output: is_jmp);
+
+# is_jz = !op3 & op2 & op1 & !op0  (0110)
+wire jz_t;
+and DEC_JZ1 (input: opcode[1] op0n, output: jz_t);
+and DEC_JZ2 (input: sub_t1 jz_t, output: is_jz);
+
+# is_ldi = !op3 & op2 & op1 & op0  (0111)
+wire ldi_t;
+and DEC_LDI1 (input: opcode[1] opcode[0], output: ldi_t);
+and DEC_LDI2 (input: sub_t1 ldi_t, output: is_ldi);
+
+# ============================================
+# ALU Connections
+# ============================================
+# ALU inputs:
+#   A = Accumulator
+#   B = MDR (from memory)
+#   OP[0] = 1 for SUB, 0 for ADD
+#   OP[1] = reserved
+
+wire [3:0] alu_a_in;
+wire [3:0] alu_b_in;
+wire alu_op0;
+wire [3:0] alu_result;
+wire alu_zero;
+wire alu_carry;
+
+# Connect accumulator to ALU input A
+buf ALU_A0 (input: acc[0], output: alu_a_in[0]);
+buf ALU_A1 (input: acc[1], output: alu_a_in[1]);
+buf ALU_A2 (input: acc[2], output: alu_a_in[2]);
+buf ALU_A3 (input: acc[3], output: alu_a_in[3]);
+
+# Connect MDR to ALU input B
+buf ALU_B0 (input: mdr[0], output: alu_b_in[0]);
+buf ALU_B1 (input: mdr[1], output: alu_b_in[1]);
+buf ALU_B2 (input: mdr[2], output: alu_b_in[2]);
+buf ALU_B3 (input: mdr[3], output: alu_b_in[3]);
+
+# ALU operation: SUB if is_sub, else ADD
+buf ALU_OP (input: is_sub, output: alu_op0);
+
+# (ALU implementation would go here - using the gates from 03_alu.m4hdl)
+
+# ============================================
+# Control Unit State Machine
+# ============================================
+# States:
+#   S0: FETCH1 - MAR <- PC, initiate memory read
+#   S1: FETCH2 - IR <- MDR (high nibble)
+#   S2: FETCH3 - IR <- IR | MDR (low nibble), PC++
+#   S3: DECODE - Decode opcode, branch to execute
+#   S4: FETCH_ADDR1 - MAR <- PC (for 2-byte instructions)
+#   S5: FETCH_ADDR2 - addr_reg <- MDR, PC++
+#   S6: EXECUTE - Execute the instruction
+#   S7: WRITEBACK - Write result if needed
+#
+# For simplicity, the control unit generates signals based on
+# the current state and opcode.
+
+wire [2:0] state;
+wire [2:0] state_next;
+
+# State register (3-bit)
+dff STATE0 (input: state_next[0] clk, output: state[0]);
+dff STATE1 (input: state_next[1] clk, output: state[1]);
+dff STATE2 (input: state_next[2] clk, output: state[2]);
+
+# ============================================
+# Control Signals (generated by control unit)
+# ============================================
+# These would be generated by a PLA or ROM based on
+# the current state and opcode.
+
+wire halt;          # Stop the clock
+wire mem_read;      # Read from memory
+wire mem_write;     # Write to memory
+# wire pc_inc;      # Increment PC (declared above)
+# wire pc_load;     # Load PC from address (declared above)
+# wire ir_load;     # Load instruction register (declared above)
+# wire mar_load;    # Load memory address register (declared above)
+# wire acc_load;    # Load accumulator (declared above)
+# wire z_load;      # Load zero flag (declared above)
+wire alu_to_acc;    # ALU result goes to accumulator
+wire mdr_to_acc;    # MDR goes to accumulator (for LDA)
+wire imm_to_acc;    # Immediate value goes to accumulator (for LDI)
+
+# ============================================
+# Memory Interface
+# ============================================
+wire [7:0] mem_addr;    # Address to memory
+wire [3:0] mem_data_in; # Data from memory
+wire [3:0] mem_data_out;# Data to memory
+
+# MAR drives memory address
+buf MEM_ADDR0 (input: mar[0], output: mem_addr[0]);
+buf MEM_ADDR1 (input: mar[1], output: mem_addr[1]);
+buf MEM_ADDR2 (input: mar[2], output: mem_addr[2]);
+buf MEM_ADDR3 (input: mar[3], output: mem_addr[3]);
+buf MEM_ADDR4 (input: mar[4], output: mem_addr[4]);
+buf MEM_ADDR5 (input: mar[5], output: mem_addr[5]);
+buf MEM_ADDR6 (input: mar[6], output: mem_addr[6]);
+buf MEM_ADDR7 (input: mar[7], output: mem_addr[7]);
+
+# MDR receives data from memory (directly assigned in simulation)
+# MDR drives data to memory for writes
+buf MEM_DOUT0 (input: acc[0], output: mem_data_out[0]);
+buf MEM_DOUT1 (input: acc[1], output: mem_data_out[1]);
+buf MEM_DOUT2 (input: acc[2], output: mem_data_out[2]);
+buf MEM_DOUT3 (input: acc[3], output: mem_data_out[3]);
+
+# ============================================
+# Component Count Summary
+# ============================================
+#
+# Registers:
+#   PC (8-bit):     8 DFFs = ~320 transistors
+#   Accumulator:    4 DFFs = ~160 transistors
+#   Zero Flag:      1 DFF  = ~40 transistors
+#   IR (8-bit):     8 DFFs = ~320 transistors
+#   MAR (8-bit):    8 DFFs = ~320 transistors
+#   MDR (4-bit):    4 DFFs = ~160 transistors
+#   State (3-bit):  3 DFFs = ~120 transistors
+#
+# ALU:              ~200 transistors
+#
+# Decoder:          ~50 transistors
+#
+# Control Logic:    ~200 transistors (estimate)
+#
+# Multiplexers:     ~300 transistors (estimate)
+#
+# TOTAL: ~2,200 transistors
+# (Intel 4004 had ~2,300 transistors - we're close!)
+
+# ============================================
+# HOMEWORK: Complete the Control Unit
+# ============================================
+# The control unit needs to generate the right
+# signals at each state. This requires:
+#
+# 1. State transition logic
+#    - Which state comes next?
+#    - Depends on current state and opcode
+#
+# 2. Output logic
+#    - Which control signals are active?
+#    - Depends on current state and opcode
+#
+# This can be implemented as:
+# - A large combinational circuit
+# - A ROM (microcode)
+# - A PLA (Programmable Logic Array)
+#
+# Try implementing the state machine for at least
+# the HLT, LDI, and ADD instructions!
+
+# ============================================
+# HOMEWORK: Add More Instructions
+# ============================================
+# Once the basic CPU works, try adding:
+# - JNZ (Jump if Not Zero)
+# - AND, OR, XOR
+# - INC, DEC
+# - CALL, RET (need a stack!)

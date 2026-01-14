@@ -1,0 +1,180 @@
+# ============================================
+# Era 3: Resistor-Transistor Logic (RTL) - 1950s
+# ============================================
+# Homework 3.3: Understanding early transistor logic
+#
+# RTL was the first transistor logic family.
+# Key characteristics:
+# - Simple design (just resistors and transistors)
+# - Low fan-out (can only drive ~3 gates)
+# - Poor noise immunity
+# - Slow due to resistor pull-ups
+#
+# RTL naturally implements NOR gates (like CMOS does NAND)
+
+# ============================================
+# RTL Inverter
+# ============================================
+#       +Vcc
+#         |
+#        [Rc] Collector resistor
+#         |
+#         +------- Output
+#         |
+#        _|_
+#       / | \  NPN transistor
+# In--[Rb]-+   Base resistor
+#         |
+#        GND
+#
+# When In=LOW: Transistor OFF, Output pulled to Vcc (HIGH)
+# When In=HIGH: Transistor ON (saturates), Output ~ GND (LOW)
+
+wire rtl_inv_in;
+wire rtl_inv_out;
+
+not RTL_INVERTER (input: rtl_inv_in, output: rtl_inv_out);
+
+# ============================================
+# RTL NOR Gate (Native RTL gate)
+# ============================================
+#       +Vcc
+#         |
+#        [Rc]
+#         |
+#         +------- Output
+#        /|\
+#       / | \
+#      T1 T2 T3   (Transistors in parallel)
+#      |  |  |
+#      A  B  C    (Inputs through base resistors)
+#      |  |  |
+#     GND GND GND
+#
+# If ANY input is HIGH, that transistor conducts,
+# pulling output LOW. Only when ALL inputs are LOW
+# does output go HIGH. This is NOR!
+
+wire rtl_nor_a;
+wire rtl_nor_b;
+wire rtl_nor_out;
+
+# HOMEWORK: Implement NOR gate
+# nor RTL_NOR (input: rtl_nor_a rtl_nor_b, output: rtl_nor_out);
+
+# ============================================
+# RTL NAND Gate (Needs series transistors)
+# ============================================
+#       +Vcc
+#         |
+#        [Rc]
+#         |
+#         +------- Output
+#        _|_
+#       / | \  T1 (connected to input A)
+#         |
+#        _|_
+#       / | \  T2 (connected to input B)
+#         |
+#        GND
+#
+# Both transistors must conduct to pull output LOW.
+# If either is OFF, output stays HIGH. This is NAND!
+#
+# Problem: Series transistors = higher resistance = slower!
+
+wire rtl_nand_a;
+wire rtl_nand_b;
+wire rtl_nand_out;
+
+# HOMEWORK: Implement NAND gate
+# nand RTL_NAND (input: rtl_nand_a rtl_nand_b, output: rtl_nand_out);
+
+# ============================================
+# Building AND and OR from NOR (RTL Universal Gate)
+# ============================================
+# NOR is a universal gate - you can build anything!
+#
+# NOT from NOR: NOR(A, A) = NOT A
+# OR from NOR:  NOT(NOR(A, B)) = A OR B
+# AND from NOR: NOR(NOT A, NOT B) = A AND B
+
+wire rtl_and_a;
+wire rtl_and_b;
+wire rtl_and_out;
+
+# HOMEWORK: Build AND using only NOR gates
+# Step 1: NOT A
+# Step 2: NOT B
+# Step 3: NOR(NOT A, NOT B) = AND
+
+wire rtl_not_a;
+wire rtl_not_b;
+
+# nor RTL_AND_NOTA (input: rtl_and_a rtl_and_a, output: rtl_not_a);
+# nor RTL_AND_NOTB (input: rtl_and_b rtl_and_b, output: rtl_not_b);
+# nor RTL_AND_FINAL (input: rtl_not_a rtl_not_b, output: rtl_and_out);
+
+# ============================================
+# RTL Fan-Out Problem
+# ============================================
+# In RTL, the collector resistor must:
+# - Be small enough to provide current when ON
+# - Be large enough to pull high when OFF
+#
+# When driving multiple gates:
+# - Each gate input "steals" base current
+# - Not enough current = logic levels degrade
+# - Typical fan-out: only 3-5 gates!
+#
+# HOMEWORK QUESTION:
+# If RTL can only drive 3 gates, how would you
+# build a 4-bit adder with proper fan-out?
+# (Hint: Buffer stages)
+
+# ============================================
+# RTL Half Adder
+# ============================================
+# Using only NOR gates (true RTL style!)
+#
+# Sum = A XOR B = (A NOR B) NOR (A NOR A) NOR (B NOR B)
+#     = (A NOR B) NOR (NOT A) NOR (NOT B)
+#     Hmm, that's complex. Let's derive:
+#
+# XOR = A'B + AB' = (A+B)(A'+B') = (A+B)(AB)'
+#     = (A NOR A' NOR B' NOR B) ... this gets complicated!
+#
+# Easier: XOR = (A NAND (A NAND B)) NAND (B NAND (A NAND B))
+#
+# For RTL, build from NOR:
+# We need OR, AND, NOT - all buildable from NOR
+
+wire ha_a;
+wire ha_b;
+wire ha_sum;
+wire ha_carry;
+
+# HOMEWORK: Implement half adder using ONLY NOR gates
+# This is tedious but educational!
+#
+# Hint for SUM (XOR):
+# XOR(A,B) = OR(AND(A, NOT B), AND(NOT A, B))
+# Each of those operations can be built from NOR
+
+# Hint for CARRY (AND):
+# AND(A,B) = NOR(NOT A, NOT B)
+
+# ============================================
+# REFLECTION QUESTIONS
+# ============================================
+# 1. Why is NOR the "natural" gate in RTL?
+#
+# 2. The first RTL ICs (like Fairchild's uL900 series)
+#    had only 4-8 gates per chip. Why so few?
+#
+# 3. RTL was used in the Apollo Guidance Computer.
+#    Why would NASA choose RTL over faster logic?
+#    (Hint: reliability, power consumption)
+#
+# 4. Calculate: An RTL gate uses ~5mW. A 1000-gate
+#    computer uses how much power?

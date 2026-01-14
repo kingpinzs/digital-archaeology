@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro4 Circuit Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+        header {
+            background: #16213e;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f3460;
+        }
+        h1 {
+            font-size: 1.3em;
+            color: #e94560;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        button.active {
+            background: #e94560;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Component Palette */
+        .palette {
+            width: 140px;
+            background: #16213e;
+            padding: 10px;
+            border-right: 2px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .palette h3 {
+            color: #e94560;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 5px;
+        }
+        .palette-item {
+            background: #1a1a2e;
+            border: 2px solid #0f3460;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: grab;
+            text-align: center;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .palette-item:hover {
+            border-color: #e94560;
+            background: #252545;
+        }
+        .palette-item.dragging {
+            opacity: 0.5;
+        }
+        .palette-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #0d0d1a;
+        }
+        #circuitCanvas {
+            display: block;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px;
+            background: #16213e;
+            padding: 10px;
+            overflow-y: auto;
+            border-left: 2px solid #0f3460;
+            font-size: 11px;
+        }
+        .sidebar h3 {
+            color: #e94560;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .component-info {
+            background: #1a1a2e;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .component-info-title {
+            color: #e94560;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .wire-list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #0f3460;
+        }
+        .state-badge {
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .state-0 { background: #0077cc; color: #fff; }
+        .state-1 { background: #00aa00; color: #fff; }
+        .state-X { background: #444; color: #888; }
+
+        .info-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(22, 33, 62, 0.9);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+        .tooltip {
+            position: absolute;
+            background: #16213e;
+            border: 1px solid #e94560;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Micro4 Circuit Builder</h1>
+        <div class="controls">
+            <button onclick="document.getElementById('fileInput').click()">Load JSON</button>
+            <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadJSONFile(event)">
+            <button onclick="clearCircuit()">Clear</button>
+            <button onclick="runSimulation()">Simulate</button>
+            <button onclick="loadExample('power')">Power Demo</button>
+            <button onclick="loadExample('and')">AND Example</button>
+            <button onclick="loadExample('adder')">Adder Example</button>
+            <button id="xrayBtn" onclick="toggleXray()" class="active">X-Ray ON</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="palette">
+            <h3>Power</h3>
+            <div class="palette-item" draggable="true" data-type="vdd">
+                <div class="palette-icon">+</div>
+                VDD (1)
+            </div>
+            <div class="palette-item" draggable="true" data-type="gnd">
+                <div class="palette-icon">⏚</div>
+                GND (0)
+            </div>
+
+            <h3>Inputs</h3>
+            <div class="palette-item" draggable="true" data-type="switch">
+                <div class="palette-icon">[ ]</div>
+                Switch
+            </div>
+
+            <h3>Outputs</h3>
+            <div class="palette-item" draggable="true" data-type="led">
+                <div class="palette-icon">O</div>
+                LED
+            </div>
+
+            <h3>Gates</h3>
+            <div class="palette-item" draggable="true" data-type="NOT">
+                <div class="palette-icon">></div>
+                NOT
+            </div>
+            <div class="palette-item" draggable="true" data-type="AND">
+                <div class="palette-icon">D</div>
+                AND
+            </div>
+            <div class="palette-item" draggable="true" data-type="OR">
+                <div class="palette-icon">)</div>
+                OR
+            </div>
+            <div class="palette-item" draggable="true" data-type="NAND">
+                <div class="palette-icon">D o</div>
+                NAND
+            </div>
+            <div class="palette-item" draggable="true" data-type="NOR">
+                <div class="palette-icon">) o</div>
+                NOR
+            </div>
+            <div class="palette-item" draggable="true" data-type="XOR">
+                <div class="palette-icon">))</div>
+                XOR
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="circuitCanvas"></canvas>
+            <div class="info-bar">
+                <span style="color:#00ff00">■ Green=VDD(1)</span> &nbsp;
+                <span style="color:#0088dd">■ Blue=GND(0)</span> &nbsp;
+                <span style="color:#555">■ Gray=Unknown</span> &nbsp;
+                | Gates route VDD or GND to output based on control inputs
+            </div>
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+
+        <div class="sidebar">
+            <h3>Components</h3>
+            <div id="componentList"></div>
+            <h3>Signals</h3>
+            <div id="signalList"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Component storage
+        let components = [];  // switches, gates, leds
+        let wires = [];       // connections
+        let nextId = 0;
+
+        // Interaction state
+        let dragging = null;
+        let dragOffset = { x: 0, y: 0 };
+        let wiring = null;    // { from: component, port: index }
+        let wirePreview = null;
+
+        // Animation
+        let particles = [];
+        let animationFrame = null;
+        let simulating = false;  // Continuous simulation mode
+
+        // Colors
+        const COLORS = {
+            bg: '#0d0d1a',
+            grid: '#1a1a2e',
+            wire0: '#0077b6',
+            wire1: '#e94560',
+            wireX: '#555',
+            gateBody: '#16213e',
+            gateBorder: '#0f3460',
+            text: '#eee',
+            highlight: '#e94560',
+            switchOff: '#0077b6',
+            switchOn: '#e94560',
+            ledOff: '#1a1a1a',
+            ledOn: '#00ff00'
+        };
+
+        // Dimensions
+        const GATE_W = 100;
+        const GATE_H = 80;
+        const SWITCH_W = 50;
+        const SWITCH_H = 30;
+        const LED_W = 40;
+        const LED_H = 50;
+        const PORT_R = 6;
+        const POWER_W = 40;
+        const POWER_H = 30;
+
+        // X-ray mode - show internal gate structure
+        let xrayMode = true;  // Default on for simple circuits
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            render();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Component class
+        function createComponent(type, x, y) {
+            const comp = {
+                id: nextId++,
+                type: type,
+                x: x,
+                y: y,
+                state: 0,  // For switches
+                inputs: [],
+                outputs: [],
+                inputStates: [],
+                outputStates: []
+            };
+
+            // Set up ports based on type
+            if (type === 'vdd') {
+                // VDD is a constant power source (always 1)
+                comp.outputs = [{ x: POWER_W, y: POWER_H / 2 }];
+                comp.outputStates = [1];  // Always 1
+                comp.state = 1;
+            } else if (type === 'gnd') {
+                // GND is a constant ground (always 0) AND a return path for current
+                comp.inputs = [{ x: 0, y: POWER_H / 2 }];  // Return current input (for LED cathodes, etc.)
+                comp.inputStates = [2];  // Accept any current flowing back
+                comp.outputs = [{ x: POWER_W, y: POWER_H / 2 }];
+                comp.outputStates = [0];  // Always 0
+                comp.state = 0;
+            } else if (type === 'switch') {
+                // Switch needs VDD input - when ON it passes VDD through, when OFF it's disconnected (GND via pull-down)
+                comp.inputs = [{ x: 0, y: SWITCH_H / 2 }];  // Power input (connect VDD here)
+                comp.outputs = [{ x: SWITCH_W, y: SWITCH_H / 2 }];
+                comp.inputStates = [2];  // VDD input state
+                comp.outputStates = [0];
+            } else if (type === 'led') {
+                // LED has two leads: power input (left) and GND output (right)
+                // Current flows: input -> LED -> GND
+                comp.inputs = [{ x: 0, y: LED_H / 2 }];  // Power input (left)
+                comp.outputs = [{ x: LED_W, y: LED_H / 2 }];  // GND output (right)
+                comp.inputStates = [2]; // X
+                comp.outputStates = [2]; // Passes through to GND
+            } else if (type === 'NOT') {
+                // NOT gate: VDD (top), control input (left), GND (bottom), output (right)
+                comp.inputs = [
+                    { x: GATE_W / 2, y: 0 },      // VDD power input (top)
+                    { x: 0, y: GATE_H / 2 },       // Control input (left)
+                    { x: GATE_W / 2, y: GATE_H }   // GND input (bottom)
+                ];
+                comp.outputs = [{ x: GATE_W, y: GATE_H / 2 }];
+                comp.inputStates = [2, 2, 2];  // VDD, control, GND
+                comp.outputStates = [2];
+            } else {
+                // 2-input gates: AND, OR, NAND, NOR, XOR
+                // Have VDD (top), two logic inputs (left), GND (bottom), output (right)
+                comp.inputs = [
+                    { x: GATE_W / 2, y: 0 },      // VDD power input (top)
+                    { x: 0, y: GATE_H * 0.3 },    // Logic input A (left top)
+                    { x: 0, y: GATE_H * 0.7 },    // Logic input B (left bottom)
+                    { x: GATE_W / 2, y: GATE_H }  // GND input (bottom)
+                ];
+                comp.outputs = [{ x: GATE_W, y: GATE_H / 2 }];
+                comp.inputStates = [2, 2, 2, 2];  // VDD, A, B, GND
+                comp.outputStates = [2];
+            }
+
+            return comp;
+        }
+
+        function getPortPosition(comp, isOutput, portIndex) {
+            const ports = isOutput ? comp.outputs : comp.inputs;
+            if (!ports[portIndex]) return null;
+            return {
+                x: comp.x + ports[portIndex].x,
+                y: comp.y + ports[portIndex].y
+            };
+        }
+
+        function findPortAt(x, y) {
+            for (const comp of components) {
+                // Check outputs
+                for (let i = 0; i < comp.outputs.length; i++) {
+                    const pos = getPortPosition(comp, true, i);
+                    if (pos && Math.hypot(x - pos.x, y - pos.y) < PORT_R + 5) {
+                        return { comp, isOutput: true, index: i };
+                    }
+                }
+                // Check inputs
+                for (let i = 0; i < comp.inputs.length; i++) {
+                    const pos = getPortPosition(comp, false, i);
+                    if (pos && Math.hypot(x - pos.x, y - pos.y) < PORT_R + 5) {
+                        return { comp, isOutput: false, index: i };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function findComponentAt(x, y) {
+            for (const comp of components) {
+                let w, h;
+                if (comp.type === 'vdd' || comp.type === 'gnd') {
+                    w = POWER_W; h = POWER_H;
+                } else if (comp.type === 'switch') {
+                    w = SWITCH_W; h = SWITCH_H;
+                } else if (comp.type === 'led') {
+                    w = LED_W; h = LED_H;
+                } else {
+                    w = GATE_W; h = GATE_H;
+                }
+                if (x >= comp.x && x <= comp.x + w && y >= comp.y && y <= comp.y + h) {
+                    return comp;
+                }
+            }
+            return null;
+        }
+
+        // Simulation
+        function simulate() {
+            // Reset all states to X first (except switches and power sources)
+            for (const comp of components) {
+                if (comp.type !== 'switch' && comp.type !== 'vdd' && comp.type !== 'gnd') {
+                    comp.inputStates = comp.inputStates.map(() => 2);
+                    comp.outputStates = comp.outputStates.map(() => 2);
+                }
+            }
+
+            // Propagate values
+            let changed = true;
+            let iterations = 0;
+            while (changed && iterations < 100) {
+                changed = false;
+                iterations++;
+
+                // First, propagate wire values
+                for (const wire of wires) {
+                    const fromPos = getPortPosition(wire.from.comp, true, wire.from.index);
+                    const toPos = getPortPosition(wire.to.comp, false, wire.to.index);
+                    if (!fromPos || !toPos) continue;
+
+                    const value = wire.from.comp.outputStates[wire.from.index];
+                    if (wire.to.comp.inputStates[wire.to.index] !== value) {
+                        wire.to.comp.inputStates[wire.to.index] = value;
+                        changed = true;
+                    }
+                }
+
+                // Then, evaluate gates
+                for (const comp of components) {
+                    if (comp.type === 'vdd') {
+                        // VDD always outputs 1 (power)
+                        comp.outputStates[0] = 1;
+                    } else if (comp.type === 'gnd') {
+                        // GND always outputs 0 (ground)
+                        comp.outputStates[0] = 0;
+                    } else if (comp.type === 'switch') {
+                        // Switch: when ON, passes input (VDD) through; when OFF, outputs 0 (pulled to GND)
+                        const powerIn = comp.inputStates[0];
+                        if (comp.state === 1 && powerIn === 1) {
+                            // Switch ON and has power - pass it through
+                            comp.outputStates[0] = 1;
+                        } else {
+                            // Switch OFF or no power - output is 0 (pulled down)
+                            comp.outputStates[0] = 0;
+                        }
+                    } else if (comp.type === 'led') {
+                        // LED passes current through when input is high and output goes to GND
+                        // Output shows the "return path" - same as input when circuit is complete
+                        const input = comp.inputStates[0];
+                        // LED output passes through to GND (for visualization of current path)
+                        if (input === 1) {
+                            comp.outputStates[0] = 0; // Current flows to GND
+                        } else {
+                            comp.outputStates[0] = input; // Pass through state
+                        }
+                    } else {
+                        // Gate logic - gates route VDD or GND to output based on control inputs
+                        const ins = comp.inputStates;
+                        let out = 2;  // Unknown by default
+
+                        if (comp.type === 'NOT') {
+                            // ins[0] = VDD, ins[1] = control, ins[2] = GND
+                            const vdd = ins[0];
+                            const ctrl = ins[1];
+                            const gnd = ins[2];
+
+                            // Gate needs power to work
+                            if (vdd === 1 && gnd === 0 && ctrl !== 2) {
+                                // NOT: when control=0, route VDD; when control=1, route GND
+                                out = (ctrl === 0) ? vdd : gnd;
+                            }
+                        } else {
+                            // 2-input gates: ins[0]=VDD, ins[1]=A, ins[2]=B, ins[3]=GND
+                            const vdd = ins[0];
+                            const a = ins[1];
+                            const b = ins[2];
+                            const gnd = ins[3];
+
+                            // Gate needs power to work
+                            if (vdd === 1 && gnd === 0 && a !== 2 && b !== 2) {
+                                let routeVDD = false;
+                                switch (comp.type) {
+                                    case 'AND':
+                                        routeVDD = (a === 1 && b === 1);
+                                        break;
+                                    case 'OR':
+                                        routeVDD = (a === 1 || b === 1);
+                                        break;
+                                    case 'NAND':
+                                        routeVDD = !(a === 1 && b === 1);
+                                        break;
+                                    case 'NOR':
+                                        routeVDD = !(a === 1 || b === 1);
+                                        break;
+                                    case 'XOR':
+                                        routeVDD = (a !== b);
+                                        break;
+                                }
+                                out = routeVDD ? vdd : gnd;
+                            }
+                        }
+
+                        if (comp.outputStates[0] !== out) {
+                            comp.outputStates[0] = out;
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            spawnParticles();
+            updateSidebar();
+            render();
+        }
+
+        function spawnParticles() {
+            // In continuous mode, add new particles; otherwise reset
+            if (!simulating) {
+                particles = [];
+            }
+
+            for (const wire of wires) {
+                const from = getPortPosition(wire.from.comp, true, wire.from.index);
+                const to = getPortPosition(wire.to.comp, false, wire.to.index);
+                if (!from || !to) continue;
+
+                const state = wire.from.comp.outputStates[wire.from.index];
+                // Only spawn particles for active (1) signals - electrons flow when ON
+                if (state !== 1) continue;
+
+                // In continuous mode, randomly spawn new particles
+                if (simulating) {
+                    if (Math.random() < 0.15) {  // 15% chance each frame to spawn
+                        particles.push({
+                            x: from.x,
+                            y: from.y,
+                            targetX: to.x,
+                            targetY: to.y,
+                            progress: 0,
+                            color: '#00ff00'
+                        });
+                    }
+                } else {
+                    particles.push({
+                        x: from.x,
+                        y: from.y,
+                        targetX: to.x,
+                        targetY: to.y,
+                        progress: 0,
+                        color: '#00ff00'
+                    });
+                }
+            }
+        }
+
+        function updateParticles() {
+            // Update existing particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                if (p.progress < 1) {
+                    p.progress += 0.03;
+                } else if (simulating) {
+                    // Remove completed particles in continuous mode
+                    particles.splice(i, 1);
+                }
+            }
+
+            // In continuous mode, keep spawning and animating
+            if (simulating) {
+                spawnParticles();
+                render();
+                animationFrame = requestAnimationFrame(updateParticles);
+            } else {
+                // One-shot mode: keep animating until all particles done
+                const active = particles.some(p => p.progress < 1);
+                if (active) {
+                    render();
+                    requestAnimationFrame(updateParticles);
+                }
+            }
+        }
+
+        function runSimulation() {
+            simulating = !simulating;
+            const btn = document.querySelector('.controls button:nth-child(4)');
+
+            if (simulating) {
+                btn.textContent = 'Stop';
+                btn.classList.add('active');
+                simulate();
+                animationFrame = requestAnimationFrame(updateParticles);
+            } else {
+                btn.textContent = 'Simulate';
+                btn.classList.remove('active');
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                }
+                particles = [];
+                render();
+            }
+        }
+
+        // One-time simulation (used internally when switch is toggled)
+        function simulateOnce() {
+            simulate();
+            if (!simulating) {
+                spawnParticles();
+                requestAnimationFrame(updateParticles);
+            }
+        }
+
+        // Drawing
+        function render() {
+            ctx.fillStyle = COLORS.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid
+            ctx.strokeStyle = COLORS.grid;
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 30) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 30) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Wires
+            for (const wire of wires) {
+                drawWire(wire);
+            }
+
+            // Wire preview
+            if (wirePreview) {
+                ctx.strokeStyle = COLORS.highlight;
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(wirePreview.x1, wirePreview.y1);
+                ctx.lineTo(wirePreview.x2, wirePreview.y2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Components
+            for (const comp of components) {
+                drawComponent(comp);
+            }
+
+            // Particles
+            for (const p of particles) {
+                if (p.progress > 0 && p.progress < 1) {
+                    const x = p.x + (p.targetX - p.x) * p.progress;
+                    const y = p.y + (p.targetY - p.y) * p.progress;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        function drawWire(wire) {
+            const from = getPortPosition(wire.from.comp, true, wire.from.index);
+            const to = getPortPosition(wire.to.comp, false, wire.to.index);
+            if (!from || !to) return;
+
+            const state = wire.from.comp.outputStates[wire.from.index];
+            // Green = routed to VDD (power), Blue = routed to GND (ground), Gray = unknown/floating
+            ctx.strokeStyle = state === 1 ? '#00cc00' : (state === 0 ? '#0077cc' : '#555');
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(from.x, from.y);
+            const midX = (from.x + to.x) / 2;
+            ctx.bezierCurveTo(midX, from.y, midX, to.y, to.x, to.y);
+            ctx.stroke();
+        }
+
+        function drawComponent(comp) {
+            if (comp.type === 'vdd') {
+                drawVDD(comp);
+            } else if (comp.type === 'gnd') {
+                drawGND(comp);
+            } else if (comp.type === 'switch') {
+                drawSwitch(comp);
+            } else if (comp.type === 'led') {
+                drawLED(comp);
+            } else {
+                drawGate(comp);
+            }
+        }
+
+        function drawVDD(comp) {
+            // VDD power supply - always outputs 1
+            const cx = comp.x + POWER_W / 2;
+            const cy = comp.y + POWER_H / 2;
+
+            // Glow effect
+            ctx.beginPath();
+            ctx.arc(cx, cy, POWER_W / 2 + 8, 0, Math.PI * 2);
+            const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, POWER_W / 2 + 8);
+            glow.addColorStop(0, 'rgba(0, 255, 0, 0.3)');
+            glow.addColorStop(1, 'rgba(0, 255, 0, 0)');
+            ctx.fillStyle = glow;
+            ctx.fill();
+
+            // Body - circle with + symbol
+            ctx.beginPath();
+            ctx.arc(cx, cy, POWER_W / 2 - 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a2a1a';
+            ctx.fill();
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Plus symbol
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(cx - 8, cy);
+            ctx.lineTo(cx + 8, cy);
+            ctx.moveTo(cx, cy - 8);
+            ctx.lineTo(cx, cy + 8);
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#00ff00';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('VDD', cx, comp.y - 5);
+
+            // Output port
+            const outPos = getPortPosition(comp, true, 0);
+            ctx.beginPath();
+            ctx.arc(outPos.x, outPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = '#00ff00';
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function drawGND(comp) {
+            // GND ground - always outputs 0, accepts return current
+            const cx = comp.x + POWER_W / 2;
+            const cy = comp.y + POWER_H / 2;
+
+            // Body - circle with ground symbol
+            ctx.beginPath();
+            ctx.arc(cx, cy, POWER_W / 2 - 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Ground symbol (horizontal lines getting smaller)
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 10, cy - 4);
+            ctx.lineTo(cx + 10, cy - 4);
+            ctx.moveTo(cx - 6, cy + 1);
+            ctx.lineTo(cx + 6, cy + 1);
+            ctx.moveTo(cx - 3, cy + 6);
+            ctx.lineTo(cx + 3, cy + 6);
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#666';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('GND', cx, comp.y - 5);
+
+            // Input port (left side - accepts return current from LED cathodes etc.)
+            const inPos = getPortPosition(comp, false, 0);
+            const inState = comp.inputStates[0];
+            ctx.beginPath();
+            ctx.arc(inPos.x, inPos.y, PORT_R, 0, Math.PI * 2);
+            // Blue for active current return, gray for no current
+            ctx.fillStyle = inState === 0 ? '#0088dd' : (inState === 1 ? '#00ff00' : '#444');
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Output port (right side - provides 0 signal)
+            const outPos = getPortPosition(comp, true, 0);
+            ctx.beginPath();
+            ctx.arc(outPos.x, outPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = '#0088dd';  // Always blue (GND = 0)
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Port labels
+            ctx.font = '7px monospace';
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.fillText('IN', inPos.x, inPos.y + 15);
+            ctx.fillText('OUT', outPos.x, outPos.y + 15);
+        }
+
+        function drawSwitch(comp) {
+            const isOn = comp.state === 1;
+            const hasPower = comp.inputStates[0] === 1;
+            const outputActive = comp.outputStates[0] === 1;
+
+            // Body
+            ctx.fillStyle = '#1a1a2e';
+            ctx.strokeStyle = outputActive ? '#00cc00' : '#444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(comp.x, comp.y, SWITCH_W, SWITCH_H, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            // Track
+            const trackW = SWITCH_W - 14;
+            const trackH = 12;
+            const trackX = comp.x + 7;
+            const trackY = comp.y + (SWITCH_H - trackH) / 2;
+            ctx.fillStyle = '#0d0d1a';
+            ctx.beginPath();
+            ctx.roundRect(trackX, trackY, trackW, trackH, 6);
+            ctx.fill();
+
+            // Knob
+            const knobSize = 10;
+            const knobX = isOn ? trackX + trackW - knobSize - 1 : trackX + 1;
+            ctx.fillStyle = isOn ? (hasPower ? '#00ff00' : '#666600') : '#555';
+            if (outputActive) {
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 8;
+            }
+            ctx.beginPath();
+            ctx.roundRect(knobX, trackY + 1, knobSize, knobSize, 5);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Input port (left side - for VDD connection)
+            // Green=VDD(1), Blue=GND(0), Gray=unknown(X)
+            const inPos = getPortPosition(comp, false, 0);
+            ctx.beginPath();
+            ctx.arc(inPos.x, inPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = hasPower ? '#00ff00' : (comp.inputStates[0] === 0 ? '#0088dd' : '#555');
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Output port (right side)
+            // Green=VDD(1), Blue=GND(0) - switch outputs 0 when OFF (pulled to ground)
+            const outPos = getPortPosition(comp, true, 0);
+            ctx.beginPath();
+            ctx.arc(outPos.x, outPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = outputActive ? '#00ff00' : '#0088dd';
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Label - show state and whether switch is ON
+            ctx.fillStyle = outputActive ? '#00ff00' : (isOn ? '#666600' : '#666');
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(isOn ? 'ON' : 'OFF', comp.x + SWITCH_W / 2, comp.y - 5);
+        }
+
+        function drawLED(comp) {
+            const state = comp.inputStates[0];
+            const x = comp.x;
+            const y = comp.y;
+            const cx = x + LED_W / 2;
+            const cy = y + LED_H / 2;
+            const isLit = state === 1;
+
+            // Glow when lit
+            if (isLit) {
+                ctx.beginPath();
+                ctx.arc(cx, cy - 5, 20, 0, Math.PI * 2);
+                const glow = ctx.createRadialGradient(cx, cy - 5, 0, cx, cy - 5, 25);
+                glow.addColorStop(0, 'rgba(0, 255, 0, 0.7)');
+                glow.addColorStop(1, 'rgba(0, 255, 0, 0)');
+                ctx.fillStyle = glow;
+                ctx.fill();
+            }
+
+            // LED body (diode shape - triangle with bar)
+            ctx.fillStyle = '#1a1a2e';
+            ctx.strokeStyle = isLit ? '#00cc00' : '#444';
+            ctx.lineWidth = 2;
+
+            // Draw diode symbol body
+            ctx.beginPath();
+            ctx.moveTo(x + 8, y + 10);  // Top left of triangle
+            ctx.lineTo(x + LED_W - 8, cy);  // Right point
+            ctx.lineTo(x + 8, y + LED_H - 10);  // Bottom left
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Cathode bar (right side)
+            ctx.beginPath();
+            ctx.moveTo(x + LED_W - 8, y + 10);
+            ctx.lineTo(x + LED_W - 8, y + LED_H - 10);
+            ctx.stroke();
+
+            // LED "bulb" circle on top
+            ctx.beginPath();
+            ctx.arc(cx, cy - 5, 12, 0, Math.PI * 2);
+            const grad = ctx.createRadialGradient(cx - 3, cy - 8, 0, cx, cy - 5, 12);
+            if (isLit) {
+                grad.addColorStop(0, '#88ff88');
+                grad.addColorStop(1, '#00cc00');
+            } else {
+                grad.addColorStop(0, '#444');
+                grad.addColorStop(1, '#222');
+            }
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Current flow line through LED (when lit)
+            if (xrayMode) {
+                ctx.strokeStyle = isLit ? '#00ff00' : '#333';
+                ctx.lineWidth = isLit ? 3 : 1;
+                ctx.setLineDash(isLit ? [] : [3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(x + 5, cy);
+                ctx.lineTo(x + LED_W - 5, cy);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Arrow showing current direction (when lit)
+                if (isLit) {
+                    ctx.fillStyle = '#00ff00';
+                    ctx.beginPath();
+                    ctx.moveTo(x + LED_W - 12, cy - 4);
+                    ctx.lineTo(x + LED_W - 5, cy);
+                    ctx.lineTo(x + LED_W - 12, cy + 4);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            // Input port (left - Anode, power in)
+            const inPos = getPortPosition(comp, false, 0);
+            ctx.beginPath();
+            ctx.arc(inPos.x, inPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = state === 1 ? '#00ff00' : (state === 0 ? '#0088dd' : '#555');
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Output port (right - Cathode, to GND)
+            const outPos = getPortPosition(comp, true, 0);
+            ctx.beginPath();
+            ctx.arc(outPos.x, outPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = comp.outputStates[0] === 0 ? '#0088dd' : (comp.outputStates[0] === 1 ? '#00ff00' : '#555');
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Labels
+            ctx.font = '8px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#666';
+            ctx.fillText('A', inPos.x, inPos.y - 10);   // Anode
+            ctx.fillText('K', outPos.x, outPos.y - 10); // Kathode
+
+            // State label
+            ctx.fillStyle = isLit ? '#00ff00' : '#666';
+            ctx.font = 'bold 10px monospace';
+            ctx.fillText(isLit ? 'ON' : 'OFF', cx, y + LED_H + 12);
+        }
+
+        function drawGate(comp) {
+            const x = comp.x;
+            const y = comp.y;
+            const ins = comp.inputStates;
+            const out = comp.outputStates[0];
+
+            // Determine which internal path is active
+            const vddConnected = ins[0] === 1;
+            const gndConnected = comp.type === 'NOT' ? ins[2] === 0 : ins[3] === 0;
+            const outputToVDD = out === 1;
+            const outputToGND = out === 0;
+
+            // Gate body dimensions (inside the power ports area)
+            const bodyX = x + 15;
+            const bodyY = y + 12;
+            const bodyW = GATE_W - 30;
+            const bodyH = GATE_H - 24;
+            const midY = y + GATE_H / 2;
+
+            // Draw traditional gate symbol based on type
+            ctx.fillStyle = COLORS.gateBody;
+            ctx.strokeStyle = out === 1 ? '#00cc00' : (out === 0 ? '#0077cc' : COLORS.gateBorder);
+            ctx.lineWidth = 2;
+
+            const isInverting = comp.type === 'NOT' || comp.type === 'NAND' || comp.type === 'NOR';
+            const bubbleR = 6;
+
+            if (comp.type === 'NOT') {
+                // NOT gate: Triangle pointing right
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyY);
+                ctx.lineTo(bodyX + bodyW - (isInverting ? bubbleR * 2 : 0), midY);
+                ctx.lineTo(bodyX, bodyY + bodyH);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Inversion bubble
+                ctx.beginPath();
+                ctx.arc(bodyX + bodyW - bubbleR, midY, bubbleR, 0, Math.PI * 2);
+                ctx.fillStyle = COLORS.gateBody;
+                ctx.fill();
+                ctx.stroke();
+
+            } else if (comp.type === 'AND' || comp.type === 'NAND') {
+                // AND gate: D-shape (flat left, curved right)
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyY);
+                ctx.lineTo(bodyX + bodyW / 2, bodyY);
+                ctx.arc(bodyX + bodyW / 2, midY, bodyH / 2, -Math.PI / 2, Math.PI / 2);
+                ctx.lineTo(bodyX, bodyY + bodyH);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // NAND bubble
+                if (comp.type === 'NAND') {
+                    ctx.beginPath();
+                    ctx.arc(bodyX + bodyW / 2 + bodyH / 2 + bubbleR, midY, bubbleR, 0, Math.PI * 2);
+                    ctx.fillStyle = COLORS.gateBody;
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+            } else if (comp.type === 'OR' || comp.type === 'NOR') {
+                // OR gate: Curved input side, pointed output
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyY);
+                // Top curve to point
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.7, bodyY, bodyX + bodyW, midY);
+                // Bottom curve from point
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.7, bodyY + bodyH, bodyX, bodyY + bodyH);
+                // Back curve (concave input side)
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.3, midY, bodyX, bodyY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // NOR bubble
+                if (comp.type === 'NOR') {
+                    ctx.beginPath();
+                    ctx.arc(bodyX + bodyW + bubbleR, midY, bubbleR, 0, Math.PI * 2);
+                    ctx.fillStyle = COLORS.gateBody;
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+            } else if (comp.type === 'XOR') {
+                // XOR gate: Like OR but with extra curved line on input
+                ctx.beginPath();
+                ctx.moveTo(bodyX + 8, bodyY);
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.7, bodyY, bodyX + bodyW, midY);
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.7, bodyY + bodyH, bodyX + 8, bodyY + bodyH);
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.3 + 8, midY, bodyX + 8, bodyY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Extra input curve for XOR
+                ctx.beginPath();
+                ctx.moveTo(bodyX, bodyY);
+                ctx.quadraticCurveTo(bodyX + bodyW * 0.25, midY, bodyX, bodyY + bodyH);
+                ctx.stroke();
+            }
+
+            // X-ray mode: show internal transistor structure overlaid on gate
+            if (xrayMode) {
+                const midX = x + GATE_W / 2;
+                const outX = x + GATE_W - 18;
+
+                // Semi-transparent overlay to show we're in X-ray mode
+                ctx.fillStyle = 'rgba(22, 33, 62, 0.7)';
+                ctx.beginPath();
+                ctx.roundRect(x + 10, y + 8, GATE_W - 20, GATE_H - 16, 5);
+                ctx.fill();
+
+                // PMOS transistor (top half - connects VDD to output when control=0)
+                const pmosY = y + 22;
+                const pmosActive = outputToVDD && vddConnected;
+
+                // Draw PMOS symbol
+                ctx.strokeStyle = pmosActive ? '#00ff00' : '#555';
+                ctx.lineWidth = pmosActive ? 3 : 1;
+
+                // PMOS body (circle with line)
+                ctx.beginPath();
+                ctx.arc(midX, pmosY, 7, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // VDD to PMOS path
+                ctx.strokeStyle = pmosActive ? '#00ff00' : (vddConnected ? '#00ff0044' : '#333');
+                ctx.lineWidth = pmosActive ? 3 : 1;
+                ctx.beginPath();
+                ctx.moveTo(midX, y + 5);
+                ctx.lineTo(midX, pmosY - 7);
+                ctx.stroke();
+
+                // PMOS to output path
+                ctx.strokeStyle = pmosActive ? '#00ff00' : '#444';
+                ctx.beginPath();
+                ctx.moveTo(midX + 7, pmosY);
+                ctx.lineTo(outX, pmosY);
+                ctx.lineTo(outX, midY);
+                ctx.stroke();
+
+                // NMOS transistor (bottom half - connects GND to output when control=1)
+                const nmosY = y + GATE_H - 22;
+                const nmosActive = outputToGND && gndConnected;
+
+                // Draw NMOS symbol
+                ctx.strokeStyle = nmosActive ? '#0088dd' : '#555';
+                ctx.lineWidth = nmosActive ? 3 : 1;
+
+                // NMOS body (circle)
+                ctx.beginPath();
+                ctx.arc(midX, nmosY, 7, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // GND to NMOS path
+                ctx.strokeStyle = nmosActive ? '#0088dd' : (gndConnected ? '#0088dd44' : '#333');
+                ctx.lineWidth = nmosActive ? 3 : 1;
+                ctx.beginPath();
+                ctx.moveTo(midX, y + GATE_H - 5);
+                ctx.lineTo(midX, nmosY + 7);
+                ctx.stroke();
+
+                // NMOS to output path
+                ctx.strokeStyle = nmosActive ? '#0088dd' : '#444';
+                ctx.beginPath();
+                ctx.moveTo(midX + 7, nmosY);
+                ctx.lineTo(outX, nmosY);
+                ctx.lineTo(outX, midY);
+                ctx.stroke();
+
+                // Control input line
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + 12, midY);
+                ctx.lineTo(midX - 10, midY);
+                ctx.lineTo(midX - 10, pmosY);
+                ctx.moveTo(midX - 10, midY);
+                ctx.lineTo(midX - 10, nmosY);
+                ctx.stroke();
+
+                // Labels
+                ctx.fillStyle = '#888';
+                ctx.font = '7px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('P', midX + 15, pmosY + 2);
+                ctx.fillText('N', midX + 15, nmosY + 2);
+            }
+
+            // Gate type label
+            ctx.fillStyle = COLORS.text;
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(comp.type, x + GATE_W / 2, y - 5);
+
+            // Boolean logic display
+            let logicStr = '';
+            if (comp.type === 'NOT') {
+                const ctrl = ins[1];
+                if (ctrl !== 2 && out !== 2) {
+                    logicStr = `!${ctrl}=${out}`;
+                }
+            } else {
+                const a = ins[1];
+                const b = ins[2];
+                if (a !== 2 && b !== 2 && out !== 2) {
+                    switch (comp.type) {
+                        case 'AND': logicStr = `${a}&${b}=${out}`; break;
+                        case 'OR': logicStr = `${a}|${b}=${out}`; break;
+                        case 'NAND': logicStr = `!(${a}&${b})=${out}`; break;
+                        case 'NOR': logicStr = `!(${a}|${b})=${out}`; break;
+                        case 'XOR': logicStr = `${a}^${b}=${out}`; break;
+                    }
+                }
+            }
+            ctx.fillStyle = '#888';
+            ctx.font = '9px monospace';
+            ctx.fillText(logicStr, x + GATE_W / 2, y + GATE_H + 12);
+
+            // Input ports
+            for (let i = 0; i < comp.inputs.length; i++) {
+                const pos = getPortPosition(comp, false, i);
+                const state = comp.inputStates[i];
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, PORT_R, 0, Math.PI * 2);
+                ctx.fillStyle = state === 1 ? '#00ff00' : (state === 0 ? '#0088dd' : '#555');
+                ctx.fill();
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Port labels
+                ctx.font = '7px monospace';
+                ctx.textAlign = 'center';
+                if (comp.type === 'NOT') {
+                    if (i === 0) {
+                        ctx.fillStyle = state === 1 ? '#00ff00' : '#555';
+                        ctx.fillText('V+', pos.x, pos.y - 10);
+                    } else if (i === 2) {
+                        ctx.fillStyle = state === 0 ? '#0088dd' : '#555';
+                        ctx.fillText('G', pos.x, pos.y + 14);
+                    }
+                } else {
+                    if (i === 0) {
+                        ctx.fillStyle = state === 1 ? '#00ff00' : '#555';
+                        ctx.fillText('V+', pos.x, pos.y - 10);
+                    } else if (i === 3) {
+                        ctx.fillStyle = state === 0 ? '#0088dd' : '#555';
+                        ctx.fillText('G', pos.x, pos.y + 14);
+                    }
+                }
+            }
+
+            // Output port
+            const outPos = getPortPosition(comp, true, 0);
+            ctx.beginPath();
+            ctx.arc(outPos.x, outPos.y, PORT_R, 0, Math.PI * 2);
+            ctx.fillStyle = out === 1 ? '#00ff00' : (out === 0 ? '#0088dd' : '#555');
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        // Event handlers
+        canvas.addEventListener('mousedown', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Check for port click (start wiring)
+            const port = findPortAt(x, y);
+            if (port && port.isOutput) {
+                wiring = { from: port.comp, index: port.index };
+                const pos = getPortPosition(port.comp, true, port.index);
+                wirePreview = { x1: pos.x, y1: pos.y, x2: x, y2: y };
+                return;
+            }
+
+            // Check for switch click (toggle)
+            const comp = findComponentAt(x, y);
+            if (comp && comp.type === 'switch') {
+                comp.state = comp.state === 1 ? 0 : 1;
+                simulateOnce();
+                return;
+            }
+
+            // Start dragging component
+            if (comp) {
+                dragging = comp;
+                dragOffset.x = x - comp.x;
+                dragOffset.y = y - comp.y;
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (dragging) {
+                dragging.x = x - dragOffset.x;
+                dragging.y = y - dragOffset.y;
+                render();
+            } else if (wiring) {
+                wirePreview.x2 = x;
+                wirePreview.y2 = y;
+                render();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (wiring) {
+                // Check if we're over an input port
+                const port = findPortAt(x, y);
+                if (port && !port.isOutput && port.comp !== wiring.from) {
+                    // Check if this input is already connected
+                    const existing = wires.findIndex(w =>
+                        w.to.comp === port.comp && w.to.index === port.index
+                    );
+                    if (existing >= 0) {
+                        wires.splice(existing, 1);
+                    }
+                    // Add new wire
+                    wires.push({
+                        from: { comp: wiring.from, index: wiring.index },
+                        to: { comp: port.comp, index: port.index }
+                    });
+                    simulateOnce();
+                }
+                wiring = null;
+                wirePreview = null;
+                render();
+            }
+
+            dragging = null;
+        });
+
+        // Drag from palette
+        document.querySelectorAll('.palette-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('type', this.dataset.type);
+            });
+        });
+
+        canvas.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left - 30;
+            const y = e.clientY - rect.top - 20;
+
+            const comp = createComponent(type, x, y);
+            components.push(comp);
+            simulate();
+            updateSidebar();
+            render();
+        });
+
+        // Delete component with right-click
+        canvas.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const comp = findComponentAt(x, y);
+            if (comp) {
+                // Remove component
+                const idx = components.indexOf(comp);
+                if (idx >= 0) components.splice(idx, 1);
+                // Remove connected wires
+                wires = wires.filter(w => w.from.comp !== comp && w.to.comp !== comp);
+                simulate();
+                updateSidebar();
+                render();
+            }
+        });
+
+        function updateSidebar() {
+            // Component list
+            const compList = document.getElementById('componentList');
+            compList.innerHTML = '';
+            for (const comp of components) {
+                const div = document.createElement('div');
+                div.className = 'component-info';
+                let stateStr = '';
+                if (comp.type === 'vdd') {
+                    stateStr = `Power: 1 (always ON)`;
+                } else if (comp.type === 'gnd') {
+                    stateStr = `Ground: 0 (always OFF)`;
+                } else if (comp.type === 'switch') {
+                    const pwrIn = comp.inputStates[0] === 2 ? 'X' : comp.inputStates[0];
+                    const out = comp.outputStates[0];
+                    stateStr = `Pwr:${pwrIn} ${comp.state ? 'ON' : 'OFF'} → ${out}`;
+                } else if (comp.type === 'led') {
+                    stateStr = `In: ${comp.inputStates[0] === 2 ? 'X' : comp.inputStates[0]}`;
+                } else {
+                    // Gates: show power state and logic inputs
+                    const out = comp.outputStates[0] === 2 ? 'X' : comp.outputStates[0];
+                    if (comp.type === 'NOT') {
+                        const vdd = comp.inputStates[0] === 2 ? 'X' : comp.inputStates[0];
+                        const ctrl = comp.inputStates[1] === 2 ? 'X' : comp.inputStates[1];
+                        const gnd = comp.inputStates[2] === 2 ? 'X' : comp.inputStates[2];
+                        stateStr = `V+:${vdd} Ctrl:${ctrl} G:${gnd} → ${out}`;
+                    } else {
+                        const vdd = comp.inputStates[0] === 2 ? 'X' : comp.inputStates[0];
+                        const a = comp.inputStates[1] === 2 ? 'X' : comp.inputStates[1];
+                        const b = comp.inputStates[2] === 2 ? 'X' : comp.inputStates[2];
+                        const gnd = comp.inputStates[3] === 2 ? 'X' : comp.inputStates[3];
+                        stateStr = `V+:${vdd} A:${a} B:${b} G:${gnd} → ${out}`;
+                    }
+                }
+                div.innerHTML = `<div class="component-info-title">${comp.type}</div>${stateStr}`;
+                compList.appendChild(div);
+            }
+
+            // Signal list
+            const sigList = document.getElementById('signalList');
+            sigList.innerHTML = '';
+            for (const wire of wires) {
+                const state = wire.from.comp.outputStates[wire.from.index];
+                const div = document.createElement('div');
+                div.className = 'wire-list-item';
+                div.innerHTML = `
+                    <span>${wire.from.comp.type} -> ${wire.to.comp.type}</span>
+                    <span class="state-badge state-${state === 2 ? 'X' : state}">${state === 2 ? 'X' : state}</span>
+                `;
+                sigList.appendChild(div);
+            }
+        }
+
+        function clearCircuit() {
+            // Stop simulation if running
+            if (simulating) {
+                simulating = false;
+                const btn = document.querySelector('.controls button:nth-child(4)');
+                btn.textContent = 'Simulate';
+                btn.classList.remove('active');
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                }
+            }
+            components = [];
+            wires = [];
+            particles = [];
+            nextId = 0;
+            updateSidebar();
+            render();
+        }
+
+        function toggleXray() {
+            xrayMode = !xrayMode;
+            const btn = document.getElementById('xrayBtn');
+            btn.textContent = xrayMode ? 'X-Ray ON' : 'X-Ray OFF';
+            btn.classList.toggle('active', xrayMode);
+            render();
+        }
+
+        function loadExample(type) {
+            clearCircuit();
+
+            if (type === 'power') {
+                // Demo: Shows how power REALLY flows through a NOT gate
+                // Complete circuit: VDD -> gate -> LED -> GND
+                // The gate routes VDD or GND to its output based on control input
+
+                // Power rails
+                const vdd = createComponent('vdd', 50, 30);
+                const gnd = createComponent('gnd', 50, 250);
+
+                // Control switch - needs VDD input, passes power when ON
+                const sw = createComponent('switch', 130, 100);
+
+                // NOT gate - needs VDD (top), control (left), GND (bottom)
+                const notGate = createComponent('NOT', 250, 80);
+
+                // Output LED - has anode (in) and cathode (out to GND)
+                const led = createComponent('led', 420, 95);
+
+                components.push(vdd, gnd, sw, notGate, led);
+
+                // Wire the complete circuit
+                wires.push(
+                    // VDD -> Switch input (switch needs power to pass through)
+                    { from: { comp: vdd, index: 0 }, to: { comp: sw, index: 0 } },
+                    // VDD -> NOT gate VDD input (index 0, top)
+                    { from: { comp: vdd, index: 0 }, to: { comp: notGate, index: 0 } },
+                    // Switch output -> NOT gate control input (index 1, left)
+                    { from: { comp: sw, index: 0 }, to: { comp: notGate, index: 1 } },
+                    // GND -> NOT gate GND input (index 2, bottom)
+                    { from: { comp: gnd, index: 0 }, to: { comp: notGate, index: 2 } },
+                    // NOT output -> LED anode (input)
+                    { from: { comp: notGate, index: 0 }, to: { comp: led, index: 0 } },
+                    // LED cathode (output) -> GND input (completes the circuit!)
+                    { from: { comp: led, index: 0 }, to: { comp: gnd, index: 0 } }
+                );
+            } else if (type === 'and') {
+                // Two switches -> AND gate -> LED (with power connections)
+                // Switches need VDD connected to pass power through when ON
+                const vdd = createComponent('vdd', 50, 30);
+                const gnd = createComponent('gnd', 50, 250);
+                const sw1 = createComponent('switch', 120, 80);
+                const sw2 = createComponent('switch', 120, 150);
+                const gate = createComponent('AND', 250, 100);
+                const led = createComponent('led', 420, 110);
+                components.push(vdd, gnd, sw1, sw2, gate, led);
+                wires.push(
+                    // VDD -> Switch inputs (switches need power to pass)
+                    { from: { comp: vdd, index: 0 }, to: { comp: sw1, index: 0 } },
+                    { from: { comp: vdd, index: 0 }, to: { comp: sw2, index: 0 } },
+                    // Power to gate: VDD (index 0), GND (index 3)
+                    { from: { comp: vdd, index: 0 }, to: { comp: gate, index: 0 } },
+                    { from: { comp: gnd, index: 0 }, to: { comp: gate, index: 3 } },
+                    // Logic inputs from switches: A (index 1), B (index 2)
+                    { from: { comp: sw1, index: 0 }, to: { comp: gate, index: 1 } },
+                    { from: { comp: sw2, index: 0 }, to: { comp: gate, index: 2 } },
+                    // Output to LED anode
+                    { from: { comp: gate, index: 0 }, to: { comp: led, index: 0 } },
+                    // LED cathode to GND (complete circuit)
+                    { from: { comp: led, index: 0 }, to: { comp: gnd, index: 0 } }
+                );
+            } else if (type === 'adder') {
+                // Half adder: XOR for sum, AND for carry (with power connections)
+                // Switches need VDD connected to pass power through when ON
+                const vdd = createComponent('vdd', 50, 20);
+                const gnd = createComponent('gnd', 50, 320);
+                const swA = createComponent('switch', 120, 80);
+                const swB = createComponent('switch', 120, 200);
+                const xorGate = createComponent('XOR', 250, 50);
+                const andGate = createComponent('AND', 250, 190);
+                const sumLed = createComponent('led', 420, 60);
+                const carryLed = createComponent('led', 420, 200);
+                components.push(vdd, gnd, swA, swB, xorGate, andGate, sumLed, carryLed);
+                wires.push(
+                    // VDD -> Switch inputs (switches need power to pass)
+                    { from: { comp: vdd, index: 0 }, to: { comp: swA, index: 0 } },
+                    { from: { comp: vdd, index: 0 }, to: { comp: swB, index: 0 } },
+                    // Power to XOR gate
+                    { from: { comp: vdd, index: 0 }, to: { comp: xorGate, index: 0 } },
+                    { from: { comp: gnd, index: 0 }, to: { comp: xorGate, index: 3 } },
+                    // Power to AND gate
+                    { from: { comp: vdd, index: 0 }, to: { comp: andGate, index: 0 } },
+                    { from: { comp: gnd, index: 0 }, to: { comp: andGate, index: 3 } },
+                    // Logic inputs to XOR
+                    { from: { comp: swA, index: 0 }, to: { comp: xorGate, index: 1 } },
+                    { from: { comp: swB, index: 0 }, to: { comp: xorGate, index: 2 } },
+                    // Logic inputs to AND
+                    { from: { comp: swA, index: 0 }, to: { comp: andGate, index: 1 } },
+                    { from: { comp: swB, index: 0 }, to: { comp: andGate, index: 2 } },
+                    // Outputs to LED anodes
+                    { from: { comp: xorGate, index: 0 }, to: { comp: sumLed, index: 0 } },
+                    { from: { comp: andGate, index: 0 }, to: { comp: carryLed, index: 0 } },
+                    // LED cathodes to GND (complete circuits)
+                    { from: { comp: sumLed, index: 0 }, to: { comp: gnd, index: 0 } },
+                    { from: { comp: carryLed, index: 0 }, to: { comp: gnd, index: 0 } }
+                );
+            }
+
+            simulate();
+            updateSidebar();
+            render();
+        }
+
+        // Load circuit from JSON file (exported from HDL simulator)
+        function loadJSONFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadFromJSON(data);
+                } catch (err) {
+                    alert('Error loading JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset so same file can be loaded again
+        }
+
+        function loadFromJSON(data) {
+            clearCircuit();
+
+            // Normalize the data
+            const jsonWires = data.wires || [];
+            const jsonGates = data.gates || [];
+
+            // Map wire IDs to our components
+            const wireToSwitch = {};  // wire index -> switch component
+            const wireToLED = {};     // wire index -> LED component
+            const wireToPower = {};   // wire index -> vdd/gnd component
+
+            // First pass: identify input wires (not driven by any gate)
+            const drivenWires = new Set();
+            for (const gate of jsonGates) {
+                for (const out of gate.outputs) {
+                    drivenWires.add(out.wire);
+                }
+            }
+
+            // Second pass: identify wires used as gate inputs
+            const usedAsInput = new Set();
+            for (const gate of jsonGates) {
+                for (const inp of gate.inputs) {
+                    usedAsInput.add(inp.wire);
+                }
+            }
+
+            // Create VDD and GND power sources
+            // Look for them in JSON wires first
+            let powerY = 50;
+            let hasVDD = false;
+            let hasGND = false;
+            for (let i = 0; i < jsonWires.length; i++) {
+                const wire = jsonWires[i];
+                if (wire.name === 'vdd') {
+                    const vdd = createComponent('vdd', 50, powerY);
+                    vdd.label = 'VDD';
+                    vdd.wireIndex = i;
+                    components.push(vdd);
+                    wireToPower[i] = vdd;
+                    powerY += 50;
+                    hasVDD = true;
+                } else if (wire.name === 'gnd') {
+                    const gnd = createComponent('gnd', 50, powerY);
+                    gnd.label = 'GND';
+                    gnd.wireIndex = i;
+                    components.push(gnd);
+                    wireToPower[i] = gnd;
+                    powerY += 50;
+                    hasGND = true;
+                }
+            }
+            // Auto-create VDD/GND if not in JSON (gates need power!)
+            if (!hasVDD && jsonGates.length > 0) {
+                const vdd = createComponent('vdd', 50, powerY);
+                vdd.label = 'VDD';
+                components.push(vdd);
+                powerY += 50;
+            }
+            if (!hasGND && jsonGates.length > 0) {
+                const gnd = createComponent('gnd', 50, powerY);
+                gnd.label = 'GND';
+                components.push(gnd);
+                powerY += 50;
+            }
+
+            // Create switches for input wires (marked is_input OR undriven wires used as inputs)
+            let switchY = powerY + 20;
+            for (let i = 0; i < jsonWires.length; i++) {
+                const wire = jsonWires[i];
+                const isInput = wire.is_input || (!drivenWires.has(i) && usedAsInput.has(i));
+                if (isInput && wire.name !== 'gnd' && wire.name !== 'vdd') {
+                    const sw = createComponent('switch', 50, switchY);
+                    sw.label = wire.name;
+                    sw.wireIndex = i;
+                    // Set initial state from wire
+                    const state = wire.state ? wire.state[0] : (wire.states ? wire.states[0] : 0);
+                    sw.state = (state === 1) ? 1 : 0;
+                    sw.outputStates[0] = sw.state;
+                    components.push(sw);
+                    wireToSwitch[i] = sw;
+                    switchY += 60;
+                }
+            }
+
+            // Create LEDs for output wires
+            let ledY = 50;
+            const ledX = 650;
+            for (let i = 0; i < jsonWires.length; i++) {
+                const wire = jsonWires[i];
+                if (wire.is_output) {
+                    const led = createComponent('led', ledX, ledY);
+                    led.label = wire.name;
+                    led.wireIndex = i;
+                    components.push(led);
+                    wireToLED[i] = led;
+                    ledY += 60;
+                }
+            }
+
+            // Create gates and position them
+            const gateComps = {};  // gate index -> component
+            let gateX = 200;
+            let gateY = 50;
+            let col = 0;
+
+            // Simple layout: arrange gates in columns
+            for (let i = 0; i < jsonGates.length; i++) {
+                const gate = jsonGates[i];
+                const type = gate.type.toUpperCase();
+
+                // Skip unsupported gate types for now
+                if (!['NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'XNOR', 'BUF'].includes(type)) {
+                    continue;
+                }
+
+                const actualType = type === 'BUF' ? 'NOT' : (type === 'XNOR' ? 'XOR' : type);
+                const comp = createComponent(actualType, gateX + col * 150, gateY);
+                comp.label = gate.name;
+                comp.gateIndex = i;
+                comp.jsonGate = gate;
+                components.push(comp);
+                gateComps[i] = comp;
+
+                gateY += 70;
+                if (gateY > 350) {
+                    gateY = 50;
+                    col++;
+                }
+            }
+
+            // Find VDD and GND components for power connections
+            let vddComp = null;
+            let gndComp = null;
+            for (const comp of components) {
+                if (comp.type === 'vdd') vddComp = comp;
+                if (comp.type === 'gnd') gndComp = comp;
+            }
+
+            // Wire VDD to all switches (switches need power input to pass through)
+            if (vddComp) {
+                for (const wireIdx in wireToSwitch) {
+                    const sw = wireToSwitch[wireIdx];
+                    wires.push({
+                        from: { comp: vddComp, index: 0 },
+                        to: { comp: sw, index: 0 }  // Switch power input
+                    });
+                }
+            }
+
+            // Create wires based on gate connections
+            for (let gateIdx = 0; gateIdx < jsonGates.length; gateIdx++) {
+                const gate = jsonGates[gateIdx];
+                const gateComp = gateComps[gateIdx];
+                if (!gateComp) continue;
+
+                // Wire power to the gate (required for it to work)
+                // VDD goes to index 0 (top), GND goes to last index (bottom)
+                if (vddComp) {
+                    wires.push({
+                        from: { comp: vddComp, index: 0 },
+                        to: { comp: gateComp, index: 0 }  // VDD input
+                    });
+                }
+                if (gndComp) {
+                    const gndIdx = gateComp.type === 'NOT' ? 2 : 3;  // GND input
+                    wires.push({
+                        from: { comp: gndComp, index: 0 },
+                        to: { comp: gateComp, index: gndIdx }
+                    });
+                }
+
+                // Wire logic inputs (from JSON) to correct gate input indices
+                // For NOT: logic input goes to index 1
+                // For 2-input gates: logic inputs go to indices 1 and 2
+                for (let inpIdx = 0; inpIdx < gate.inputs.length; inpIdx++) {
+                    const inp = gate.inputs[inpIdx];
+                    const wireIdx = inp.wire;
+
+                    // Map JSON input index to gate logic input index
+                    const gateInputIdx = gateComp.type === 'NOT' ? 1 : (inpIdx + 1);
+
+                    // Check if this wire comes from a switch
+                    if (wireToSwitch[wireIdx]) {
+                        wires.push({
+                            from: { comp: wireToSwitch[wireIdx], index: 0 },
+                            to: { comp: gateComp, index: gateInputIdx }
+                        });
+                    } else {
+                        // Check if it comes from another gate's output
+                        for (let srcIdx = 0; srcIdx < jsonGates.length; srcIdx++) {
+                            const srcGate = jsonGates[srcIdx];
+                            for (const out of srcGate.outputs) {
+                                if (out.wire === wireIdx && gateComps[srcIdx]) {
+                                    wires.push({
+                                        from: { comp: gateComps[srcIdx], index: 0 },
+                                        to: { comp: gateComp, index: gateInputIdx }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Wire outputs to LEDs
+                for (const out of gate.outputs) {
+                    if (wireToLED[out.wire]) {
+                        wires.push({
+                            from: { comp: gateComp, index: 0 },
+                            to: { comp: wireToLED[out.wire], index: 0 }
+                        });
+                    }
+                }
+            }
+
+            // Wire all LED cathodes to GND to complete circuits
+            if (gndComp) {
+                for (const wireIdx in wireToLED) {
+                    const led = wireToLED[wireIdx];
+                    wires.push({
+                        from: { comp: led, index: 0 },
+                        to: { comp: gndComp, index: 0 }  // LED cathode to GND input
+                    });
+                }
+            }
+
+            simulate();
+            updateSidebar();
+            render();
+        }
+
+        // Override drawSwitch to show label
+        const origDrawSwitch = drawSwitch;
+        drawSwitch = function(comp) {
+            origDrawSwitch(comp);
+            if (comp.label) {
+                ctx.fillStyle = '#e94560';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(comp.label, comp.x + SWITCH_W / 2, comp.y - 15);
+            }
+        };
+
+        // Override drawLED to show label
+        const origDrawLED = drawLED;
+        drawLED = function(comp) {
+            origDrawLED(comp);
+            if (comp.label) {
+                ctx.fillStyle = '#e94560';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(comp.label, comp.x + LED_W / 2, comp.y - 15);
+            }
+        };
+
+        // Override drawGate to show label
+        const origDrawGate = drawGate;
+        drawGate = function(comp) {
+            origDrawGate(comp);
+            if (comp.label) {
+                ctx.fillStyle = '#e94560';
+                ctx.font = '8px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(comp.label, comp.x + GATE_W / 2, comp.y + GATE_H + 12);
+            }
+        };
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>

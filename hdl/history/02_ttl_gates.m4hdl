@@ -1,0 +1,199 @@
+# ============================================
+# Era 4: Transistor-Transistor Logic (TTL) - 1963
+# ============================================
+# Homework 4.4: The 7400 Series Revolution
+#
+# TTL was THE dominant logic family from 1963-1990s
+# Key innovations:
+# - Multi-emitter input transistor (fast switching)
+# - Totem-pole output (fast rise and fall times)
+# - Good noise immunity (~400mV margin)
+# - High fan-out (10+ gates)
+# - STANDARDIZED (7400 series = industry standard)
+
+# ============================================
+# TTL NAND Gate (The Foundation)
+# ============================================
+# TTL naturally implements NAND - this is why the
+# 7400 (Quad 2-input NAND) was the first chip!
+#
+#          Vcc
+#           |
+#          [R1]
+#           |
+#     A >---|
+#           |E1  Multi-emitter
+#     B >---|E2  transistor Q1
+#           |
+#          [R2]--+
+#           |    |
+#           |   [R3]
+#           |    |
+#          _|_   +-----> Output
+#         / | \     _|_
+#          Q2      / | \
+#           |      Q4 (pull-up)
+#          _|_
+#         / | \
+#          Q3
+#           |
+#          GND
+
+wire ttl_nand_a;
+wire ttl_nand_b;
+wire ttl_nand_out;
+
+# In our simulation, we just use the ideal nand gate
+# Real TTL has those 4 transistors!
+nand TTL_NAND (input: ttl_nand_a ttl_nand_b, output: ttl_nand_out);
+
+# ============================================
+# 7400 Series Equivalents
+# ============================================
+
+# 7400: Quad 2-input NAND (base gate)
+wire ic7400_1a, ic7400_1b, ic7400_1y;
+wire ic7400_2a, ic7400_2b, ic7400_2y;
+wire ic7400_3a, ic7400_3b, ic7400_3y;
+wire ic7400_4a, ic7400_4b, ic7400_4y;
+
+nand IC7400_1 (input: ic7400_1a ic7400_1b, output: ic7400_1y);
+nand IC7400_2 (input: ic7400_2a ic7400_2b, output: ic7400_2y);
+nand IC7400_3 (input: ic7400_3a ic7400_3b, output: ic7400_3y);
+nand IC7400_4 (input: ic7400_4a ic7400_4b, output: ic7400_4y);
+
+# ============================================
+# 7404: Hex Inverter
+# ============================================
+# NOT = NAND with inputs tied together
+# Real 7404 has optimized inverter circuit
+
+wire ic7404_1a, ic7404_1y;
+wire ic7404_2a, ic7404_2y;
+
+# HOMEWORK: Implement inverters
+# not IC7404_1 (input: ic7404_1a, output: ic7404_1y);
+
+# ============================================
+# 7408: Quad 2-input AND
+# ============================================
+# AND = NAND followed by NOT
+
+wire ic7408_a, ic7408_b, ic7408_y;
+wire ic7408_nand_out;
+
+# HOMEWORK: Implement AND using NAND gates
+# Step 1: NAND the inputs
+# Step 2: Invert the result
+
+# nand IC7408_NAND (input: ic7408_a ic7408_b, output: ic7408_nand_out);
+# nand IC7408_INV (input: ic7408_nand_out ic7408_nand_out, output: ic7408_y);
+
+# ============================================
+# 7432: Quad 2-input OR
+# ============================================
+# OR = De Morgan: NOT(NAND(NOT A, NOT B))
+# Or simpler: NAND(NAND(A,A), NAND(B,B))
+
+wire ic7432_a, ic7432_b, ic7432_y;
+
+# HOMEWORK: Implement OR using only NAND gates
+# Hint: NOT A = NAND(A, A)
+
+# ============================================
+# 7486: Quad 2-input XOR
+# ============================================
+# XOR is more complex, needs 4 NAND gates:
+#
+# XOR(A,B) = NAND(NAND(A, NAND(A,B)), NAND(B, NAND(A,B)))
+
+wire ic7486_a, ic7486_b, ic7486_y;
+wire ic7486_t1, ic7486_t2, ic7486_t3;
+
+# HOMEWORK: Implement XOR using 4 NAND gates
+# nand IC7486_1 (input: ic7486_a ic7486_b, output: ic7486_t1);
+# nand IC7486_2 (input: ic7486_a ic7486_t1, output: ic7486_t2);
+# nand IC7486_3 (input: ic7486_b ic7486_t1, output: ic7486_t3);
+# nand IC7486_4 (input: ic7486_t2 ic7486_t3, output: ic7486_y);
+
+# ============================================
+# 7474: Dual D Flip-Flop with Set and Reset
+# ============================================
+# The most important sequential element!
+# Each flip-flop has: D, CLK, PRE, CLR, Q, Q'
+
+wire ic7474_d, ic7474_clk, ic7474_q;
+
+# In our simplified model:
+dff IC7474 (input: ic7474_d ic7474_clk, output: ic7474_q);
+
+# ============================================
+# Building a 4-bit Register from 7474s
+# ============================================
+wire [3:0] reg_d;
+wire reg_clk;
+wire [3:0] reg_q;
+
+dff REG_BIT0 (input: reg_d[0] reg_clk, output: reg_q[0]);
+dff REG_BIT1 (input: reg_d[1] reg_clk, output: reg_q[1]);
+dff REG_BIT2 (input: reg_d[2] reg_clk, output: reg_q[2]);
+dff REG_BIT3 (input: reg_d[3] reg_clk, output: reg_q[3]);
+
+# ============================================
+# Building an 4-bit Adder from TTL
+# ============================================
+#
+# HOMEWORK: Design a 4-bit adder using TTL chips
+#
+# Option 1: Use discrete gates
+#   - 7486 for XOR (need 2 chips = 8 XOR gates)
+#   - 7408 for AND (need 2 chips = 8 AND gates)
+#   - 7432 for OR (need 1 chip = 4 OR gates)
+#   Total: 5 chips minimum
+#
+# Option 2: Use 7483 (4-bit binary adder)
+#   - Just 1 chip!
+#   - This is why special-function ICs were made
+#
+# List the chips needed to build:
+# [ ] 4-bit adder
+# [ ] 4-bit register
+# [ ] 4-bit counter
+# [ ] Basic ALU (add/sub/and/or)
+
+# ============================================
+# The Wire-Wrap Computer Exercise
+# ============================================
+# Before PCBs were cheap, engineers used "wire-wrap":
+# - Pins stick up from sockets
+# - Thin wire wrapped around pins
+# - Each connection made by hand
+#
+# HOMEWORK: Calculate for an 8-bit CPU:
+# 1. Estimate number of ICs needed (~50-100)
+# 2. Each IC has ~14 pins
+# 3. Each pin has ~2-3 connections average
+# 4. Total wire-wrap connections?
+# 5. At 30 seconds per wrap, how long to build?
+#
+# This is WHY the microprocessor was invented!
+
+# ============================================
+# REFLECTION QUESTIONS
+# ============================================
+# 1. Why did TTL become the standard?
+#    (Hint: Multiple manufacturers, guaranteed specs)
+#
+# 2. The 7400 datasheet specifies:
+#    - VIH min = 2.0V (input high)
+#    - VIL max = 0.8V (input low)
+#    - VOH min = 2.4V (output high)
+#    - VOL max = 0.4V (output low)
+#    What's the noise margin?
+#
+# 3. TTL uses 5V supply. Why not higher or lower?
+#    (Hint: Transistor characteristics, noise)
+#
+# 4. By 1970, you could buy a complete computer
+#    on ~100 TTL chips. Why didn't everyone?
+#    (Hint: Cost, knowledge, assembly)

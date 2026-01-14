@@ -1,0 +1,217 @@
+# ============================================
+# Micro4 HDL - 4-Bit ALU
+# ============================================
+# The Arithmetic Logic Unit performs all computations.
+#
+# For the minimal Micro4 CPU, we need:
+#   - ADD: A + B
+#   - SUB: A - B (implemented as A + (~B) + 1)
+#   - PASS: Pass B through (for loads)
+#
+# Inputs:
+#   A[3:0]  - First operand
+#   B[3:0]  - Second operand
+#   OP[1:0] - Operation select:
+#             00 = ADD
+#             01 = SUB
+#             10 = PASS B
+#             11 = (reserved)
+#
+# Outputs:
+#   R[3:0]  - Result
+#   Z       - Zero flag (R == 0)
+#   C       - Carry flag (overflow from addition)
+
+# ============================================
+# ALU Block Diagram
+# ============================================
+#
+#   A[3:0] ----+
+#              |
+#              v
+#   B[3:0] -->[B-INV]--+    OP[0] controls invert
+#              |       |
+#              |    [MUX]---> B_adj[3:0] (B or ~B)
+#              |       |
+#              v       v
+#           [4-BIT ADDER]---> R[3:0]
+#              ^       |
+#              |       +--> Cout -> C flag
+#   Cin -------+
+#              |
+#   OP[0] -----+ (Cin=1 for SUB to complete two's complement)
+#
+#              R[3:0]
+#                 |
+#                 v
+#           [NOR all bits] --> Z flag
+
+# ============================================
+# Input Wires
+# ============================================
+wire [3:0] alu_a;      # First operand
+wire [3:0] alu_b;      # Second operand
+wire [1:0] alu_op;     # Operation select
+
+# ============================================
+# Output Wires
+# ============================================
+wire [3:0] alu_r;      # Result
+wire alu_z;            # Zero flag
+wire alu_c;            # Carry flag
+
+# ============================================
+# Internal Wires
+# ============================================
+wire [3:0] alu_b_inv;   # Inverted B
+wire [3:0] alu_b_adj;   # B or ~B based on operation
+wire alu_cin;           # Carry in (1 for SUB)
+
+# ============================================
+# B Inverter (for subtraction)
+# ============================================
+# When OP[0]=1 (SUB), invert B
+# When OP[0]=0 (ADD), pass B through
+
+not ALU_INV0 (input: alu_b[0], output: alu_b_inv[0]);
+not ALU_INV1 (input: alu_b[1], output: alu_b_inv[1]);
+not ALU_INV2 (input: alu_b[2], output: alu_b_inv[2]);
+not ALU_INV3 (input: alu_b[3], output: alu_b_inv[3]);
+
+# MUX: Select B or ~B based on OP[0]
+# alu_b_adj = OP[0] ? alu_b_inv : alu_b
+wire alu_op0n;
+wire alu_b_sel_0_0;
+wire alu_b_sel_0_1;
+wire alu_b_sel_1_0;
+wire alu_b_sel_1_1;
+wire alu_b_sel_2_0;
+wire alu_b_sel_2_1;
+wire alu_b_sel_3_0;
+wire alu_b_sel_3_1;
+
+not ALU_OP0N (input: alu_op[0], output: alu_op0n);
+
+# Bit 0
+and ALU_BSEL0_0 (input: alu_b[0] alu_op0n, output: alu_b_sel_0_0);
+and ALU_BSEL0_1 (input: alu_b_inv[0] alu_op[0], output: alu_b_sel_0_1);
+or  ALU_BADJ0 (input: alu_b_sel_0_0 alu_b_sel_0_1, output: alu_b_adj[0]);
+
+# Bit 1
+and ALU_BSEL1_0 (input: alu_b[1] alu_op0n, output: alu_b_sel_1_0);
+and ALU_BSEL1_1 (input: alu_b_inv[1] alu_op[0], output: alu_b_sel_1_1);
+or  ALU_BADJ1 (input: alu_b_sel_1_0 alu_b_sel_1_1, output: alu_b_adj[1]);
+
+# Bit 2
+and ALU_BSEL2_0 (input: alu_b[2] alu_op0n, output: alu_b_sel_2_0);
+and ALU_BSEL2_1 (input: alu_b_inv[2] alu_op[0], output: alu_b_sel_2_1);
+or  ALU_BADJ2 (input: alu_b_sel_2_0 alu_b_sel_2_1, output: alu_b_adj[2]);
+
+# Bit 3
+and ALU_BSEL3_0 (input: alu_b[3] alu_op0n, output: alu_b_sel_3_0);
+and ALU_BSEL3_1 (input: alu_b_inv[3] alu_op[0], output: alu_b_sel_3_1);
+or  ALU_BADJ3 (input: alu_b_sel_3_0 alu_b_sel_3_1, output: alu_b_adj[3]);
+
+# ============================================
+# Carry In
+# ============================================
+# For SUB: Cin = 1 (to complete two's complement: A + ~B + 1)
+# For ADD: Cin = 0
+buf ALU_CIN (input: alu_op[0], output: alu_cin);
+
+# ============================================
+# 4-Bit Adder
+# ============================================
+# A + B_adj + Cin -> R, Cout
+
+wire alu_c0;
+wire alu_c1;
+wire alu_c2;
+
+# Full Adder 0 wires
+wire alu_s0_t;
+wire alu_c0_t1;
+wire alu_c0_t2;
+
+# FA0
+xor ALU_FA0_X1 (input: alu_a[0] alu_b_adj[0], output: alu_s0_t);
+and ALU_FA0_A1 (input: alu_a[0] alu_b_adj[0], output: alu_c0_t1);
+xor ALU_FA0_X2 (input: alu_s0_t alu_cin, output: alu_r[0]);
+and ALU_FA0_A2 (input: alu_s0_t alu_cin, output: alu_c0_t2);
+or  ALU_FA0_O1 (input: alu_c0_t1 alu_c0_t2, output: alu_c0);
+
+# Full Adder 1 wires
+wire alu_s1_t;
+wire alu_c1_t1;
+wire alu_c1_t2;
+
+# FA1
+xor ALU_FA1_X1 (input: alu_a[1] alu_b_adj[1], output: alu_s1_t);
+and ALU_FA1_A1 (input: alu_a[1] alu_b_adj[1], output: alu_c1_t1);
+xor ALU_FA1_X2 (input: alu_s1_t alu_c0, output: alu_r[1]);
+and ALU_FA1_A2 (input: alu_s1_t alu_c0, output: alu_c1_t2);
+or  ALU_FA1_O1 (input: alu_c1_t1 alu_c1_t2, output: alu_c1);
+
+# Full Adder 2 wires
+wire alu_s2_t;
+wire alu_c2_t1;
+wire alu_c2_t2;
+
+# FA2
+xor ALU_FA2_X1 (input: alu_a[2] alu_b_adj[2], output: alu_s2_t);
+and ALU_FA2_A1 (input: alu_a[2] alu_b_adj[2], output: alu_c2_t1);
+xor ALU_FA2_X2 (input: alu_s2_t alu_c1, output: alu_r[2]);
+and ALU_FA2_A2 (input: alu_s2_t alu_c1, output: alu_c2_t2);
+or  ALU_FA2_O1 (input: alu_c2_t1 alu_c2_t2, output: alu_c2);
+
+# Full Adder 3 wires
+wire alu_s3_t;
+wire alu_c3_t1;
+wire alu_c3_t2;
+
+# FA3
+xor ALU_FA3_X1 (input: alu_a[3] alu_b_adj[3], output: alu_s3_t);
+and ALU_FA3_A1 (input: alu_a[3] alu_b_adj[3], output: alu_c3_t1);
+xor ALU_FA3_X2 (input: alu_s3_t alu_c2, output: alu_r[3]);
+and ALU_FA3_A2 (input: alu_s3_t alu_c2, output: alu_c3_t2);
+or  ALU_FA3_O1 (input: alu_c3_t1 alu_c3_t2, output: alu_c);
+
+# ============================================
+# Zero Flag
+# ============================================
+# Z = NOT(R[0] OR R[1] OR R[2] OR R[3])
+# Z is high when all result bits are 0
+
+wire alu_z_t1;
+wire alu_z_t2;
+wire alu_z_t3;
+
+or ALU_Z1 (input: alu_r[0] alu_r[1], output: alu_z_t1);
+or ALU_Z2 (input: alu_r[2] alu_r[3], output: alu_z_t2);
+or ALU_Z3 (input: alu_z_t1 alu_z_t2, output: alu_z_t3);
+not ALU_Z4 (input: alu_z_t3, output: alu_z);
+
+# ============================================
+# ALU Summary
+# ============================================
+# Total gate count: ~50 gates
+#   - 4 NOT for inverter
+#   - 12 gates for B mux (4 x 3)
+#   - 20 gates for adder (4 FA x 5)
+#   - 4 gates for zero flag
+#   - Plus misc
+#
+# Total transistor count: ~200 transistors
+
+# ============================================
+# HOMEWORK: Extended ALU
+# ============================================
+# Add more operations:
+#   - AND: A & B
+#   - OR:  A | B
+#   - XOR: A ^ B
+#   - NOT: ~A
+#   - SHL: A << 1
+#   - SHR: A >> 1
+#
+# You'll need a wider OP bus and output MUX!

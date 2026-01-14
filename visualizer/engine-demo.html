@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Simulation Engine - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: #0d0d1a;
+            color: #eee;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #e94560;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #0077b6;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .demo-section {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        button.active {
+            background: #e94560;
+        }
+        .output {
+            background: #0a0a12;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .switch-panel {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .switch-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .switch-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #888;
+        }
+        .switch-btn {
+            width: 60px;
+            height: 40px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .switch-btn.on {
+            background: #00aa00;
+        }
+        .truth-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .truth-table th, .truth-table td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+        }
+        .truth-table th {
+            background: #16213e;
+            color: #e94560;
+        }
+        .truth-table tr:nth-child(even) {
+            background: #151525;
+        }
+        .result-0 { color: #0077b6; font-weight: bold; }
+        .result-1 { color: #00cc00; font-weight: bold; }
+        .result-X { color: #888; }
+        .stat-box {
+            display: inline-block;
+            background: #16213e;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .stat-label {
+            color: #888;
+            font-size: 12px;
+        }
+        .stat-value {
+            color: #e94560;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Core Simulation Engine - Interactive Demo</h1>
+
+        <p style="margin-bottom: 20px; color: #888;">
+            This demonstrates the modular JavaScript simulation engine for digital circuits.
+            The engine supports 14 gate types with proper 4-state logic (0, 1, X, Z).
+        </p>
+
+        <!-- Half Adder Demo -->
+        <div class="demo-section">
+            <h2>Half Adder Circuit</h2>
+            <p style="color: #888; margin-bottom: 15px;">A + B = Sum (XOR) + Carry (AND)</p>
+
+            <div class="switch-panel">
+                <div class="switch-group">
+                    <span class="switch-label">Input A</span>
+                    <button id="switch-a" class="switch-btn" data-wire="a">0</button>
+                </div>
+                <div class="switch-group">
+                    <span class="switch-label">Input B</span>
+                    <button id="switch-b" class="switch-btn" data-wire="b">0</button>
+                </div>
+                <div style="font-size: 24px; color: #666;">=</div>
+                <div class="switch-group">
+                    <span class="switch-label">Sum</span>
+                    <div id="led-sum" class="switch-btn" style="cursor: default;">?</div>
+                </div>
+                <div class="switch-group">
+                    <span class="switch-label">Carry</span>
+                    <div id="led-carry" class="switch-btn" style="cursor: default;">?</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button onclick="runHalfAdderTruthTable()">Show Truth Table</button>
+            </div>
+
+            <div id="half-adder-output" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Full Adder Demo -->
+        <div class="demo-section">
+            <h2>Full Adder Circuit</h2>
+            <p style="color: #888; margin-bottom: 15px;">A + B + Cin = Sum + Cout</p>
+
+            <div class="switch-panel">
+                <div class="switch-group">
+                    <span class="switch-label">Input A</span>
+                    <button id="fa-switch-a" class="switch-btn" data-wire="a" data-circuit="fullAdder">0</button>
+                </div>
+                <div class="switch-group">
+                    <span class="switch-label">Input B</span>
+                    <button id="fa-switch-b" class="switch-btn" data-wire="b" data-circuit="fullAdder">0</button>
+                </div>
+                <div class="switch-group">
+                    <span class="switch-label">Carry In</span>
+                    <button id="fa-switch-cin" class="switch-btn" data-wire="cin" data-circuit="fullAdder">0</button>
+                </div>
+                <div style="font-size: 24px; color: #666;">=</div>
+                <div class="switch-group">
+                    <span class="switch-label">Sum</span>
+                    <div id="fa-led-sum" class="switch-btn" style="cursor: default;">?</div>
+                </div>
+                <div class="switch-group">
+                    <span class="switch-label">Carry Out</span>
+                    <div id="fa-led-cout" class="switch-btn" style="cursor: default;">?</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4-bit Adder Demo -->
+        <div class="demo-section">
+            <h2>4-bit Adder Circuit</h2>
+            <p style="color: #888; margin-bottom: 15px;">Four full adders chained together for 4-bit addition</p>
+
+            <div class="grid">
+                <div>
+                    <label style="color: #888;">Input A (0-15):</label>
+                    <input type="number" id="adder4-a" min="0" max="15" value="5" style="width: 60px; padding: 5px; background: #16213e; color: #eee; border: 1px solid #333; border-radius: 3px;">
+                </div>
+                <div>
+                    <label style="color: #888;">Input B (0-15):</label>
+                    <input type="number" id="adder4-b" min="0" max="15" value="3" style="width: 60px; padding: 5px; background: #16213e; color: #eee; border: 1px solid #333; border-radius: 3px;">
+                </div>
+            </div>
+
+            <div class="controls" style="margin-top: 15px;">
+                <button onclick="runAdder4()">Calculate</button>
+            </div>
+
+            <div id="adder4-output" class="output">Click "Calculate" to simulate</div>
+        </div>
+
+        <!-- Engine Stats -->
+        <div class="demo-section">
+            <h2>Engine Statistics</h2>
+            <div id="engine-stats">
+                <div class="stat-box">
+                    <div class="stat-label">Gate Types</div>
+                    <div class="stat-value" id="stat-gates">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Wire States</div>
+                    <div class="stat-value" id="stat-states">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Version</div>
+                    <div class="stat-value" id="stat-version">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JSON Export Demo -->
+        <div class="demo-section">
+            <h2>JSON Export</h2>
+            <p style="color: #888; margin-bottom: 15px;">Export circuits in format compatible with C simulator</p>
+
+            <div class="controls">
+                <button onclick="showHalfAdderJSON()">Show Half Adder JSON</button>
+                <button onclick="downloadHalfAdderJSON()">Download JSON</button>
+            </div>
+
+            <div id="json-output" class="output" style="max-height: 300px;">Click a button to see JSON</div>
+        </div>
+    </div>
+
+    <!-- Load engine modules -->
+    <script src="engine/types.js"></script>
+    <script src="engine/wire.js"></script>
+    <script src="engine/gate.js"></script>
+    <script src="engine/circuit.js"></script>
+    <script src="engine/io.js"></script>
+    <script src="engine/index.js"></script>
+
+    <script>
+        // Get engine components
+        const { WireState, GateType, Wire, Gate, Circuit, CircuitIO, Circuits } = window.SimEngine;
+
+        // Store circuit instances
+        let halfAdderCircuit = null;
+        let fullAdderCircuit = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Run self-test
+            if (SimEngine.selfTest()) {
+                console.log('Engine self-test passed!');
+            }
+
+            // Update stats
+            document.getElementById('stat-gates').textContent = Object.keys(GateType).length;
+            document.getElementById('stat-states').textContent = '4 (0, 1, X, Z)';
+            document.getElementById('stat-version').textContent = SimEngine.VERSION;
+
+            // Initialize circuits
+            halfAdderCircuit = Circuits.halfAdder();
+            fullAdderCircuit = Circuits.fullAdder();
+
+            // Set up switch event handlers
+            setupSwitches();
+
+            // Initial simulation
+            updateHalfAdder();
+            updateFullAdder();
+        });
+
+        function setupSwitches() {
+            // Half adder switches
+            document.querySelectorAll('[data-wire][data-circuit="halfAdder"], [data-wire]:not([data-circuit])').forEach(function(btn) {
+                if (btn.dataset.circuit && btn.dataset.circuit !== 'halfAdder') return;
+                btn.addEventListener('click', function() {
+                    var wire = this.dataset.wire;
+                    var circuit = halfAdderCircuit;
+                    var wireIdx = circuit.findWire(wire);
+
+                    // Toggle
+                    var currentState = circuit.getWire(wireIdx, 0);
+                    var newState = currentState === WireState.HIGH ? WireState.LOW : WireState.HIGH;
+                    circuit.setWire(wireIdx, 0, newState);
+
+                    updateHalfAdder();
+                });
+            });
+
+            // Full adder switches
+            document.querySelectorAll('[data-circuit="fullAdder"]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var wire = this.dataset.wire;
+                    var circuit = fullAdderCircuit;
+                    var wireIdx = circuit.findWire(wire);
+
+                    // Toggle
+                    var currentState = circuit.getWire(wireIdx, 0);
+                    var newState = currentState === WireState.HIGH ? WireState.LOW : WireState.HIGH;
+                    circuit.setWire(wireIdx, 0, newState);
+
+                    updateFullAdder();
+                });
+            });
+        }
+
+        function formatState(state) {
+            if (state === WireState.LOW) return '0';
+            if (state === WireState.HIGH) return '1';
+            return 'X';
+        }
+
+        function updateHalfAdder() {
+            halfAdderCircuit.propagate();
+
+            var a = halfAdderCircuit.findWire('a');
+            var b = halfAdderCircuit.findWire('b');
+            var sum = halfAdderCircuit.findWire('sum');
+            var carry = halfAdderCircuit.findWire('carry');
+
+            var aState = halfAdderCircuit.getWire(a, 0);
+            var bState = halfAdderCircuit.getWire(b, 0);
+            var sumState = halfAdderCircuit.getWire(sum, 0);
+            var carryState = halfAdderCircuit.getWire(carry, 0);
+
+            // Update buttons
+            var btnA = document.getElementById('switch-a');
+            var btnB = document.getElementById('switch-b');
+            btnA.textContent = formatState(aState);
+            btnA.classList.toggle('on', aState === WireState.HIGH);
+            btnB.textContent = formatState(bState);
+            btnB.classList.toggle('on', bState === WireState.HIGH);
+
+            // Update outputs
+            var ledSum = document.getElementById('led-sum');
+            var ledCarry = document.getElementById('led-carry');
+            ledSum.textContent = formatState(sumState);
+            ledSum.classList.toggle('on', sumState === WireState.HIGH);
+            ledCarry.textContent = formatState(carryState);
+            ledCarry.classList.toggle('on', carryState === WireState.HIGH);
+        }
+
+        function updateFullAdder() {
+            fullAdderCircuit.propagate();
+
+            var a = fullAdderCircuit.findWire('a');
+            var b = fullAdderCircuit.findWire('b');
+            var cin = fullAdderCircuit.findWire('cin');
+            var sum = fullAdderCircuit.findWire('sum');
+            var cout = fullAdderCircuit.findWire('cout');
+
+            var aState = fullAdderCircuit.getWire(a, 0);
+            var bState = fullAdderCircuit.getWire(b, 0);
+            var cinState = fullAdderCircuit.getWire(cin, 0);
+            var sumState = fullAdderCircuit.getWire(sum, 0);
+            var coutState = fullAdderCircuit.getWire(cout, 0);
+
+            // Update buttons
+            document.getElementById('fa-switch-a').textContent = formatState(aState);
+            document.getElementById('fa-switch-a').classList.toggle('on', aState === WireState.HIGH);
+            document.getElementById('fa-switch-b').textContent = formatState(bState);
+            document.getElementById('fa-switch-b').classList.toggle('on', bState === WireState.HIGH);
+            document.getElementById('fa-switch-cin').textContent = formatState(cinState);
+            document.getElementById('fa-switch-cin').classList.toggle('on', cinState === WireState.HIGH);
+
+            // Update outputs
+            document.getElementById('fa-led-sum').textContent = formatState(sumState);
+            document.getElementById('fa-led-sum').classList.toggle('on', sumState === WireState.HIGH);
+            document.getElementById('fa-led-cout').textContent = formatState(coutState);
+            document.getElementById('fa-led-cout').classList.toggle('on', coutState === WireState.HIGH);
+        }
+
+        function runHalfAdderTruthTable() {
+            var output = document.getElementById('half-adder-output');
+            output.style.display = 'block';
+            output.textContent = '';
+
+            // Create table using safe DOM methods
+            var table = document.createElement('table');
+            table.className = 'truth-table';
+
+            // Header
+            var thead = document.createElement('tr');
+            ['A', 'B', 'Sum', 'Carry'].forEach(function(label) {
+                var th = document.createElement('th');
+                th.textContent = label;
+                thead.appendChild(th);
+            });
+            table.appendChild(thead);
+
+            var c = Circuits.halfAdder();
+            var a = c.findWire('a');
+            var b = c.findWire('b');
+            var sum = c.findWire('sum');
+            var carry = c.findWire('carry');
+
+            for (var va = 0; va <= 1; va++) {
+                for (var vb = 0; vb <= 1; vb++) {
+                    c.setWire(a, 0, va ? WireState.HIGH : WireState.LOW);
+                    c.setWire(b, 0, vb ? WireState.HIGH : WireState.LOW);
+                    c.propagate();
+
+                    var s = c.getWire(sum, 0) === WireState.HIGH ? 1 : 0;
+                    var cy = c.getWire(carry, 0) === WireState.HIGH ? 1 : 0;
+
+                    var tr = document.createElement('tr');
+
+                    var tdA = document.createElement('td');
+                    tdA.textContent = va;
+                    tr.appendChild(tdA);
+
+                    var tdB = document.createElement('td');
+                    tdB.textContent = vb;
+                    tr.appendChild(tdB);
+
+                    var tdSum = document.createElement('td');
+                    tdSum.textContent = s;
+                    tdSum.className = 'result-' + s;
+                    tr.appendChild(tdSum);
+
+                    var tdCarry = document.createElement('td');
+                    tdCarry.textContent = cy;
+                    tdCarry.className = 'result-' + cy;
+                    tr.appendChild(tdCarry);
+
+                    table.appendChild(tr);
+                }
+            }
+
+            output.appendChild(table);
+        }
+
+        function runAdder4() {
+            var aVal = parseInt(document.getElementById('adder4-a').value) || 0;
+            var bVal = parseInt(document.getElementById('adder4-b').value) || 0;
+
+            var c = Circuits.adder4();
+            var a = c.findWire('a');
+            var b = c.findWire('b');
+            var cin = c.findWire('cin');
+            var sum = c.findWire('sum');
+            var cout = c.findWire('cout');
+
+            c.wires[a].setValueInt(aVal & 0xF);
+            c.wires[b].setValueInt(bVal & 0xF);
+            c.setWire(cin, 0, WireState.LOW);
+
+            c.propagate();
+
+            var result = c.wires[sum].getValueInt();
+            var carryOut = c.getWire(cout, 0) === WireState.HIGH ? 1 : 0;
+
+            var output = document.getElementById('adder4-output');
+            var text = '';
+            text += 'Input A:  ' + aVal.toString().padStart(2) + ' = ' + (aVal >>> 0).toString(2).padStart(4, '0') + '\n';
+            text += 'Input B:  ' + bVal.toString().padStart(2) + ' = ' + (bVal >>> 0).toString(2).padStart(4, '0') + '\n';
+            text += '-------------------\n';
+            text += 'Sum:      ' + result.toString().padStart(2) + ' = ' + result.toString(2).padStart(4, '0') + '\n';
+            text += 'Carry:    ' + carryOut + '\n';
+            text += '-------------------\n';
+
+            var expectedSum = (aVal + bVal) & 0xF;
+            var expectedCarry = (aVal + bVal) > 15 ? 1 : 0;
+
+            if (result === expectedSum && carryOut === expectedCarry) {
+                text += 'PASS: ' + aVal + ' + ' + bVal + ' = ' + (aVal + bVal) + ' (' + expectedSum + ' with carry ' + expectedCarry + ')\n';
+            } else {
+                text += 'FAIL: Expected ' + expectedSum + ' with carry ' + expectedCarry + '\n';
+            }
+
+            output.textContent = text;
+        }
+
+        function showHalfAdderJSON() {
+            var c = Circuits.halfAdder();
+            c.setWire(c.findWire('a'), 0, WireState.HIGH);
+            c.setWire(c.findWire('b'), 0, WireState.HIGH);
+            c.propagate();
+
+            var json = CircuitIO.toJSONString(c);
+            document.getElementById('json-output').textContent = json;
+        }
+
+        function downloadHalfAdderJSON() {
+            var c = Circuits.halfAdder();
+            c.propagate();
+            CircuitIO.downloadJSON(c, 'half_adder.json');
+        }
+    </script>
+</body>
+</html>

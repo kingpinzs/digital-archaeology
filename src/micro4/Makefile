@@ -1,21 +1,30 @@
 # Micro4 CPU Emulator Makefile
 
-CC = gcc
+CC = gcc-14
 CFLAGS = -Wall -Wextra -std=c99 -g -O2
 LDFLAGS =
 
-# Output binary
+# Output binaries
 TARGET = micro4
+DEBUGGER = micro4-dbg
 
 # Source files
 SRCS = main.c cpu.c assembler.c
 OBJS = $(SRCS:.c=.o)
 
+# Debugger source files
+DBG_SRCS = debugger.c cpu.c assembler.c
+DBG_OBJS = $(DBG_SRCS:.c=.o)
+
 # Default target
-all: $(TARGET)
+all: $(TARGET) $(DEBUGGER)
 
 # Link
 $(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+# Link debugger
+$(DEBUGGER): debugger.o cpu.o assembler.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 # Compile
@@ -26,15 +35,16 @@ $(TARGET): $(OBJS)
 main.o: main.c cpu.h assembler.h
 cpu.o: cpu.c cpu.h
 assembler.o: assembler.c assembler.h cpu.h
+debugger.o: debugger.c debugger.h cpu.h assembler.h
 
 # Clean
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) debugger.o $(TARGET) $(DEBUGGER)
 
 # Install to parent bin directory
-install: $(TARGET)
+install: $(TARGET) $(DEBUGGER)
 	mkdir -p ../../bin
-	cp $(TARGET) ../../bin/
+	cp $(TARGET) $(DEBUGGER) ../../bin/
 
 # Run tests
 test: $(TARGET)
@@ -52,7 +62,9 @@ test: $(TARGET)
 # Help
 help:
 	@echo "Micro4 Makefile targets:"
-	@echo "  make          Build the emulator"
+	@echo "  make          Build the emulator and debugger"
+	@echo "  make micro4   Build just the emulator"
+	@echo "  make micro4-dbg  Build just the debugger"
 	@echo "  make clean    Remove build artifacts"
 	@echo "  make install  Install to bin directory"
 	@echo "  make test     Run test programs"

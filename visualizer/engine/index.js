@@ -10,9 +10,10 @@
  *   <script src="engine/gate.js"></script>
  *   <script src="engine/circuit.js"></script>
  *   <script src="engine/io.js"></script>
+ *   <script src="engine/animation.js"></script>
  *   <script src="engine/index.js"></script>
  *
- *   const { Circuit, Wire, Gate, WireState } = window.SimEngine;
+ *   const { Circuit, Wire, Gate, WireState, AnimationController } = window.SimEngine;
  *
  * Usage (Node.js):
  *   const SimEngine = require('./engine');
@@ -221,7 +222,7 @@
     /**
      * Version information.
      */
-    SimEngine.VERSION = '1.0.0';
+    SimEngine.VERSION = '1.1.0';  // Updated for animation support
 
     /**
      * Quick test to verify engine is working.

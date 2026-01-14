@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate-Level Animation - Digital Circuit Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: #0d0d1a;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #16213e;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f3460;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        h1 {
+            color: #e94560;
+            font-size: 1.3em;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        button.active {
+            background: #e94560;
+        }
+        button.primary {
+            background: #e94560;
+        }
+        select {
+            background: #0f3460;
+            color: #eee;
+            border: 1px solid #0f3460;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        select:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .speed-label {
+            color: #888;
+            font-size: 12px;
+        }
+        input[type="range"] {
+            width: 100px;
+            height: 4px;
+            background: #0f3460;
+            border-radius: 2px;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #e94560;
+            border-radius: 50%;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        #animationCanvas {
+            flex: 1;
+            display: block;
+            background: #0d0d1a;
+        }
+        .sidebar {
+            width: 280px;
+            background: #16213e;
+            padding: 15px;
+            overflow-y: auto;
+            border-left: 2px solid #0f3460;
+        }
+        .sidebar h3 {
+            color: #e94560;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #0f3460;
+        }
+        .input-panel {
+            margin-bottom: 20px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .input-label {
+            width: 60px;
+            color: #888;
+            font-size: 12px;
+        }
+        .input-toggle {
+            width: 50px;
+            height: 26px;
+            background: #0f3460;
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .input-toggle.on {
+            background: #00aa00;
+        }
+        .input-toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #eee;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: left 0.2s;
+        }
+        .input-toggle.on::after {
+            left: 27px;
+        }
+        .input-value {
+            width: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .input-value.high {
+            color: #00cc00;
+        }
+        .input-value.low {
+            color: #0077b6;
+        }
+        .output-panel {
+            margin-bottom: 20px;
+        }
+        .output-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .output-led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 2px solid #333;
+        }
+        .output-led.on {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        .event-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #0a0a12;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+        .event-item {
+            padding: 3px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        .event-item.gate-eval {
+            color: #e94560;
+        }
+        .event-item.wire-change {
+            color: #00cc00;
+        }
+        .event-item.iteration {
+            color: #0077b6;
+        }
+        .status-bar {
+            background: #16213e;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #0f3460;
+            font-size: 12px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+        }
+        .status-indicator.idle { background: #888; }
+        .status-indicator.running { background: #00ff00; animation: pulse 1s infinite; }
+        .status-indicator.paused { background: #ffaa00; }
+        .status-indicator.stepping { background: #0088dd; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        .legend-0 { background: #0077b6; }
+        .legend-1 { background: #00cc00; }
+        .legend-x { background: #888; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Gate-Level Animation</h1>
+            <div class="subtitle">Watch signal propagation through digital circuits</div>
+        </div>
+        <div class="controls">
+            <select id="circuitSelect" onchange="loadSelectedCircuit()">
+                <option value="halfAdder">Half Adder</option>
+                <option value="fullAdder">Full Adder</option>
+                <option value="srLatch">SR Latch (NAND)</option>
+            </select>
+            <button onclick="controller.reset()" title="Reset circuit">Reset</button>
+            <button id="stepBtn" onclick="controller.step()" title="Single step">Step</button>
+            <button id="playBtn" onclick="togglePlay()" class="primary" title="Play/Pause animation">Play</button>
+            <div class="speed-control">
+                <span class="speed-label">Speed:</span>
+                <input type="range" id="speedSlider" min="0.1" max="5" step="0.1" value="1" onchange="updateSpeed()">
+                <span id="speedValue">1.0x</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="canvas-area">
+            <canvas id="animationCanvas"></canvas>
+        </div>
+
+        <div class="sidebar">
+            <h3>Inputs</h3>
+            <div id="inputPanel" class="input-panel">
+                <!-- Populated dynamically -->
+            </div>
+
+            <h3>Outputs</h3>
+            <div id="outputPanel" class="output-panel">
+                <!-- Populated dynamically -->
+            </div>
+
+            <h3>Event Log</h3>
+            <div id="eventLog" class="event-log">
+                <div class="event-item iteration">Ready. Select a circuit and click Play or Step.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div id="statusIndicator" class="status-indicator idle"></div>
+            <span id="statusText">Idle</span>
+        </div>
+        <div class="status-item">
+            Iteration: <strong id="iterationCount">0</strong>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color legend-0"></div>Low (0)</div>
+            <div class="legend-item"><div class="legend-color legend-1"></div>High (1)</div>
+            <div class="legend-item"><div class="legend-color legend-x"></div>Unknown (X)</div>
+        </div>
+    </div>
+
+    <!-- Load engine modules -->
+    <script src="engine/types.js"></script>
+    <script src="engine/wire.js"></script>
+    <script src="engine/gate.js"></script>
+    <script src="engine/circuit.js"></script>
+    <script src="engine/io.js"></script>
+    <script src="engine/animation.js"></script>
+    <script src="engine/index.js"></script>
+
+    <script>
+        // Get engine components
+        const {
+            WireState, WireStateStr, GateType, Circuits,
+            AnimationState, PropagationEventType, PropagationEvent,
+            CircuitAnimator, AnimationController, GateRenderer
+        } = window.SimEngine;
+
+        // Global state
+        let circuit = null;
+        let animator = null;
+        let controller = null;
+        let renderer = null;
+        let activeGates = new Set();
+
+        // DOM elements
+        const canvas = document.getElementById('animationCanvas');
+        const ctx = canvas.getContext('2d');
+        const inputPanel = document.getElementById('inputPanel');
+        const outputPanel = document.getElementById('outputPanel');
+        const eventLog = document.getElementById('eventLog');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const iterationCount = document.getElementById('iterationCount');
+        const playBtn = document.getElementById('playBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            loadSelectedCircuit();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            if (renderer && circuit) {
+                renderer.gatePositions.clear();
+                renderer.layoutCircuit(circuit);
+                render();
+            }
+        }
+
+        function loadSelectedCircuit() {
+            const select = document.getElementById('circuitSelect');
+            const circuitName = select.value;
+
+            // Create circuit
+            switch (circuitName) {
+                case 'halfAdder':
+                    circuit = Circuits.halfAdder();
+                    break;
+                case 'fullAdder':
+                    circuit = Circuits.fullAdder();
+                    break;
+                case 'srLatch':
+                    circuit = Circuits.srLatch();
+                    break;
+                default:
+                    circuit = Circuits.halfAdder();
+            }
+
+            // Initialize animation components
+            animator = new CircuitAnimator(circuit);
+            controller = new AnimationController(animator);
+            renderer = new GateRenderer(ctx, {
+                gateWidth: 100,
+                gateHeight: 60,
+                margin: 30
+            });
+
+            // Set up callbacks
+            controller.onStateChange = handleStateChange;
+            controller.onFrame = handleFrame;
+            controller.onComplete = handleComplete;
+
+            // Build UI using safe DOM methods
+            buildInputPanel();
+            buildOutputPanel();
+            clearEventLog();
+            addLogEntry('Circuit loaded: ' + circuitName, 'iteration');
+
+            // Initial render
+            renderer.layoutCircuit(circuit);
+            render();
+            updateStatus();
+        }
+
+        function buildInputPanel() {
+            // Clear using safe DOM methods
+            while (inputPanel.firstChild) {
+                inputPanel.removeChild(inputPanel.firstChild);
+            }
+
+            for (let i = 0; i < circuit.wires.length; i++) {
+                const wire = circuit.wires[i];
+                if (!wire.isInput) continue;
+
+                const row = document.createElement('div');
+                row.className = 'input-row';
+
+                const label = document.createElement('span');
+                label.className = 'input-label';
+                label.textContent = wire.name;
+
+                const toggle = document.createElement('div');
+                toggle.className = 'input-toggle';
+                toggle.dataset.wireIndex = i;
+                toggle.onclick = function() {
+                    toggleInput(parseInt(this.dataset.wireIndex));
+                };
+
+                const value = document.createElement('span');
+                value.className = 'input-value low';
+                value.id = 'input-value-' + i;
+                value.textContent = '0';
+
+                row.appendChild(label);
+                row.appendChild(toggle);
+                row.appendChild(value);
+                inputPanel.appendChild(row);
+            }
+        }
+
+        function buildOutputPanel() {
+            // Clear using safe DOM methods
+            while (outputPanel.firstChild) {
+                outputPanel.removeChild(outputPanel.firstChild);
+            }
+
+            for (let i = 0; i < circuit.wires.length; i++) {
+                const wire = circuit.wires[i];
+                if (!wire.isOutput) continue;
+
+                const row = document.createElement('div');
+                row.className = 'output-row';
+
+                const label = document.createElement('span');
+                label.className = 'input-label';
+                label.textContent = wire.name;
+
+                const led = document.createElement('div');
+                led.className = 'output-led';
+                led.id = 'output-led-' + i;
+
+                const value = document.createElement('span');
+                value.className = 'input-value low';
+                value.id = 'output-value-' + i;
+                value.textContent = 'X';
+
+                row.appendChild(label);
+                row.appendChild(led);
+                row.appendChild(value);
+                outputPanel.appendChild(row);
+            }
+        }
+
+        function toggleInput(wireIndex) {
+            const wire = circuit.wires[wireIndex];
+            const currentState = wire.getState(0);
+            const newState = currentState === WireState.HIGH ? WireState.LOW : WireState.HIGH;
+            circuit.setWire(wireIndex, 0, newState);
+
+            // Update toggle visual
+            const toggles = inputPanel.querySelectorAll('.input-toggle');
+            for (const toggle of toggles) {
+                if (parseInt(toggle.dataset.wireIndex) === wireIndex) {
+                    toggle.classList.toggle('on', newState === WireState.HIGH);
+                }
+            }
+
+            // Update value display
+            const valueElem = document.getElementById('input-value-' + wireIndex);
+            if (valueElem) {
+                valueElem.textContent = newState === WireState.HIGH ? '1' : '0';
+                valueElem.className = 'input-value ' + (newState === WireState.HIGH ? 'high' : 'low');
+            }
+
+            addLogEntry('Input ' + wire.name + ' set to ' + (newState === WireState.HIGH ? '1' : '0'), 'wire-change');
+
+            // Reset animation if not running
+            if (controller.getState() === AnimationState.IDLE) {
+                animator.reset();
+                updateIterationCount();
+            }
+
+            render();
+        }
+
+        function updateOutputs() {
+            for (let i = 0; i < circuit.wires.length; i++) {
+                const wire = circuit.wires[i];
+                if (!wire.isOutput) continue;
+
+                const state = wire.getState(0);
+                const led = document.getElementById('output-led-' + i);
+                const value = document.getElementById('output-value-' + i);
+
+                if (led) {
+                    led.classList.toggle('on', state === WireState.HIGH);
+                }
+                if (value) {
+                    value.textContent = WireStateStr[state] || 'X';
+                    value.className = 'input-value ' + (state === WireState.HIGH ? 'high' : 'low');
+                }
+            }
+        }
+
+        function handleStateChange(from, to) {
+            updateStatus();
+            updateButtons();
+        }
+
+        function handleFrame(events) {
+            activeGates.clear();
+
+            for (const event of events) {
+                switch (event.type) {
+                    case PropagationEventType.ITERATION_START:
+                        addLogEntry('--- Iteration ' + event.data.iteration + ' ---', 'iteration');
+                        break;
+                    case PropagationEventType.GATE_EVALUATE:
+                        activeGates.add(event.data.gateIndex);
+                        addLogEntry(
+                            event.data.gateName + ' (' + event.data.gateType + '): ' +
+                            event.data.inputStates.map(function(s) { return WireStateStr[s]; }).join(',') +
+                            ' -> ' + WireStateStr[event.data.outputState],
+                            'gate-eval'
+                        );
+                        break;
+                    case PropagationEventType.WIRE_CHANGE:
+                        addLogEntry(
+                            event.data.wireName + '[' + event.data.bit + ']: ' +
+                            WireStateStr[event.data.oldState] + ' -> ' +
+                            WireStateStr[event.data.newState],
+                            'wire-change'
+                        );
+                        break;
+                    case PropagationEventType.ITERATION_END:
+                        if (event.data.stable) {
+                            addLogEntry('Circuit stabilized', 'iteration');
+                        }
+                        break;
+                }
+            }
+
+            updateIterationCount();
+            updateOutputs();
+            render();
+        }
+
+        function handleComplete(allEvents) {
+            addLogEntry('=== Propagation complete ===', 'iteration');
+            activeGates.clear();
+            render();
+            updateButtons();
+        }
+
+        function togglePlay() {
+            var state = controller.getState();
+            if (state === AnimationState.RUNNING) {
+                controller.pause();
+            } else {
+                controller.play();
+            }
+        }
+
+        function updateSpeed() {
+            var speed = parseFloat(speedSlider.value);
+            controller.setSpeed(speed);
+            speedValue.textContent = speed.toFixed(1) + 'x';
+        }
+
+        function updateStatus() {
+            var state = controller.getState();
+            statusIndicator.className = 'status-indicator ' + state;
+
+            var stateNames = {};
+            stateNames[AnimationState.IDLE] = 'Idle';
+            stateNames[AnimationState.RUNNING] = 'Running';
+            stateNames[AnimationState.PAUSED] = 'Paused';
+            stateNames[AnimationState.STEPPING] = 'Stepping';
+            statusText.textContent = stateNames[state] || 'Unknown';
+        }
+
+        function updateButtons() {
+            var state = controller.getState();
+            var isComplete = animator.isComplete();
+
+            playBtn.textContent = state === AnimationState.RUNNING ? 'Pause' : 'Play';
+            playBtn.disabled = isComplete;
+            stepBtn.disabled = state === AnimationState.RUNNING || isComplete;
+        }
+
+        function updateIterationCount() {
+            iterationCount.textContent = animator.currentIteration;
+        }
+
+        function addLogEntry(text, className) {
+            var entry = document.createElement('div');
+            entry.className = 'event-item ' + (className || '');
+            entry.textContent = text;
+            eventLog.appendChild(entry);
+            eventLog.scrollTop = eventLog.scrollHeight;
+
+            // Limit log entries
+            while (eventLog.children.length > 100) {
+                eventLog.removeChild(eventLog.firstChild);
+            }
+        }
+
+        function clearEventLog() {
+            // Clear using safe DOM methods
+            while (eventLog.firstChild) {
+                eventLog.removeChild(eventLog.firstChild);
+            }
+        }
+
+        function render() {
+            if (!renderer || !circuit) return;
+            renderer.render(circuit, activeGates);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

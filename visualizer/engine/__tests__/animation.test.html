@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Simulation Engine - Animation Tests</title>
+    <style>
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: #0d0d1a;
+            color: #eee;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #e94560;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0077b6;
+            margin-top: 30px;
+        }
+        .test-suite {
+            margin: 10px 0;
+            padding: 10px;
+            background: #1a1a2e;
+            border-radius: 5px;
+        }
+        .test-case {
+            padding: 5px 15px;
+            margin: 5px 0;
+        }
+        .pass {
+            color: #00ff00;
+        }
+        .fail {
+            color: #ff3333;
+        }
+        .pass::before {
+            content: '\2713 ';
+        }
+        .fail::before {
+            content: '\2717 ';
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #16213e;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+        .summary.all-pass {
+            border: 2px solid #00ff00;
+        }
+        .summary.has-fail {
+            border: 2px solid #ff3333;
+        }
+        pre {
+            background: #0a0a12;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        #output {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Core Simulation Engine - Animation Tests</h1>
+    <div id="output"></div>
+
+    <!-- Load engine modules in order -->
+    <script src="../types.js"></script>
+    <script src="../wire.js"></script>
+    <script src="../gate.js"></script>
+    <script src="../circuit.js"></script>
+    <script src="../io.js"></script>
+    <script src="../animation.js"></script>
+    <script src="../index.js"></script>
+
+    <!-- Test runner -->
+    <script src="animation.test.js"></script>
+</body>
+</html>

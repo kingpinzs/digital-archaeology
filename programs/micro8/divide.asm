@@ -5,6 +5,14 @@
 ;   3. Division with remainder (modulo)
 ;
 ; Micro8 Architecture Test Program
+;
+; IMPORTANT: Micro8 is an ACCUMULATOR-BASED architecture:
+; - Arithmetic ops (ADD, SUB, ADC, SBC) always use R0 as destination
+; - Logic immediate ops (ANDI, ORI, XORI) always use R0 as destination
+; - Shifts (SHL, SHR, etc.) operate on any register
+; - CMP/CMPI can compare any registers
+; - INC/DEC operate on any register
+; - MOV, LDI, LD, ST can target any register
 
         .org 0x0200             ; Start after reserved area
 
@@ -96,29 +104,39 @@ START:
 ; DIV_SIMPLE: Simple division using repeated subtraction
 ; Input: R0 = dividend, R1 = divisor
 ; Output: R0 = quotient, R1 = remainder
-; Destroys: R2
+; Destroys: R2, R3
+;
+; Algorithm: Count how many times we can subtract divisor from dividend.
+; For accumulator architecture, we keep dividend in R0 since SUB uses R0.
 DIV_SIMPLE:
         ; Check for division by zero
         CMPI R1, 0
         JZ DIV_SIMPLE_ERROR
 
         PUSH R2
-        MOV R2, R1              ; R2 = divisor (save)
-        LDI R1, 0               ; R1 = quotient counter
+        PUSH R3
+
+        MOV R2, R1              ; R2 = divisor (preserved copy)
+        LDI R3, 0               ; R3 = quotient counter
 
 DIV_SIMPLE_LOOP:
-        CMP R0, R2              ; Compare dividend with divisor
+        ; Compare dividend (R0) with divisor (R2)
+        CMP R0, R2              ; Sets carry if R0 < R2
         JC DIV_SIMPLE_DONE      ; If dividend < divisor, done
-        SUB R0, R2              ; dividend -= divisor
-        INC R1                  ; quotient++
+
+        ; R0 = R0 - R2 (SUB always uses R0 as dest)
+        SUB R0, R2              ; dividend -= divisor (result in R0)
+        INC R3                  ; quotient++
         JMP DIV_SIMPLE_LOOP
 
 DIV_SIMPLE_DONE:
-        ; R0 = remainder, R1 = quotient
-        ; Swap so R0 = quotient, R1 = remainder
-        MOV R2, R0              ; R2 = remainder
-        MOV R0, R1              ; R0 = quotient
-        MOV R1, R2              ; R1 = remainder
+        ; R0 = remainder (what's left after subtractions)
+        ; R3 = quotient (how many times we subtracted)
+        ; Need to return: R0 = quotient, R1 = remainder
+        MOV R1, R0              ; R1 = remainder
+        MOV R0, R3              ; R0 = quotient
+
+        POP R3
         POP R2
         RET
 
@@ -131,7 +149,15 @@ DIV_SIMPLE_ERROR:
 ; Input: R0 = dividend, R1 = divisor
 ; Output: R0 = quotient, R1 = remainder
 ; Algorithm: Binary long division
-; Destroys: R2, R3, R4
+; Destroys: R2, R3, R4, R5
+;
+; For accumulator architecture:
+; - Keep dividend in R2 (shift it left each iteration)
+; - Keep remainder in R3
+; - Keep quotient in R4
+; - Keep divisor in R5
+; - Keep bit counter in R1 (reused)
+; - Use R0 for all arithmetic operations
 DIV_SHIFT:
         ; Check for division by zero
         CMPI R1, 0
@@ -140,40 +166,55 @@ DIV_SHIFT:
         PUSH R2
         PUSH R3
         PUSH R4
+        PUSH R5
 
-        MOV R2, R1              ; R2 = divisor
-        LDI R1, 0               ; R1 = quotient
+        MOV R5, R1              ; R5 = divisor (preserved)
+        MOV R2, R0              ; R2 = dividend (will be shifted)
         LDI R3, 0               ; R3 = remainder
-        LDI R4, 8               ; R4 = bit counter
+        LDI R4, 0               ; R4 = quotient
+        LDI R1, 8               ; R1 = bit counter
 
 DIV_SHIFT_LOOP:
-        ; Shift remainder left, bring in MSB of dividend
-        SHL R3                  ; Shift remainder left
-        ; Get MSB of dividend
-        MOV R5, R0
-        ANDI R5, 0x80           ; Mask MSB
-        JZ DIV_SHIFT_NO_BIT
-        ORI R3, 0x01            ; Set LSB of remainder
+        ; Step 1: Shift remainder left by 1
+        SHL R3
+
+        ; Step 2: Get MSB of dividend and add to remainder LSB
+        ; Check if bit 7 of R2 is set
+        MOV R0, R2              ; R0 = dividend
+        ANDI 0x80               ; R0 = R0 & 0x80 (only MSB)
+        JZ DIV_SHIFT_NO_BIT     ; If zero, MSB was not set
+
+        ; MSB was set, add 1 to remainder
+        INC R3
+
 DIV_SHIFT_NO_BIT:
-        SHL R0                  ; Shift dividend left
+        ; Shift dividend left
+        SHL R2
 
-        ; Shift quotient left
-        SHL R1
+        ; Shift quotient left to make room for new bit
+        SHL R4
 
-        ; Compare remainder with divisor
-        CMP R3, R2
-        JC DIV_SHIFT_SKIP       ; If remainder < divisor, skip
-        SUB R3, R2              ; remainder -= divisor
-        ORI R1, 0x01            ; Set LSB of quotient
+        ; Compare remainder with divisor: if remainder >= divisor, subtract
+        CMP R3, R5              ; Compare remainder (R3) with divisor (R5)
+        JC DIV_SHIFT_SKIP       ; If remainder < divisor, skip subtraction
+
+        ; remainder -= divisor (using R0 as accumulator)
+        MOV R0, R3              ; R0 = remainder
+        SUB R0, R5              ; R0 = remainder - divisor
+        MOV R3, R0              ; R3 = new remainder
+
+        ; Set LSB of quotient
+        INC R4
 
 DIV_SHIFT_SKIP:
-        DEC R4
-        JRNZ DIV_SHIFT_LOOP
+        DEC R1                  ; bit_counter--
+        JRNZ DIV_SHIFT_LOOP     ; Continue if more bits
 
-        ; R1 = quotient, R3 = remainder
-        MOV R0, R1              ; R0 = quotient
+        ; R4 = quotient, R3 = remainder
+        MOV R0, R4              ; R0 = quotient
         MOV R1, R3              ; R1 = remainder
 
+        POP R5
         POP R4
         POP R3
         POP R2
@@ -212,6 +253,7 @@ MOD:
 ; Input: R0 = first number, R1 = second number
 ; Output: R0 = GCD
 ; Algorithm: GCD(a,b) = GCD(b, a mod b) until b = 0
+; Uses: R2, R3 for temporary storage
 GCD:
         PUSH R2
         PUSH R3
@@ -221,17 +263,17 @@ GCD_LOOP:
         CMPI R1, 0
         JZ GCD_DONE
 
-        ; R2 = R0 mod R1
-        PUSH R0
-        PUSH R1
-        CALL MOD                ; R0 = R0 mod R1
-        MOV R2, R0              ; R2 = remainder
-        POP R1
-        POP R0
+        ; Save a (R0) and b (R1) before MOD call
+        MOV R2, R0              ; R2 = a
+        MOV R3, R1              ; R3 = b
 
-        ; a = b, b = remainder
-        MOV R0, R1              ; R0 = old R1
-        MOV R1, R2              ; R1 = remainder
+        ; Call MOD: R0 = a mod b
+        CALL MOD                ; R0 = R0 mod R1 (but R1 is destroyed)
+
+        ; Now: R0 = remainder, R2 = old a, R3 = old b
+        ; Set up for next iteration: a = b, b = remainder
+        MOV R1, R0              ; R1 = remainder (new b)
+        MOV R0, R3              ; R0 = old b (new a)
         JMP GCD_LOOP
 
 GCD_DONE:

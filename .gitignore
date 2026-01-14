@@ -1,4 +1,6 @@
 *.o
 bin/*
 .history/
-!*/*.gitkeepsrc/micro4/micro4-dbg
+!*/*.gitkeep
+src/micro4/micro4-dbg
+src/simulator/circuit.json

@@ -210,9 +210,9 @@ static bool parse_wire_ref(Parser *p, Circuit *c, int *wire_idx, int *bit) {
 
 /* === Parse statements === */
 
-static bool parse_wire_decl(Parser *p, Circuit *c) {
-    /* wire name; or wire [width-1:0] name; */
-    next_token(p);  /* skip 'wire' */
+static bool parse_input_decl(Parser *p, Circuit *c) {
+    /* input name; or input [width-1:0] name; */
+    next_token(p);  /* skip 'input' */
 
     int width = 1;
 
@@ -233,25 +233,421 @@ static bool parse_wire_decl(Parser *p, Circuit *c) {
     /* Wire name */
     if (p->token != TOK_IDENT) {
         snprintf(p->error_msg, sizeof(p->error_msg),
-                 "Expected wire name at line %d", p->line);
+                 "Expected input name at line %d", p->line);
         return false;
     }
 
-    circuit_add_wire(c, p->token_str, width);
+    int wire_idx = circuit_add_wire(c, p->token_str, width);
+    if (wire_idx >= 0) {
+        c->wires[wire_idx].is_input = true;
+
+        /* If we're inside a module, record this as a module input */
+        if (c->current_module >= 0) {
+            Module *m = &c->modules[c->current_module];
+            if (m->num_inputs < MAX_INPUTS) {
+                strncpy(m->input_names[m->num_inputs], p->token_str, MAX_NAME_LEN - 1);
+                m->input_widths[m->num_inputs] = width;
+                m->num_inputs++;
+            }
+        }
+    }
     next_token(p);
 
-    /* Check for initial value */
-    if (p->token == TOK_EQUALS) {
+    expect(p, TOK_SEMICOLON);
+    return true;
+}
+
+static bool parse_output_decl(Parser *p, Circuit *c) {
+    /* output name; or output [width-1:0] name; */
+    next_token(p);  /* skip 'output' */
+
+    int width = 1;
+
+    /* Check for bus width */
+    if (p->token == TOK_LBRACKET) {
         next_token(p);
-        if (p->token == TOK_NUMBER) {
-            int wire_idx = circuit_find_wire(c, c->wires[c->num_wires - 1].name);
-            for (int b = 0; b < width; b++) {
-                WireState s = (p->token_num >> b) & 1 ? WIRE_1 : WIRE_0;
-                circuit_set_wire(c, wire_idx, b, s);
+        if (p->token != TOK_NUMBER) return false;
+        int high = p->token_num;
+        next_token(p);
+        if (!expect(p, TOK_COLON)) return false;
+        if (p->token != TOK_NUMBER) return false;
+        int low = p->token_num;
+        next_token(p);
+        if (!expect(p, TOK_RBRACKET)) return false;
+        width = high - low + 1;
+    }
+
+    /* Wire name */
+    if (p->token != TOK_IDENT) {
+        snprintf(p->error_msg, sizeof(p->error_msg),
+                 "Expected output name at line %d", p->line);
+        return false;
+    }
+
+    int wire_idx = circuit_add_wire(c, p->token_str, width);
+    if (wire_idx >= 0) {
+        c->wires[wire_idx].is_output = true;
+
+        /* If we're inside a module, record this as a module output */
+        if (c->current_module >= 0) {
+            Module *m = &c->modules[c->current_module];
+            if (m->num_outputs < MAX_OUTPUTS) {
+                strncpy(m->output_names[m->num_outputs], p->token_str, MAX_NAME_LEN - 1);
+                m->output_widths[m->num_outputs] = width;
+                m->num_outputs++;
             }
+        }
+    }
+    next_token(p);
+
+    expect(p, TOK_SEMICOLON);
+    return true;
+}
+
+static int circuit_find_module(Circuit *c, const char *name) {
+    for (int i = 0; i < c->num_modules; i++) {
+        if (strcmp(c->modules[i].name, name) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static bool parse_module_port_list(Parser *p, Circuit *c);
+static bool parse_module_body(Parser *p, Circuit *c);
+static bool parse_wire_decl(Parser *p, Circuit *c);
+static bool parse_gate(Parser *p, Circuit *c);
+
+static bool parse_module(Parser *p, Circuit *c) {
+    /* module name (input: a b, output: y); ... endmodule */
+    /* OR: module name (input: a b, output: y); ... endmodule (with inline ports) */
+    next_token(p);  /* skip 'module' */
+
+    /* Module name */
+    if (p->token != TOK_IDENT) {
+        snprintf(p->error_msg, sizeof(p->error_msg),
+                 "Expected module name at line %d", p->line);
+        return false;
+    }
+
+    /* Check if we have too many modules */
+    if (c->num_modules >= MAX_MODULES) {
+        snprintf(p->error_msg, sizeof(p->error_msg),
+                 "Too many modules (max %d)", MAX_MODULES);
+        return false;
+    }
+
+    /* Create the module */
+    int module_idx = c->num_modules++;
+    Module *m = &c->modules[module_idx];
+    memset(m, 0, sizeof(Module));
+    strncpy(m->name, p->token_str, MAX_NAME_LEN - 1);
+    m->wire_start = c->num_wires;
+    m->gate_start = c->num_gates;
+
+    /* Set current module context */
+    c->current_module = module_idx;
+
+    next_token(p);
+
+    /* Parse port list if present: (input: a b, output: y) */
+    if (p->token == TOK_LPAREN) {
+        if (!parse_module_port_list(p, c)) {
+            c->current_module = -1;
+            return false;
+        }
+    }
+
+    /* Expect semicolon after module declaration */
+    if (!expect(p, TOK_SEMICOLON)) {
+        c->current_module = -1;
+        return false;
+    }
+
+    /* Parse module body until endmodule */
+    if (!parse_module_body(p, c)) {
+        c->current_module = -1;
+        return false;
+    }
+
+    /* Record wire and gate counts for this module */
+    m->wire_count = c->num_wires - m->wire_start;
+    m->gate_count = c->num_gates - m->gate_start;
+
+    /* Clear module context */
+    c->current_module = -1;
+
+    return true;
+}
+
+static bool parse_module_port_list(Parser *p, Circuit *c) {
+    /* (input: a b c, output: x y) */
+    if (!expect(p, TOK_LPAREN)) return false;
+
+    while (p->token != TOK_RPAREN && p->token != TOK_EOF) {
+        if (p->token == TOK_INPUT) {
+            next_token(p);
+            if (!expect(p, TOK_COLON)) return false;
+
+            /* Parse input wire names */
+            while (p->token == TOK_IDENT) {
+                int width = 1;
+                char name[MAX_NAME_LEN];
+                strncpy(name, p->token_str, MAX_NAME_LEN - 1);
+                next_token(p);
+
+                /* Check for bus index */
+                if (p->token == TOK_LBRACKET) {
+                    next_token(p);
+                    if (p->token != TOK_NUMBER) return false;
+                    int high = p->token_num;
+                    next_token(p);
+                    if (!expect(p, TOK_COLON)) return false;
+                    if (p->token != TOK_NUMBER) return false;
+                    int low = p->token_num;
+                    next_token(p);
+                    if (!expect(p, TOK_RBRACKET)) return false;
+                    width = high - low + 1;
+                }
+
+                int wire_idx = circuit_add_wire(c, name, width);
+                if (wire_idx >= 0) {
+                    c->wires[wire_idx].is_input = true;
+
+                    Module *m = &c->modules[c->current_module];
+                    if (m->num_inputs < MAX_INPUTS) {
+                        strncpy(m->input_names[m->num_inputs], name, MAX_NAME_LEN - 1);
+                        m->input_widths[m->num_inputs] = width;
+                        m->num_inputs++;
+                    }
+                }
+            }
+        } else if (p->token == TOK_OUTPUT) {
+            next_token(p);
+            if (!expect(p, TOK_COLON)) return false;
+
+            /* Parse output wire names */
+            while (p->token == TOK_IDENT) {
+                int width = 1;
+                char name[MAX_NAME_LEN];
+                strncpy(name, p->token_str, MAX_NAME_LEN - 1);
+                next_token(p);
+
+                /* Check for bus index */
+                if (p->token == TOK_LBRACKET) {
+                    next_token(p);
+                    if (p->token != TOK_NUMBER) return false;
+                    int high = p->token_num;
+                    next_token(p);
+                    if (!expect(p, TOK_COLON)) return false;
+                    if (p->token != TOK_NUMBER) return false;
+                    int low = p->token_num;
+                    next_token(p);
+                    if (!expect(p, TOK_RBRACKET)) return false;
+                    width = high - low + 1;
+                }
+
+                int wire_idx = circuit_add_wire(c, name, width);
+                if (wire_idx >= 0) {
+                    c->wires[wire_idx].is_output = true;
+
+                    Module *m = &c->modules[c->current_module];
+                    if (m->num_outputs < MAX_OUTPUTS) {
+                        strncpy(m->output_names[m->num_outputs], name, MAX_NAME_LEN - 1);
+                        m->output_widths[m->num_outputs] = width;
+                        m->num_outputs++;
+                    }
+                }
+            }
+        } else {
+            snprintf(p->error_msg, sizeof(p->error_msg),
+                     "Expected 'input' or 'output' in port list at line %d", p->line);
+            return false;
+        }
+
+        if (p->token == TOK_COMMA) {
             next_token(p);
         }
     }
+
+    if (!expect(p, TOK_RPAREN)) return false;
+    return true;
+}
+
+static bool parse_module_instance(Parser *p, Circuit *c, int module_ref) {
+    /* module_name instance_name (input: a b, output: y); */
+    (void)c->modules[module_ref];  /* Module reference available for future use */
+
+    /* Instance name */
+    if (p->token != TOK_IDENT) {
+        snprintf(p->error_msg, sizeof(p->error_msg),
+                 "Expected instance name at line %d", p->line);
+        return false;
+    }
+    char inst_name[MAX_NAME_LEN];
+    strncpy(inst_name, p->token_str, MAX_NAME_LEN - 1);
+    next_token(p);
+
+    /* Create a gate of type GATE_MODULE to represent this instance */
+    int gate_idx = circuit_add_gate(c, GATE_MODULE, inst_name);
+    if (gate_idx < 0) return false;
+    c->gates[gate_idx].module_ref = module_ref;
+
+    if (!expect(p, TOK_LPAREN)) return false;
+
+    /* Parse port connections */
+    while (p->token != TOK_RPAREN && p->token != TOK_EOF) {
+        bool is_input = false;
+        bool is_output = false;
+
+        if (p->token == TOK_INPUT) {
+            is_input = true;
+            next_token(p);
+            if (!expect(p, TOK_COLON)) return false;
+        } else if (p->token == TOK_OUTPUT) {
+            is_output = true;
+            next_token(p);
+            if (!expect(p, TOK_COLON)) return false;
+        }
+
+        /* Parse wire references */
+        while (p->token == TOK_IDENT) {
+            int wire_idx, bit;
+            if (!parse_wire_ref(p, c, &wire_idx, &bit)) return false;
+
+            if (is_input) {
+                circuit_gate_add_input(c, gate_idx, wire_idx, bit);
+            } else if (is_output) {
+                circuit_gate_add_output(c, gate_idx, wire_idx, bit);
+            }
+        }
+
+        if (p->token == TOK_COMMA) {
+            next_token(p);
+        }
+    }
+
+    if (!expect(p, TOK_RPAREN)) return false;
+    expect(p, TOK_SEMICOLON);
+
+    return true;
+}
+
+static bool parse_module_body(Parser *p, Circuit *c) {
+    /* Parse statements until endmodule */
+    while (p->token != TOK_ENDMODULE && p->token != TOK_EOF && p->token != TOK_ERROR) {
+        switch (p->token) {
+            case TOK_WIRE:
+                if (!parse_wire_decl(p, c)) return false;
+                break;
+
+            case TOK_INPUT:
+                if (!parse_input_decl(p, c)) return false;
+                break;
+
+            case TOK_OUTPUT:
+                if (!parse_output_decl(p, c)) return false;
+                break;
+
+            case TOK_NOT:
+            case TOK_AND:
+            case TOK_OR:
+            case TOK_NAND:
+            case TOK_NOR:
+            case TOK_XOR:
+            case TOK_XNOR:
+            case TOK_BUF:
+            case TOK_DFF:
+            case TOK_MUX2:
+            case TOK_NMOS:
+            case TOK_PMOS:
+                if (!parse_gate(p, c)) return false;
+                break;
+
+            case TOK_IDENT: {
+                /* Could be a module instantiation */
+                int module_ref = circuit_find_module(c, p->token_str);
+                if (module_ref >= 0) {
+                    next_token(p);
+                    if (!parse_module_instance(p, c, module_ref)) return false;
+                } else {
+                    snprintf(p->error_msg, sizeof(p->error_msg),
+                             "Unknown identifier '%s' at line %d (not a module or gate)",
+                             p->token_str, p->line);
+                    return false;
+                }
+                break;
+            }
+
+            default:
+                snprintf(p->error_msg, sizeof(p->error_msg),
+                         "Unexpected token in module body at line %d", p->line);
+                return false;
+        }
+    }
+
+    if (p->token != TOK_ENDMODULE) {
+        snprintf(p->error_msg, sizeof(p->error_msg),
+                 "Expected 'endmodule' at line %d", p->line);
+        return false;
+    }
+
+    next_token(p);  /* consume endmodule */
+    return true;
+}
+
+static bool parse_wire_decl(Parser *p, Circuit *c) {
+    /* wire name; or wire [width-1:0] name; or wire a, b, c; */
+    next_token(p);  /* skip 'wire' */
+
+    int width = 1;
+
+    /* Check for bus width */
+    if (p->token == TOK_LBRACKET) {
+        next_token(p);
+        if (p->token != TOK_NUMBER) return false;
+        int high = p->token_num;
+        next_token(p);
+        if (!expect(p, TOK_COLON)) return false;
+        if (p->token != TOK_NUMBER) return false;
+        int low = p->token_num;
+        next_token(p);
+        if (!expect(p, TOK_RBRACKET)) return false;
+        width = high - low + 1;
+    }
+
+    /* Parse one or more wire names (comma-separated) */
+    do {
+        /* Wire name */
+        if (p->token != TOK_IDENT) {
+            snprintf(p->error_msg, sizeof(p->error_msg),
+                     "Expected wire name at line %d", p->line);
+            return false;
+        }
+
+        circuit_add_wire(c, p->token_str, width);
+        next_token(p);
+
+        /* Check for initial value */
+        if (p->token == TOK_EQUALS) {
+            next_token(p);
+            if (p->token == TOK_NUMBER) {
+                int wire_idx = circuit_find_wire(c, c->wires[c->num_wires - 1].name);
+                for (int b = 0; b < width; b++) {
+                    WireState s = (p->token_num >> b) & 1 ? WIRE_1 : WIRE_0;
+                    circuit_set_wire(c, wire_idx, b, s);
+                }
+                next_token(p);
+            }
+        }
+
+        /* Continue if comma */
+        if (p->token == TOK_COMMA) {
+            next_token(p);
+        } else {
+            break;
+        }
+    } while (p->token != TOK_SEMICOLON && p->token != TOK_EOF);
 
     expect(p, TOK_SEMICOLON);
     return true;
@@ -373,11 +769,48 @@ bool circuit_parse(Circuit *c, const char *source) {
                 break;
 
             case TOK_MODULE:
-                /* TODO: Implement module parsing */
-                snprintf(c->error_msg, sizeof(c->error_msg),
-                         "Module definitions not yet supported");
-                c->error = true;
-                return false;
+                if (!parse_module(&parser, c)) {
+                    c->error = true;
+                    strncpy(c->error_msg, parser.error_msg, sizeof(c->error_msg));
+                    return false;
+                }
+                break;
+
+            case TOK_INPUT:
+                if (!parse_input_decl(&parser, c)) {
+                    c->error = true;
+                    strncpy(c->error_msg, parser.error_msg, sizeof(c->error_msg));
+                    return false;
+                }
+                break;
+
+            case TOK_OUTPUT:
+                if (!parse_output_decl(&parser, c)) {
+                    c->error = true;
+                    strncpy(c->error_msg, parser.error_msg, sizeof(c->error_msg));
+                    return false;
+                }
+                break;
+
+            case TOK_IDENT: {
+                /* Could be a module instantiation at top level */
+                int module_ref = circuit_find_module(c, parser.token_str);
+                if (module_ref >= 0) {
+                    next_token(&parser);
+                    if (!parse_module_instance(&parser, c, module_ref)) {
+                        c->error = true;
+                        strncpy(c->error_msg, parser.error_msg, sizeof(c->error_msg));
+                        return false;
+                    }
+                } else {
+                    snprintf(c->error_msg, sizeof(c->error_msg),
+                             "Unknown identifier '%s' at line %d",
+                             parser.token_str, parser.line);
+                    c->error = true;
+                    return false;
+                }
+                break;
+            }
 
             default:
                 snprintf(c->error_msg, sizeof(c->error_msg),

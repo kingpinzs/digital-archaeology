@@ -7,7 +7,7 @@ LDFLAGS =
 # Main emulator
 TARGET = micro16
 
-# Additional tools (to be added later)
+# Additional tools
 ASSEMBLER = micro16-asm
 DISASM = micro16-disasm
 DEBUGGER = micro16-dbg
@@ -16,8 +16,12 @@ DEBUGGER = micro16-dbg
 MAIN_SRCS = main.c cpu.c
 MAIN_OBJS = main.o cpu.o
 
-# Default target - build main emulator
-all: $(TARGET)
+# Source files for assembler
+ASM_SRCS = asm_main.c assembler.c
+ASM_OBJS = asm_main.o assembler.o
+
+# Default target - build all tools
+all: $(TARGET) $(ASSEMBLER)
 
 # Main emulator
 $(TARGET): $(MAIN_OBJS)
@@ -27,6 +31,16 @@ main.o: main.c cpu.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 cpu.o: cpu.c cpu.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Assembler
+$(ASSEMBLER): $(ASM_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $^
+
+asm_main.o: asm_main.c assembler.h cpu.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+assembler.o: assembler.c assembler.h cpu.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Clean

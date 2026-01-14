@@ -454,6 +454,91 @@ int cpu_step(Micro16CPU *cpu) {
         cycles += 2;
         break;
 
+    /* ========== Data Transfer - Memory (0x20-0x28) ========== */
+    case OP_LD:
+        /* LD Rd, [addr] - Load 16-bit word from memory */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16);
+        cycles += 4;
+        break;
+
+    case OP_ST:
+        /* ST [addr], Rs - Store 16-bit word to memory */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu_write_word(cpu, cpu->seg[SEG_DS], addr16, cpu->r[reg]);
+        cycles += 4;
+        break;
+
+    case OP_LDB:
+        /* LDB Rd, [addr] - Load byte from memory (zero-extend) */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = cpu_read_byte(cpu, cpu->seg[SEG_DS], addr16);
+        cycles += 4;
+        break;
+
+    case OP_STB:
+        /* STB [addr], Rs - Store low byte to memory */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu_write_byte(cpu, cpu->seg[SEG_DS], addr16, (uint8_t)(cpu->r[reg] & 0xFF));
+        cycles += 4;
+        break;
+
+    case OP_LD_IDX:
+        /* LD Rd, [Rs + offset] - Indexed load */
+        {
+            uint8_t regs = fetch_byte(cpu);
+            reg = (regs >> 4) & 0x07;   /* Destination */
+            reg2 = regs & 0x07;         /* Base register */
+            int16_t offset = (int16_t)fetch_word(cpu);
+            uint16_t eff_addr = cpu->r[reg2] + offset;
+            cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_DS], eff_addr);
+        }
+        cycles += 5;
+        break;
+
+    case OP_ST_IDX:
+        /* ST [Rd + offset], Rs - Indexed store */
+        {
+            uint8_t regs = fetch_byte(cpu);
+            reg = (regs >> 4) & 0x07;   /* Base register */
+            reg2 = regs & 0x07;         /* Source register */
+            int16_t offset = (int16_t)fetch_word(cpu);
+            uint16_t eff_addr = cpu->r[reg] + offset;
+            cpu_write_word(cpu, cpu->seg[SEG_DS], eff_addr, cpu->r[reg2]);
+        }
+        cycles += 5;
+        break;
+
+    case OP_LEA:
+        /* LEA Rd, [addr] - Load effective address */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = addr16;  /* Just load the address, don't dereference */
+        cycles += 3;
+        break;
+
+    case OP_LDS:
+        /* LDS Rd, [addr] - Load pointer into DS:Rd */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16);
+        cpu->seg[SEG_DS] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16 + 2);
+        cycles += 6;
+        break;
+
+    case OP_LES:
+        /* LES Rd, [addr] - Load pointer into ES:Rd */
+        reg = fetch_byte(cpu) & 0x07;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16);
+        cpu->seg[SEG_ES] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16 + 2);
+        cycles += 6;
+        break;
+
     /* ========== Stack Operations (0x40-0x47) ========== */
     case OP_PUSH_R:
         reg = fetch_byte(cpu) & 0x07;
@@ -495,6 +580,33 @@ int cpu_step(Micro16CPU *cpu) {
         cycles += 10;
         break;
 
+    case OP_ENTER:
+        /* Create stack frame: ENTER size, level */
+        {
+            uint16_t size = fetch_word(cpu);
+            uint8_t level = fetch_byte(cpu);
+            push_word(cpu, cpu->r[REG_R6]);  /* Push BP */
+            uint16_t frame_ptr = cpu->sp;
+            if (level > 0) {
+                for (int i = 1; i < level; i++) {
+                    cpu->r[REG_R6] -= 2;
+                    push_word(cpu, cpu_read_word(cpu, cpu->seg[SEG_SS], cpu->r[REG_R6]));
+                }
+                push_word(cpu, frame_ptr);
+            }
+            cpu->r[REG_R6] = frame_ptr;  /* BP = frame pointer */
+            cpu->sp -= size;  /* Reserve local space */
+        }
+        cycles += 10;
+        break;
+
+    case OP_LEAVE:
+        /* Destroy stack frame: LEAVE */
+        cpu->sp = cpu->r[REG_R6];  /* SP = BP */
+        cpu->r[REG_R6] = pop_word(cpu);  /* Pop BP */
+        cycles += 4;
+        break;
+
     /* ========== Arithmetic Operations (0x50-0x5C) ========== */
     case OP_ADD_RR:
         reg = fetch_byte(cpu);
@@ -526,6 +638,16 @@ int cpu_step(Micro16CPU *cpu) {
         cycles += 2;
         break;
 
+    case OP_ADC_RI:
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);
+        result32 = (uint32_t)cpu->r[reg] + (uint32_t)imm16;
+        if (cpu_get_flag(cpu, FLAG_C)) result32++;
+        update_flags_add16(cpu, cpu->r[reg], imm16, result32);
+        cpu->r[reg] = (uint16_t)result32;
+        cycles += 3;
+        break;
+
     case OP_SUB_RR:
         reg = fetch_byte(cpu);
         reg2 = reg & 0x07;
@@ -540,6 +662,27 @@ int cpu_step(Micro16CPU *cpu) {
         reg = fetch_byte(cpu) & 0x07;
         imm16 = fetch_word(cpu);
         result32 = (uint32_t)cpu->r[reg] - (uint32_t)imm16;
+        update_flags_sub16(cpu, cpu->r[reg], imm16, result32);
+        cpu->r[reg] = (uint16_t)result32;
+        cycles += 3;
+        break;
+
+    case OP_SBC_RR:
+        reg = fetch_byte(cpu);
+        reg2 = reg & 0x07;
+        reg = (reg >> 4) & 0x07;
+        result32 = (uint32_t)cpu->r[reg] - (uint32_t)cpu->r[reg2];
+        if (cpu_get_flag(cpu, FLAG_C)) result32--;  /* Subtract borrow */
+        update_flags_sub16(cpu, cpu->r[reg], cpu->r[reg2], result32);
+        cpu->r[reg] = (uint16_t)result32;
+        cycles += 2;
+        break;
+
+    case OP_SBC_RI:
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);
+        result32 = (uint32_t)cpu->r[reg] - (uint32_t)imm16;
+        if (cpu_get_flag(cpu, FLAG_C)) result32--;  /* Subtract borrow */
         update_flags_sub16(cpu, cpu->r[reg], imm16, result32);
         cpu->r[reg] = (uint16_t)result32;
         cycles += 3;
@@ -721,6 +864,13 @@ int cpu_step(Micro16CPU *cpu) {
         cycles += 2;
         break;
 
+    case OP_TEST_RI:
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);
+        update_flags_logic(cpu, cpu->r[reg] & imm16);
+        cycles += 3;
+        break;
+
     /* ========== Shift/Rotate Operations (0x80-0x86) ========== */
     case OP_SHL:
         reg = fetch_byte(cpu);
@@ -783,6 +933,34 @@ int cpu_step(Micro16CPU *cpu) {
             bool lsb = (cpu->r[reg] & 0x0001) != 0;
             cpu->r[reg] = (cpu->r[reg] >> 1) | (lsb ? 0x8000 : 0);
             cpu_set_flag(cpu, FLAG_C, lsb);
+        }
+        cycles += 3;
+        break;
+
+    case OP_RCL:
+        /* Rotate left through carry */
+        reg = fetch_byte(cpu);
+        reg2 = reg & 0x0F;
+        reg = (reg >> 4) & 0x07;
+        if (reg2 == 0) reg2 = cpu->r[REG_R2] & 0x0F;
+        while (reg2--) {
+            bool old_c = cpu_get_flag(cpu, FLAG_C);
+            cpu_set_flag(cpu, FLAG_C, (cpu->r[reg] & 0x8000) != 0);
+            cpu->r[reg] = (cpu->r[reg] << 1) | (old_c ? 1 : 0);
+        }
+        cycles += 3;
+        break;
+
+    case OP_RCR:
+        /* Rotate right through carry */
+        reg = fetch_byte(cpu);
+        reg2 = reg & 0x0F;
+        reg = (reg >> 4) & 0x07;
+        if (reg2 == 0) reg2 = cpu->r[REG_R2] & 0x0F;
+        while (reg2--) {
+            bool old_c = cpu_get_flag(cpu, FLAG_C);
+            cpu_set_flag(cpu, FLAG_C, (cpu->r[reg] & 0x0001) != 0);
+            cpu->r[reg] = (cpu->r[reg] >> 1) | (old_c ? 0x8000 : 0);
         }
         cycles += 3;
         break;
@@ -982,6 +1160,292 @@ int cpu_step(Micro16CPU *cpu) {
             cpu->pc += offset8;
         }
         cycles += 2;
+        break;
+
+    /* ========== String Operations (0xE0-0xEA) ========== */
+    case OP_MOVSB:
+        /* Move string byte: ES:[DI] = DS:[SI], update SI/DI */
+        {
+            uint8_t byte = cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+            cpu_write_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], byte);
+            if (cpu_get_flag(cpu, FLAG_D)) {
+                cpu->r[REG_R4]--;
+                cpu->r[REG_R5]--;
+            } else {
+                cpu->r[REG_R4]++;
+                cpu->r[REG_R5]++;
+            }
+        }
+        cycles += 4;
+        break;
+
+    case OP_MOVSW:
+        /* Move string word: ES:[DI] = DS:[SI], update SI/DI by 2 */
+        {
+            uint16_t word = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+            cpu_write_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], word);
+            if (cpu_get_flag(cpu, FLAG_D)) {
+                cpu->r[REG_R4] -= 2;
+                cpu->r[REG_R5] -= 2;
+            } else {
+                cpu->r[REG_R4] += 2;
+                cpu->r[REG_R5] += 2;
+            }
+        }
+        cycles += 4;
+        break;
+
+    case OP_CMPSB:
+        /* Compare string byte: DS:[SI] - ES:[DI], update SI/DI */
+        {
+            uint8_t src = cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+            uint8_t dst = cpu_read_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+            result32 = (uint32_t)src - (uint32_t)dst;
+            update_flags_sub16(cpu, src, dst, result32);
+            if (cpu_get_flag(cpu, FLAG_D)) {
+                cpu->r[REG_R4]--;
+                cpu->r[REG_R5]--;
+            } else {
+                cpu->r[REG_R4]++;
+                cpu->r[REG_R5]++;
+            }
+        }
+        cycles += 4;
+        break;
+
+    case OP_CMPSW:
+        /* Compare string word */
+        {
+            uint16_t src = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+            uint16_t dst = cpu_read_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+            result32 = (uint32_t)src - (uint32_t)dst;
+            update_flags_sub16(cpu, src, dst, result32);
+            if (cpu_get_flag(cpu, FLAG_D)) {
+                cpu->r[REG_R4] -= 2;
+                cpu->r[REG_R5] -= 2;
+            } else {
+                cpu->r[REG_R4] += 2;
+                cpu->r[REG_R5] += 2;
+            }
+        }
+        cycles += 4;
+        break;
+
+    case OP_STOSB:
+        /* Store string byte: ES:[DI] = AL, update DI */
+        cpu_write_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], (uint8_t)(cpu->r[REG_R0] & 0xFF));
+        if (cpu_get_flag(cpu, FLAG_D)) {
+            cpu->r[REG_R5]--;
+        } else {
+            cpu->r[REG_R5]++;
+        }
+        cycles += 3;
+        break;
+
+    case OP_STOSW:
+        /* Store string word: ES:[DI] = AX, update DI by 2 */
+        cpu_write_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], cpu->r[REG_R0]);
+        if (cpu_get_flag(cpu, FLAG_D)) {
+            cpu->r[REG_R5] -= 2;
+        } else {
+            cpu->r[REG_R5] += 2;
+        }
+        cycles += 3;
+        break;
+
+    case OP_LODSB:
+        /* Load string byte: AL = DS:[SI], update SI */
+        cpu->r[REG_R0] = (cpu->r[REG_R0] & 0xFF00) | cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+        if (cpu_get_flag(cpu, FLAG_D)) {
+            cpu->r[REG_R4]--;
+        } else {
+            cpu->r[REG_R4]++;
+        }
+        cycles += 3;
+        break;
+
+    case OP_LODSW:
+        /* Load string word: AX = DS:[SI], update SI by 2 */
+        cpu->r[REG_R0] = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+        if (cpu_get_flag(cpu, FLAG_D)) {
+            cpu->r[REG_R4] -= 2;
+        } else {
+            cpu->r[REG_R4] += 2;
+        }
+        cycles += 3;
+        break;
+
+    case OP_REP:
+        /* REP prefix - repeat next string operation CX times */
+        {
+            uint8_t next_op = fetch_byte(cpu);
+            while (cpu->r[REG_R2] != 0) {
+                /* Execute the string operation */
+                switch (next_op) {
+                    case OP_MOVSB: {
+                        uint8_t byte = cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        cpu_write_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], byte);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4]--; cpu->r[REG_R5]--; }
+                        else { cpu->r[REG_R4]++; cpu->r[REG_R5]++; }
+                        break;
+                    }
+                    case OP_MOVSW: {
+                        uint16_t word = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        cpu_write_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], word);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4] -= 2; cpu->r[REG_R5] -= 2; }
+                        else { cpu->r[REG_R4] += 2; cpu->r[REG_R5] += 2; }
+                        break;
+                    }
+                    case OP_STOSB:
+                        cpu_write_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], (uint8_t)(cpu->r[REG_R0] & 0xFF));
+                        if (cpu_get_flag(cpu, FLAG_D)) cpu->r[REG_R5]--;
+                        else cpu->r[REG_R5]++;
+                        break;
+                    case OP_STOSW:
+                        cpu_write_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5], cpu->r[REG_R0]);
+                        if (cpu_get_flag(cpu, FLAG_D)) cpu->r[REG_R5] -= 2;
+                        else cpu->r[REG_R5] += 2;
+                        break;
+                    case OP_LODSB:
+                        cpu->r[REG_R0] = (cpu->r[REG_R0] & 0xFF00) | cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        if (cpu_get_flag(cpu, FLAG_D)) cpu->r[REG_R4]--;
+                        else cpu->r[REG_R4]++;
+                        break;
+                    case OP_LODSW:
+                        cpu->r[REG_R0] = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        if (cpu_get_flag(cpu, FLAG_D)) cpu->r[REG_R4] -= 2;
+                        else cpu->r[REG_R4] += 2;
+                        break;
+                    default:
+                        cpu->error = true;
+                        snprintf(cpu->error_msg, sizeof(cpu->error_msg),
+                                 "Invalid opcode after REP: 0x%02X", next_op);
+                        return cycles;
+                }
+                cpu->r[REG_R2]--;
+                cycles += 2;
+            }
+        }
+        break;
+
+    case OP_REPZ:
+        /* REPZ/REPE prefix - repeat while zero/equal */
+        {
+            uint8_t next_op = fetch_byte(cpu);
+            while (cpu->r[REG_R2] != 0) {
+                switch (next_op) {
+                    case OP_CMPSB: {
+                        uint8_t src = cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        uint8_t dst = cpu_read_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+                        result32 = (uint32_t)src - (uint32_t)dst;
+                        update_flags_sub16(cpu, src, dst, result32);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4]--; cpu->r[REG_R5]--; }
+                        else { cpu->r[REG_R4]++; cpu->r[REG_R5]++; }
+                        break;
+                    }
+                    case OP_CMPSW: {
+                        uint16_t src = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        uint16_t dst = cpu_read_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+                        result32 = (uint32_t)src - (uint32_t)dst;
+                        update_flags_sub16(cpu, src, dst, result32);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4] -= 2; cpu->r[REG_R5] -= 2; }
+                        else { cpu->r[REG_R4] += 2; cpu->r[REG_R5] += 2; }
+                        break;
+                    }
+                    default:
+                        cpu->error = true;
+                        snprintf(cpu->error_msg, sizeof(cpu->error_msg),
+                                 "Invalid opcode after REPZ: 0x%02X", next_op);
+                        return cycles;
+                }
+                cpu->r[REG_R2]--;
+                cycles += 2;
+                if (!cpu_get_flag(cpu, FLAG_Z)) break;  /* Stop if not equal */
+            }
+        }
+        break;
+
+    case OP_REPNZ:
+        /* REPNZ/REPNE prefix - repeat while not zero/not equal */
+        {
+            uint8_t next_op = fetch_byte(cpu);
+            while (cpu->r[REG_R2] != 0) {
+                switch (next_op) {
+                    case OP_CMPSB: {
+                        uint8_t src = cpu_read_byte(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        uint8_t dst = cpu_read_byte(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+                        result32 = (uint32_t)src - (uint32_t)dst;
+                        update_flags_sub16(cpu, src, dst, result32);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4]--; cpu->r[REG_R5]--; }
+                        else { cpu->r[REG_R4]++; cpu->r[REG_R5]++; }
+                        break;
+                    }
+                    case OP_CMPSW: {
+                        uint16_t src = cpu_read_word(cpu, cpu->seg[SEG_DS], cpu->r[REG_R4]);
+                        uint16_t dst = cpu_read_word(cpu, cpu->seg[SEG_ES], cpu->r[REG_R5]);
+                        result32 = (uint32_t)src - (uint32_t)dst;
+                        update_flags_sub16(cpu, src, dst, result32);
+                        if (cpu_get_flag(cpu, FLAG_D)) { cpu->r[REG_R4] -= 2; cpu->r[REG_R5] -= 2; }
+                        else { cpu->r[REG_R4] += 2; cpu->r[REG_R5] += 2; }
+                        break;
+                    }
+                    default:
+                        cpu->error = true;
+                        snprintf(cpu->error_msg, sizeof(cpu->error_msg),
+                                 "Invalid opcode after REPNZ: 0x%02X", next_op);
+                        return cycles;
+                }
+                cpu->r[REG_R2]--;
+                cycles += 2;
+                if (cpu_get_flag(cpu, FLAG_Z)) break;  /* Stop if equal */
+            }
+        }
+        break;
+
+    /* ========== I/O Operations (0xF0-0xF3) ========== */
+    case OP_IN:
+        /* IN Rd, port - Input word from port */
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);  /* Port number */
+        /* For now, just read from MMIO region */
+        {
+            uint32_t io_addr = MMIO_BASE + (imm16 & 0xFFFF);
+            cpu->r[reg] = cpu_read_phys_word(cpu, io_addr);
+        }
+        cycles += 4;
+        break;
+
+    case OP_OUT:
+        /* OUT port, Rs - Output word to port */
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);  /* Port number */
+        {
+            uint32_t io_addr = MMIO_BASE + (imm16 & 0xFFFF);
+            cpu_write_phys_word(cpu, io_addr, cpu->r[reg]);
+        }
+        cycles += 4;
+        break;
+
+    case OP_INB:
+        /* INB Rd, port - Input byte from port */
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);  /* Port number */
+        {
+            uint32_t io_addr = MMIO_BASE + (imm16 & 0xFFFF);
+            cpu->r[reg] = cpu_read_phys_byte(cpu, io_addr);
+        }
+        cycles += 4;
+        break;
+
+    case OP_OUTB:
+        /* OUTB port, Rs - Output byte to port */
+        reg = fetch_byte(cpu) & 0x07;
+        imm16 = fetch_word(cpu);  /* Port number */
+        {
+            uint32_t io_addr = MMIO_BASE + (imm16 & 0xFFFF);
+            cpu_write_phys_byte(cpu, io_addr, (uint8_t)(cpu->r[reg] & 0xFF));
+        }
+        cycles += 4;
         break;
 
     /* ========== Unknown Opcode ========== */

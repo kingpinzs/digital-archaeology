@@ -1,4 +1,4 @@
 *.o
 bin/*
 .history/
-!*/*.gitkeep
+!*/*.gitkeepsrc/micro4/micro4-dbg

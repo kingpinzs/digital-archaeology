@@ -1,5 +1,13 @@
 /*
  * Micro8 CPU Emulator - Implementation
+ *
+ * 8-bit CPU with ~80 instructions supporting:
+ * - 8 general purpose registers (R0-R7)
+ * - Register pairs: BC (R1:R2), DE (R3:R4), HL (R5:R6)
+ * - 16-bit address space (64KB)
+ * - Stack operations
+ * - Interrupts
+ * - I/O ports
  */
 
 #include "cpu.h"
@@ -7,46 +15,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Instruction names */
-const char* OPCODE_NAMES[] = {
-    [OP_NOP]    = "NOP",
-    [OP_HLT]    = "HLT",
-    [OP_MOV_RR] = "MOV",
-    [OP_MOV_RI] = "MOV",
-    [OP_MOV_RM] = "MOV",
-    [OP_MOV_MR] = "MOV",
-    [OP_ADD_RR] = "ADD",
-    [OP_ADD_RI] = "ADD",
-    [OP_SUB_RR] = "SUB",
-    [OP_SUB_RI] = "SUB",
-    [OP_PUSH]   = "PUSH",
-    [OP_POP]    = "POP",
-    [OP_JMP]    = "JMP",
-    [OP_JZ]     = "JZ",
-    [OP_JNZ]    = "JNZ",
-    [OP_JC]     = "JC",
-    [OP_JNC]    = "JNC",
-    [OP_CALL]   = "CALL",
-    [OP_RET]    = "RET",
-};
-
 /* Register names */
 static const char* REG_NAMES[] = {
     "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7"
 };
 
+/* ========================================================================
+ * Flag Update Helpers
+ * ======================================================================== */
+
 /*
- * Update flags based on result
+ * Update Zero and Sign flags based on result
  */
 static void update_flags_zs(Micro8CPU *cpu, uint8_t result) {
-    /* Zero flag */
     if (result == 0) {
         cpu->flags |= FLAG_Z;
     } else {
         cpu->flags &= ~FLAG_Z;
     }
 
-    /* Sign flag (bit 7) */
     if (result & 0x80) {
         cpu->flags |= FLAG_S;
     } else {
@@ -55,10 +42,11 @@ static void update_flags_zs(Micro8CPU *cpu, uint8_t result) {
 }
 
 /*
- * Update flags for addition
+ * Update all flags for addition
  */
 static void update_flags_add(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t result) {
-    update_flags_zs(cpu, (uint8_t)result);
+    uint8_t res8 = (uint8_t)result;
+    update_flags_zs(cpu, res8);
 
     /* Carry flag */
     if (result > 0xFF) {
@@ -68,7 +56,6 @@ static void update_flags_add(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t resu
     }
 
     /* Overflow flag: set if sign of result differs from expected */
-    uint8_t res8 = (uint8_t)result;
     if (((a ^ res8) & (b ^ res8) & 0x80) != 0) {
         cpu->flags |= FLAG_O;
     } else {
@@ -77,12 +64,13 @@ static void update_flags_add(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t resu
 }
 
 /*
- * Update flags for subtraction
+ * Update all flags for subtraction
  */
 static void update_flags_sub(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t result) {
-    update_flags_zs(cpu, (uint8_t)result);
+    uint8_t res8 = (uint8_t)result;
+    update_flags_zs(cpu, res8);
 
-    /* Carry flag (borrow) */
+    /* Carry flag (borrow) - set if a < b */
     if (a < b) {
         cpu->flags |= FLAG_C;
     } else {
@@ -90,7 +78,6 @@ static void update_flags_sub(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t resu
     }
 
     /* Overflow flag */
-    uint8_t res8 = (uint8_t)result;
     if (((a ^ b) & (a ^ res8) & 0x80) != 0) {
         cpu->flags |= FLAG_O;
     } else {
@@ -99,12 +86,20 @@ static void update_flags_sub(Micro8CPU *cpu, uint8_t a, uint8_t b, uint16_t resu
 }
 
 /*
- * Initialize CPU to default state
+ * Update flags for logic operations (Z, S only; clear C, O)
  */
+static void update_flags_logic(Micro8CPU *cpu, uint8_t result) {
+    update_flags_zs(cpu, result);
+    cpu->flags &= ~(FLAG_C | FLAG_O);
+}
+
+/* ========================================================================
+ * CPU Lifecycle
+ * ======================================================================== */
+
 bool cpu_init(Micro8CPU *cpu) {
     memset(cpu, 0, sizeof(Micro8CPU));
 
-    /* Allocate memory */
     cpu->memory = (uint8_t *)calloc(MEM_SIZE, sizeof(uint8_t));
     if (cpu->memory == NULL) {
         cpu->error = true;
@@ -116,9 +111,6 @@ bool cpu_init(Micro8CPU *cpu) {
     return true;
 }
 
-/*
- * Free CPU resources
- */
 void cpu_free(Micro8CPU *cpu) {
     if (cpu->memory != NULL) {
         free(cpu->memory);
@@ -126,22 +118,23 @@ void cpu_free(Micro8CPU *cpu) {
     }
 }
 
-/*
- * Reset CPU (but keep memory contents)
- */
 void cpu_reset(Micro8CPU *cpu) {
-    /* Clear registers */
     for (int i = 0; i < 8; i++) {
         cpu->r[i] = 0;
     }
 
-    cpu->pc = 0;
-    cpu->sp = 0xFFFF;  /* Stack grows downward from top of memory */
+    cpu->pc = DEFAULT_PC;
+    cpu->sp = DEFAULT_SP;
     cpu->flags = 0;
+
+    cpu->ie = false;
+    cpu->int_pending = false;
 
     cpu->ir = 0;
     cpu->mar = 0;
     cpu->mdr = 0;
+
+    memset(cpu->ports, 0, sizeof(cpu->ports));
 
     cpu->halted = false;
     cpu->error = false;
@@ -150,248 +143,653 @@ void cpu_reset(Micro8CPU *cpu) {
     cpu->instructions = 0;
 }
 
-/*
- * Load a program into memory
- */
+/* ========================================================================
+ * Memory Operations
+ * ======================================================================== */
+
 void cpu_load_program(Micro8CPU *cpu, const uint8_t *program, uint16_t size, uint16_t start_addr) {
     for (uint32_t i = 0; i < size && (start_addr + i) < MEM_SIZE; i++) {
         cpu->memory[start_addr + i] = program[i];
     }
 }
 
-/*
- * Read from memory
- */
 uint8_t cpu_read_mem(Micro8CPU *cpu, uint16_t addr) {
     cpu->mar = addr;
     cpu->mdr = cpu->memory[addr];
     return cpu->mdr;
 }
 
-/*
- * Write to memory
- */
 void cpu_write_mem(Micro8CPU *cpu, uint16_t addr, uint8_t value) {
     cpu->mar = addr;
     cpu->mdr = value;
     cpu->memory[addr] = value;
 }
 
-/*
- * Fetch byte from memory at PC, increment PC
- */
+/* ========================================================================
+ * Fetch Helpers
+ * ======================================================================== */
+
 static uint8_t fetch_byte(Micro8CPU *cpu) {
     uint8_t value = cpu_read_mem(cpu, cpu->pc);
     cpu->pc++;
     return value;
 }
 
-/*
- * Fetch 16-bit word from memory (little-endian)
- */
 static uint16_t fetch_word(Micro8CPU *cpu) {
     uint8_t low = fetch_byte(cpu);
     uint8_t high = fetch_byte(cpu);
     return (uint16_t)low | ((uint16_t)high << 8);
 }
 
-/*
- * Push byte onto stack
- */
+/* ========================================================================
+ * Stack Operations
+ * ======================================================================== */
+
 static void push_byte(Micro8CPU *cpu, uint8_t value) {
     cpu_write_mem(cpu, cpu->sp, value);
     cpu->sp--;
 }
 
-/*
- * Pop byte from stack
- */
 static uint8_t pop_byte(Micro8CPU *cpu) {
     cpu->sp++;
     return cpu_read_mem(cpu, cpu->sp);
 }
 
-/*
- * Push 16-bit word onto stack (high byte first, so low byte at lower address)
- */
 static void push_word(Micro8CPU *cpu, uint16_t value) {
-    push_byte(cpu, (uint8_t)(value >> 8));   /* High byte */
+    push_byte(cpu, (uint8_t)(value >> 8));   /* High byte first */
     push_byte(cpu, (uint8_t)(value & 0xFF)); /* Low byte */
 }
 
-/*
- * Pop 16-bit word from stack
- */
 static uint16_t pop_word(Micro8CPU *cpu) {
     uint8_t low = pop_byte(cpu);
     uint8_t high = pop_byte(cpu);
     return (uint16_t)low | ((uint16_t)high << 8);
 }
 
-/*
- * Execute one instruction
- * Returns number of cycles used
- */
+/* ========================================================================
+ * Interrupt Support
+ * ======================================================================== */
+
+void cpu_request_interrupt(Micro8CPU *cpu) {
+    cpu->int_pending = true;
+}
+
+static void handle_interrupt(Micro8CPU *cpu) {
+    if (cpu->ie && cpu->int_pending) {
+        cpu->int_pending = false;
+        cpu->ie = false;  /* Disable interrupts during handling */
+        push_word(cpu, cpu->pc);
+        push_byte(cpu, cpu->flags);
+        cpu->pc = INT_VECTOR;
+    }
+}
+
+/* ========================================================================
+ * Instruction Execution
+ * ======================================================================== */
+
 int cpu_step(Micro8CPU *cpu) {
     if (cpu->halted) {
         return 0;
     }
 
-    int cycles = 0;
+    /* Check for pending interrupts */
+    handle_interrupt(cpu);
+
+    int cycles = 1;  /* Fetch cycle */
 
     /* Fetch opcode */
     cpu->ir = fetch_byte(cpu);
-    cycles++;
-
     uint8_t opcode = cpu->ir;
-    uint8_t reg_d, reg_s;
-    uint8_t imm8;
-    uint16_t addr16;
-    uint16_t result16;
 
-    switch (opcode) {
-        case OP_NOP:  /* No operation */
-            cycles++;
-            break;
+    uint8_t reg, src, imm8;
+    int8_t offset;
+    uint16_t addr16, result16;
+    uint32_t result32;
 
-        case OP_HLT:  /* Halt */
-            cpu->halted = true;
-            cycles++;
-            break;
+    /* ========== System Instructions (0x00-0x01) ========== */
+    if (opcode == OP_NOP) {
+        cycles += 1;
+    }
+    else if (opcode == OP_HLT) {
+        cpu->halted = true;
+        cycles += 1;
+    }
 
-        case OP_MOV_RR:  /* MOV Rd, Rs */
-            reg_d = fetch_byte(cpu) & 0x07;
-            reg_s = fetch_byte(cpu) & 0x07;
-            cpu->r[reg_d] = cpu->r[reg_s];
-            cycles += 2;
-            break;
+    /* ========== LDI Rd, #imm8 (0x06-0x0D) ========== */
+    else if (opcode >= OP_LDI_BASE && opcode <= OP_LDI_BASE + 7) {
+        reg = opcode - OP_LDI_BASE;
+        imm8 = fetch_byte(cpu);
+        cpu->r[reg] = imm8;
+        cycles += 2;
+    }
 
-        case OP_MOV_RI:  /* MOV Rd, imm8 */
-            reg_d = fetch_byte(cpu) & 0x07;
-            imm8 = fetch_byte(cpu);
-            cpu->r[reg_d] = imm8;
-            cycles += 2;
-            break;
+    /* ========== LD Rd, [addr16] (0x0E-0x15) ========== */
+    else if (opcode >= OP_LD_BASE && opcode <= OP_LD_BASE + 7) {
+        reg = opcode - OP_LD_BASE;
+        addr16 = fetch_word(cpu);
+        cpu->r[reg] = cpu_read_mem(cpu, addr16);
+        cycles += 4;
+    }
 
-        case OP_MOV_RM:  /* MOV Rd, [addr16] */
-            reg_d = fetch_byte(cpu) & 0x07;
-            addr16 = fetch_word(cpu);
-            cpu->r[reg_d] = cpu_read_mem(cpu, addr16);
-            cycles += 4;
-            break;
+    /* ========== LDZ Rd, [zp] (0x16-0x1D) ========== */
+    else if (opcode >= OP_LDZ_BASE && opcode <= OP_LDZ_BASE + 7) {
+        reg = opcode - OP_LDZ_BASE;
+        imm8 = fetch_byte(cpu);
+        cpu->r[reg] = cpu_read_mem(cpu, (uint16_t)imm8);
+        cycles += 3;
+    }
 
-        case OP_MOV_MR:  /* MOV [addr16], Rs */
-            reg_s = fetch_byte(cpu) & 0x07;
-            addr16 = fetch_word(cpu);
-            cpu_write_mem(cpu, addr16, cpu->r[reg_s]);
-            cycles += 4;
-            break;
+    /* ========== ST Rd, [addr16] (0x1E-0x25) ========== */
+    else if (opcode >= OP_ST_BASE && opcode <= OP_ST_BASE + 7) {
+        reg = opcode - OP_ST_BASE;
+        addr16 = fetch_word(cpu);
+        cpu_write_mem(cpu, addr16, cpu->r[reg]);
+        cycles += 4;
+    }
 
-        case OP_ADD_RR:  /* ADD Rd, Rs */
-            reg_d = fetch_byte(cpu) & 0x07;
-            reg_s = fetch_byte(cpu) & 0x07;
-            result16 = (uint16_t)cpu->r[reg_d] + (uint16_t)cpu->r[reg_s];
-            update_flags_add(cpu, cpu->r[reg_d], cpu->r[reg_s], result16);
-            cpu->r[reg_d] = (uint8_t)result16;
-            cycles += 2;
-            break;
+    /* ========== STZ Rd, [zp] (0x26-0x2D) ========== */
+    else if (opcode >= OP_STZ_BASE && opcode <= OP_STZ_BASE + 7) {
+        reg = opcode - OP_STZ_BASE;
+        imm8 = fetch_byte(cpu);
+        cpu_write_mem(cpu, (uint16_t)imm8, cpu->r[reg]);
+        cycles += 3;
+    }
 
-        case OP_ADD_RI:  /* ADD Rd, imm8 */
-            reg_d = fetch_byte(cpu) & 0x07;
-            imm8 = fetch_byte(cpu);
-            result16 = (uint16_t)cpu->r[reg_d] + (uint16_t)imm8;
-            update_flags_add(cpu, cpu->r[reg_d], imm8, result16);
-            cpu->r[reg_d] = (uint8_t)result16;
-            cycles += 2;
-            break;
+    /* ========== LD Rd, [HL] (0x2E) ========== */
+    else if (opcode == OP_LD_HL) {
+        reg = fetch_byte(cpu) & 0x07;
+        cpu->r[reg] = cpu_read_mem(cpu, cpu_get_hl(cpu));
+        cycles += 3;
+    }
 
-        case OP_SUB_RR:  /* SUB Rd, Rs */
-            reg_d = fetch_byte(cpu) & 0x07;
-            reg_s = fetch_byte(cpu) & 0x07;
-            result16 = (uint16_t)cpu->r[reg_d] - (uint16_t)cpu->r[reg_s];
-            update_flags_sub(cpu, cpu->r[reg_d], cpu->r[reg_s], result16);
-            cpu->r[reg_d] = (uint8_t)result16;
-            cycles += 2;
-            break;
+    /* ========== ST [HL], Rs (0x2F) ========== */
+    else if (opcode == OP_ST_HL) {
+        reg = fetch_byte(cpu) & 0x07;
+        cpu_write_mem(cpu, cpu_get_hl(cpu), cpu->r[reg]);
+        cycles += 3;
+    }
 
-        case OP_SUB_RI:  /* SUB Rd, imm8 */
-            reg_d = fetch_byte(cpu) & 0x07;
-            imm8 = fetch_byte(cpu);
-            result16 = (uint16_t)cpu->r[reg_d] - (uint16_t)imm8;
-            update_flags_sub(cpu, cpu->r[reg_d], imm8, result16);
-            cpu->r[reg_d] = (uint8_t)result16;
-            cycles += 2;
-            break;
+    /* ========== LD Rd, [HL+d] (0x30) ========== */
+    else if (opcode == OP_LD_HLD) {
+        reg = fetch_byte(cpu) & 0x07;
+        offset = (int8_t)fetch_byte(cpu);
+        addr16 = cpu_get_hl(cpu) + offset;
+        cpu->r[reg] = cpu_read_mem(cpu, addr16);
+        cycles += 4;
+    }
 
-        case OP_PUSH:  /* PUSH Rs */
-            reg_s = fetch_byte(cpu) & 0x07;
-            push_byte(cpu, cpu->r[reg_s]);
-            cycles += 3;
-            break;
+    /* ========== ST [HL+d], Rs (0x31) ========== */
+    else if (opcode == OP_ST_HLD) {
+        reg = fetch_byte(cpu) & 0x07;
+        offset = (int8_t)fetch_byte(cpu);
+        addr16 = cpu_get_hl(cpu) + offset;
+        cpu_write_mem(cpu, addr16, cpu->r[reg]);
+        cycles += 4;
+    }
 
-        case OP_POP:  /* POP Rd */
-            reg_d = fetch_byte(cpu) & 0x07;
-            cpu->r[reg_d] = pop_byte(cpu);
-            cycles += 3;
-            break;
+    /* ========== LDI16 pair, #imm16 (0x32-0x35) ========== */
+    else if (opcode == OP_LDI16_HL) {
+        addr16 = fetch_word(cpu);
+        cpu_set_hl(cpu, addr16);
+        cycles += 3;
+    }
+    else if (opcode == OP_LDI16_BC) {
+        addr16 = fetch_word(cpu);
+        cpu_set_bc(cpu, addr16);
+        cycles += 3;
+    }
+    else if (opcode == OP_LDI16_DE) {
+        addr16 = fetch_word(cpu);
+        cpu_set_de(cpu, addr16);
+        cycles += 3;
+    }
+    else if (opcode == OP_LDI16_SP) {
+        cpu->sp = fetch_word(cpu);
+        cycles += 3;
+    }
 
-        case OP_JMP:  /* JMP addr16 */
-            addr16 = fetch_word(cpu);
-            cpu->pc = addr16;
-            cycles += 3;
-            break;
+    /* ========== MOV16 (0x36-0x37) ========== */
+    else if (opcode == OP_MOV16_HL_SP) {
+        cpu_set_hl(cpu, cpu->sp);
+        cycles += 2;
+    }
+    else if (opcode == OP_MOV16_SP_HL) {
+        cpu->sp = cpu_get_hl(cpu);
+        cycles += 2;
+    }
 
-        case OP_JZ:  /* JZ addr16 */
-            addr16 = fetch_word(cpu);
-            if (cpu->flags & FLAG_Z) {
-                cpu->pc = addr16;
-            }
-            cycles += 3;
-            break;
+    /* ========== Logic Immediate (0x38-0x3A) ========== */
+    else if (opcode == OP_ANDI) {
+        reg = fetch_byte(cpu) & 0x07;
+        imm8 = fetch_byte(cpu);
+        cpu->r[reg] &= imm8;
+        update_flags_logic(cpu, cpu->r[reg]);
+        cycles += 3;
+    }
+    else if (opcode == OP_ORI) {
+        reg = fetch_byte(cpu) & 0x07;
+        imm8 = fetch_byte(cpu);
+        cpu->r[reg] |= imm8;
+        update_flags_logic(cpu, cpu->r[reg]);
+        cycles += 3;
+    }
+    else if (opcode == OP_XORI) {
+        reg = fetch_byte(cpu) & 0x07;
+        imm8 = fetch_byte(cpu);
+        cpu->r[reg] ^= imm8;
+        update_flags_logic(cpu, cpu->r[reg]);
+        cycles += 3;
+    }
 
-        case OP_JNZ:  /* JNZ addr16 */
-            addr16 = fetch_word(cpu);
-            if (!(cpu->flags & FLAG_Z)) {
-                cpu->pc = addr16;
-            }
-            cycles += 3;
-            break;
+    /* ========== Shifts/Rotates (0x3B-0x3F) ========== */
+    else if (opcode == OP_SHL) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        cpu->flags = (cpu->flags & ~FLAG_C) | ((val & 0x80) ? FLAG_C : 0);
+        cpu->r[reg] = val << 1;
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+    else if (opcode == OP_SHR) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        cpu->flags = (cpu->flags & ~FLAG_C) | ((val & 0x01) ? FLAG_C : 0);
+        cpu->r[reg] = val >> 1;
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+    else if (opcode == OP_SAR) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        cpu->flags = (cpu->flags & ~FLAG_C) | ((val & 0x01) ? FLAG_C : 0);
+        cpu->r[reg] = (val >> 1) | (val & 0x80);  /* Preserve sign bit */
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+    else if (opcode == OP_ROL) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        uint8_t carry_in = (cpu->flags & FLAG_C) ? 1 : 0;
+        cpu->flags = (cpu->flags & ~FLAG_C) | ((val & 0x80) ? FLAG_C : 0);
+        cpu->r[reg] = (val << 1) | carry_in;
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+    else if (opcode == OP_ROR) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        uint8_t carry_in = (cpu->flags & FLAG_C) ? 0x80 : 0;
+        cpu->flags = (cpu->flags & ~FLAG_C) | ((val & 0x01) ? FLAG_C : 0);
+        cpu->r[reg] = (val >> 1) | carry_in;
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
 
-        case OP_JC:  /* JC addr16 */
-            addr16 = fetch_word(cpu);
-            if (cpu->flags & FLAG_C) {
-                cpu->pc = addr16;
-            }
-            cycles += 3;
-            break;
+    /* ========== ADD R0, Rs (0x40-0x47) ========== */
+    else if (opcode >= OP_ADD_BASE && opcode <= OP_ADD_BASE + 7) {
+        src = opcode & 0x07;
+        result16 = (uint16_t)cpu->r[0] + (uint16_t)cpu->r[src];
+        update_flags_add(cpu, cpu->r[0], cpu->r[src], result16);
+        cpu->r[0] = (uint8_t)result16;
+        cycles += 1;
+    }
 
-        case OP_JNC:  /* JNC addr16 */
-            addr16 = fetch_word(cpu);
-            if (!(cpu->flags & FLAG_C)) {
-                cpu->pc = addr16;
-            }
-            cycles += 3;
-            break;
+    /* ========== ADC R0, Rs (0x48-0x4F) ========== */
+    else if (opcode >= OP_ADC_BASE && opcode <= OP_ADC_BASE + 7) {
+        src = opcode & 0x07;
+        uint8_t carry = (cpu->flags & FLAG_C) ? 1 : 0;
+        result16 = (uint16_t)cpu->r[0] + (uint16_t)cpu->r[src] + carry;
+        update_flags_add(cpu, cpu->r[0], cpu->r[src] + carry, result16);
+        cpu->r[0] = (uint8_t)result16;
+        cycles += 1;
+    }
 
-        case OP_CALL:  /* CALL addr16 */
-            addr16 = fetch_word(cpu);
-            push_word(cpu, cpu->pc);  /* Push return address */
-            cpu->pc = addr16;
-            cycles += 5;
-            break;
+    /* ========== SUB R0, Rs (0x50-0x57) ========== */
+    else if (opcode >= OP_SUB_BASE && opcode <= OP_SUB_BASE + 7) {
+        src = opcode & 0x07;
+        result16 = (uint16_t)cpu->r[0] - (uint16_t)cpu->r[src];
+        update_flags_sub(cpu, cpu->r[0], cpu->r[src], result16);
+        cpu->r[0] = (uint8_t)result16;
+        cycles += 1;
+    }
 
-        case OP_RET:  /* RET */
-            cpu->pc = pop_word(cpu);
-            cycles += 4;
-            break;
+    /* ========== SBC R0, Rs (0x58-0x5F) ========== */
+    else if (opcode >= OP_SBC_BASE && opcode <= OP_SBC_BASE + 7) {
+        src = opcode & 0x07;
+        uint8_t borrow = (cpu->flags & FLAG_C) ? 1 : 0;
+        result16 = (uint16_t)cpu->r[0] - (uint16_t)cpu->r[src] - borrow;
+        update_flags_sub(cpu, cpu->r[0], cpu->r[src] + borrow, result16);
+        cpu->r[0] = (uint8_t)result16;
+        cycles += 1;
+    }
 
-        default:
-            /* Unknown opcode */
-            cpu->error = true;
-            snprintf(cpu->error_msg, sizeof(cpu->error_msg),
-                     "Unknown opcode: 0x%02X at PC=0x%04X", opcode, cpu->pc - 1);
-            cpu->halted = true;
-            return cycles;
+    /* ========== ADDI Rd, #imm8 (0x60-0x67) ========== */
+    else if (opcode >= OP_ADDI_BASE && opcode <= OP_ADDI_BASE + 7) {
+        reg = opcode & 0x07;
+        imm8 = fetch_byte(cpu);
+        result16 = (uint16_t)cpu->r[reg] + (uint16_t)imm8;
+        update_flags_add(cpu, cpu->r[reg], imm8, result16);
+        cpu->r[reg] = (uint8_t)result16;
+        cycles += 2;
+    }
+
+    /* ========== SUBI Rd, #imm8 (0x68-0x6F) ========== */
+    else if (opcode >= OP_SUBI_BASE && opcode <= OP_SUBI_BASE + 7) {
+        reg = opcode & 0x07;
+        imm8 = fetch_byte(cpu);
+        result16 = (uint16_t)cpu->r[reg] - (uint16_t)imm8;
+        update_flags_sub(cpu, cpu->r[reg], imm8, result16);
+        cpu->r[reg] = (uint8_t)result16;
+        cycles += 2;
+    }
+
+    /* ========== INC Rd (0x70-0x77) ========== */
+    else if (opcode >= OP_INC_BASE && opcode <= OP_INC_BASE + 7) {
+        reg = opcode & 0x07;
+        uint8_t old = cpu->r[reg];
+        cpu->r[reg]++;
+        /* INC doesn't affect carry */
+        update_flags_zs(cpu, cpu->r[reg]);
+        /* Overflow if went from 0x7F to 0x80 */
+        if (old == 0x7F) cpu->flags |= FLAG_O; else cpu->flags &= ~FLAG_O;
+        cycles += 1;
+    }
+
+    /* ========== DEC Rd (0x78-0x7F) ========== */
+    else if (opcode >= OP_DEC_BASE && opcode <= OP_DEC_BASE + 7) {
+        reg = opcode & 0x07;
+        uint8_t old = cpu->r[reg];
+        cpu->r[reg]--;
+        update_flags_zs(cpu, cpu->r[reg]);
+        /* Overflow if went from 0x80 to 0x7F */
+        if (old == 0x80) cpu->flags |= FLAG_O; else cpu->flags &= ~FLAG_O;
+        cycles += 1;
+    }
+
+    /* ========== CMP R0, Rs (0x80-0x87) ========== */
+    else if (opcode >= OP_CMP_BASE && opcode <= OP_CMP_BASE + 7) {
+        src = opcode & 0x07;
+        result16 = (uint16_t)cpu->r[0] - (uint16_t)cpu->r[src];
+        update_flags_sub(cpu, cpu->r[0], cpu->r[src], result16);
+        /* Don't store result - just update flags */
+        cycles += 1;
+    }
+
+    /* ========== CMPI Rd, #imm8 (0x88-0x8F) ========== */
+    else if (opcode >= OP_CMPI_BASE && opcode <= OP_CMPI_BASE + 7) {
+        reg = opcode & 0x07;
+        imm8 = fetch_byte(cpu);
+        result16 = (uint16_t)cpu->r[reg] - (uint16_t)imm8;
+        update_flags_sub(cpu, cpu->r[reg], imm8, result16);
+        cycles += 2;
+    }
+
+    /* ========== 16-bit Arithmetic (0x90-0x96) ========== */
+    else if (opcode == OP_INC16_HL) {
+        cpu_set_hl(cpu, cpu_get_hl(cpu) + 1);
+        cycles += 2;
+    }
+    else if (opcode == OP_DEC16_HL) {
+        cpu_set_hl(cpu, cpu_get_hl(cpu) - 1);
+        cycles += 2;
+    }
+    else if (opcode == OP_INC16_BC) {
+        cpu_set_bc(cpu, cpu_get_bc(cpu) + 1);
+        cycles += 2;
+    }
+    else if (opcode == OP_DEC16_BC) {
+        cpu_set_bc(cpu, cpu_get_bc(cpu) - 1);
+        cycles += 2;
+    }
+    else if (opcode == OP_ADD16_HL_BC) {
+        result32 = (uint32_t)cpu_get_hl(cpu) + (uint32_t)cpu_get_bc(cpu);
+        cpu_set_hl(cpu, (uint16_t)result32);
+        if (result32 > 0xFFFF) cpu->flags |= FLAG_C; else cpu->flags &= ~FLAG_C;
+        cycles += 3;
+    }
+    else if (opcode == OP_ADD16_HL_DE) {
+        result32 = (uint32_t)cpu_get_hl(cpu) + (uint32_t)cpu_get_de(cpu);
+        cpu_set_hl(cpu, (uint16_t)result32);
+        if (result32 > 0xFFFF) cpu->flags |= FLAG_C; else cpu->flags &= ~FLAG_C;
+        cycles += 3;
+    }
+    else if (opcode == OP_NEG) {
+        reg = fetch_byte(cpu) & 0x07;
+        result16 = (uint16_t)(-(int8_t)cpu->r[reg]);
+        update_flags_sub(cpu, 0, cpu->r[reg], result16);
+        cpu->r[reg] = (uint8_t)result16;
+        cycles += 2;
+    }
+
+    /* ========== Logic Register-Register (0xA0-0xBF) ========== */
+    else if (opcode >= OP_AND_BASE && opcode <= OP_AND_BASE + 7) {
+        src = opcode & 0x07;
+        cpu->r[0] &= cpu->r[src];
+        update_flags_logic(cpu, cpu->r[0]);
+        cycles += 1;
+    }
+    else if (opcode >= OP_OR_BASE && opcode <= OP_OR_BASE + 7) {
+        src = opcode & 0x07;
+        cpu->r[0] |= cpu->r[src];
+        update_flags_logic(cpu, cpu->r[0]);
+        cycles += 1;
+    }
+    else if (opcode >= OP_XOR_BASE && opcode <= OP_XOR_BASE + 7) {
+        src = opcode & 0x07;
+        cpu->r[0] ^= cpu->r[src];
+        update_flags_logic(cpu, cpu->r[0]);
+        cycles += 1;
+    }
+    else if (opcode >= OP_NOT_BASE && opcode <= OP_NOT_BASE + 7) {
+        reg = opcode & 0x07;
+        cpu->r[reg] = ~cpu->r[reg];
+        update_flags_logic(cpu, cpu->r[reg]);
+        cycles += 1;
+    }
+
+    /* ========== Control Flow - Absolute Jumps (0xC0-0xC9) ========== */
+    else if (opcode == OP_JMP) {
+        cpu->pc = fetch_word(cpu);
+        cycles += 3;
+    }
+    else if (opcode == OP_JR) {
+        offset = (int8_t)fetch_byte(cpu);
+        cpu->pc += offset;
+        cycles += 2;
+    }
+    else if (opcode == OP_JZ) {
+        addr16 = fetch_word(cpu);
+        if (cpu->flags & FLAG_Z) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JNZ) {
+        addr16 = fetch_word(cpu);
+        if (!(cpu->flags & FLAG_Z)) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JC) {
+        addr16 = fetch_word(cpu);
+        if (cpu->flags & FLAG_C) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JNC) {
+        addr16 = fetch_word(cpu);
+        if (!(cpu->flags & FLAG_C)) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JS) {
+        addr16 = fetch_word(cpu);
+        if (cpu->flags & FLAG_S) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JNS) {
+        addr16 = fetch_word(cpu);
+        if (!(cpu->flags & FLAG_S)) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JO) {
+        addr16 = fetch_word(cpu);
+        if (cpu->flags & FLAG_O) cpu->pc = addr16;
+        cycles += 3;
+    }
+    else if (opcode == OP_JNO) {
+        addr16 = fetch_word(cpu);
+        if (!(cpu->flags & FLAG_O)) cpu->pc = addr16;
+        cycles += 3;
+    }
+
+    /* ========== Control Flow - Relative Jumps (0xCA-0xCD) ========== */
+    else if (opcode == OP_JRZ) {
+        offset = (int8_t)fetch_byte(cpu);
+        if (cpu->flags & FLAG_Z) cpu->pc += offset;
+        cycles += 2;
+    }
+    else if (opcode == OP_JRNZ) {
+        offset = (int8_t)fetch_byte(cpu);
+        if (!(cpu->flags & FLAG_Z)) cpu->pc += offset;
+        cycles += 2;
+    }
+    else if (opcode == OP_JRC) {
+        offset = (int8_t)fetch_byte(cpu);
+        if (cpu->flags & FLAG_C) cpu->pc += offset;
+        cycles += 2;
+    }
+    else if (opcode == OP_JRNC) {
+        offset = (int8_t)fetch_byte(cpu);
+        if (!(cpu->flags & FLAG_C)) cpu->pc += offset;
+        cycles += 2;
+    }
+
+    /* ========== Control Flow - Indirect and Calls (0xCE-0xCF) ========== */
+    else if (opcode == OP_JP_HL) {
+        cpu->pc = cpu_get_hl(cpu);
+        cycles += 2;
+    }
+    else if (opcode == OP_CALL) {
+        addr16 = fetch_word(cpu);
+        push_word(cpu, cpu->pc);
+        cpu->pc = addr16;
+        cycles += 5;
+    }
+
+    /* ========== Returns (0xD0-0xD1) ========== */
+    else if (opcode == OP_RET) {
+        cpu->pc = pop_word(cpu);
+        cycles += 4;
+    }
+    else if (opcode == OP_RETI) {
+        cpu->flags = pop_byte(cpu);
+        cpu->pc = pop_word(cpu);
+        cpu->ie = true;  /* Re-enable interrupts */
+        cycles += 5;
+    }
+
+    /* ========== Stack Operations - PUSH (0xD2-0xD9) ========== */
+    else if (opcode >= OP_PUSH_BASE && opcode <= OP_PUSH_BASE + 7) {
+        reg = opcode & 0x07;
+        push_byte(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+
+    /* ========== Stack Operations - POP (0xDA-0xE1) ========== */
+    else if (opcode >= OP_POP_BASE && opcode <= OP_POP_BASE + 7) {
+        reg = opcode & 0x07;
+        cpu->r[reg] = pop_byte(cpu);
+        cycles += 2;
+    }
+
+    /* ========== 16-bit Stack Operations (0xE2-0xE5) ========== */
+    else if (opcode == OP_PUSH16_HL) {
+        push_word(cpu, cpu_get_hl(cpu));
+        cycles += 3;
+    }
+    else if (opcode == OP_POP16_HL) {
+        cpu_set_hl(cpu, pop_word(cpu));
+        cycles += 3;
+    }
+    else if (opcode == OP_PUSH16_BC) {
+        push_word(cpu, cpu_get_bc(cpu));
+        cycles += 3;
+    }
+    else if (opcode == OP_POP16_BC) {
+        cpu_set_bc(cpu, pop_word(cpu));
+        cycles += 3;
+    }
+
+    /* ========== Flags Stack (0xE6-0xE7) ========== */
+    else if (opcode == OP_PUSHF) {
+        push_byte(cpu, cpu->flags);
+        cycles += 2;
+    }
+    else if (opcode == OP_POPF) {
+        cpu->flags = pop_byte(cpu);
+        cycles += 2;
+    }
+
+    /* ========== Interrupt Control (0xE8-0xE9) ========== */
+    else if (opcode == OP_EI) {
+        cpu->ie = true;
+        cycles += 1;
+    }
+    else if (opcode == OP_DI) {
+        cpu->ie = false;
+        cycles += 1;
+    }
+
+    /* ========== Flag Manipulation (0xEA-0xEC) ========== */
+    else if (opcode == OP_SCF) {
+        cpu->flags |= FLAG_C;
+        cycles += 1;
+    }
+    else if (opcode == OP_CCF) {
+        cpu->flags &= ~FLAG_C;
+        cycles += 1;
+    }
+    else if (opcode == OP_CMF) {
+        cpu->flags ^= FLAG_C;
+        cycles += 1;
+    }
+
+    /* ========== I/O Operations (0xED-0xEE) ========== */
+    else if (opcode == OP_IN) {
+        reg = fetch_byte(cpu) & 0x07;
+        imm8 = fetch_byte(cpu);  /* Port number */
+        cpu->r[reg] = cpu->ports[imm8];
+        cycles += 3;
+    }
+    else if (opcode == OP_OUT) {
+        imm8 = fetch_byte(cpu);  /* Port number */
+        reg = fetch_byte(cpu) & 0x07;
+        cpu->ports[imm8] = cpu->r[reg];
+        cycles += 3;
+    }
+
+    /* ========== SWAP (0xEF) ========== */
+    else if (opcode == OP_SWAP) {
+        reg = fetch_byte(cpu) & 0x07;
+        uint8_t val = cpu->r[reg];
+        cpu->r[reg] = ((val & 0x0F) << 4) | ((val & 0xF0) >> 4);
+        update_flags_zs(cpu, cpu->r[reg]);
+        cycles += 2;
+    }
+
+    /* ========== MOV Rd, Rs (0xF0) ========== */
+    else if (opcode == OP_MOV_RR) {
+        uint8_t operand = fetch_byte(cpu);
+        uint8_t rd = (operand >> 4) & 0x07;
+        uint8_t rs = operand & 0x07;
+        cpu->r[rd] = cpu->r[rs];
+        cycles += 2;
+    }
+
+    /* ========== Unknown Opcode ========== */
+    else {
+        cpu->error = true;
+        snprintf(cpu->error_msg, sizeof(cpu->error_msg),
+                 "Unknown opcode: 0x%02X at PC=0x%04X", opcode, cpu->pc - 1);
+        cpu->halted = true;
+        return cycles;
     }
 
     cpu->instructions++;
@@ -400,10 +798,10 @@ int cpu_step(Micro8CPU *cpu) {
     return cycles;
 }
 
-/*
- * Run CPU until halted or max_cycles reached
- * Returns total cycles executed
- */
+/* ========================================================================
+ * Run CPU
+ * ======================================================================== */
+
 int cpu_run(Micro8CPU *cpu, int max_cycles) {
     int total_cycles = 0;
 
@@ -416,22 +814,26 @@ int cpu_run(Micro8CPU *cpu, int max_cycles) {
     return total_cycles;
 }
 
-/*
- * Dump CPU state for debugging
- */
+/* ========================================================================
+ * Debug Support
+ * ======================================================================== */
+
 void cpu_dump_state(const Micro8CPU *cpu) {
     printf("=== Micro8 CPU State ===\n");
-    printf("PC: 0x%04X  SP: 0x%04X\n", cpu->pc, cpu->sp);
+    printf("PC: 0x%04X  SP: 0x%04X  IE: %s\n",
+           cpu->pc, cpu->sp, cpu->ie ? "ON" : "OFF");
     printf("Flags: %c%c%c%c (0x%02X)\n",
-           (cpu->flags & FLAG_Z) ? 'Z' : '-',
-           (cpu->flags & FLAG_C) ? 'C' : '-',
            (cpu->flags & FLAG_S) ? 'S' : '-',
+           (cpu->flags & FLAG_Z) ? 'Z' : '-',
            (cpu->flags & FLAG_O) ? 'O' : '-',
+           (cpu->flags & FLAG_C) ? 'C' : '-',
            cpu->flags);
     printf("R0: 0x%02X  R1: 0x%02X  R2: 0x%02X  R3: 0x%02X\n",
            cpu->r[0], cpu->r[1], cpu->r[2], cpu->r[3]);
     printf("R4: 0x%02X  R5: 0x%02X  R6: 0x%02X  R7: 0x%02X\n",
            cpu->r[4], cpu->r[5], cpu->r[6], cpu->r[7]);
+    printf("HL: 0x%04X  BC: 0x%04X  DE: 0x%04X\n",
+           cpu_get_hl(cpu), cpu_get_bc(cpu), cpu_get_de(cpu));
     printf("IR: 0x%02X  MAR: 0x%04X  MDR: 0x%02X\n",
            cpu->ir, cpu->mar, cpu->mdr);
     printf("Halted: %s  Error: %s\n",
@@ -446,9 +848,6 @@ void cpu_dump_state(const Micro8CPU *cpu) {
     printf("========================\n");
 }
 
-/*
- * Dump memory range
- */
 void cpu_dump_memory(const Micro8CPU *cpu, uint16_t start, uint16_t end) {
     printf("Memory [0x%04X - 0x%04X]:\n", start, end);
 
@@ -467,150 +866,58 @@ void cpu_dump_memory(const Micro8CPU *cpu, uint16_t start, uint16_t end) {
 }
 
 /*
- * Disassemble a single instruction at given address
- * Returns pointer to static buffer, sets instr_len to instruction length
+ * Disassemble a single instruction
+ * Note: For full disassembly, use the standalone disasm tool
  */
 static char disasm_buf[64];
 
 const char* cpu_disassemble(const Micro8CPU *cpu, uint16_t addr, int *instr_len) {
     uint8_t opcode = cpu->memory[addr];
-    uint8_t reg_d, reg_s, imm8;
-    uint16_t addr16;
+    *instr_len = 1;
 
-    *instr_len = 1;  /* Default */
+    /* This is a simplified disassembler for debugging
+     * Full disassembly is done by disasm.c */
 
-    switch (opcode) {
-        case OP_NOP:
-            snprintf(disasm_buf, sizeof(disasm_buf), "NOP");
-            *instr_len = 1;
-            break;
-
-        case OP_HLT:
-            snprintf(disasm_buf, sizeof(disasm_buf), "HLT");
-            *instr_len = 1;
-            break;
-
-        case OP_MOV_RR:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            reg_s = cpu->memory[addr + 2] & 0x07;
-            snprintf(disasm_buf, sizeof(disasm_buf), "MOV %s, %s",
-                     REG_NAMES[reg_d], REG_NAMES[reg_s]);
-            *instr_len = 3;
-            break;
-
-        case OP_MOV_RI:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            imm8 = cpu->memory[addr + 2];
-            snprintf(disasm_buf, sizeof(disasm_buf), "MOV %s, 0x%02X",
-                     REG_NAMES[reg_d], imm8);
-            *instr_len = 3;
-            break;
-
-        case OP_MOV_RM:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            addr16 = cpu->memory[addr + 2] | ((uint16_t)cpu->memory[addr + 3] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "MOV %s, [0x%04X]",
-                     REG_NAMES[reg_d], addr16);
-            *instr_len = 4;
-            break;
-
-        case OP_MOV_MR:
-            reg_s = cpu->memory[addr + 1] & 0x07;
-            addr16 = cpu->memory[addr + 2] | ((uint16_t)cpu->memory[addr + 3] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "MOV [0x%04X], %s",
-                     addr16, REG_NAMES[reg_s]);
-            *instr_len = 4;
-            break;
-
-        case OP_ADD_RR:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            reg_s = cpu->memory[addr + 2] & 0x07;
-            snprintf(disasm_buf, sizeof(disasm_buf), "ADD %s, %s",
-                     REG_NAMES[reg_d], REG_NAMES[reg_s]);
-            *instr_len = 3;
-            break;
-
-        case OP_ADD_RI:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            imm8 = cpu->memory[addr + 2];
-            snprintf(disasm_buf, sizeof(disasm_buf), "ADD %s, 0x%02X",
-                     REG_NAMES[reg_d], imm8);
-            *instr_len = 3;
-            break;
-
-        case OP_SUB_RR:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            reg_s = cpu->memory[addr + 2] & 0x07;
-            snprintf(disasm_buf, sizeof(disasm_buf), "SUB %s, %s",
-                     REG_NAMES[reg_d], REG_NAMES[reg_s]);
-            *instr_len = 3;
-            break;
-
-        case OP_SUB_RI:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            imm8 = cpu->memory[addr + 2];
-            snprintf(disasm_buf, sizeof(disasm_buf), "SUB %s, 0x%02X",
-                     REG_NAMES[reg_d], imm8);
-            *instr_len = 3;
-            break;
-
-        case OP_PUSH:
-            reg_s = cpu->memory[addr + 1] & 0x07;
-            snprintf(disasm_buf, sizeof(disasm_buf), "PUSH %s", REG_NAMES[reg_s]);
-            *instr_len = 2;
-            break;
-
-        case OP_POP:
-            reg_d = cpu->memory[addr + 1] & 0x07;
-            snprintf(disasm_buf, sizeof(disasm_buf), "POP %s", REG_NAMES[reg_d]);
-            *instr_len = 2;
-            break;
-
-        case OP_JMP:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "JMP 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_JZ:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "JZ 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_JNZ:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "JNZ 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_JC:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "JC 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_JNC:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "JNC 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_CALL:
-            addr16 = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
-            snprintf(disasm_buf, sizeof(disasm_buf), "CALL 0x%04X", addr16);
-            *instr_len = 3;
-            break;
-
-        case OP_RET:
-            snprintf(disasm_buf, sizeof(disasm_buf), "RET");
-            *instr_len = 1;
-            break;
-
-        default:
-            snprintf(disasm_buf, sizeof(disasm_buf), "DB 0x%02X", opcode);
-            *instr_len = 1;
-            break;
+    if (opcode == OP_NOP) {
+        snprintf(disasm_buf, sizeof(disasm_buf), "NOP");
+    }
+    else if (opcode == OP_HLT) {
+        snprintf(disasm_buf, sizeof(disasm_buf), "HLT");
+    }
+    else if (opcode >= OP_LDI_BASE && opcode <= OP_LDI_BASE + 7) {
+        int reg = opcode - OP_LDI_BASE;
+        snprintf(disasm_buf, sizeof(disasm_buf), "LDI %s, #0x%02X",
+                 REG_NAMES[reg], cpu->memory[addr + 1]);
+        *instr_len = 2;
+    }
+    else if (opcode >= OP_INC_BASE && opcode <= OP_INC_BASE + 7) {
+        snprintf(disasm_buf, sizeof(disasm_buf), "INC %s", REG_NAMES[opcode & 7]);
+    }
+    else if (opcode >= OP_DEC_BASE && opcode <= OP_DEC_BASE + 7) {
+        snprintf(disasm_buf, sizeof(disasm_buf), "DEC %s", REG_NAMES[opcode & 7]);
+    }
+    else if (opcode == OP_JMP) {
+        uint16_t target = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
+        snprintf(disasm_buf, sizeof(disasm_buf), "JMP 0x%04X", target);
+        *instr_len = 3;
+    }
+    else if (opcode == OP_CALL) {
+        uint16_t target = cpu->memory[addr + 1] | ((uint16_t)cpu->memory[addr + 2] << 8);
+        snprintf(disasm_buf, sizeof(disasm_buf), "CALL 0x%04X", target);
+        *instr_len = 3;
+    }
+    else if (opcode == OP_RET) {
+        snprintf(disasm_buf, sizeof(disasm_buf), "RET");
+    }
+    else if (opcode == OP_MOV_RR) {
+        uint8_t operand = cpu->memory[addr + 1];
+        int rd = (operand >> 4) & 0x07;
+        int rs = operand & 0x07;
+        snprintf(disasm_buf, sizeof(disasm_buf), "MOV %s, %s", REG_NAMES[rd], REG_NAMES[rs]);
+        *instr_len = 2;
+    }
+    else {
+        snprintf(disasm_buf, sizeof(disasm_buf), "DB 0x%02X", opcode);
     }
 
     return disasm_buf;

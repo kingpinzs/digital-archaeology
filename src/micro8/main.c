@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
+#include "debugger.h"
 
 /* Print usage */
 static void print_usage(const char *prog) {
@@ -22,13 +23,18 @@ static void print_usage(const char *prog) {
     printf("  %s help               Show this help\n", prog);
     printf("\n");
     printf("Debug mode commands:\n");
-    printf("  s, step      Execute one instruction\n");
-    printf("  r, run       Run until halt\n");
-    printf("  c, continue  Same as run\n");
-    printf("  d, dump      Dump CPU state\n");
-    printf("  m, memory    Dump memory (prompts for range)\n");
-    printf("  b, break     Set breakpoint (not implemented)\n");
-    printf("  q, quit      Exit debugger\n");
+    printf("  step, s              Execute one instruction\n");
+    printf("  run, r               Run until halt or breakpoint\n");
+    printf("  break <addr>, b      Set breakpoint at address (hex)\n");
+    printf("  delete <addr>, d     Delete breakpoint at address\n");
+    printf("  list, l              List all breakpoints\n");
+    printf("  regs, reg            Show all registers\n");
+    printf("  mem <start> [end]    Dump memory (hex addresses)\n");
+    printf("  stack [count]        Show stack contents\n");
+    printf("  reset                Reset CPU (keep memory)\n");
+    printf("  load <file> [addr]   Load binary file at address\n");
+    printf("  help, h, ?           Show help\n");
+    printf("  quit, q              Exit debugger\n");
     printf("\n");
     printf("Architecture:\n");
     printf("  8-bit data bus, 16-bit address bus (64KB)\n");
@@ -58,7 +64,7 @@ static void print_usage(const char *prog) {
     printf("  RET              Return from subroutine\n");
 }
 
-/* Load binary file into CPU memory */
+/* Load binary file into CPU memory at DEFAULT_PC (0x0200) */
 static bool load_binary(const char *filename, Micro8CPU *cpu) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
@@ -71,17 +77,19 @@ static bool load_binary(const char *filename, Micro8CPU *cpu) {
     long size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    if (size > MEM_SIZE) {
-        printf("Error: File too large (%ld bytes, max %d)\n", size, MEM_SIZE);
+    /* Check if it fits in memory from load address */
+    if (DEFAULT_PC + size > MEM_SIZE) {
+        printf("Error: File too large (%ld bytes at 0x%04X, max %d)\n",
+               size, DEFAULT_PC, MEM_SIZE);
         fclose(f);
         return false;
     }
 
-    /* Read into memory starting at address 0 */
-    size_t read = fread(cpu->memory, 1, size, f);
+    /* Read into memory starting at DEFAULT_PC (0x0200) */
+    size_t read = fread(&cpu->memory[DEFAULT_PC], 1, size, f);
     fclose(f);
 
-    printf("Loaded %zu bytes from '%s'\n", read, filename);
+    printf("Loaded %zu bytes from '%s' at 0x%04X\n", read, filename, DEFAULT_PC);
     return true;
 }
 
@@ -113,95 +121,31 @@ static int cmd_run(const char *filename) {
     return result;
 }
 
-/* Debug mode */
+/* Debug mode - use the full interactive debugger */
 static int cmd_debug(const char *filename) {
     Micro8CPU cpu;
+    Micro8Debugger dbg;
 
     if (!cpu_init(&cpu)) {
         printf("Error: Failed to initialize CPU\n");
         return 1;
     }
 
-    if (!load_binary(filename, &cpu)) {
+    /* Initialize debugger */
+    dbg_init(&dbg, &cpu);
+
+    /* Load the binary file */
+    if (!dbg_load_binary(&dbg, filename, 0)) {
         cpu_free(&cpu);
         return 1;
     }
 
-    printf("\nDebug mode. Type 'help' for commands.\n");
-    printf("----------------------------------------\n");
+    /* Run the interactive debugger */
+    dbg_run(&dbg);
 
-    char line[256];
-    bool running = true;
-
-    while (running && !cpu.halted) {
-        /* Show current instruction */
-        int instr_len;
-        const char *disasm = cpu_disassemble(&cpu, cpu.pc, &instr_len);
-
-        printf("\n[PC=0x%04X SP=0x%04X Flags=%c%c%c%c] %s\n",
-               cpu.pc, cpu.sp,
-               (cpu.flags & FLAG_Z) ? 'Z' : '-',
-               (cpu.flags & FLAG_C) ? 'C' : '-',
-               (cpu.flags & FLAG_S) ? 'S' : '-',
-               (cpu.flags & FLAG_O) ? 'O' : '-',
-               disasm);
-        printf("debug> ");
-        fflush(stdout);
-
-        if (!fgets(line, sizeof(line), stdin)) {
-            break;
-        }
-
-        /* Remove newline */
-        line[strcspn(line, "\n")] = '\0';
-
-        /* Parse command */
-        if (strcmp(line, "s") == 0 || strcmp(line, "step") == 0) {
-            int cycles = cpu_step(&cpu);
-            printf("Executed in %d cycles\n", cycles);
-        } else if (strcmp(line, "r") == 0 || strcmp(line, "run") == 0 ||
-                   strcmp(line, "c") == 0 || strcmp(line, "continue") == 0) {
-            printf("Running...\n");
-            cpu_run(&cpu, 1000000);
-            printf("Stopped.\n");
-        } else if (strcmp(line, "d") == 0 || strcmp(line, "dump") == 0) {
-            cpu_dump_state(&cpu);
-        } else if (strcmp(line, "m") == 0 || strcmp(line, "memory") == 0) {
-            unsigned int start, end;
-            printf("Start address (hex): ");
-            fflush(stdout);
-            if (fgets(line, sizeof(line), stdin) && sscanf(line, "%x", &start) == 1) {
-                printf("End address (hex): ");
-                fflush(stdout);
-                if (fgets(line, sizeof(line), stdin) && sscanf(line, "%x", &end) == 1) {
-                    if (start <= 0xFFFF && end <= 0xFFFF && start <= end) {
-                        cpu_dump_memory(&cpu, (uint16_t)start, (uint16_t)end);
-                    } else {
-                        printf("Invalid address range\n");
-                    }
-                }
-            }
-        } else if (strcmp(line, "q") == 0 || strcmp(line, "quit") == 0) {
-            running = false;
-        } else if (strcmp(line, "help") == 0 || strcmp(line, "h") == 0) {
-            printf("Commands:\n");
-            printf("  s, step      Execute one instruction\n");
-            printf("  r, run       Run until halt\n");
-            printf("  d, dump      Dump CPU state\n");
-            printf("  m, memory    Dump memory range\n");
-            printf("  q, quit      Exit debugger\n");
-        } else if (line[0] != '\0') {
-            printf("Unknown command: %s\n", line);
-        }
-    }
-
-    if (cpu.halted) {
-        printf("\nCPU halted.\n");
-        cpu_dump_state(&cpu);
-    }
-
+    int result = cpu.error ? 1 : 0;
     cpu_free(&cpu);
-    return 0;
+    return result;
 }
 
 int main(int argc, char *argv[]) {

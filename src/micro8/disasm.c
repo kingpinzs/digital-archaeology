@@ -51,9 +51,6 @@ static int get_instruction_length(uint8_t opcode) {
     /* NOP, HLT */
     if (opcode == 0x00 || opcode == 0x01) return 1;
 
-    /* MOV Rd, Rs (0x40-0x7F when bits[7:6]=01) */
-    if ((opcode & 0xC0) == 0x40) return 1;
-
     /* LDI Rd, #imm (0x06-0x0D) */
     if (opcode >= 0x06 && opcode <= 0x0D) return 2;
 
@@ -213,7 +210,10 @@ static int get_instruction_length(uint8_t opcode) {
     /* SWAP Rd (0xEF) */
     if (opcode == 0xEF) return 1;
 
-    /* Unknown/Reserved (0xFx and others) */
+    /* MOV Rd, Rs (0xF0) - 2 bytes: opcode, (rd<<4)|rs */
+    if (opcode == 0xF0) return 2;
+
+    /* Unknown/Reserved (0xF1-0xFF and others) */
     return 1;
 }
 
@@ -1081,7 +1081,16 @@ static int disassemble_instruction(int addr, char *mnemonic, size_t mnem_size,
         return 1;
     }
 
-    /* Reserved 0xF0-0xFF */
+    /* MOV Rd, Rs (0xF0) */
+    if (opcode == 0xF0) {
+        int rd = (BYTE1 >> 4) & 0x07;
+        int rs = BYTE1 & 0x07;
+        snprintf(mnemonic, mnem_size, "MOV");
+        snprintf(operands, oper_size, "%s, %s", REG_NAMES[rd], REG_NAMES[rs]);
+        return 2;
+    }
+
+    /* Reserved 0xF1-0xFF */
     snprintf(mnemonic, mnem_size, "DB");
     snprintf(operands, oper_size, "0x%02X", opcode);
     return 1;

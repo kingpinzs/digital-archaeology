@@ -541,7 +541,9 @@ void dbg_run(Micro8Debugger *dbg) {
 
 /*
  * Main entry point for standalone debugger
+ * Only compiled when building debugger as standalone executable
  */
+#ifndef DEBUGGER_AS_LIBRARY
 int main(int argc, char *argv[]) {
     Micro8CPU cpu;
     Micro8Debugger dbg;
@@ -577,3 +579,4 @@ int main(int argc, char *argv[]) {
     cpu_free(&cpu);
     return cpu.error ? 1 : 0;
 }
+#endif /* DEBUGGER_AS_LIBRARY */

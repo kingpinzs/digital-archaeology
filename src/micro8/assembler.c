@@ -592,7 +592,10 @@ static bool process_directive(Assembler *as, char *line, bool pass2) {
         p = skip_whitespace(p + (p[0] == '.' ? 4 : 3));
         uint16_t value;
         if (parse_number(p, &value) > 0) {
-            as->origin = value;
+            /* Track minimum origin for binary output range */
+            if (value < as->origin) {
+                as->origin = value;
+            }
             as->current_addr = value;
         } else {
             snprintf(as->error_msg, sizeof(as->error_msg), "Invalid ORG operand");
@@ -1221,7 +1224,7 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         return true;
     }
 
-    /* Handle MOV Rd, Rs (special encoding) */
+    /* Handle MOV Rd, Rs (0xF0 encoding) */
     if (strcasecmp(mnemonic, "MOV") == 0) {
         int reg_len;
         int rd = parse_register(p, &reg_len);
@@ -1239,11 +1242,12 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             as->error = true;
             return false;
         }
-        /* MOV encoding: 01 ddd sss */
+        /* MOV encoding: 0xF0, (rd<<4)|rs */
         if (pass2) {
-            emit_byte(as, 0x40 | (rd << 3) | rs);
+            emit_byte(as, 0xF0);
+            emit_byte(as, (rd << 4) | rs);
         } else {
-            as->current_addr++;
+            as->current_addr += 2;
         }
         return true;
     }

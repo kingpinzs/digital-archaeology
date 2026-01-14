@@ -249,6 +249,33 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         opcode = OP_LDI;
         is_immediate = true;
         p += 3;
+    } else if (starts_with_ci(p, "AND")) {
+        opcode = OP_AND;
+        needs_addr = true;
+        p += 3;
+    } else if (starts_with_ci(p, "XOR")) {
+        opcode = OP_XOR;
+        needs_addr = true;
+        p += 3;
+    } else if (starts_with_ci(p, "OR")) {
+        opcode = OP_OR;
+        needs_addr = true;
+        p += 2;
+    } else if (starts_with_ci(p, "NOT")) {
+        opcode = OP_NOT;
+        p += 3;
+    } else if (starts_with_ci(p, "SHL")) {
+        opcode = OP_SHL;
+        p += 3;
+    } else if (starts_with_ci(p, "SHR")) {
+        opcode = OP_SHR;
+        p += 3;
+    } else if (starts_with_ci(p, "INC")) {
+        opcode = OP_INC;
+        p += 3;
+    } else if (starts_with_ci(p, "DEC")) {
+        opcode = OP_DEC;
+        p += 3;
     }
 
     if (opcode == 0xFF) {

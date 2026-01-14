@@ -9,7 +9,7 @@
 /* Instruction names */
 const char* OPCODE_NAMES[16] = {
     "HLT", "LDA", "STA", "ADD", "SUB", "JMP", "JZ", "LDI",
-    "???", "???", "???", "???", "???", "???", "???", "???"
+    "AND", "OR",  "XOR", "NOT", "SHL", "SHR", "INC", "DEC"
 };
 
 /* Mask to keep values to 4 bits */
@@ -182,6 +182,72 @@ int cpu_step(Micro4CPU *cpu) {
             cycles += 1;
             break;
 
+        case OP_AND:  /* Bitwise AND Accumulator with memory */
+            /* Fetch address byte */
+            addr = fetch_byte(cpu);
+            cycles += 2;
+            /* Read and AND */
+            cpu->mar = addr;
+            cpu->mdr = cpu_read_mem(cpu, addr);
+            cpu->a = (cpu->a & cpu->mdr) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_OR:   /* Bitwise OR Accumulator with memory */
+            /* Fetch address byte */
+            addr = fetch_byte(cpu);
+            cycles += 2;
+            /* Read and OR */
+            cpu->mar = addr;
+            cpu->mdr = cpu_read_mem(cpu, addr);
+            cpu->a = (cpu->a | cpu->mdr) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_XOR:  /* Bitwise XOR Accumulator with memory */
+            /* Fetch address byte */
+            addr = fetch_byte(cpu);
+            cycles += 2;
+            /* Read and XOR */
+            cpu->mar = addr;
+            cpu->mdr = cpu_read_mem(cpu, addr);
+            cpu->a = (cpu->a ^ cpu->mdr) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_NOT:  /* Bitwise NOT (complement) Accumulator */
+            cpu->a = (~cpu->a) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_SHL:  /* Shift Accumulator left by 1 */
+            cpu->a = (cpu->a << 1) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_SHR:  /* Shift Accumulator right by 1 */
+            cpu->a = (cpu->a >> 1) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_INC:  /* Increment Accumulator */
+            cpu->a = (cpu->a + 1) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
+        case OP_DEC:  /* Decrement Accumulator */
+            cpu->a = (cpu->a - 1) & NIBBLE_MASK;
+            cpu->z = (cpu->a == 0);
+            cycles += 1;
+            break;
+
         default:
             /* Unknown opcode */
             cpu->error = true;
@@ -282,6 +348,30 @@ const char* cpu_disassemble(uint8_t opcode, uint8_t operand) {
             break;
         case OP_LDI:
             snprintf(disasm_buf, sizeof(disasm_buf), "LDI %d", imm);
+            break;
+        case OP_AND:
+            snprintf(disasm_buf, sizeof(disasm_buf), "AND 0x%02X", operand);
+            break;
+        case OP_OR:
+            snprintf(disasm_buf, sizeof(disasm_buf), "OR  0x%02X", operand);
+            break;
+        case OP_XOR:
+            snprintf(disasm_buf, sizeof(disasm_buf), "XOR 0x%02X", operand);
+            break;
+        case OP_NOT:
+            snprintf(disasm_buf, sizeof(disasm_buf), "NOT");
+            break;
+        case OP_SHL:
+            snprintf(disasm_buf, sizeof(disasm_buf), "SHL");
+            break;
+        case OP_SHR:
+            snprintf(disasm_buf, sizeof(disasm_buf), "SHR");
+            break;
+        case OP_INC:
+            snprintf(disasm_buf, sizeof(disasm_buf), "INC");
+            break;
+        case OP_DEC:
+            snprintf(disasm_buf, sizeof(disasm_buf), "DEC");
             break;
         default:
             snprintf(disasm_buf, sizeof(disasm_buf), "??? 0x%02X", opcode);

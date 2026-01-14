@@ -5,7 +5,7 @@
  * - 4-bit data bus
  * - 8-bit address bus (256 nibbles)
  * - Accumulator architecture
- * - 8 instructions
+ * - 16 instructions
  */
 
 #ifndef MICRO4_CPU_H
@@ -26,6 +26,14 @@
 #define OP_JMP  0x5   /* Unconditional jump */
 #define OP_JZ   0x6   /* Jump if zero flag set */
 #define OP_LDI  0x7   /* Load immediate (4-bit value) */
+#define OP_AND  0x8   /* Bitwise AND accumulator with memory */
+#define OP_OR   0x9   /* Bitwise OR accumulator with memory */
+#define OP_XOR  0xA   /* Bitwise XOR accumulator with memory */
+#define OP_NOT  0xB   /* Bitwise NOT (complement) accumulator */
+#define OP_SHL  0xC   /* Shift accumulator left by 1 */
+#define OP_SHR  0xD   /* Shift accumulator right by 1 */
+#define OP_INC  0xE   /* Increment accumulator */
+#define OP_DEC  0xF   /* Decrement accumulator */
 
 /* CPU State */
 typedef struct {

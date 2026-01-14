@@ -1,0 +1,1549 @@
+# ============================================
+# Micro8 CPU - Complete Implementation
+# ============================================
+# An 8-bit CPU evolved from Micro4 with expanded capabilities
+#
+# Architecture:
+#   - 8-bit data bus
+#   - 16-bit address bus (64KB)
+#   - 8 x 8-bit general purpose registers (R0-R7)
+#   - Register pairs: BC (R1:R2), DE (R3:R4), HL (R5:R6)
+#   - 16-bit Stack Pointer (SP)
+#   - 16-bit Program Counter (PC)
+#   - Flags: Zero (Z), Carry (C), Sign (S), Overflow (O)
+#   - Single interrupt level with EI/DI
+#   - ~80 instructions
+
+# ============================================
+# CPU Block Diagram
+# ============================================
+#
+#  +------------------------------------------------------------------------+
+#  |                            MICRO8 CPU                                   |
+#  |                                                                         |
+#  |   +-------------------------------------------------------------------+ |
+#  |   |                      REGISTER FILE                                | |
+#  |   |  +-----+-----+-----+-----+-----+-----+-----+-----+               | |
+#  |   |  | R0  | R1  | R2  | R3  | R4  | R5  | R6  | R7  |               | |
+#  |   |  | (A) | (B) | (C) | (D) | (E) | (H) | (L) |     |               | |
+#  |   |  +-----+-----+-----+-----+-----+-----+-----+-----+               | |
+#  |   +-------------------------------------------------------------------+ |
+#  |                              |                                          |
+#  |   +----------+    +----------+----------+    +------------------+       |
+#  |   |    PC    |    |        ALU          |    |      FLAGS       |       |
+#  |   |  16-bit  |    |       8-bit         |    |   [Z][C][S][O]   |       |
+#  |   +----------+    +---------------------+    +------------------+       |
+#  |                                                                         |
+#  |   +----------+    +----------+    +----------+    +-------------+       |
+#  |   |    SP    |    |    IR    |    |   MAR    |    |  Interrupt  |       |
+#  |   |  16-bit  |    |  8-bit   |    |  16-bit  |    |    Logic    |       |
+#  |   +----------+    +----------+    +----------+    +-------------+       |
+#  |                                                                         |
+#  +------------------------------------------------------------------------+
+#                    |                              |
+#              16-bit Address Bus            8-bit Data Bus
+
+# ============================================
+# Clock and Reset
+# ============================================
+wire clk;           # System clock
+wire rst;           # Active-high reset
+
+# ============================================
+# Register File (8 x 8-bit)
+# ============================================
+# R0 (A) - Accumulator
+# R1 (B) - Counter high / BC high
+# R2 (C) - Counter low / BC low
+# R3 (D) - Data high / DE high
+# R4 (E) - Extended / DE low
+# R5 (H) - Address high / HL high
+# R6 (L) - Address low / HL low
+# R7     - General purpose
+
+wire [7:0] r0;      # R0 / Accumulator
+wire [7:0] r1;      # R1 / B
+wire [7:0] r2;      # R2 / C
+wire [7:0] r3;      # R3 / D
+wire [7:0] r4;      # R4 / E
+wire [7:0] r5;      # R5 / H
+wire [7:0] r6;      # R6 / L
+wire [7:0] r7;      # R7
+
+wire [7:0] r0_next;
+wire [7:0] r1_next;
+wire [7:0] r2_next;
+wire [7:0] r3_next;
+wire [7:0] r4_next;
+wire [7:0] r5_next;
+wire [7:0] r6_next;
+wire [7:0] r7_next;
+
+wire r0_load;
+wire r1_load;
+wire r2_load;
+wire r3_load;
+wire r4_load;
+wire r5_load;
+wire r6_load;
+wire r7_load;
+
+# ============================================
+# Special Registers
+# ============================================
+
+# Program Counter (16-bit)
+wire [15:0] pc;
+wire [15:0] pc_next;
+wire pc_load;       # Load new value (for jumps/calls)
+wire pc_inc;        # Increment by 1
+wire pc_inc2;       # Increment by 2 (for 2-byte instructions)
+wire pc_inc3;       # Increment by 3 (for 3-byte instructions)
+
+# Stack Pointer (16-bit)
+wire [15:0] sp;
+wire [15:0] sp_next;
+wire sp_load;       # Load new value
+wire sp_inc;        # Increment (POP)
+wire sp_dec;        # Decrement (PUSH)
+
+# Instruction Register (8-bit opcode)
+wire [7:0] ir;
+wire [7:0] ir_next;
+wire ir_load;
+
+# Memory Address Register (16-bit)
+wire [15:0] mar;
+wire [15:0] mar_next;
+wire mar_load;
+
+# Memory Data Register (8-bit)
+wire [7:0] mdr;
+wire [7:0] mdr_next;
+wire mdr_load;
+
+# Operand registers for multi-byte instructions
+wire [7:0] operand1;    # First operand byte
+wire [7:0] operand2;    # Second operand byte (address high)
+wire operand1_load;
+wire operand2_load;
+
+# ============================================
+# Flags Register
+# ============================================
+# Bit 7: S (Sign) - Set when result bit 7 is 1
+# Bit 6: Z (Zero) - Set when result is zero
+# Bit 2: O (Overflow) - Set on signed overflow
+# Bit 0: C (Carry) - Set on unsigned overflow/borrow
+
+wire flag_z;        # Zero flag
+wire flag_c;        # Carry flag
+wire flag_s;        # Sign flag
+wire flag_o;        # Overflow flag
+wire flag_z_next;
+wire flag_c_next;
+wire flag_s_next;
+wire flag_o_next;
+wire flags_load;    # Load all flags from ALU
+wire flag_c_set;    # SCF instruction
+wire flag_c_clr;    # CCF instruction
+wire flag_c_cmp;    # CMF instruction
+
+# Interrupt Enable flag
+wire ie;            # Interrupt enable
+wire ie_next;
+wire ie_load;
+
+# Interrupt pending
+wire int_pending;
+wire int_ack;       # Interrupt acknowledge
+
+# ============================================
+# Halt flag
+# ============================================
+wire halted;
+wire halted_next;
+wire halt_set;
+
+# ============================================
+# Instruction Decoder
+# ============================================
+# Micro8 uses range-based opcode decoding where groups of
+# opcodes share functionality with register encoded in low bits.
+#
+# Opcode Ranges (from cpu.h):
+#   0x00      = NOP
+#   0x01      = HLT
+#   0x06-0x0D = LDI Rd, #imm8 (reg in bits 2:0)
+#   0x0E-0x15 = LD Rd, [addr16]
+#   0x16-0x1D = LDZ Rd, [zp]
+#   0x1E-0x25 = ST [addr16], Rd
+#   0x26-0x2D = STZ [zp], Rd
+#   0x2E      = LD Rd, [HL]
+#   0x2F      = ST [HL], Rs
+#   0x30      = LD Rd, [HL+d]
+#   0x31      = ST [HL+d], Rs
+#   0x32-0x35 = LDI16 (HL, BC, DE, SP)
+#   0x36      = MOV16 HL, SP
+#   0x37      = MOV16 SP, HL
+#   0x38-0x3A = Logic immediate (ANDI, ORI, XORI)
+#   0x3B-0x3F = Shifts (SHL, SHR, SAR, ROL, ROR)
+#   0x40-0x47 = ADD R0, Rs
+#   0x48-0x4F = ADC R0, Rs
+#   0x50-0x57 = SUB R0, Rs
+#   0x58-0x5F = SBC R0, Rs
+#   0x60-0x67 = ADDI Rd, #imm
+#   0x68-0x6F = SUBI Rd, #imm
+#   0x70-0x77 = INC Rd
+#   0x78-0x7F = DEC Rd
+#   0x80-0x87 = CMP Rd, Rs
+#   0x88-0x8F = CMPI Rd, #imm
+#   0x90-0x96 = 16-bit ops (INC16, DEC16, ADD16, NEG)
+#   0xA0-0xA7 = AND Rd, Rs
+#   0xA8-0xAF = OR Rd, Rs
+#   0xB0-0xB7 = XOR Rd, Rs
+#   0xB8-0xBF = NOT Rd
+#   0xC0-0xCF = Control flow (JMP, JR, Jcc, CALL)
+#   0xD0-0xD1 = RET, RETI
+#   0xD2-0xD9 = PUSH Rd
+#   0xDA-0xE1 = POP Rd
+#   0xE2-0xE7 = 16-bit stack, flags stack
+#   0xE8-0xEF = System (EI, DI, SCF, CCF, CMF, IN, OUT, SWAP)
+#   0xF0      = MOV Rd, Rs
+
+# Extract register fields from opcode
+wire [2:0] reg_d;      # Destination register (bits 2:0 or from operand)
+wire [2:0] reg_s;      # Source register (bits 2:0 or from operand)
+
+# Register extraction from IR bits 2:0
+buf REG_D0 (input: ir[0], output: reg_d[0]);
+buf REG_D1 (input: ir[1], output: reg_d[1]);
+buf REG_D2 (input: ir[2], output: reg_d[2]);
+
+# For some instructions, source is also in IR bits 2:0
+buf REG_S0 (input: ir[0], output: reg_s[0]);
+buf REG_S1 (input: ir[1], output: reg_s[1]);
+buf REG_S2 (input: ir[2], output: reg_s[2]);
+
+# ============================================
+# Opcode Category Detection
+# ============================================
+# Using comparators and range detection logic
+
+# Individual opcode detection signals
+wire is_nop;
+wire is_hlt;
+wire is_ldi;           # 0x06-0x0D
+wire is_ld_addr;       # 0x0E-0x15
+wire is_ldz;           # 0x16-0x1D
+wire is_st_addr;       # 0x1E-0x25
+wire is_stz;           # 0x26-0x2D
+wire is_ld_hl;         # 0x2E
+wire is_st_hl;         # 0x2F
+wire is_ld_hld;        # 0x30
+wire is_st_hld;        # 0x31
+wire is_ldi16;         # 0x32-0x35
+wire is_mov16_hl_sp;   # 0x36
+wire is_mov16_sp_hl;   # 0x37
+wire is_andi;          # 0x38
+wire is_ori;           # 0x39
+wire is_xori;          # 0x3A
+wire is_shl;           # 0x3B
+wire is_shr;           # 0x3C
+wire is_sar;           # 0x3D
+wire is_rol;           # 0x3E
+wire is_ror;           # 0x3F
+wire is_add;           # 0x40-0x47
+wire is_adc;           # 0x48-0x4F
+wire is_sub;           # 0x50-0x57
+wire is_sbc;           # 0x58-0x5F
+wire is_addi;          # 0x60-0x67
+wire is_subi;          # 0x68-0x6F
+wire is_inc;           # 0x70-0x77
+wire is_dec;           # 0x78-0x7F
+wire is_cmp;           # 0x80-0x87
+wire is_cmpi;          # 0x88-0x8F
+wire is_inc16_hl;      # 0x90
+wire is_dec16_hl;      # 0x91
+wire is_inc16_bc;      # 0x92
+wire is_dec16_bc;      # 0x93
+wire is_add16_hl_bc;   # 0x94
+wire is_add16_hl_de;   # 0x95
+wire is_neg;           # 0x96
+wire is_and;           # 0xA0-0xA7
+wire is_or;            # 0xA8-0xAF
+wire is_xor;           # 0xB0-0xB7
+wire is_not;           # 0xB8-0xBF
+wire is_jmp;           # 0xC0
+wire is_jr;            # 0xC1
+wire is_jz;            # 0xC2
+wire is_jnz;           # 0xC3
+wire is_jc;            # 0xC4
+wire is_jnc;           # 0xC5
+wire is_js;            # 0xC6
+wire is_jns;           # 0xC7
+wire is_jo;            # 0xC8
+wire is_jno;           # 0xC9
+wire is_jrz;           # 0xCA
+wire is_jrnz;          # 0xCB
+wire is_jrc;           # 0xCC
+wire is_jrnc;          # 0xCD
+wire is_jp_hl;         # 0xCE
+wire is_call;          # 0xCF
+wire is_ret;           # 0xD0
+wire is_reti;          # 0xD1
+wire is_push;          # 0xD2-0xD9
+wire is_pop;           # 0xDA-0xE1
+wire is_push16_hl;     # 0xE2
+wire is_pop16_hl;      # 0xE3
+wire is_push16_bc;     # 0xE4
+wire is_pop16_bc;      # 0xE5
+wire is_pushf;         # 0xE6
+wire is_popf;          # 0xE7
+wire is_ei;            # 0xE8
+wire is_di;            # 0xE9
+wire is_scf;           # 0xEA
+wire is_ccf;           # 0xEB
+wire is_cmf;           # 0xEC
+wire is_in;            # 0xED
+wire is_out;           # 0xEE
+wire is_swap;          # 0xEF
+wire is_mov;           # 0xF0
+
+# Inverted IR bits for decoding
+wire ir0n, ir1n, ir2n, ir3n, ir4n, ir5n, ir6n, ir7n;
+not DEC_IR0N (input: ir[0], output: ir0n);
+not DEC_IR1N (input: ir[1], output: ir1n);
+not DEC_IR2N (input: ir[2], output: ir2n);
+not DEC_IR3N (input: ir[3], output: ir3n);
+not DEC_IR4N (input: ir[4], output: ir4n);
+not DEC_IR5N (input: ir[5], output: ir5n);
+not DEC_IR6N (input: ir[6], output: ir6n);
+not DEC_IR7N (input: ir[7], output: ir7n);
+
+# ============================================
+# NOP Detection: 0x00 = 00000000
+# ============================================
+wire nop_t1, nop_t2, nop_t3;
+and DEC_NOP1 (input: ir7n ir6n, output: nop_t1);
+and DEC_NOP2 (input: ir5n ir4n, output: nop_t2);
+and DEC_NOP3 (input: ir3n ir2n, output: nop_t3);
+wire nop_t4, nop_t5;
+and DEC_NOP4 (input: ir1n ir0n, output: nop_t4);
+and DEC_NOP5 (input: nop_t1 nop_t2, output: nop_t5);
+wire nop_t6;
+and DEC_NOP6 (input: nop_t3 nop_t4, output: nop_t6);
+and DEC_NOP7 (input: nop_t5 nop_t6, output: is_nop);
+
+# ============================================
+# HLT Detection: 0x01 = 00000001
+# ============================================
+wire hlt_t1;
+and DEC_HLT1 (input: nop_t5 nop_t3, output: hlt_t1);
+wire hlt_t2;
+and DEC_HLT2 (input: ir1n ir[0], output: hlt_t2);
+and DEC_HLT3 (input: hlt_t1 hlt_t2, output: is_hlt);
+
+# ============================================
+# Range-based Decoding Helper
+# ============================================
+# For opcodes in ranges, we check upper bits and allow lower bits to vary
+
+# Upper nibble patterns for range detection
+wire upper_0x0;   # 0x0_
+wire upper_0x1;   # 0x1_
+wire upper_0x2;   # 0x2_
+wire upper_0x3;   # 0x3_
+wire upper_0x4;   # 0x4_
+wire upper_0x5;   # 0x5_
+wire upper_0x6;   # 0x6_
+wire upper_0x7;   # 0x7_
+wire upper_0x8;   # 0x8_
+wire upper_0x9;   # 0x9_
+wire upper_0xA;   # 0xA_
+wire upper_0xB;   # 0xB_
+wire upper_0xC;   # 0xC_
+wire upper_0xD;   # 0xD_
+wire upper_0xE;   # 0xE_
+wire upper_0xF;   # 0xF_
+
+# Decode upper nibble (bits 7:4)
+and DEC_UP0 (input: ir7n ir6n ir5n ir4n, output: upper_0x0);
+and DEC_UP1 (input: ir7n ir6n ir5n ir[4], output: upper_0x1);
+and DEC_UP2 (input: ir7n ir6n ir[5] ir4n, output: upper_0x2);
+and DEC_UP3 (input: ir7n ir6n ir[5] ir[4], output: upper_0x3);
+and DEC_UP4 (input: ir7n ir[6] ir5n ir4n, output: upper_0x4);
+and DEC_UP5 (input: ir7n ir[6] ir5n ir[4], output: upper_0x5);
+and DEC_UP6 (input: ir7n ir[6] ir[5] ir4n, output: upper_0x6);
+and DEC_UP7 (input: ir7n ir[6] ir[5] ir[4], output: upper_0x7);
+and DEC_UP8 (input: ir[7] ir6n ir5n ir4n, output: upper_0x8);
+and DEC_UP9 (input: ir[7] ir6n ir5n ir[4], output: upper_0x9);
+and DEC_UPA (input: ir[7] ir6n ir[5] ir4n, output: upper_0xA);
+and DEC_UPB (input: ir[7] ir6n ir[5] ir[4], output: upper_0xB);
+and DEC_UPC (input: ir[7] ir[6] ir5n ir4n, output: upper_0xC);
+and DEC_UPD (input: ir[7] ir[6] ir5n ir[4], output: upper_0xD);
+and DEC_UPE (input: ir[7] ir[6] ir[5] ir4n, output: upper_0xE);
+and DEC_UPF (input: ir[7] ir[6] ir[5] ir[4], output: upper_0xF);
+
+# ============================================
+# ADD Detection: 0x40-0x47 (upper nibble 0x4, bit3=0)
+# ============================================
+and DEC_ADD (input: upper_0x4 ir3n, output: is_add);
+
+# ============================================
+# ADC Detection: 0x48-0x4F (upper nibble 0x4, bit3=1)
+# ============================================
+and DEC_ADC (input: upper_0x4 ir[3], output: is_adc);
+
+# ============================================
+# SUB Detection: 0x50-0x57 (upper nibble 0x5, bit3=0)
+# ============================================
+and DEC_SUB (input: upper_0x5 ir3n, output: is_sub);
+
+# ============================================
+# SBC Detection: 0x58-0x5F (upper nibble 0x5, bit3=1)
+# ============================================
+and DEC_SBC (input: upper_0x5 ir[3], output: is_sbc);
+
+# ============================================
+# ADDI Detection: 0x60-0x67 (upper nibble 0x6, bit3=0)
+# ============================================
+and DEC_ADDI (input: upper_0x6 ir3n, output: is_addi);
+
+# ============================================
+# SUBI Detection: 0x68-0x6F (upper nibble 0x6, bit3=1)
+# ============================================
+and DEC_SUBI (input: upper_0x6 ir[3], output: is_subi);
+
+# ============================================
+# INC Detection: 0x70-0x77 (upper nibble 0x7, bit3=0)
+# ============================================
+and DEC_INC (input: upper_0x7 ir3n, output: is_inc);
+
+# ============================================
+# DEC Detection: 0x78-0x7F (upper nibble 0x7, bit3=1)
+# ============================================
+and DEC_DEC (input: upper_0x7 ir[3], output: is_dec);
+
+# ============================================
+# AND Detection: 0xA0-0xA7 (upper nibble 0xA, bit3=0)
+# ============================================
+and DEC_AND (input: upper_0xA ir3n, output: is_and);
+
+# ============================================
+# OR Detection: 0xA8-0xAF (upper nibble 0xA, bit3=1)
+# ============================================
+and DEC_OR (input: upper_0xA ir[3], output: is_or);
+
+# ============================================
+# XOR Detection: 0xB0-0xB7 (upper nibble 0xB, bit3=0)
+# ============================================
+and DEC_XOR (input: upper_0xB ir3n, output: is_xor);
+
+# ============================================
+# NOT Detection: 0xB8-0xBF (upper nibble 0xB, bit3=1)
+# ============================================
+and DEC_NOT (input: upper_0xB ir[3], output: is_not);
+
+# ============================================
+# CMP Detection: 0x80-0x87 (upper nibble 0x8, bit3=0)
+# ============================================
+and DEC_CMP (input: upper_0x8 ir3n, output: is_cmp);
+
+# ============================================
+# CMPI Detection: 0x88-0x8F (upper nibble 0x8, bit3=1)
+# ============================================
+and DEC_CMPI (input: upper_0x8 ir[3], output: is_cmpi);
+
+# ============================================
+# PUSH Detection: 0xD2-0xD9 (0xD_, bits 3:1 = 001-100)
+# ============================================
+# 0xD2=11010010, 0xD9=11011001
+# For simplicity: upper=0xD, bit3=0 gives 0xD0-0xD7, but we want 0xD2-0xD9
+# Actually: PUSH is 0xD2-0xD9, need more complex logic
+wire push_t1;
+and DEC_PUSH1 (input: upper_0xD ir3n, output: push_t1);  # 0xD0-0xD7
+# Exclude 0xD0, 0xD1 (RET, RETI)
+wire push_t2;
+or DEC_PUSH2 (input: ir[1] ir[2], output: push_t2);  # bit1 or bit2 set
+and DEC_PUSH (input: push_t1 push_t2, output: is_push);
+
+# ============================================
+# POP Detection: 0xDA-0xE1
+# ============================================
+# 0xDA=11011010 to 0xE1=11100001
+# This spans two upper nibbles, complex range
+# For now, detect 0xD8-0xDF (upper=0xD, bit3=1) excluding 0xD8,0xD9
+wire pop_d_range;
+and DEC_POP_D (input: upper_0xD ir[3], output: pop_d_range);  # 0xD8-0xDF
+# Need to exclude 0xD8 (PUSH R6) and 0xD9 (PUSH R7) - wait, that's wrong
+# Let me recalculate: PUSH is 0xD2-0xD9, POP is 0xDA-0xE1
+# 0xDA = 11011010, 0xE1 = 11100001
+wire pop_t1, pop_t2;
+and DEC_POP1 (input: upper_0xD ir[3] ir[1], output: pop_t1);  # 0xDA-0xDB, 0xDE-0xDF
+wire pop_e_range;
+and DEC_POP_E (input: upper_0xE ir3n ir2n, output: pop_e_range);  # 0xE0-0xE1 (with constraints)
+# Simplified: POP is 0xDA-0xE1
+# 0xDA-0xDF = upper_0xD, bit3=1, bit1=1
+# 0xE0-0xE1 = upper_0xE, bit3=0, bit2=0, bit1=0
+wire pop_range_d;
+and DEC_POP_RD (input: pop_d_range ir[1], output: pop_range_d);
+wire pop_range_e;
+and DEC_POP_RE (input: upper_0xE ir3n ir2n ir1n, output: pop_range_e);
+or DEC_POP (input: pop_range_d pop_range_e, output: is_pop);
+
+# ============================================
+# Control Flow Detection (0xC0-0xCF range)
+# ============================================
+# These are individual opcodes, decode directly
+
+# JMP: 0xC0
+and DEC_JMP (input: upper_0xC ir3n ir2n ir1n ir0n, output: is_jmp);
+
+# JR: 0xC1
+and DEC_JR (input: upper_0xC ir3n ir2n ir1n ir[0], output: is_jr);
+
+# JZ: 0xC2
+and DEC_JZ (input: upper_0xC ir3n ir2n ir[1] ir0n, output: is_jz);
+
+# JNZ: 0xC3
+and DEC_JNZ (input: upper_0xC ir3n ir2n ir[1] ir[0], output: is_jnz);
+
+# JC: 0xC4
+and DEC_JC (input: upper_0xC ir3n ir[2] ir1n ir0n, output: is_jc);
+
+# JNC: 0xC5
+and DEC_JNC (input: upper_0xC ir3n ir[2] ir1n ir[0], output: is_jnc);
+
+# JS: 0xC6
+and DEC_JS (input: upper_0xC ir3n ir[2] ir[1] ir0n, output: is_js);
+
+# JNS: 0xC7
+and DEC_JNS (input: upper_0xC ir3n ir[2] ir[1] ir[0], output: is_jns);
+
+# JO: 0xC8
+and DEC_JO (input: upper_0xC ir[3] ir2n ir1n ir0n, output: is_jo);
+
+# JNO: 0xC9
+and DEC_JNO (input: upper_0xC ir[3] ir2n ir1n ir[0], output: is_jno);
+
+# JRZ: 0xCA
+and DEC_JRZ (input: upper_0xC ir[3] ir2n ir[1] ir0n, output: is_jrz);
+
+# JRNZ: 0xCB
+and DEC_JRNZ (input: upper_0xC ir[3] ir2n ir[1] ir[0], output: is_jrnz);
+
+# JRC: 0xCC
+and DEC_JRC (input: upper_0xC ir[3] ir[2] ir1n ir0n, output: is_jrc);
+
+# JRNC: 0xCD
+and DEC_JRNC (input: upper_0xC ir[3] ir[2] ir1n ir[0], output: is_jrnc);
+
+# JP_HL: 0xCE
+and DEC_JP_HL (input: upper_0xC ir[3] ir[2] ir[1] ir0n, output: is_jp_hl);
+
+# CALL: 0xCF
+and DEC_CALL (input: upper_0xC ir[3] ir[2] ir[1] ir[0], output: is_call);
+
+# ============================================
+# RET/RETI Detection (0xD0-0xD1)
+# ============================================
+# RET: 0xD0
+and DEC_RET (input: upper_0xD ir3n ir2n ir1n ir0n, output: is_ret);
+
+# RETI: 0xD1
+and DEC_RETI (input: upper_0xD ir3n ir2n ir1n ir[0], output: is_reti);
+
+# ============================================
+# System Instructions (0xE_ range)
+# ============================================
+
+# PUSH16_HL: 0xE2
+and DEC_PUSH16_HL (input: upper_0xE ir3n ir2n ir[1] ir0n, output: is_push16_hl);
+
+# POP16_HL: 0xE3
+and DEC_POP16_HL (input: upper_0xE ir3n ir2n ir[1] ir[0], output: is_pop16_hl);
+
+# PUSH16_BC: 0xE4
+and DEC_PUSH16_BC (input: upper_0xE ir3n ir[2] ir1n ir0n, output: is_push16_bc);
+
+# POP16_BC: 0xE5
+and DEC_POP16_BC (input: upper_0xE ir3n ir[2] ir1n ir[0], output: is_pop16_bc);
+
+# PUSHF: 0xE6
+and DEC_PUSHF (input: upper_0xE ir3n ir[2] ir[1] ir0n, output: is_pushf);
+
+# POPF: 0xE7
+and DEC_POPF (input: upper_0xE ir3n ir[2] ir[1] ir[0], output: is_popf);
+
+# EI: 0xE8
+and DEC_EI (input: upper_0xE ir[3] ir2n ir1n ir0n, output: is_ei);
+
+# DI: 0xE9
+and DEC_DI (input: upper_0xE ir[3] ir2n ir1n ir[0], output: is_di);
+
+# SCF: 0xEA
+and DEC_SCF (input: upper_0xE ir[3] ir2n ir[1] ir0n, output: is_scf);
+
+# CCF: 0xEB
+and DEC_CCF (input: upper_0xE ir[3] ir2n ir[1] ir[0], output: is_ccf);
+
+# CMF: 0xEC
+and DEC_CMF (input: upper_0xE ir[3] ir[2] ir1n ir0n, output: is_cmf);
+
+# IN: 0xED
+and DEC_IN (input: upper_0xE ir[3] ir[2] ir1n ir[0], output: is_in);
+
+# OUT: 0xEE
+and DEC_OUT (input: upper_0xE ir[3] ir[2] ir[1] ir0n, output: is_out);
+
+# SWAP: 0xEF
+and DEC_SWAP (input: upper_0xE ir[3] ir[2] ir[1] ir[0], output: is_swap);
+
+# ============================================
+# MOV Detection: 0xF0
+# ============================================
+and DEC_MOV (input: upper_0xF ir3n ir2n ir1n ir0n, output: is_mov);
+
+# ============================================
+# LDI Detection: 0x06-0x0D
+# ============================================
+# 0x06=00000110 to 0x0D=00001101
+# Upper nibble = 0x0, lower nibble = 0110-1101
+wire ldi_t1;
+and DEC_LDI1 (input: upper_0x0 ir[2], output: ldi_t1);  # bit2=1 required (0x04-0x07)
+wire ldi_t2;
+and DEC_LDI2 (input: upper_0x0 ir[3], output: ldi_t2);  # bit3=1 (0x08-0x0F)
+# Combine: 0x06-0x07 or 0x08-0x0D
+wire ldi_low;
+and DEC_LDI_LOW (input: ldi_t1 ir[1], output: ldi_low);  # 0x06-0x07
+wire ldi_high;
+and DEC_LDI_HIGH (input: ldi_t2 ir2n, output: ldi_high);  # 0x08-0x0B (bit2=0)
+wire ldi_high2;
+and DEC_LDI_HIGH2 (input: ldi_t2 ir[2] ir1n, output: ldi_high2);  # 0x0C-0x0D
+or DEC_LDI (input: ldi_low ldi_high ldi_high2, output: is_ldi);
+
+# ============================================
+# 16-bit Operations (0x90-0x96)
+# ============================================
+# INC16_HL: 0x90
+and DEC_INC16_HL (input: upper_0x9 ir3n ir2n ir1n ir0n, output: is_inc16_hl);
+
+# DEC16_HL: 0x91
+and DEC_DEC16_HL (input: upper_0x9 ir3n ir2n ir1n ir[0], output: is_dec16_hl);
+
+# INC16_BC: 0x92
+and DEC_INC16_BC (input: upper_0x9 ir3n ir2n ir[1] ir0n, output: is_inc16_bc);
+
+# DEC16_BC: 0x93
+and DEC_DEC16_BC (input: upper_0x9 ir3n ir2n ir[1] ir[0], output: is_dec16_bc);
+
+# ADD16_HL_BC: 0x94
+and DEC_ADD16_HL_BC (input: upper_0x9 ir3n ir[2] ir1n ir0n, output: is_add16_hl_bc);
+
+# ADD16_HL_DE: 0x95
+and DEC_ADD16_HL_DE (input: upper_0x9 ir3n ir[2] ir1n ir[0], output: is_add16_hl_de);
+
+# NEG: 0x96
+and DEC_NEG (input: upper_0x9 ir3n ir[2] ir[1] ir0n, output: is_neg);
+
+# ============================================
+# Shift/Rotate Detection (0x3B-0x3F)
+# ============================================
+wire shift_base;
+and DEC_SHIFT_BASE (input: upper_0x3 ir[3], output: shift_base);  # 0x38-0x3F
+
+# SHL: 0x3B
+and DEC_SHL (input: shift_base ir2n ir[1] ir[0], output: is_shl);
+
+# SHR: 0x3C
+and DEC_SHR (input: shift_base ir[2] ir1n ir0n, output: is_shr);
+
+# SAR: 0x3D
+and DEC_SAR (input: shift_base ir[2] ir1n ir[0], output: is_sar);
+
+# ROL: 0x3E
+and DEC_ROL (input: shift_base ir[2] ir[1] ir0n, output: is_rol);
+
+# ROR: 0x3F
+and DEC_ROR (input: shift_base ir[2] ir[1] ir[0], output: is_ror);
+
+# Logic Immediate: ANDI, ORI, XORI (0x38-0x3A)
+# ANDI: 0x38
+and DEC_ANDI (input: shift_base ir2n ir1n ir0n, output: is_andi);
+
+# ORI: 0x39
+and DEC_ORI (input: shift_base ir2n ir1n ir[0], output: is_ori);
+
+# XORI: 0x3A
+and DEC_XORI (input: shift_base ir2n ir[1] ir0n, output: is_xori);
+
+# ============================================
+# LDI16 Detection: 0x32-0x35
+# ============================================
+wire ldi16_base;
+and DEC_LDI16_BASE (input: upper_0x3 ir3n ir[1], output: ldi16_base);  # 0x32-0x33, 0x36-0x37
+wire ldi16_t1;
+and DEC_LDI16_T1 (input: upper_0x3 ir3n ir2n ir[1], output: ldi16_t1);  # 0x32-0x33
+wire ldi16_t2;
+and DEC_LDI16_T2 (input: upper_0x3 ir3n ir[2] ir1n, output: ldi16_t2);  # 0x34-0x35
+or DEC_LDI16 (input: ldi16_t1 ldi16_t2, output: is_ldi16);
+
+# MOV16_HL_SP: 0x36
+and DEC_MOV16_HL_SP (input: upper_0x3 ir3n ir[2] ir[1] ir0n, output: is_mov16_hl_sp);
+
+# MOV16_SP_HL: 0x37
+and DEC_MOV16_SP_HL (input: upper_0x3 ir3n ir[2] ir[1] ir[0], output: is_mov16_sp_hl);
+
+# ============================================
+# Memory Load/Store Detection
+# ============================================
+# LD [addr16]: 0x0E-0x15 - complex range spanning two upper nibbles
+# For simplicity, detect upper_0x0 with bit3=1 (0x08-0x0F) minus LDI range
+# and upper_0x1 with low nibble 0-5
+wire ld_addr_t1;
+and DEC_LD_ADDR_T1 (input: upper_0x0 ir[3] ir[2] ir[1], output: ld_addr_t1);  # 0x0E-0x0F
+wire ld_addr_t2;
+and DEC_LD_ADDR_T2 (input: upper_0x1 ir3n, output: ld_addr_t2);  # 0x10-0x17, need 0x10-0x15
+wire ld_addr_t3;
+# 0x10-0x15 = upper_0x1, bit3=0, and (bit2=0 or (bit2=1 and bit1=0 and bit0 in 0,1))
+and DEC_LD_ADDR_T3 (input: ld_addr_t2 ir2n, output: ld_addr_t3);  # 0x10-0x13
+wire ld_addr_t4;
+and DEC_LD_ADDR_T4 (input: ld_addr_t2 ir[2] ir1n, output: ld_addr_t4);  # 0x14-0x15
+or DEC_LD_ADDR (input: ld_addr_t1 ld_addr_t3 ld_addr_t4, output: is_ld_addr);
+
+# LDZ [zp]: 0x16-0x1D
+wire ldz_t1;
+and DEC_LDZ_T1 (input: upper_0x1 ir3n ir[2] ir[1], output: ldz_t1);  # 0x16-0x17
+wire ldz_t2;
+and DEC_LDZ_T2 (input: upper_0x1 ir[3] ir2n, output: ldz_t2);  # 0x18-0x1B
+wire ldz_t3;
+and DEC_LDZ_T3 (input: upper_0x1 ir[3] ir[2] ir1n, output: ldz_t3);  # 0x1C-0x1D
+or DEC_LDZ (input: ldz_t1 ldz_t2 ldz_t3, output: is_ldz);
+
+# ST [addr16]: 0x1E-0x25
+wire st_addr_t1;
+and DEC_ST_ADDR_T1 (input: upper_0x1 ir[3] ir[2] ir[1], output: st_addr_t1);  # 0x1E-0x1F
+wire st_addr_t2;
+and DEC_ST_ADDR_T2 (input: upper_0x2 ir3n, output: st_addr_t2);  # 0x20-0x27, need 0x20-0x25
+wire st_addr_t3;
+and DEC_ST_ADDR_T3 (input: st_addr_t2 ir2n, output: st_addr_t3);  # 0x20-0x23
+wire st_addr_t4;
+and DEC_ST_ADDR_T4 (input: st_addr_t2 ir[2] ir1n, output: st_addr_t4);  # 0x24-0x25
+or DEC_ST_ADDR (input: st_addr_t1 st_addr_t3 st_addr_t4, output: is_st_addr);
+
+# STZ [zp]: 0x26-0x2D
+wire stz_t1;
+and DEC_STZ_T1 (input: upper_0x2 ir3n ir[2] ir[1], output: stz_t1);  # 0x26-0x27
+wire stz_t2;
+and DEC_STZ_T2 (input: upper_0x2 ir[3] ir2n, output: stz_t2);  # 0x28-0x2B
+wire stz_t3;
+and DEC_STZ_T3 (input: upper_0x2 ir[3] ir[2] ir1n, output: stz_t3);  # 0x2C-0x2D
+or DEC_STZ (input: stz_t1 stz_t2 stz_t3, output: is_stz);
+
+# LD [HL]: 0x2E
+and DEC_LD_HL (input: upper_0x2 ir[3] ir[2] ir[1] ir0n, output: is_ld_hl);
+
+# ST [HL]: 0x2F
+and DEC_ST_HL (input: upper_0x2 ir[3] ir[2] ir[1] ir[0], output: is_st_hl);
+
+# LD [HL+d]: 0x30
+and DEC_LD_HLD (input: upper_0x3 ir3n ir2n ir1n ir0n, output: is_ld_hld);
+
+# ST [HL+d]: 0x31
+and DEC_ST_HLD (input: upper_0x3 ir3n ir2n ir1n ir[0], output: is_st_hld);
+
+# ============================================
+# 8-Bit ALU
+# ============================================
+# The ALU performs all arithmetic and logic operations.
+# Extended from Micro4's 4-bit ALU to support:
+#   - ADD, ADC (add with carry)
+#   - SUB, SBC (subtract with borrow)
+#   - AND, OR, XOR, NOT
+#   - SHL, SHR, SAR (shifts)
+#   - ROL, ROR (rotates through carry)
+#   - INC, DEC
+#   - NEG (two's complement)
+#   - CMP (compare, sets flags only)
+#   - SWAP (swap nibbles)
+#
+# ALU Operation Select (4 bits):
+#   0000 = ADD
+#   0001 = ADC
+#   0010 = SUB
+#   0011 = SBC
+#   0100 = AND
+#   0101 = OR
+#   0110 = XOR
+#   0111 = NOT
+#   1000 = SHL
+#   1001 = SHR
+#   1010 = SAR
+#   1011 = ROL
+#   1100 = ROR
+#   1101 = INC
+#   1110 = DEC
+#   1111 = SWAP
+
+wire [7:0] alu_a;      # First operand
+wire [7:0] alu_b;      # Second operand
+wire [3:0] alu_op;     # Operation select
+wire [7:0] alu_r;      # Result
+wire alu_z;            # Zero flag output
+wire alu_c;            # Carry flag output
+wire alu_s;            # Sign flag output
+wire alu_o;            # Overflow flag output
+wire alu_cin;          # Carry input (for ADC/SBC/ROL/ROR)
+
+# ============================================
+# ALU Internal Wires
+# ============================================
+wire [7:0] alu_b_inv;   # Inverted B (for subtraction)
+wire [7:0] alu_b_adj;   # B or ~B based on operation
+wire [7:0] add_result;  # Adder output
+wire add_cout;          # Adder carry out
+wire [7:0] and_result;  # AND output
+wire [7:0] or_result;   # OR output
+wire [7:0] xor_result;  # XOR output
+wire [7:0] not_result;  # NOT output
+wire [7:0] shl_result;  # Shift left output
+wire [7:0] shr_result;  # Shift right output
+wire [7:0] sar_result;  # Arithmetic shift right output
+wire [7:0] rol_result;  # Rotate left output
+wire [7:0] ror_result;  # Rotate right output
+wire [7:0] swap_result; # Swap nibbles output
+wire shl_cout;          # Shift left carry out
+wire shr_cout;          # Shift right carry out
+wire rol_cout;          # Rotate left carry out
+wire ror_cout;          # Rotate right carry out
+
+# ============================================
+# B Inverter (for subtraction: A - B = A + ~B + 1)
+# ============================================
+not ALU_INV0 (input: alu_b[0], output: alu_b_inv[0]);
+not ALU_INV1 (input: alu_b[1], output: alu_b_inv[1]);
+not ALU_INV2 (input: alu_b[2], output: alu_b_inv[2]);
+not ALU_INV3 (input: alu_b[3], output: alu_b_inv[3]);
+not ALU_INV4 (input: alu_b[4], output: alu_b_inv[4]);
+not ALU_INV5 (input: alu_b[5], output: alu_b_inv[5]);
+not ALU_INV6 (input: alu_b[6], output: alu_b_inv[6]);
+not ALU_INV7 (input: alu_b[7], output: alu_b_inv[7]);
+
+# ============================================
+# B Adjustment MUX
+# ============================================
+# Select B or ~B based on whether we're subtracting
+# is_sub_op = SUB or SBC or CMP
+wire is_sub_op;
+or ALU_SUB_OP (input: is_sub is_sbc is_cmp, output: is_sub_op);
+
+wire is_sub_op_n;
+not ALU_SUB_OP_N (input: is_sub_op, output: is_sub_op_n);
+
+# MUX for each bit: alu_b_adj = is_sub_op ? alu_b_inv : alu_b
+wire alu_b_sel_0_0, alu_b_sel_0_1;
+wire alu_b_sel_1_0, alu_b_sel_1_1;
+wire alu_b_sel_2_0, alu_b_sel_2_1;
+wire alu_b_sel_3_0, alu_b_sel_3_1;
+wire alu_b_sel_4_0, alu_b_sel_4_1;
+wire alu_b_sel_5_0, alu_b_sel_5_1;
+wire alu_b_sel_6_0, alu_b_sel_6_1;
+wire alu_b_sel_7_0, alu_b_sel_7_1;
+
+# Bit 0
+and ALU_BSEL0_0 (input: alu_b[0] is_sub_op_n, output: alu_b_sel_0_0);
+and ALU_BSEL0_1 (input: alu_b_inv[0] is_sub_op, output: alu_b_sel_0_1);
+or  ALU_BADJ0 (input: alu_b_sel_0_0 alu_b_sel_0_1, output: alu_b_adj[0]);
+
+# Bit 1
+and ALU_BSEL1_0 (input: alu_b[1] is_sub_op_n, output: alu_b_sel_1_0);
+and ALU_BSEL1_1 (input: alu_b_inv[1] is_sub_op, output: alu_b_sel_1_1);
+or  ALU_BADJ1 (input: alu_b_sel_1_0 alu_b_sel_1_1, output: alu_b_adj[1]);
+
+# Bit 2
+and ALU_BSEL2_0 (input: alu_b[2] is_sub_op_n, output: alu_b_sel_2_0);
+and ALU_BSEL2_1 (input: alu_b_inv[2] is_sub_op, output: alu_b_sel_2_1);
+or  ALU_BADJ2 (input: alu_b_sel_2_0 alu_b_sel_2_1, output: alu_b_adj[2]);
+
+# Bit 3
+and ALU_BSEL3_0 (input: alu_b[3] is_sub_op_n, output: alu_b_sel_3_0);
+and ALU_BSEL3_1 (input: alu_b_inv[3] is_sub_op, output: alu_b_sel_3_1);
+or  ALU_BADJ3 (input: alu_b_sel_3_0 alu_b_sel_3_1, output: alu_b_adj[3]);
+
+# Bit 4
+and ALU_BSEL4_0 (input: alu_b[4] is_sub_op_n, output: alu_b_sel_4_0);
+and ALU_BSEL4_1 (input: alu_b_inv[4] is_sub_op, output: alu_b_sel_4_1);
+or  ALU_BADJ4 (input: alu_b_sel_4_0 alu_b_sel_4_1, output: alu_b_adj[4]);
+
+# Bit 5
+and ALU_BSEL5_0 (input: alu_b[5] is_sub_op_n, output: alu_b_sel_5_0);
+and ALU_BSEL5_1 (input: alu_b_inv[5] is_sub_op, output: alu_b_sel_5_1);
+or  ALU_BADJ5 (input: alu_b_sel_5_0 alu_b_sel_5_1, output: alu_b_adj[5]);
+
+# Bit 6
+and ALU_BSEL6_0 (input: alu_b[6] is_sub_op_n, output: alu_b_sel_6_0);
+and ALU_BSEL6_1 (input: alu_b_inv[6] is_sub_op, output: alu_b_sel_6_1);
+or  ALU_BADJ6 (input: alu_b_sel_6_0 alu_b_sel_6_1, output: alu_b_adj[6]);
+
+# Bit 7
+and ALU_BSEL7_0 (input: alu_b[7] is_sub_op_n, output: alu_b_sel_7_0);
+and ALU_BSEL7_1 (input: alu_b_inv[7] is_sub_op, output: alu_b_sel_7_1);
+or  ALU_BADJ7 (input: alu_b_sel_7_0 alu_b_sel_7_1, output: alu_b_adj[7]);
+
+# ============================================
+# Carry Input Selection
+# ============================================
+# For SUB/CMP: Cin = 1 (two's complement)
+# For SBC: Cin = !C (borrow)
+# For ADC: Cin = C
+# For ADD: Cin = 0
+wire cin_sub;       # Cin for SUB/CMP (always 1)
+wire cin_adc;       # Cin for ADC (carry flag)
+wire cin_sbc;       # Cin for SBC (inverted carry)
+wire flag_c_inv;
+
+not ALU_CINV (input: flag_c, output: flag_c_inv);
+
+# SUB/CMP always sets Cin=1 for two's complement
+wire is_sub_or_cmp;
+or ALU_SUB_CMP (input: is_sub is_cmp, output: is_sub_or_cmp);
+
+# Determine actual carry input based on operation
+wire cin_t1, cin_t2, cin_t3;
+and ALU_CIN1 (input: is_sub_or_cmp flag_c_inv, output: cin_t1);  # SUB/CMP: use 1 (via flag_c_inv trick - actually need const 1)
+# For simplicity, we'll create the carry logic separately
+# SUB/CMP: Cin = 1
+# SBC: Cin = !C
+# ADC: Cin = C
+# ADD: Cin = 0
+
+wire cin_sel_sub;    # 1 for SUB/CMP
+wire cin_sel_sbc;    # !C for SBC
+wire cin_sel_adc;    # C for ADC
+
+# Generate constant 1 for SUB/CMP
+# (In real hardware, this would be a VCC connection)
+# For simulation, we'll use the is_sub_or_cmp signal itself as it's 1 when active
+and ALU_CIN_SUB (input: is_sub_or_cmp is_sub_or_cmp, output: cin_sel_sub);
+and ALU_CIN_SBC (input: is_sbc flag_c_inv, output: cin_sel_sbc);
+and ALU_CIN_ADC (input: is_adc flag_c, output: cin_sel_adc);
+
+or ALU_CIN_SEL (input: cin_sel_sub cin_sel_sbc cin_sel_adc, output: alu_cin);
+
+# ============================================
+# 8-Bit Ripple Carry Adder
+# ============================================
+# A + B_adj + Cin -> add_result, add_cout
+
+wire alu_c0, alu_c1, alu_c2, alu_c3, alu_c4, alu_c5, alu_c6;
+
+# Full Adder macros - each FA needs:
+# sum = a XOR b XOR cin
+# cout = (a AND b) OR (cin AND (a XOR b))
+
+# FA0
+wire fa0_t1, fa0_t2, fa0_t3;
+xor ALU_FA0_X1 (input: alu_a[0] alu_b_adj[0], output: fa0_t1);
+and ALU_FA0_A1 (input: alu_a[0] alu_b_adj[0], output: fa0_t2);
+xor ALU_FA0_X2 (input: fa0_t1 alu_cin, output: add_result[0]);
+and ALU_FA0_A2 (input: fa0_t1 alu_cin, output: fa0_t3);
+or  ALU_FA0_O1 (input: fa0_t2 fa0_t3, output: alu_c0);
+
+# FA1
+wire fa1_t1, fa1_t2, fa1_t3;
+xor ALU_FA1_X1 (input: alu_a[1] alu_b_adj[1], output: fa1_t1);
+and ALU_FA1_A1 (input: alu_a[1] alu_b_adj[1], output: fa1_t2);
+xor ALU_FA1_X2 (input: fa1_t1 alu_c0, output: add_result[1]);
+and ALU_FA1_A2 (input: fa1_t1 alu_c0, output: fa1_t3);
+or  ALU_FA1_O1 (input: fa1_t2 fa1_t3, output: alu_c1);
+
+# FA2
+wire fa2_t1, fa2_t2, fa2_t3;
+xor ALU_FA2_X1 (input: alu_a[2] alu_b_adj[2], output: fa2_t1);
+and ALU_FA2_A1 (input: alu_a[2] alu_b_adj[2], output: fa2_t2);
+xor ALU_FA2_X2 (input: fa2_t1 alu_c1, output: add_result[2]);
+and ALU_FA2_A2 (input: fa2_t1 alu_c1, output: fa2_t3);
+or  ALU_FA2_O1 (input: fa2_t2 fa2_t3, output: alu_c2);
+
+# FA3
+wire fa3_t1, fa3_t2, fa3_t3;
+xor ALU_FA3_X1 (input: alu_a[3] alu_b_adj[3], output: fa3_t1);
+and ALU_FA3_A1 (input: alu_a[3] alu_b_adj[3], output: fa3_t2);
+xor ALU_FA3_X2 (input: fa3_t1 alu_c2, output: add_result[3]);
+and ALU_FA3_A2 (input: fa3_t1 alu_c2, output: fa3_t3);
+or  ALU_FA3_O1 (input: fa3_t2 fa3_t3, output: alu_c3);
+
+# FA4
+wire fa4_t1, fa4_t2, fa4_t3;
+xor ALU_FA4_X1 (input: alu_a[4] alu_b_adj[4], output: fa4_t1);
+and ALU_FA4_A1 (input: alu_a[4] alu_b_adj[4], output: fa4_t2);
+xor ALU_FA4_X2 (input: fa4_t1 alu_c3, output: add_result[4]);
+and ALU_FA4_A2 (input: fa4_t1 alu_c3, output: fa4_t3);
+or  ALU_FA4_O1 (input: fa4_t2 fa4_t3, output: alu_c4);
+
+# FA5
+wire fa5_t1, fa5_t2, fa5_t3;
+xor ALU_FA5_X1 (input: alu_a[5] alu_b_adj[5], output: fa5_t1);
+and ALU_FA5_A1 (input: alu_a[5] alu_b_adj[5], output: fa5_t2);
+xor ALU_FA5_X2 (input: fa5_t1 alu_c4, output: add_result[5]);
+and ALU_FA5_A2 (input: fa5_t1 alu_c4, output: fa5_t3);
+or  ALU_FA5_O1 (input: fa5_t2 fa5_t3, output: alu_c5);
+
+# FA6
+wire fa6_t1, fa6_t2, fa6_t3;
+xor ALU_FA6_X1 (input: alu_a[6] alu_b_adj[6], output: fa6_t1);
+and ALU_FA6_A1 (input: alu_a[6] alu_b_adj[6], output: fa6_t2);
+xor ALU_FA6_X2 (input: fa6_t1 alu_c5, output: add_result[6]);
+and ALU_FA6_A2 (input: fa6_t1 alu_c5, output: fa6_t3);
+or  ALU_FA6_O1 (input: fa6_t2 fa6_t3, output: alu_c6);
+
+# FA7
+wire fa7_t1, fa7_t2, fa7_t3;
+xor ALU_FA7_X1 (input: alu_a[7] alu_b_adj[7], output: fa7_t1);
+and ALU_FA7_A1 (input: alu_a[7] alu_b_adj[7], output: fa7_t2);
+xor ALU_FA7_X2 (input: fa7_t1 alu_c6, output: add_result[7]);
+and ALU_FA7_A2 (input: fa7_t1 alu_c6, output: fa7_t3);
+or  ALU_FA7_O1 (input: fa7_t2 fa7_t3, output: add_cout);
+
+# ============================================
+# Logic Operations
+# ============================================
+
+# AND operation
+and ALU_AND0 (input: alu_a[0] alu_b[0], output: and_result[0]);
+and ALU_AND1 (input: alu_a[1] alu_b[1], output: and_result[1]);
+and ALU_AND2 (input: alu_a[2] alu_b[2], output: and_result[2]);
+and ALU_AND3 (input: alu_a[3] alu_b[3], output: and_result[3]);
+and ALU_AND4 (input: alu_a[4] alu_b[4], output: and_result[4]);
+and ALU_AND5 (input: alu_a[5] alu_b[5], output: and_result[5]);
+and ALU_AND6 (input: alu_a[6] alu_b[6], output: and_result[6]);
+and ALU_AND7 (input: alu_a[7] alu_b[7], output: and_result[7]);
+
+# OR operation
+or ALU_OR0 (input: alu_a[0] alu_b[0], output: or_result[0]);
+or ALU_OR1 (input: alu_a[1] alu_b[1], output: or_result[1]);
+or ALU_OR2 (input: alu_a[2] alu_b[2], output: or_result[2]);
+or ALU_OR3 (input: alu_a[3] alu_b[3], output: or_result[3]);
+or ALU_OR4 (input: alu_a[4] alu_b[4], output: or_result[4]);
+or ALU_OR5 (input: alu_a[5] alu_b[5], output: or_result[5]);
+or ALU_OR6 (input: alu_a[6] alu_b[6], output: or_result[6]);
+or ALU_OR7 (input: alu_a[7] alu_b[7], output: or_result[7]);
+
+# XOR operation
+xor ALU_XOR0 (input: alu_a[0] alu_b[0], output: xor_result[0]);
+xor ALU_XOR1 (input: alu_a[1] alu_b[1], output: xor_result[1]);
+xor ALU_XOR2 (input: alu_a[2] alu_b[2], output: xor_result[2]);
+xor ALU_XOR3 (input: alu_a[3] alu_b[3], output: xor_result[3]);
+xor ALU_XOR4 (input: alu_a[4] alu_b[4], output: xor_result[4]);
+xor ALU_XOR5 (input: alu_a[5] alu_b[5], output: xor_result[5]);
+xor ALU_XOR6 (input: alu_a[6] alu_b[6], output: xor_result[6]);
+xor ALU_XOR7 (input: alu_a[7] alu_b[7], output: xor_result[7]);
+
+# NOT operation (on A input)
+not ALU_NOT0 (input: alu_a[0], output: not_result[0]);
+not ALU_NOT1 (input: alu_a[1], output: not_result[1]);
+not ALU_NOT2 (input: alu_a[2], output: not_result[2]);
+not ALU_NOT3 (input: alu_a[3], output: not_result[3]);
+not ALU_NOT4 (input: alu_a[4], output: not_result[4]);
+not ALU_NOT5 (input: alu_a[5], output: not_result[5]);
+not ALU_NOT6 (input: alu_a[6], output: not_result[6]);
+not ALU_NOT7 (input: alu_a[7], output: not_result[7]);
+
+# ============================================
+# Shift Operations
+# ============================================
+
+# SHL (Shift Left): result = A << 1, carry = A[7]
+buf ALU_SHL0 (input: alu_a[0], output: shl_result[1]);
+buf ALU_SHL1 (input: alu_a[1], output: shl_result[2]);
+buf ALU_SHL2 (input: alu_a[2], output: shl_result[3]);
+buf ALU_SHL3 (input: alu_a[3], output: shl_result[4]);
+buf ALU_SHL4 (input: alu_a[4], output: shl_result[5]);
+buf ALU_SHL5 (input: alu_a[5], output: shl_result[6]);
+buf ALU_SHL6 (input: alu_a[6], output: shl_result[7]);
+# shl_result[0] = 0 (in hardware, tie to ground)
+# For simulation, we use a wire driven low by combining A with its inverse
+wire shl_zero;
+and ALU_SHL_ZERO (input: alu_a[0] alu_a[0], output: shl_zero);
+xor ALU_SHL_Z (input: shl_zero shl_zero, output: shl_result[0]);  # 0 XOR 0 = 0
+buf ALU_SHL_C (input: alu_a[7], output: shl_cout);
+
+# SHR (Shift Right Logical): result = A >> 1, carry = A[0]
+buf ALU_SHR0 (input: alu_a[1], output: shr_result[0]);
+buf ALU_SHR1 (input: alu_a[2], output: shr_result[1]);
+buf ALU_SHR2 (input: alu_a[3], output: shr_result[2]);
+buf ALU_SHR3 (input: alu_a[4], output: shr_result[3]);
+buf ALU_SHR4 (input: alu_a[5], output: shr_result[4]);
+buf ALU_SHR5 (input: alu_a[6], output: shr_result[5]);
+buf ALU_SHR6 (input: alu_a[7], output: shr_result[6]);
+# shr_result[7] = 0
+wire shr_zero;
+and ALU_SHR_ZERO (input: alu_a[7] alu_a[7], output: shr_zero);
+xor ALU_SHR_Z (input: shr_zero shr_zero, output: shr_result[7]);
+buf ALU_SHR_C (input: alu_a[0], output: shr_cout);
+
+# SAR (Shift Arithmetic Right): result = A >> 1 (sign extended), carry = A[0]
+buf ALU_SAR0 (input: alu_a[1], output: sar_result[0]);
+buf ALU_SAR1 (input: alu_a[2], output: sar_result[1]);
+buf ALU_SAR2 (input: alu_a[3], output: sar_result[2]);
+buf ALU_SAR3 (input: alu_a[4], output: sar_result[3]);
+buf ALU_SAR4 (input: alu_a[5], output: sar_result[4]);
+buf ALU_SAR5 (input: alu_a[6], output: sar_result[5]);
+buf ALU_SAR6 (input: alu_a[7], output: sar_result[6]);
+buf ALU_SAR7 (input: alu_a[7], output: sar_result[7]);  # Sign bit preserved
+
+# ROL (Rotate Left through Carry): result[0] = C, result[n] = A[n-1], carry = A[7]
+buf ALU_ROL0 (input: flag_c, output: rol_result[0]);
+buf ALU_ROL1 (input: alu_a[0], output: rol_result[1]);
+buf ALU_ROL2 (input: alu_a[1], output: rol_result[2]);
+buf ALU_ROL3 (input: alu_a[2], output: rol_result[3]);
+buf ALU_ROL4 (input: alu_a[3], output: rol_result[4]);
+buf ALU_ROL5 (input: alu_a[4], output: rol_result[5]);
+buf ALU_ROL6 (input: alu_a[5], output: rol_result[6]);
+buf ALU_ROL7 (input: alu_a[6], output: rol_result[7]);
+buf ALU_ROL_C (input: alu_a[7], output: rol_cout);
+
+# ROR (Rotate Right through Carry): result[7] = C, result[n] = A[n+1], carry = A[0]
+buf ALU_ROR0 (input: alu_a[1], output: ror_result[0]);
+buf ALU_ROR1 (input: alu_a[2], output: ror_result[1]);
+buf ALU_ROR2 (input: alu_a[3], output: ror_result[2]);
+buf ALU_ROR3 (input: alu_a[4], output: ror_result[3]);
+buf ALU_ROR4 (input: alu_a[5], output: ror_result[4]);
+buf ALU_ROR5 (input: alu_a[6], output: ror_result[5]);
+buf ALU_ROR6 (input: alu_a[7], output: ror_result[6]);
+buf ALU_ROR7 (input: flag_c, output: ror_result[7]);
+buf ALU_ROR_C (input: alu_a[0], output: ror_cout);
+
+# ============================================
+# SWAP Operation (swap nibbles)
+# ============================================
+buf ALU_SWAP0 (input: alu_a[4], output: swap_result[0]);
+buf ALU_SWAP1 (input: alu_a[5], output: swap_result[1]);
+buf ALU_SWAP2 (input: alu_a[6], output: swap_result[2]);
+buf ALU_SWAP3 (input: alu_a[7], output: swap_result[3]);
+buf ALU_SWAP4 (input: alu_a[0], output: swap_result[4]);
+buf ALU_SWAP5 (input: alu_a[1], output: swap_result[5]);
+buf ALU_SWAP6 (input: alu_a[2], output: swap_result[6]);
+buf ALU_SWAP7 (input: alu_a[3], output: swap_result[7]);
+
+# ============================================
+# ALU Result MUX
+# ============================================
+# Select the appropriate result based on operation
+# This would be a large multiplexer in hardware
+# For clarity, we show the selection logic conceptually
+#
+# The actual implementation uses instruction decode signals
+# to select which operation's result goes to alu_r
+
+# (Result selection would be implemented with AND-OR logic
+# based on instruction decode signals. This is shown
+# conceptually as the control unit drives the selection.)
+
+# ============================================
+# Zero Flag Logic
+# ============================================
+# Z = NOT(R[0] OR R[1] OR ... OR R[7])
+wire z_t1, z_t2, z_t3, z_t4, z_t5, z_t6;
+or ALU_Z1 (input: alu_r[0] alu_r[1], output: z_t1);
+or ALU_Z2 (input: alu_r[2] alu_r[3], output: z_t2);
+or ALU_Z3 (input: alu_r[4] alu_r[5], output: z_t3);
+or ALU_Z4 (input: alu_r[6] alu_r[7], output: z_t4);
+or ALU_Z5 (input: z_t1 z_t2, output: z_t5);
+or ALU_Z6 (input: z_t3 z_t4, output: z_t6);
+wire z_t7;
+or ALU_Z7 (input: z_t5 z_t6, output: z_t7);
+not ALU_Z8 (input: z_t7, output: alu_z);
+
+# ============================================
+# Sign Flag Logic
+# ============================================
+# S = R[7] (most significant bit)
+buf ALU_S (input: alu_r[7], output: alu_s);
+
+# ============================================
+# Overflow Flag Logic
+# ============================================
+# For addition: O = (A[7] == B[7]) && (A[7] != R[7])
+# For subtraction: O = (A[7] != B[7]) && (A[7] != R[7])
+# Simplified: O = C6 XOR C7 (carry into MSB differs from carry out)
+xor ALU_O (input: alu_c6 add_cout, output: alu_o);
+
+# ============================================
+# Control Unit State Machine
+# ============================================
+# The control unit sequences through states to execute instructions.
+#
+# States:
+#   S0: FETCH1    - MAR <- PC, initiate memory read
+#   S1: FETCH2    - IR <- MDR, PC++
+#   S2: DECODE    - Decode opcode, determine instruction length
+#   S3: FETCH_OP1 - Fetch operand byte 1 (for 2+ byte instructions)
+#   S4: FETCH_OP2 - Fetch operand byte 2 (for 3 byte instructions)
+#   S5: EXECUTE   - Execute the instruction
+#   S6: WRITEBACK - Write result to register/memory
+#   S7: PUSH1     - Push high byte (for CALL/interrupt)
+#   S8: PUSH2     - Push low byte
+#   S9: POP1      - Pop low byte (for RET)
+#   S10: POP2     - Pop high byte
+
+wire [3:0] state;
+wire [3:0] state_next;
+
+# State constants (for documentation)
+# S_FETCH1    = 0000
+# S_FETCH2    = 0001
+# S_DECODE    = 0010
+# S_FETCH_OP1 = 0011
+# S_FETCH_OP2 = 0100
+# S_EXECUTE   = 0101
+# S_WRITEBACK = 0110
+# S_PUSH1     = 0111
+# S_PUSH2     = 1000
+# S_POP1      = 1001
+# S_POP2      = 1010
+
+# State register (4-bit)
+dff STATE0 (input: state_next[0] clk, output: state[0]);
+dff STATE1 (input: state_next[1] clk, output: state[1]);
+dff STATE2 (input: state_next[2] clk, output: state[2]);
+dff STATE3 (input: state_next[3] clk, output: state[3]);
+
+# ============================================
+# Control Signals
+# ============================================
+# Generated by control unit based on state and opcode
+
+wire mem_read;       # Read from memory
+wire mem_write;      # Write to memory
+wire alu_to_reg;     # ALU result goes to register
+wire mem_to_reg;     # Memory data goes to register
+wire reg_to_mem;     # Register data goes to memory
+wire imm_to_reg;     # Immediate value goes to register
+
+# ============================================
+# Memory Interface
+# ============================================
+# External memory bus signals
+
+wire [15:0] mem_addr;     # Address to memory
+wire [7:0] mem_data_in;   # Data from memory
+wire [7:0] mem_data_out;  # Data to memory
+wire mem_we;              # Write enable
+
+# MAR drives memory address
+buf MEM_ADDR0  (input: mar[0],  output: mem_addr[0]);
+buf MEM_ADDR1  (input: mar[1],  output: mem_addr[1]);
+buf MEM_ADDR2  (input: mar[2],  output: mem_addr[2]);
+buf MEM_ADDR3  (input: mar[3],  output: mem_addr[3]);
+buf MEM_ADDR4  (input: mar[4],  output: mem_addr[4]);
+buf MEM_ADDR5  (input: mar[5],  output: mem_addr[5]);
+buf MEM_ADDR6  (input: mar[6],  output: mem_addr[6]);
+buf MEM_ADDR7  (input: mar[7],  output: mem_addr[7]);
+buf MEM_ADDR8  (input: mar[8],  output: mem_addr[8]);
+buf MEM_ADDR9  (input: mar[9],  output: mem_addr[9]);
+buf MEM_ADDR10 (input: mar[10], output: mem_addr[10]);
+buf MEM_ADDR11 (input: mar[11], output: mem_addr[11]);
+buf MEM_ADDR12 (input: mar[12], output: mem_addr[12]);
+buf MEM_ADDR13 (input: mar[13], output: mem_addr[13]);
+buf MEM_ADDR14 (input: mar[14], output: mem_addr[14]);
+buf MEM_ADDR15 (input: mar[15], output: mem_addr[15]);
+
+# Write enable driven by control signal
+buf MEM_WE (input: mem_write, output: mem_we);
+
+# ============================================
+# I/O Port Interface
+# ============================================
+# 256 I/O ports accessed via IN and OUT instructions
+
+wire [7:0] port_addr;     # Port address (from operand)
+wire [7:0] port_data_in;  # Data from port
+wire [7:0] port_data_out; # Data to port
+wire port_read;           # Port read strobe
+wire port_write;          # Port write strobe
+
+# ============================================
+# Interrupt Logic
+# ============================================
+# Single-level interrupt with EI/DI control
+#
+# Interrupt sequence:
+# 1. Check int_pending && ie after each instruction
+# 2. If true: push PC, load vector from 0x01FE-0x01FF, set ie=0
+# 3. Execute ISR
+# 4. RETI: pop PC, set ie=1
+
+wire int_req;         # External interrupt request input
+wire int_vector_lo;   # Address 0x01FE
+wire int_vector_hi;   # Address 0x01FF
+
+# Interrupt acknowledged when pending and enabled
+and INT_ACK (input: int_pending ie, output: int_ack);
+
+# ============================================
+# Register File Implementation
+# ============================================
+# 8 x 8-bit registers with individual load enables
+# Each register is 8 D flip-flops with a 2:1 MUX for hold/load
+
+# R0 (Accumulator) - 8 DFFs
+dff R0_DFF0 (input: r0_next[0] clk, output: r0[0]);
+dff R0_DFF1 (input: r0_next[1] clk, output: r0[1]);
+dff R0_DFF2 (input: r0_next[2] clk, output: r0[2]);
+dff R0_DFF3 (input: r0_next[3] clk, output: r0[3]);
+dff R0_DFF4 (input: r0_next[4] clk, output: r0[4]);
+dff R0_DFF5 (input: r0_next[5] clk, output: r0[5]);
+dff R0_DFF6 (input: r0_next[6] clk, output: r0[6]);
+dff R0_DFF7 (input: r0_next[7] clk, output: r0[7]);
+
+# R1 (B) - 8 DFFs
+dff R1_DFF0 (input: r1_next[0] clk, output: r1[0]);
+dff R1_DFF1 (input: r1_next[1] clk, output: r1[1]);
+dff R1_DFF2 (input: r1_next[2] clk, output: r1[2]);
+dff R1_DFF3 (input: r1_next[3] clk, output: r1[3]);
+dff R1_DFF4 (input: r1_next[4] clk, output: r1[4]);
+dff R1_DFF5 (input: r1_next[5] clk, output: r1[5]);
+dff R1_DFF6 (input: r1_next[6] clk, output: r1[6]);
+dff R1_DFF7 (input: r1_next[7] clk, output: r1[7]);
+
+# R2 (C) - 8 DFFs
+dff R2_DFF0 (input: r2_next[0] clk, output: r2[0]);
+dff R2_DFF1 (input: r2_next[1] clk, output: r2[1]);
+dff R2_DFF2 (input: r2_next[2] clk, output: r2[2]);
+dff R2_DFF3 (input: r2_next[3] clk, output: r2[3]);
+dff R2_DFF4 (input: r2_next[4] clk, output: r2[4]);
+dff R2_DFF5 (input: r2_next[5] clk, output: r2[5]);
+dff R2_DFF6 (input: r2_next[6] clk, output: r2[6]);
+dff R2_DFF7 (input: r2_next[7] clk, output: r2[7]);
+
+# R3 (D) - 8 DFFs
+dff R3_DFF0 (input: r3_next[0] clk, output: r3[0]);
+dff R3_DFF1 (input: r3_next[1] clk, output: r3[1]);
+dff R3_DFF2 (input: r3_next[2] clk, output: r3[2]);
+dff R3_DFF3 (input: r3_next[3] clk, output: r3[3]);
+dff R3_DFF4 (input: r3_next[4] clk, output: r3[4]);
+dff R3_DFF5 (input: r3_next[5] clk, output: r3[5]);
+dff R3_DFF6 (input: r3_next[6] clk, output: r3[6]);
+dff R3_DFF7 (input: r3_next[7] clk, output: r3[7]);
+
+# R4 (E) - 8 DFFs
+dff R4_DFF0 (input: r4_next[0] clk, output: r4[0]);
+dff R4_DFF1 (input: r4_next[1] clk, output: r4[1]);
+dff R4_DFF2 (input: r4_next[2] clk, output: r4[2]);
+dff R4_DFF3 (input: r4_next[3] clk, output: r4[3]);
+dff R4_DFF4 (input: r4_next[4] clk, output: r4[4]);
+dff R4_DFF5 (input: r4_next[5] clk, output: r4[5]);
+dff R4_DFF6 (input: r4_next[6] clk, output: r4[6]);
+dff R4_DFF7 (input: r4_next[7] clk, output: r4[7]);
+
+# R5 (H) - 8 DFFs
+dff R5_DFF0 (input: r5_next[0] clk, output: r5[0]);
+dff R5_DFF1 (input: r5_next[1] clk, output: r5[1]);
+dff R5_DFF2 (input: r5_next[2] clk, output: r5[2]);
+dff R5_DFF3 (input: r5_next[3] clk, output: r5[3]);
+dff R5_DFF4 (input: r5_next[4] clk, output: r5[4]);
+dff R5_DFF5 (input: r5_next[5] clk, output: r5[5]);
+dff R5_DFF6 (input: r5_next[6] clk, output: r5[6]);
+dff R5_DFF7 (input: r5_next[7] clk, output: r5[7]);
+
+# R6 (L) - 8 DFFs
+dff R6_DFF0 (input: r6_next[0] clk, output: r6[0]);
+dff R6_DFF1 (input: r6_next[1] clk, output: r6[1]);
+dff R6_DFF2 (input: r6_next[2] clk, output: r6[2]);
+dff R6_DFF3 (input: r6_next[3] clk, output: r6[3]);
+dff R6_DFF4 (input: r6_next[4] clk, output: r6[4]);
+dff R6_DFF5 (input: r6_next[5] clk, output: r6[5]);
+dff R6_DFF6 (input: r6_next[6] clk, output: r6[6]);
+dff R6_DFF7 (input: r6_next[7] clk, output: r6[7]);
+
+# R7 - 8 DFFs
+dff R7_DFF0 (input: r7_next[0] clk, output: r7[0]);
+dff R7_DFF1 (input: r7_next[1] clk, output: r7[1]);
+dff R7_DFF2 (input: r7_next[2] clk, output: r7[2]);
+dff R7_DFF3 (input: r7_next[3] clk, output: r7[3]);
+dff R7_DFF4 (input: r7_next[4] clk, output: r7[4]);
+dff R7_DFF5 (input: r7_next[5] clk, output: r7[5]);
+dff R7_DFF6 (input: r7_next[6] clk, output: r7[6]);
+dff R7_DFF7 (input: r7_next[7] clk, output: r7[7]);
+
+# ============================================
+# 16-bit Register Implementation
+# ============================================
+
+# Program Counter (16-bit)
+dff PC_DFF0  (input: pc_next[0]  clk, output: pc[0]);
+dff PC_DFF1  (input: pc_next[1]  clk, output: pc[1]);
+dff PC_DFF2  (input: pc_next[2]  clk, output: pc[2]);
+dff PC_DFF3  (input: pc_next[3]  clk, output: pc[3]);
+dff PC_DFF4  (input: pc_next[4]  clk, output: pc[4]);
+dff PC_DFF5  (input: pc_next[5]  clk, output: pc[5]);
+dff PC_DFF6  (input: pc_next[6]  clk, output: pc[6]);
+dff PC_DFF7  (input: pc_next[7]  clk, output: pc[7]);
+dff PC_DFF8  (input: pc_next[8]  clk, output: pc[8]);
+dff PC_DFF9  (input: pc_next[9]  clk, output: pc[9]);
+dff PC_DFF10 (input: pc_next[10] clk, output: pc[10]);
+dff PC_DFF11 (input: pc_next[11] clk, output: pc[11]);
+dff PC_DFF12 (input: pc_next[12] clk, output: pc[12]);
+dff PC_DFF13 (input: pc_next[13] clk, output: pc[13]);
+dff PC_DFF14 (input: pc_next[14] clk, output: pc[14]);
+dff PC_DFF15 (input: pc_next[15] clk, output: pc[15]);
+
+# Stack Pointer (16-bit)
+dff SP_DFF0  (input: sp_next[0]  clk, output: sp[0]);
+dff SP_DFF1  (input: sp_next[1]  clk, output: sp[1]);
+dff SP_DFF2  (input: sp_next[2]  clk, output: sp[2]);
+dff SP_DFF3  (input: sp_next[3]  clk, output: sp[3]);
+dff SP_DFF4  (input: sp_next[4]  clk, output: sp[4]);
+dff SP_DFF5  (input: sp_next[5]  clk, output: sp[5]);
+dff SP_DFF6  (input: sp_next[6]  clk, output: sp[6]);
+dff SP_DFF7  (input: sp_next[7]  clk, output: sp[7]);
+dff SP_DFF8  (input: sp_next[8]  clk, output: sp[8]);
+dff SP_DFF9  (input: sp_next[9]  clk, output: sp[9]);
+dff SP_DFF10 (input: sp_next[10] clk, output: sp[10]);
+dff SP_DFF11 (input: sp_next[11] clk, output: sp[11]);
+dff SP_DFF12 (input: sp_next[12] clk, output: sp[12]);
+dff SP_DFF13 (input: sp_next[13] clk, output: sp[13]);
+dff SP_DFF14 (input: sp_next[14] clk, output: sp[14]);
+dff SP_DFF15 (input: sp_next[15] clk, output: sp[15]);
+
+# Memory Address Register (16-bit)
+dff MAR_DFF0  (input: mar_next[0]  clk, output: mar[0]);
+dff MAR_DFF1  (input: mar_next[1]  clk, output: mar[1]);
+dff MAR_DFF2  (input: mar_next[2]  clk, output: mar[2]);
+dff MAR_DFF3  (input: mar_next[3]  clk, output: mar[3]);
+dff MAR_DFF4  (input: mar_next[4]  clk, output: mar[4]);
+dff MAR_DFF5  (input: mar_next[5]  clk, output: mar[5]);
+dff MAR_DFF6  (input: mar_next[6]  clk, output: mar[6]);
+dff MAR_DFF7  (input: mar_next[7]  clk, output: mar[7]);
+dff MAR_DFF8  (input: mar_next[8]  clk, output: mar[8]);
+dff MAR_DFF9  (input: mar_next[9]  clk, output: mar[9]);
+dff MAR_DFF10 (input: mar_next[10] clk, output: mar[10]);
+dff MAR_DFF11 (input: mar_next[11] clk, output: mar[11]);
+dff MAR_DFF12 (input: mar_next[12] clk, output: mar[12]);
+dff MAR_DFF13 (input: mar_next[13] clk, output: mar[13]);
+dff MAR_DFF14 (input: mar_next[14] clk, output: mar[14]);
+dff MAR_DFF15 (input: mar_next[15] clk, output: mar[15]);
+
+# Instruction Register (8-bit)
+dff IR_DFF0 (input: ir_next[0] clk, output: ir[0]);
+dff IR_DFF1 (input: ir_next[1] clk, output: ir[1]);
+dff IR_DFF2 (input: ir_next[2] clk, output: ir[2]);
+dff IR_DFF3 (input: ir_next[3] clk, output: ir[3]);
+dff IR_DFF4 (input: ir_next[4] clk, output: ir[4]);
+dff IR_DFF5 (input: ir_next[5] clk, output: ir[5]);
+dff IR_DFF6 (input: ir_next[6] clk, output: ir[6]);
+dff IR_DFF7 (input: ir_next[7] clk, output: ir[7]);
+
+# Flags Register
+dff FLAG_Z_DFF (input: flag_z_next clk, output: flag_z);
+dff FLAG_C_DFF (input: flag_c_next clk, output: flag_c);
+dff FLAG_S_DFF (input: flag_s_next clk, output: flag_s);
+dff FLAG_O_DFF (input: flag_o_next clk, output: flag_o);
+
+# Interrupt Enable flag
+dff IE_DFF (input: ie_next clk, output: ie);
+
+# Halt flag
+dff HALT_DFF (input: halted_next clk, output: halted);
+
+# ============================================
+# Component Count Summary
+# ============================================
+#
+# Registers:
+#   R0-R7 (8 x 8-bit):    64 DFFs = ~2,560 transistors
+#   PC (16-bit):          16 DFFs = ~640 transistors
+#   SP (16-bit):          16 DFFs = ~640 transistors
+#   MAR (16-bit):         16 DFFs = ~640 transistors
+#   IR (8-bit):           8 DFFs  = ~320 transistors
+#   Flags (4-bit):        4 DFFs  = ~160 transistors
+#   IE flag:              1 DFF   = ~40 transistors
+#   Halt flag:            1 DFF   = ~40 transistors
+#   State (4-bit):        4 DFFs  = ~160 transistors
+#   Operand regs (16-bit): 16 DFFs = ~640 transistors
+#
+# ALU:
+#   8-bit Adder:          ~400 transistors
+#   B Inverter:           ~32 transistors
+#   B MUX:                ~256 transistors
+#   AND unit:             ~64 transistors
+#   OR unit:              ~64 transistors
+#   XOR unit:             ~64 transistors
+#   NOT unit:             ~32 transistors
+#   Shift units:          ~200 transistors
+#   Rotate units:         ~100 transistors
+#   Flag logic:           ~100 transistors
+#
+# Instruction Decoder:    ~800 transistors
+#   (Range detection, opcode comparison)
+#
+# Control Unit:           ~600 transistors
+#   (State machine, control signal generation)
+#
+# Register MUX:           ~500 transistors
+#   (8-to-1 source select, destination decode)
+#
+# Address Logic:          ~300 transistors
+#   (PC incrementer, SP inc/dec, address calc)
+#
+# Memory Interface:       ~200 transistors
+#
+# I/O Interface:          ~100 transistors
+#
+# Interrupt Logic:        ~150 transistors
+#
+# Misc (buffers, etc):    ~200 transistors
+#
+# ----------------------------------------
+# TOTAL:                  ~8,800 transistors
+#
+# Comparison:
+#   Intel 4004 (1971):    2,300 transistors (4-bit)
+#   Intel 8008 (1972):    3,500 transistors (8-bit)
+#   Intel 8080 (1974):    4,500 transistors (8-bit)
+#   Zilog Z80 (1976):     8,500 transistors (8-bit)
+#   Micro8:               ~8,800 transistors (8-bit)
+#
+# Our Micro8 is comparable to the Z80 in complexity!
+
+# ============================================
+# HOMEWORK: Control Unit Implementation
+# ============================================
+# The control unit generates control signals based on
+# the current state and instruction. This requires:
+#
+# 1. State transition logic
+#    - Determine next state based on current state and opcode
+#    - Handle multi-cycle instructions
+#    - Implement interrupt entry/return
+#
+# 2. Control signal generation
+#    - Memory read/write timing
+#    - Register load enables
+#    - ALU operation select
+#    - PC/SP updates
+#
+# 3. Instruction length detection
+#    - 1-byte: NOP, HLT, INC, DEC, etc.
+#    - 2-byte: LDI, JR, shifts, etc.
+#    - 3-byte: LD/ST [addr], JMP, CALL, etc.
+#
+# This can be implemented as:
+# - A large combinational circuit (PLA)
+# - A microcode ROM
+# - A state machine with output logic
+#
+# Challenge: Implement the control logic for these
+# instruction categories:
+# 1. Single-byte register ops (INC, DEC, NOT, etc.)
+# 2. Immediate loads (LDI)
+# 3. Memory loads (LD [addr])
+# 4. Conditional jumps (JZ, JNZ, etc.)
+# 5. CALL/RET
+
+# ============================================
+# End of Micro8 CPU Implementation
+# ============================================
+

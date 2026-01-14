@@ -181,7 +181,7 @@ DIV_SHIFT_LOOP:
         ; Step 2: Get MSB of dividend and add to remainder LSB
         ; Check if bit 7 of R2 is set
         MOV R0, R2              ; R0 = dividend
-        ANDI 0x80               ; R0 = R0 & 0x80 (only MSB)
+        ANDI R0, 0x80           ; R0 = R0 & 0x80 (only MSB)
         JZ DIV_SHIFT_NO_BIT     ; If zero, MSB was not set
 
         ; MSB was set, add 1 to remainder
@@ -256,28 +256,28 @@ MOD:
 ; Uses: R2, R3 for temporary storage
 GCD:
         PUSH R2
-        PUSH R3
 
 GCD_LOOP:
         ; If R1 = 0, R0 is the GCD
         CMPI R1, 0
         JZ GCD_DONE
 
-        ; Save a (R0) and b (R1) before MOD call
-        MOV R2, R0              ; R2 = a
-        MOV R3, R1              ; R3 = b
+        ; Save b (R1) on stack before MOD call (MOD destroys R1)
+        MOV R2, R1              ; R2 = b (will survive MOD)
+        PUSH R2                 ; Save b on stack
 
         ; Call MOD: R0 = a mod b
-        CALL MOD                ; R0 = R0 mod R1 (but R1 is destroyed)
+        CALL MOD                ; R0 = remainder
 
-        ; Now: R0 = remainder, R2 = old a, R3 = old b
+        ; Restore b from stack
+        POP R2                  ; R2 = old b
+
         ; Set up for next iteration: a = b, b = remainder
         MOV R1, R0              ; R1 = remainder (new b)
-        MOV R0, R3              ; R0 = old b (new a)
+        MOV R0, R2              ; R0 = old b (new a)
         JMP GCD_LOOP
 
 GCD_DONE:
-        POP R3
         POP R2
         RET
 

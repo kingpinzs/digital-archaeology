@@ -352,7 +352,7 @@
         assertEqual(controller.getFrameDelay(), baseDelay / 2, 'Delay should halve at 2x speed');
 
         controller.setSpeed(0.5);
-        assertEqual(controller.getFrameDelay(), baseDelay, 'Delay should double at 0.5x speed');
+        assertEqual(controller.getFrameDelay(), baseDelay * 2, 'Delay should double at 0.5x speed');
     });
 
     // ========================================

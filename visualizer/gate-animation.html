@@ -350,33 +350,34 @@
     <script src="engine/index.js"></script>
 
     <script>
-        // Get engine components
-        const {
-            WireState, WireStateStr, GateType, Circuits,
-            AnimationState, PropagationEventType, PropagationEvent,
-            CircuitAnimator, AnimationController, GateRenderer
-        } = window.SimEngine;
+    (function() {
+        'use strict';
+
+        // Get engine components from SimEngine namespace
+        var SE = window.SimEngine;
 
         // Global state
-        let circuit = null;
-        let animator = null;
-        let controller = null;
-        let renderer = null;
-        let activeGates = new Set();
+        var circuit = null;
+        var animator = null;
+        var renderer = null;
+        var activeGates = new Set();
+
+        // Make controller accessible globally for onclick handlers
+        window.controller = null;
 
         // DOM elements
-        const canvas = document.getElementById('animationCanvas');
-        const ctx = canvas.getContext('2d');
-        const inputPanel = document.getElementById('inputPanel');
-        const outputPanel = document.getElementById('outputPanel');
-        const eventLog = document.getElementById('eventLog');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const iterationCount = document.getElementById('iterationCount');
-        const playBtn = document.getElementById('playBtn');
-        const stepBtn = document.getElementById('stepBtn');
-        const speedSlider = document.getElementById('speedSlider');
-        const speedValue = document.getElementById('speedValue');
+        var canvas = document.getElementById('animationCanvas');
+        var ctx = canvas.getContext('2d');
+        var inputPanel = document.getElementById('inputPanel');
+        var outputPanel = document.getElementById('outputPanel');
+        var eventLog = document.getElementById('eventLog');
+        var statusIndicator = document.getElementById('statusIndicator');
+        var statusText = document.getElementById('statusText');
+        var iterationCount = document.getElementById('iterationCount');
+        var playBtn = document.getElementById('playBtn');
+        var stepBtn = document.getElementById('stepBtn');
+        var speedSlider = document.getElementById('speedSlider');
+        var speedValue = document.getElementById('speedValue');
 
         // Initialize
         function init() {
@@ -386,7 +387,7 @@
         }
 
         function resizeCanvas() {
-            const container = canvas.parentElement;
+            var container = canvas.parentElement;
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             if (renderer && circuit) {
@@ -396,38 +397,38 @@
             }
         }
 
-        function loadSelectedCircuit() {
-            const select = document.getElementById('circuitSelect');
-            const circuitName = select.value;
+        window.loadSelectedCircuit = function() {
+            var select = document.getElementById('circuitSelect');
+            var circuitName = select.value;
 
             // Create circuit
             switch (circuitName) {
                 case 'halfAdder':
-                    circuit = Circuits.halfAdder();
+                    circuit = SE.Circuits.halfAdder();
                     break;
                 case 'fullAdder':
-                    circuit = Circuits.fullAdder();
+                    circuit = SE.Circuits.fullAdder();
                     break;
                 case 'srLatch':
-                    circuit = Circuits.srLatch();
+                    circuit = SE.Circuits.srLatch();
                     break;
                 default:
-                    circuit = Circuits.halfAdder();
+                    circuit = SE.Circuits.halfAdder();
             }
 
             // Initialize animation components
-            animator = new CircuitAnimator(circuit);
-            controller = new AnimationController(animator);
-            renderer = new GateRenderer(ctx, {
+            animator = new SE.CircuitAnimator(circuit);
+            window.controller = new SE.AnimationController(animator);
+            renderer = new SE.GateRenderer(ctx, {
                 gateWidth: 100,
                 gateHeight: 60,
                 margin: 30
             });
 
             // Set up callbacks
-            controller.onStateChange = handleStateChange;
-            controller.onFrame = handleFrame;
-            controller.onComplete = handleComplete;
+            window.controller.onStateChange = handleStateChange;
+            window.controller.onFrame = handleFrame;
+            window.controller.onComplete = handleComplete;
 
             // Build UI using safe DOM methods
             buildInputPanel();
@@ -447,25 +448,25 @@
                 inputPanel.removeChild(inputPanel.firstChild);
             }
 
-            for (let i = 0; i < circuit.wires.length; i++) {
-                const wire = circuit.wires[i];
+            for (var i = 0; i < circuit.wires.length; i++) {
+                var wire = circuit.wires[i];
                 if (!wire.isInput) continue;
 
-                const row = document.createElement('div');
+                var row = document.createElement('div');
                 row.className = 'input-row';
 
-                const label = document.createElement('span');
+                var label = document.createElement('span');
                 label.className = 'input-label';
                 label.textContent = wire.name;
 
-                const toggle = document.createElement('div');
+                var toggle = document.createElement('div');
                 toggle.className = 'input-toggle';
                 toggle.dataset.wireIndex = i;
                 toggle.onclick = function() {
                     toggleInput(parseInt(this.dataset.wireIndex));
                 };
 
-                const value = document.createElement('span');
+                var value = document.createElement('span');
                 value.className = 'input-value low';
                 value.id = 'input-value-' + i;
                 value.textContent = '0';
@@ -483,22 +484,22 @@
                 outputPanel.removeChild(outputPanel.firstChild);
             }
 
-            for (let i = 0; i < circuit.wires.length; i++) {
-                const wire = circuit.wires[i];
+            for (var i = 0; i < circuit.wires.length; i++) {
+                var wire = circuit.wires[i];
                 if (!wire.isOutput) continue;
 
-                const row = document.createElement('div');
+                var row = document.createElement('div');
                 row.className = 'output-row';
 
-                const label = document.createElement('span');
+                var label = document.createElement('span');
                 label.className = 'input-label';
                 label.textContent = wire.name;
 
-                const led = document.createElement('div');
+                var led = document.createElement('div');
                 led.className = 'output-led';
                 led.id = 'output-led-' + i;
 
-                const value = document.createElement('span');
+                var value = document.createElement('span');
                 value.className = 'input-value low';
                 value.id = 'output-value-' + i;
                 value.textContent = 'X';
@@ -511,52 +512,55 @@
         }
 
         function toggleInput(wireIndex) {
-            const wire = circuit.wires[wireIndex];
-            const currentState = wire.getState(0);
-            const newState = currentState === WireState.HIGH ? WireState.LOW : WireState.HIGH;
+            var wire = circuit.wires[wireIndex];
+            var currentState = wire.getState(0);
+            var newState = currentState === SE.WireState.HIGH ? SE.WireState.LOW : SE.WireState.HIGH;
             circuit.setWire(wireIndex, 0, newState);
 
             // Update toggle visual
-            const toggles = inputPanel.querySelectorAll('.input-toggle');
-            for (const toggle of toggles) {
+            var toggles = inputPanel.querySelectorAll('.input-toggle');
+            for (var j = 0; j < toggles.length; j++) {
+                var toggle = toggles[j];
                 if (parseInt(toggle.dataset.wireIndex) === wireIndex) {
-                    toggle.classList.toggle('on', newState === WireState.HIGH);
+                    toggle.classList.toggle('on', newState === SE.WireState.HIGH);
                 }
             }
 
             // Update value display
-            const valueElem = document.getElementById('input-value-' + wireIndex);
+            var valueElem = document.getElementById('input-value-' + wireIndex);
             if (valueElem) {
-                valueElem.textContent = newState === WireState.HIGH ? '1' : '0';
-                valueElem.className = 'input-value ' + (newState === WireState.HIGH ? 'high' : 'low');
+                valueElem.textContent = newState === SE.WireState.HIGH ? '1' : '0';
+                valueElem.className = 'input-value ' + (newState === SE.WireState.HIGH ? 'high' : 'low');
             }
 
-            addLogEntry('Input ' + wire.name + ' set to ' + (newState === WireState.HIGH ? '1' : '0'), 'wire-change');
+            addLogEntry('Input ' + wire.name + ' set to ' + (newState === SE.WireState.HIGH ? '1' : '0'), 'wire-change');
 
-            // Reset animation if not running
-            if (controller.getState() === AnimationState.IDLE) {
+            // Reset animation when inputs change
+            if (window.controller.getState() !== SE.AnimationState.RUNNING) {
                 animator.reset();
+                circuit.stable = false;  // Mark circuit as needing propagation
                 updateIterationCount();
+                updateButtons();
             }
 
             render();
         }
 
         function updateOutputs() {
-            for (let i = 0; i < circuit.wires.length; i++) {
-                const wire = circuit.wires[i];
+            for (var i = 0; i < circuit.wires.length; i++) {
+                var wire = circuit.wires[i];
                 if (!wire.isOutput) continue;
 
-                const state = wire.getState(0);
-                const led = document.getElementById('output-led-' + i);
-                const value = document.getElementById('output-value-' + i);
+                var state = wire.getState(0);
+                var led = document.getElementById('output-led-' + i);
+                var value = document.getElementById('output-value-' + i);
 
                 if (led) {
-                    led.classList.toggle('on', state === WireState.HIGH);
+                    led.classList.toggle('on', state === SE.WireState.HIGH);
                 }
                 if (value) {
-                    value.textContent = WireStateStr[state] || 'X';
-                    value.className = 'input-value ' + (state === WireState.HIGH ? 'high' : 'low');
+                    value.textContent = SE.WireStateStr[state] || 'X';
+                    value.className = 'input-value ' + (state === SE.WireState.HIGH ? 'high' : 'low');
                 }
             }
         }
@@ -569,29 +573,30 @@
         function handleFrame(events) {
             activeGates.clear();
 
-            for (const event of events) {
+            for (var i = 0; i < events.length; i++) {
+                var event = events[i];
                 switch (event.type) {
-                    case PropagationEventType.ITERATION_START:
+                    case SE.PropagationEventType.ITERATION_START:
                         addLogEntry('--- Iteration ' + event.data.iteration + ' ---', 'iteration');
                         break;
-                    case PropagationEventType.GATE_EVALUATE:
+                    case SE.PropagationEventType.GATE_EVALUATE:
                         activeGates.add(event.data.gateIndex);
                         addLogEntry(
                             event.data.gateName + ' (' + event.data.gateType + '): ' +
-                            event.data.inputStates.map(function(s) { return WireStateStr[s]; }).join(',') +
-                            ' -> ' + WireStateStr[event.data.outputState],
+                            event.data.inputStates.map(function(s) { return SE.WireStateStr[s]; }).join(',') +
+                            ' -> ' + SE.WireStateStr[event.data.outputState],
                             'gate-eval'
                         );
                         break;
-                    case PropagationEventType.WIRE_CHANGE:
+                    case SE.PropagationEventType.WIRE_CHANGE:
                         addLogEntry(
                             event.data.wireName + '[' + event.data.bit + ']: ' +
-                            WireStateStr[event.data.oldState] + ' -> ' +
-                            WireStateStr[event.data.newState],
+                            SE.WireStateStr[event.data.oldState] + ' -> ' +
+                            SE.WireStateStr[event.data.newState],
                             'wire-change'
                         );
                         break;
-                    case PropagationEventType.ITERATION_END:
+                    case SE.PropagationEventType.ITERATION_END:
                         if (event.data.stable) {
                             addLogEntry('Circuit stabilized', 'iteration');
                         }
@@ -611,40 +616,40 @@
             updateButtons();
         }
 
-        function togglePlay() {
-            var state = controller.getState();
-            if (state === AnimationState.RUNNING) {
-                controller.pause();
+        window.togglePlay = function() {
+            var state = window.controller.getState();
+            if (state === SE.AnimationState.RUNNING) {
+                window.controller.pause();
             } else {
-                controller.play();
+                window.controller.play();
             }
-        }
+        };
 
-        function updateSpeed() {
+        window.updateSpeed = function() {
             var speed = parseFloat(speedSlider.value);
-            controller.setSpeed(speed);
+            window.controller.setSpeed(speed);
             speedValue.textContent = speed.toFixed(1) + 'x';
-        }
+        };
 
         function updateStatus() {
-            var state = controller.getState();
+            var state = window.controller.getState();
             statusIndicator.className = 'status-indicator ' + state;
 
             var stateNames = {};
-            stateNames[AnimationState.IDLE] = 'Idle';
-            stateNames[AnimationState.RUNNING] = 'Running';
-            stateNames[AnimationState.PAUSED] = 'Paused';
-            stateNames[AnimationState.STEPPING] = 'Stepping';
+            stateNames[SE.AnimationState.IDLE] = 'Idle';
+            stateNames[SE.AnimationState.RUNNING] = 'Running';
+            stateNames[SE.AnimationState.PAUSED] = 'Paused';
+            stateNames[SE.AnimationState.STEPPING] = 'Stepping';
             statusText.textContent = stateNames[state] || 'Unknown';
         }
 
         function updateButtons() {
-            var state = controller.getState();
+            var state = window.controller.getState();
             var isComplete = animator.isComplete();
 
-            playBtn.textContent = state === AnimationState.RUNNING ? 'Pause' : 'Play';
+            playBtn.textContent = state === SE.AnimationState.RUNNING ? 'Pause' : 'Play';
             playBtn.disabled = isComplete;
-            stepBtn.disabled = state === AnimationState.RUNNING || isComplete;
+            stepBtn.disabled = state === SE.AnimationState.RUNNING || isComplete;
         }
 
         function updateIterationCount() {
@@ -678,6 +683,7 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>

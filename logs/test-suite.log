@@ -1,0 +1,17 @@
+Done! I've created 5 new test programs for the Micro4 CPU emulator:
+
+| Program | Purpose | Result |
+|---------|---------|--------|
+| **divide.asm** | Integer division via repeated subtraction | 9 / 3 = 3 |
+| **factorial.asm** | Factorial with nested multiplication loop | 3! = 6 |
+| **bubble_sort.asm** | Sort 3 elements [5,2,8] → [2,5,8] | Smallest = 2 |
+| **gcd.asm** | GCD using Euclidean subtraction method | GCD(6,4) = 2 |
+| **negative.asm** | Tests underflow, overflow, zero flag | All tests pass (0xF) |
+
+All programs follow the established style with:
+- Comments explaining the algorithm
+- ORG directives for code and data sections
+- Expected results documented
+- Proper label naming conventions
+
+The commit has been made on the `feature/test-suite` branch.

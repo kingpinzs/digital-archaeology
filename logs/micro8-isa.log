@@ -1,0 +1,27 @@
+Done. I've created `docs/micro8_isa.md` with a comprehensive ISA specification for the Micro8 CPU. The document includes:
+
+**Architecture:**
+- 8 x 8-bit general-purpose registers (R0-R7) with aliases (A, B, C, D, E, H, L)
+- Register pairs (BC, DE, HL) for 16-bit operations
+- 16-bit PC and SP, flags register (Z, C, S, O)
+- 64KB address space with zero page, stack area, and interrupt vector
+
+**Instruction Set (~80 instructions):**
+- Data movement (18): MOV, LD, ST, PUSH, POP, etc.
+- Arithmetic (16): ADD, SUB, INC, DEC, CMP, NEG, 16-bit operations
+- Logic (12): AND, OR, XOR, NOT, shifts, rotates
+- Control flow (18): JMP, JR, conditional branches, CALL, RET
+- Stack (6): PUSH/POP for registers and pairs
+- System (10): NOP, HLT, EI, DI, IN, OUT, flag manipulation
+
+**Addressing Modes (8):** Implicit, register, immediate, direct, zero page, indirect [HL], indexed [HL+d], relative
+
+**Educational elements:**
+- Explains *why* each feature was added (limitations table)
+- Block diagrams and visual memory maps
+- 6 example programs with machine code
+- Interrupt handling flow diagram
+- Comparison table with Micro4
+- Full opcode map in appendix
+
+The commit is on branch `feature/micro8-isa`.

@@ -1,0 +1,25 @@
+Done. Here's a summary of what I created:
+
+## Summary
+
+**Created `src/micro4/disasm.c`** - A standalone disassembler with:
+- **Input formats**: Binary files (raw bytes) and hex dump files
+- **Output**: Formatted assembly with addresses and comments
+- **Label generation**: Automatically identifies jump targets (JMP/JZ) and creates labels
+- **Instruction handling**: Correctly handles 1-byte instructions (HLT, LDI) and 2-byte instructions (LDA, STA, ADD, SUB, JMP, JZ)
+- **Command-line options**:
+  - `-x` - Hex input mode
+  - `-c` - Show instruction comments
+  - `-a` - Show addresses and hex bytes
+  - `-l` - Suppress label generation
+  - `-r <addr>` - Start at specific address
+  - `-s <count>` - Limit bytes to disassemble
+
+**Updated `src/micro4/Makefile`** to:
+- Build the disassembler alongside the emulator
+- Add `make disasm` and `make micro4` targets
+- Update clean, install, and help targets
+
+**Commit**: `7e0fbef` on branch `feature/micro4-disasm`
+
+Note: Build testing wasn't possible as no C compiler is available in this environment, but the code follows the same patterns as the existing codebase and should compile cleanly with `make`.

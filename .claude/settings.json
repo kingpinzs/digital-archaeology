@@ -14,10 +14,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": {
-          "tools": ["Bash"],
-          "command_pattern": "git worktree add"
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",

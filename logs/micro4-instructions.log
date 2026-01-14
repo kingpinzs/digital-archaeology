@@ -1,0 +1,26 @@
+I've completed all the tasks. Here's a summary of what was implemented:
+
+## Summary
+
+Added 8 new instructions to complete the Micro4 CPU instruction set (opcodes 0x8-0xF):
+
+| Opcode | Mnemonic | Description | Format |
+|--------|----------|-------------|--------|
+| 0x8 | AND | A = A & mem[addr] | 2-byte (with address) |
+| 0x9 | OR | A = A \| mem[addr] | 2-byte (with address) |
+| 0xA | XOR | A = A ^ mem[addr] | 2-byte (with address) |
+| 0xB | NOT | A = ~A | 1-byte |
+| 0xC | SHL | A = A << 1 | 1-byte |
+| 0xD | SHR | A = A >> 1 | 1-byte |
+| 0xE | INC | A = A + 1 | 1-byte |
+| 0xF | DEC | A = A - 1 | 1-byte |
+
+**Files modified:**
+- `src/micro4/cpu.h` - Added opcode definitions
+- `src/micro4/cpu.c` - Implemented instructions in `cpu_step()`, updated `OPCODE_NAMES` and `cpu_disassemble()`
+- `src/micro4/assembler.c` - Added assembler support for new mnemonics
+
+**Files created:**
+- `programs/bitwise_test.asm` - Test program that exercises all new instructions
+
+All instructions properly update the zero flag and mask results to 4 bits. The commit has been made to the `feature/micro4-instructions` branch.

@@ -1,0 +1,28 @@
+Done. I've created the Micro8 CPU emulator skeleton with:
+
+**Files created in `src/micro8/`:**
+
+1. **cpu.h** - Header with:
+   - 64KB memory (16-bit address bus)
+   - 8 general purpose registers (R0-R7)
+   - Stack pointer (SP), Program counter (PC)
+   - Flags register (Zero, Carry, Sign, Overflow)
+   - Opcode definitions for all core instructions
+   - Function prototypes
+
+2. **cpu.c** - Implementation with:
+   - CPU init/reset/free (dynamic memory allocation for 64KB)
+   - Memory read/write operations
+   - Fetch-decode-execute loop
+   - Flag calculation for arithmetic operations
+   - All core instructions: NOP, HLT, MOV (4 variants), ADD, SUB, PUSH, POP, JMP, JZ, JNZ, JC, JNC, CALL, RET
+   - Disassembler for debugging
+
+3. **main.c** - CLI interface with:
+   - `run` mode - execute binary files
+   - `debug` mode - interactive stepping, memory inspection
+   - Help documentation
+
+4. **Makefile** - Build system following Micro4 pattern
+
+The code follows the same structure and style as Micro4 but expanded for 8-bit architecture. Commit `61bd389` added all changes.

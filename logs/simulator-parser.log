@@ -1,0 +1,27 @@
+The module parsing implementation is complete. Here's a summary of what was implemented:
+
+## Summary
+
+I implemented the module parsing functionality in `src/simulator/parser.c` at line 376. The implementation includes:
+
+### New Functions Added:
+1. **`parse_input_decl()`** - Parses input port declarations (`input name;` or `input [width-1:0] name;`)
+2. **`parse_output_decl()`** - Parses output port declarations
+3. **`circuit_find_module()`** - Looks up a module by name for instantiation
+4. **`parse_module()`** - Main function to parse `module ... endmodule` blocks
+5. **`parse_module_port_list()`** - Parses inline port lists `(input: a b, output: y)`
+6. **`parse_module_instance()`** - Parses module instantiations like `half_adder HA1 (...)`
+7. **`parse_module_body()`** - Parses the content inside a module block
+
+### Features Supported:
+- `MODULE name (input: ports, output: ports); ... ENDMODULE` blocks
+- Input/output port declarations with optional bus widths
+- Internal wire declarations including comma-separated lists (`wire a, b, c;`)
+- Gate instantiations within modules
+- Module instantiation (using previously defined modules)
+- Top-level module instantiation
+
+### Testing:
+- All 9 HDL files in the `hdl/` directory parse successfully
+- Built-in tests pass (half adder, full adder, 4-bit adder)
+- Created and tested a custom module file with nested module instantiation

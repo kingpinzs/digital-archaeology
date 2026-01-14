@@ -99,7 +99,7 @@ START:
 ; Destroys: R2
 DIV_SIMPLE:
         ; Check for division by zero
-        OR R1, R1
+        CMPI R1, 0
         JZ DIV_SIMPLE_ERROR
 
         PUSH R2
@@ -134,7 +134,7 @@ DIV_SIMPLE_ERROR:
 ; Destroys: R2, R3, R4
 DIV_SHIFT:
         ; Check for division by zero
-        OR R1, R1
+        CMPI R1, 0
         JZ DIV_SHIFT_ERROR
 
         PUSH R2
@@ -189,7 +189,7 @@ DIV_SHIFT_ERROR:
 ; Output: R0 = quotient, R1 = remainder (0xFF,0xFF on error)
 DIV_SAFE:
         ; Check for division by zero
-        OR R1, R1
+        CMPI R1, 0
         JZ DIV_SAFE_ERROR
 
         ; Use efficient division
@@ -218,7 +218,7 @@ GCD:
 
 GCD_LOOP:
         ; If R1 = 0, R0 is the GCD
-        OR R1, R1
+        CMPI R1, 0
         JZ GCD_DONE
 
         ; R2 = R0 mod R1
@@ -240,7 +240,7 @@ GCD_DONE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 RESULT1_Q:    .db 0             ; Expected: 0x03 (3)
 RESULT1_R:    .db 0             ; Expected: 0x00 (0)
 RESULT2_Q:    .db 0             ; Expected: 0x03 (3)

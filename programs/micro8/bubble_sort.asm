@@ -98,7 +98,7 @@ SORT_NO_SWAP:
         JRNZ SORT_INNER         ; Continue inner loop
 
         ; Check if any swaps occurred
-        OR R3, R3
+        CMPI R3, 0
         JNZ SORT_OUTER          ; If swaps occurred, do another pass
 
         ; Sorting complete!
@@ -157,7 +157,7 @@ VERIFY_SORTED:
         DEC R2                  ; Compare n-1 pairs
 
 VERIFY_LOOP:
-        OR R2, R2
+        CMPI R2, 0
         JZ VERIFY_OK            ; All pairs checked, sorted!
 
         LD R0, [HL+0]           ; Current
@@ -200,7 +200,7 @@ SUM_ARRAY:
         LDI R1, 0               ; Sum high
 
 SUM_LOOP:
-        OR R2, R2
+        CMPI R2, 0
         JZ SUM_DONE
 
         LD R3, [HL]             ; Load element
@@ -220,7 +220,7 @@ SUM_DONE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 
 ; Working array (will be sorted in place)
 ARRAY:        .db 0, 0, 0, 0, 0, 0, 0, 0
@@ -232,7 +232,7 @@ ORIGINAL:     .db 0, 0, 0, 0, 0, 0, 0, 0
 SORTED:       .db 0, 0, 0, 0, 0, 0, 0, 0
 
 ; Results
-        .org 0x0330
+        .org 0x0530
 SWAP_COUNT:   .db 0             ; Number of swaps performed
 VERIFY_RESULT:.db 0xFF          ; 0x00 = sorted, 0xFF = error
 MIN_VAL:      .db 0             ; Minimum value (expected: 2)

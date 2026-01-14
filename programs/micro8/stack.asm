@@ -129,7 +129,7 @@ FLAGS_DONE:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 POP_RESULT1:  .db 0             ; Expected: 0xAA
 LIFO_RESULT1: .db 0             ; Expected: 0x33
 LIFO_RESULT2: .db 0             ; Expected: 0x22

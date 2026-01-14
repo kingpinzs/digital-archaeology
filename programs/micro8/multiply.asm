@@ -89,7 +89,7 @@ MUL_SIMPLE:
         LDI R0, 0               ; R0 = product = 0
 
 MUL_SIMPLE_LOOP:
-        OR R1, R1               ; Test multiplier
+        CMPI R1, 0 ; Test multiplier
         JZ MUL_SIMPLE_DONE      ; If zero, done
         ADD R0, R2              ; product += multiplicand
         DEC R1                  ; multiplier--
@@ -187,7 +187,7 @@ SQUARE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 RESULT1:      .db 0             ; Expected: 0x0C (12)
 RESULT2:      .db 0             ; Expected: 0x38 (56)
 RESULT3:      .db 0             ; Expected: 0x2A (42)

@@ -37,7 +37,7 @@ START:
         ; Calculate remaining Fibonacci numbers
 FIB_LOOP:
         ; Check if done
-        OR R2, R2               ; Test counter
+        CMPI R2, 0 ; Test counter
         JZ FIB_DONE
 
         ; Calculate next: F(n) = F(n-1) + F(n-2)
@@ -123,7 +123,7 @@ SUM_FIBS:
         LDI R1, 0               ; Sum high = 0
 
 SUM_LOOP:
-        OR R2, R2               ; Check counter
+        CMPI R2, 0 ; Check counter
         JZ SUM_DONE
 
         LD R3, [HL]             ; Load Fibonacci number
@@ -155,7 +155,7 @@ MAX_FIB:
         LDI R0, 0               ; Max = 0
 
 MAX_LOOP:
-        OR R2, R2               ; Check counter
+        CMPI R2, 0 ; Check counter
         JZ MAX_DONE
 
         LD R1, [HL]             ; Load current element
@@ -175,13 +175,13 @@ MAX_DONE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 
 FIB_ARRAY:    .db 0, 0, 0, 0, 0, 0, 0, 0  ; Fibonacci numbers
               .db 0, 0, 0, 0, 0, 0, 0, 0  ; (space for 16 numbers)
 
 ; Results
-        .org 0x0320
+        .org 0x0520
 FIB_COUNT:    .db 0             ; Number of Fibonacci numbers calculated
 OVERFLOW_FLAG:.db 0             ; 0xFF if stopped due to overflow
 FIB_SUM_L:    .db 0             ; Low byte of sum

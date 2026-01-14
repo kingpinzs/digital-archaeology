@@ -135,7 +135,7 @@ static int cmd_debug(const char *filename) {
     dbg_init(&dbg, &cpu);
 
     /* Load the binary file */
-    if (!dbg_load_binary(&dbg, filename, 0)) {
+    if (!dbg_load_binary(&dbg, filename, DEFAULT_PC)) {
         cpu_free(&cpu);
         return 1;
     }

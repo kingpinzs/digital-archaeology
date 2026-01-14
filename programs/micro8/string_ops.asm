@@ -123,7 +123,7 @@ STRLEN:
 
 STRLEN_LOOP:
         LD R1, [HL]             ; Load character
-        OR R1, R1               ; Test for null
+        CMPI R1, 0 ; Test for null
         JZ STRLEN_DONE          ; If null, done
         INC R0                  ; length++
         INC16 HL                ; Next character
@@ -152,12 +152,22 @@ STRCPY:
 
 STRCPY_LOOP:
         LD R0, [HL]             ; Load from source
-        ; Store to destination (use indexed from DE base)
-        ST R0, [DE]             ; Store to destination (direct)
+        ; Store to destination - [DE] workaround (ISA only supports [HL] indirect)
+        PUSH R5                 ; Save H
+        PUSH R6                 ; Save L
+        MOV R5, R3              ; H = D
+        MOV R6, R4              ; L = E
+        ST R0, [HL]             ; Store using HL (now pointing to DE target)
+        POP R6                  ; Restore L
+        POP R5                  ; Restore H
         OR R0, R0               ; Test for null
         JZ STRCPY_DONE          ; If null, done
         INC16 HL                ; Next source
-        INC16 DE                ; Next destination
+        ; INC16 DE workaround (ISA only supports INC16 HL/BC)
+        INC R4                  ; E++
+        JNC STRCPY_DE_DONE
+        INC R3                  ; D++ (carry propagation)
+STRCPY_DE_DONE:
         JMP STRCPY_LOOP
 
 STRCPY_DONE:
@@ -182,10 +192,7 @@ STRCMP:
 
 STRCMP_LOOP:
         LD R0, [HL]             ; Load char from string1
-        LD R1, [DE]             ; Load char from string2 (simplified)
-
-        ; For DE indirect, we need a workaround
-        ; Save HL, use HL to access DE's target
+        ; Load char from string2 - [DE] workaround (ISA only supports [HL] indirect)
         PUSH R5
         PUSH R6
         MOV R5, R3              ; H = D
@@ -201,7 +208,11 @@ STRCMP_LOOP:
         JZ STRCMP_EQUAL         ; Both strings ended, equal
 
         INC16 HL                ; Next char in string1
-        INC16 DE                ; Next char in string2
+        ; INC16 DE workaround (ISA only supports INC16 HL/BC)
+        INC R4                  ; E++
+        JNC STRCMP_DE_DONE
+        INC R3                  ; D++ (carry propagation)
+STRCMP_DE_DONE:
         JMP STRCMP_LOOP
 
 STRCMP_DIFF:
@@ -231,7 +242,7 @@ MEMSET:
         MOV R2, R0              ; R2 = length counter
 
 MEMSET_LOOP:
-        OR R2, R2               ; Check if done
+        CMPI R2, 0 ; Check if done
         JZ MEMSET_DONE
         ST R1, [HL]             ; Store fill value
         INC16 HL                ; Next address
@@ -259,7 +270,7 @@ MEMCPY:
         MOV R2, R0              ; R2 = length counter
 
 MEMCPY_LOOP:
-        OR R2, R2               ; Check if done
+        CMPI R2, 0 ; Check if done
         JZ MEMCPY_DONE
         LD R0, [HL]             ; Load from source
         ; Store to destination via DE
@@ -392,7 +403,7 @@ TOUPPER_DONE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 
 ; Test strings
 STRING1:      .db 'H', 'E', 'L', 'L', 'O', 0          ; "HELLO"
@@ -409,7 +420,7 @@ BUFFER3:      .db 0, 0, 0, 0, 0, 0, 0, 0              ; 8 bytes
 BUFFER4:      .db 0, 0, 0, 0, 0, 0, 0, 0              ; 8 bytes
 
 ; Results
-        .org 0x0360
+        .org 0x0560
 RESULT1:      .db 0             ; Expected: 5 (strlen "HELLO")
 RESULT2:      .db 0             ; Expected: 5 (strcpy verification)
 RESULT3:      .db 0xFF          ; Expected: 0 (strings equal)

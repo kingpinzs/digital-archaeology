@@ -114,7 +114,7 @@ COMPUTE_SQUARE:
         MOV R2, R0              ; R2 = counter = R0
         LDI R1, 0               ; R1 = accumulator = 0
 SQUARE_LOOP:
-        OR R2, R2               ; Test if counter is zero
+        CMPI R2, 0  ; Test if zero
         JZ SQUARE_DONE          ; If zero, done
         ADD R1, R0              ; R1 = R1 + R0
         DEC R2                  ; counter--
@@ -131,7 +131,7 @@ INCREMENT:
 ; Recursive countdown: decrements R0 until 0
 ; Uses tail recursion pattern
 COUNTDOWN:
-        OR R0, R0               ; Test if R0 is zero
+        CMPI R0, 0  ; Test if zero
         JZ COUNTDOWN_DONE       ; If zero, return
         DEC R0                  ; R0--
         CALL COUNTDOWN          ; Recursive call
@@ -139,7 +139,7 @@ COUNTDOWN_DONE:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 RESULT1:      .db 0             ; Expected: 0x2A (42)
 RESULT2:      .db 0             ; Expected: 0x2A (42)
 RESULT3:      .db 0             ; Expected: 0x30 (48)

@@ -365,9 +365,31 @@ static int parse_register_pair(const char *s, int *len) {
 
 /* Parse operand (value, label, or label+offset) */
 static int parse_operand(Assembler *as, char *s, uint16_t *value, bool pass2) {
+    (void)as; (void)pass2;  /* May not be used in all paths */
     s = skip_whitespace(s);
 
-    /* Try as number first */
+    /* Try as character literal first (e.g., 'A', 'x', '\n') */
+    if (*s == '\'') {
+        if (s[1] == '\\' && s[2] && s[3] == '\'') {
+            /* Escape sequence */
+            switch (s[2]) {
+                case 'n': *value = '\n'; break;
+                case 'r': *value = '\r'; break;
+                case 't': *value = '\t'; break;
+                case '0': *value = '\0'; break;
+                case '\\': *value = '\\'; break;
+                case '\'': *value = '\''; break;
+                default: *value = s[2]; break;
+            }
+            return 4;  /* 'X' */
+        } else if (s[1] && s[2] == '\'') {
+            /* Simple character literal */
+            *value = (uint8_t)s[1];
+            return 3;  /* 'X' */
+        }
+    }
+
+    /* Try as number */
     int len = parse_number(s, value);
     if (len > 0) {
         return len;
@@ -431,9 +453,11 @@ static int parse_operand(Assembler *as, char *s, uint16_t *value, bool pass2) {
 /* Instruction types for encoding */
 typedef enum {
     INSTR_IMPLICIT,      /* No operands: NOP, HLT, RET */
-    INSTR_REG,           /* Single register: INC Rd, DEC Rd */
+    INSTR_REG,           /* Single register (reg in opcode): INC Rd, DEC Rd */
+    INSTR_REG_2B,        /* Single register (2-byte encoding): SHL Rd, ROL Rd */
     INSTR_REG_REG,       /* Two registers: MOV Rd, Rs, ADD Rd, Rs */
-    INSTR_REG_IMM8,      /* Register and immediate: LDI Rd, #imm */
+    INSTR_REG_IMM8,      /* Register and immediate (reg in opcode): LDI Rd, #imm */
+    INSTR_REG_IMM8_3B,   /* Register and immediate (3 bytes): ANDI Rd, #imm */
     INSTR_REG_ADDR16,    /* Register and address: LD Rd, [addr] */
     INSTR_REG_ZP,        /* Register and zero page: LDZ Rd, [zp] */
     INSTR_REG_HL,        /* Register and [HL]: LD Rd, [HL] */
@@ -491,7 +515,7 @@ static const InstrDef instructions[] = {
     /* Arithmetic - single register */
     {"INC",     OP_INC_BASE, INSTR_REG, 1},
     {"DEC",     OP_DEC_BASE, INSTR_REG, 1},
-    {"NEG",     OP_NEG,      INSTR_REG, 1},
+    {"NEG",     OP_NEG,      INSTR_REG_2B, 1},
 
     /* Compare */
     {"CMP",     OP_CMP_BASE, INSTR_REG_REG, 2},
@@ -510,18 +534,18 @@ static const InstrDef instructions[] = {
     /* Logic - single register */
     {"NOT",     OP_NOT_BASE, INSTR_REG, 1},
 
-    /* Logic - immediate */
-    {"ANDI",    OP_ANDI,     INSTR_REG_IMM8, 1},
-    {"ORI",     OP_ORI,      INSTR_REG_IMM8, 1},
-    {"XORI",    OP_XORI,     INSTR_REG_IMM8, 1},
+    /* Logic - immediate (3-byte encoding: opcode, reg, imm8) */
+    {"ANDI",    OP_ANDI,     INSTR_REG_IMM8_3B, 1},
+    {"ORI",     OP_ORI,      INSTR_REG_IMM8_3B, 1},
+    {"XORI",    OP_XORI,     INSTR_REG_IMM8_3B, 1},
 
-    /* Shifts and rotates */
-    {"SHL",     OP_SHL,      INSTR_REG, 1},
-    {"SHR",     OP_SHR,      INSTR_REG, 1},
-    {"SAR",     OP_SAR,      INSTR_REG, 1},
-    {"ROL",     OP_ROL,      INSTR_REG, 1},
-    {"ROR",     OP_ROR,      INSTR_REG, 1},
-    {"SWAP",    OP_SWAP,     INSTR_REG, 1},
+    /* Shifts and rotates (2-byte encoding: opcode, register) */
+    {"SHL",     OP_SHL,      INSTR_REG_2B, 1},
+    {"SHR",     OP_SHR,      INSTR_REG_2B, 1},
+    {"SAR",     OP_SAR,      INSTR_REG_2B, 1},
+    {"ROL",     OP_ROL,      INSTR_REG_2B, 1},
+    {"ROR",     OP_ROR,      INSTR_REG_2B, 1},
+    {"SWAP",    OP_SWAP,     INSTR_REG_2B, 1},
 
     /* Control flow - absolute jumps */
     {"JMP",     OP_JMP,      INSTR_ADDR16, 0},
@@ -697,10 +721,22 @@ static bool process_directive(Assembler *as, char *line, bool pass2) {
 static bool process_line(Assembler *as, char *line, bool pass2) {
     char *p = skip_whitespace(line);
 
-    /* Skip empty lines and comments */
+    /* Skip empty lines and full-line comments */
     if (*p == '\0' || *p == ';') {
         return true;
     }
+
+    /* Strip trailing comments EARLY - before any parsing
+     * This prevents ';' comments from interfering with EQU detection */
+    char *comment = strchr(p, ';');
+    if (comment) *comment = '\0';
+
+    /* Trim trailing whitespace after comment removal */
+    int line_len = strlen(p);
+    while (line_len > 0 && isspace((unsigned char)p[line_len - 1])) {
+        p[--line_len] = '\0';
+    }
+    if (line_len == 0) return true;
 
     /* Check for label (ends with :) or EQU */
     char *colon = strchr(p, ':');
@@ -730,7 +766,10 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         /* Skip to value */
         char *val_start = p + i;
         while (*val_start && (isspace((unsigned char)*val_start) || *val_start == '=')) val_start++;
-        if (starts_with_ci(val_start, "EQU")) {
+        /* Handle both "EQU" and ".equ" syntax */
+        if (starts_with_ci(val_start, ".EQU")) {
+            val_start = skip_whitespace(val_start + 4);
+        } else if (starts_with_ci(val_start, "EQU")) {
             val_start = skip_whitespace(val_start + 3);
         }
 
@@ -767,16 +806,7 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         }
     }
 
-    /* Remove trailing comment */
-    char *comment = strchr(p, ';');
-    if (comment) *comment = '\0';
-
-    /* Trim trailing whitespace */
-    int line_len = strlen(p);
-    while (line_len > 0 && isspace((unsigned char)p[line_len - 1])) {
-        p[--line_len] = '\0';
-    }
-    if (line_len == 0) return true;
+    /* Comments and trailing whitespace already stripped at function start */
 
     /* Try to process as directive */
     if (process_directive(as, p, pass2)) {
@@ -1059,17 +1089,19 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
                         return false;
                     }
                     if (pass2) {
-                        emit_byte(as, OP_LD_HLD | rd);
+                        emit_byte(as, OP_LD_HLD);
+                        emit_byte(as, rd);
                         emit_byte(as, (uint8_t)offset);
                     } else {
-                        as->current_addr += 2;
+                        as->current_addr += 3;
                     }
                 } else {
                     /* [HL] indirect addressing */
                     if (pass2) {
-                        emit_byte(as, OP_LD_HL | rd);
+                        emit_byte(as, OP_LD_HL);
+                        emit_byte(as, rd);
                     } else {
-                        as->current_addr++;
+                        as->current_addr += 2;
                     }
                 }
             } else {
@@ -1127,16 +1159,19 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
                         return false;
                     }
                     if (pass2) {
-                        emit_byte(as, OP_ST_HLD | rs);
+                        emit_byte(as, OP_ST_HLD);
+                        emit_byte(as, rs);
                         emit_byte(as, (uint8_t)offset);
                     } else {
-                        as->current_addr += 2;
+                        as->current_addr += 3;
                     }
                 } else {
+                    /* [HL] indirect addressing */
                     if (pass2) {
-                        emit_byte(as, OP_ST_HL | rs);
+                        emit_byte(as, OP_ST_HL);
+                        emit_byte(as, rs);
                     } else {
-                        as->current_addr++;
+                        as->current_addr += 2;
                     }
                 }
             } else {
@@ -1289,6 +1324,25 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             break;
         }
 
+        case INSTR_REG_2B: {
+            /* 2-byte encoding: opcode (fixed), register */
+            int reg_len;
+            int rd = parse_register(p, &reg_len);
+            if (rd < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg),
+                         "Expected register");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, instr->base_opcode);
+                emit_byte(as, rd);
+            } else {
+                as->current_addr += 2;
+            }
+            break;
+        }
+
         case INSTR_REG_REG: {
             int reg_len;
             int rd = parse_register(p, &reg_len);
@@ -1370,7 +1424,8 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             uint16_t imm;
             if (parse_operand(as, p, &imm, pass2) == 0 && pass2) {
                 snprintf(as->error_msg, sizeof(as->error_msg),
-                         "Expected immediate value");
+                         "Expected immediate value (instr=%s, operand='%s')",
+                         instr->mnemonic, p);
                 as->error = true;
                 return false;
             }
@@ -1379,6 +1434,39 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
                 emit_byte(as, (uint8_t)imm);
             } else {
                 as->current_addr += 2;
+            }
+            break;
+        }
+
+        case INSTR_REG_IMM8_3B: {
+            /* 3-byte encoding: opcode (fixed), register, immediate */
+            int reg_len;
+            int rd = parse_register(p, &reg_len);
+            if (rd < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg),
+                         "Expected register");
+                as->error = true;
+                return false;
+            }
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            if (*p == '#') p++;
+
+            uint16_t imm;
+            if (parse_operand(as, p, &imm, pass2) == 0 && pass2) {
+                snprintf(as->error_msg, sizeof(as->error_msg),
+                         "Expected immediate value");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, instr->base_opcode);
+                emit_byte(as, rd);
+                emit_byte(as, (uint8_t)imm);
+            } else {
+                as->current_addr += 3;
             }
             break;
         }

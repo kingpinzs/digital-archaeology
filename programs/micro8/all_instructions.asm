@@ -563,12 +563,12 @@ TEST_SUB:
         RET
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 TEST_BYTE:    .db 0
 TEST_ARRAY:   .db 0, 0, 0, 0
 
 ; Results
-        .org 0x0350
+        .org 0x0550
 TEST_COUNT:   .db 0             ; Expected: 55
 FAIL_AT:      .db 0             ; Test number where failure occurred
 RESULT:       .db 0xFF          ; Expected: 0x00 (success)

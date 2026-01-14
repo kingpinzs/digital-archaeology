@@ -60,7 +60,7 @@ START:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 RESULT0: .db 0                  ; Expected: 0xFF
 RESULT1: .db 0                  ; Expected: 0xAA
 RESULT2: .db 0                  ; Expected: 0xAA

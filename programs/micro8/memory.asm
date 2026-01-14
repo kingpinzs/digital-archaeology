@@ -172,7 +172,7 @@ FILL_LOOP:
 ZP_DATA:      .db 0             ; Zero page test area
 
 ; Data section - Main RAM
-        .org 0x0300
+        .org 0x0500
 DATA1:        .db 0             ; Direct addressing test
 DATA2:        .db 0
 DATA3:        .db 0
@@ -184,7 +184,7 @@ ARRAY3:       .db 0, 0, 0, 0, 0 ; 5-byte array for loop test
 REG_DUMP:     .db 0, 0, 0, 0, 0, 0, 0, 0  ; 8-byte register dump
 
 ; Results section
-        .org 0x0350
+        .org 0x0550
 RESULT1:      .db 0             ; Expected: 0xAA
 RESULT2A:     .db 0             ; Expected: 0x11
 RESULT2B:     .db 0             ; Expected: 0x22

@@ -126,7 +126,7 @@ START:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 ADD_RESULT:   .db 0             ; Expected: 0x2A (42)
 SUB_RESULT:   .db 0             ; Expected: 0x2A (42)
 ADDI_RESULT:  .db 0             ; Expected: 0x2A (42)

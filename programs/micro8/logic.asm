@@ -134,7 +134,7 @@ DONE:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 AND_RESULT:   .db 0             ; Expected: 0x30
 OR_RESULT:    .db 0             ; Expected: 0xFF
 XOR_RESULT:   .db 0             ; Expected: 0x55

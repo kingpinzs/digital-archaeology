@@ -254,7 +254,7 @@ DONE:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 TEST_COUNT:   .db 0             ; Expected: 0x17 (23)
 FINAL_RESULT: .db 0xFF          ; Expected: 0x00 (success)
 FAIL_AT_TEST: .db 0             ; Test number where failure occurred

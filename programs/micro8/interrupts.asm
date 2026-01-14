@@ -271,7 +271,7 @@ TIMER_NO_OVERFLOW:
 ; Data Section
 ; ========================================
 
-        .org 0x0300
+        .org 0x0500
 
 ; Interrupt-related data
 ISR_COUNTER:  .db 0             ; Count of ISR invocations
@@ -279,7 +279,7 @@ MAIN_COUNTER: .db 0             ; Count of main loop iterations
 TICK_COUNT:   .dw 0             ; System tick counter (16-bit)
 
 ; Test results
-        .org 0x0320
+        .org 0x0520
 TEST_COUNT:   .db 0             ; Expected: 10
 FAIL_AT:      .db 0             ; Test number where failure occurred
 RESULT:       .db 0xFF          ; Expected: 0x00 (success)

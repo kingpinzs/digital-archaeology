@@ -179,6 +179,6 @@ ALL_TESTS_PASSED:
         HLT                     ; Stop execution
 
 ; Data section
-        .org 0x0300
+        .org 0x0500
 TEST_COUNT:   .db 0             ; Expected: 0x12 (18 tests passed)
 FINAL_RESULT: .db 0xFF          ; Expected: 0x00 (success)

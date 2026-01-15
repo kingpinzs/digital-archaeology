@@ -1,0 +1,486 @@
+# ============================================================
+# MICRO4 CPU STARTER TEMPLATE
+# ============================================================
+# Welcome! This is your starting point for building a 4-bit CPU.
+#
+# WHAT'S PROVIDED (working):
+#   - Program Counter (PC) - 8 bits, tracks current instruction
+#   - Accumulator (A) - 4 bits, your working register
+#   - Zero Flag (Z) - 1 bit, set when result is zero
+#   - Instruction Register (IR) - 8 bits, holds current instruction
+#   - Memory Address Register (MAR) - 8 bits, holds memory address
+#   - Memory Data Register (MDR) - 4 bits, holds data to/from memory
+#   - Basic instruction decoder for opcode extraction
+#   - Memory interface (read/write wiring)
+#
+# YOUR TASK (marked with TODO):
+#   - Complete the ALU (currently just passes data through)
+#   - Implement ADD operation
+#   - Implement SUB operation
+#   - Add AND/OR/XOR operations (optional challenge)
+#   - Complete conditional jump logic (JZ instruction)
+#
+# TESTING:
+#   - NOP behavior works (do nothing, advance PC)
+#   - LDI (Load Immediate) works - loads 4-bit value into A
+#   - LDA (Load from Address) works - loads from memory into A
+#   - STA (Store to Address) works - stores A to memory
+#   - ADD, SUB, JZ need YOUR implementation
+#
+# INSTRUCTION SET:
+#   0x0 = HLT (halt)        0x4 = SUB addr (A = A - mem[addr])
+#   0x1 = LDA addr          0x5 = JMP addr (unconditional jump)
+#   0x2 = STA addr          0x6 = JZ addr (jump if zero)
+#   0x3 = ADD addr          0x7 = LDI n (load immediate 4-bit)
+#
+# ============================================================
+
+# ============================================================
+# SECTION 1: CLOCK AND CONTROL SIGNALS
+# ============================================================
+# These are the master timing and control signals for the CPU.
+
+wire clk;           # Master clock - everything happens on clock edges
+wire rst;           # Reset signal - when high, CPU resets to initial state
+wire halt;          # Halt signal - stops the CPU when HLT instruction runs
+
+# ============================================================
+# SECTION 2: PROGRAM COUNTER (PROVIDED - WORKING)
+# ============================================================
+# The PC holds the address of the NEXT instruction to fetch.
+# It starts at 0x00 and increments after each instruction.
+# Jump instructions can load a new value into PC.
+#
+# PC is 8 bits wide, allowing addresses 0x00 to 0xFF (256 locations)
+
+wire [7:0] pc;          # Current program counter value
+wire [7:0] pc_next;     # Next value for PC (computed combinationally)
+wire pc_load;           # When high, load pc_next into PC
+wire pc_inc;            # When high, increment PC by 1
+wire pc_inc2;           # When high, increment PC by 2 (2-byte instructions)
+
+# PC Register (8 D flip-flops with reset)
+# On reset: PC = 0x00
+# On clock edge: PC = pc_next
+dff PC0 (input: pc_next[0] clk rst, output: pc[0]);
+dff PC1 (input: pc_next[1] clk rst, output: pc[1]);
+dff PC2 (input: pc_next[2] clk rst, output: pc[2]);
+dff PC3 (input: pc_next[3] clk rst, output: pc[3]);
+dff PC4 (input: pc_next[4] clk rst, output: pc[4]);
+dff PC5 (input: pc_next[5] clk rst, output: pc[5]);
+dff PC6 (input: pc_next[6] clk rst, output: pc[6]);
+dff PC7 (input: pc_next[7] clk rst, output: pc[7]);
+
+# ============================================================
+# SECTION 3: ACCUMULATOR REGISTER (PROVIDED - WORKING)
+# ============================================================
+# The Accumulator (A) is your main working register.
+# All arithmetic operations use A as both source and destination.
+# Example: ADD loads mem[addr], computes A + mem[addr], stores in A
+#
+# A is 4 bits wide (this is a 4-bit CPU after all!)
+
+wire [3:0] acc;         # Current accumulator value
+wire [3:0] acc_next;    # Next value for accumulator
+wire acc_load;          # When high, load acc_next into accumulator
+
+# Accumulator Register (4 D flip-flops with reset)
+dff ACC0 (input: acc_next[0] clk rst, output: acc[0]);
+dff ACC1 (input: acc_next[1] clk rst, output: acc[1]);
+dff ACC2 (input: acc_next[2] clk rst, output: acc[2]);
+dff ACC3 (input: acc_next[3] clk rst, output: acc[3]);
+
+# ============================================================
+# SECTION 4: ZERO FLAG (PROVIDED - WORKING)
+# ============================================================
+# The Zero flag (Z) is set when an operation produces a zero result.
+# Used by JZ (Jump if Zero) for conditional branching.
+#
+# Z = 1 when accumulator contains 0000
+# Z = 0 otherwise
+
+wire z_flag;            # Current zero flag value
+wire z_flag_next;       # Next value for zero flag
+wire z_load;            # When high, update zero flag
+
+# Zero Flag Register (1 D flip-flop with reset)
+dff ZFLAG (input: z_flag_next clk rst, output: z_flag);
+
+# Zero detection logic: Z = 1 when acc == 0000
+# This is a NOR of all accumulator bits
+wire acc_or_01, acc_or_23, acc_or_all;
+or  Z_OR01 (input: acc[0] acc[1], output: acc_or_01);
+or  Z_OR23 (input: acc[2] acc[3], output: acc_or_23);
+or  Z_OR_ALL (input: acc_or_01 acc_or_23, output: acc_or_all);
+not Z_NOT (input: acc_or_all, output: z_flag_next);
+
+# ============================================================
+# SECTION 5: INSTRUCTION REGISTER (PROVIDED - WORKING)
+# ============================================================
+# The IR holds the current instruction being executed.
+# Format: [OPCODE 7:4][OPERAND 3:0]
+#   - Upper nibble (bits 7-4): opcode (which instruction)
+#   - Lower nibble (bits 3-0): immediate operand (for LDI)
+#
+# For 2-byte instructions (LDA, STA, ADD, SUB, JMP, JZ),
+# the full 8-bit address comes from the next byte in memory.
+
+wire [7:0] ir;          # Instruction register
+wire ir_load;           # When high, load new instruction
+
+# Instruction Register (8 D flip-flops)
+dff IR0 (input: ir_next[0] clk rst, output: ir[0]);
+dff IR1 (input: ir_next[1] clk rst, output: ir[1]);
+dff IR2 (input: ir_next[2] clk rst, output: ir[2]);
+dff IR3 (input: ir_next[3] clk rst, output: ir[3]);
+dff IR4 (input: ir_next[4] clk rst, output: ir[4]);
+dff IR5 (input: ir_next[5] clk rst, output: ir[5]);
+dff IR6 (input: ir_next[6] clk rst, output: ir[6]);
+dff IR7 (input: ir_next[7] clk rst, output: ir[7]);
+
+wire [7:0] ir_next;     # Next value for IR (from memory)
+
+# ============================================================
+# SECTION 6: MEMORY INTERFACE (PROVIDED - WORKING)
+# ============================================================
+# Memory Address Register (MAR): holds address for memory access
+# Memory Data Register (MDR): holds data to/from memory
+#
+# To READ memory:
+#   1. Put address in MAR
+#   2. Assert mem_read
+#   3. MDR receives data from memory
+#
+# To WRITE memory:
+#   1. Put address in MAR
+#   2. Put data in MDR (from accumulator)
+#   3. Assert mem_write
+
+wire [7:0] mar;         # Memory address register
+wire mar_load;          # When high, load address into MAR
+wire [3:0] mdr;         # Memory data register
+wire mdr_load;          # When high, load data into MDR
+
+# Memory control signals
+wire mem_read;          # Assert to read from memory
+wire mem_write;         # Assert to write to memory
+
+# External memory interface
+wire [7:0] mem_addr;    # Address bus to memory
+wire [3:0] mem_data_in; # Data bus from memory (read)
+wire [3:0] mem_data_out;# Data bus to memory (write)
+
+# MAR Register (8 D flip-flops)
+dff MAR0 (input: mar_next[0] clk rst, output: mar[0]);
+dff MAR1 (input: mar_next[1] clk rst, output: mar[1]);
+dff MAR2 (input: mar_next[2] clk rst, output: mar[2]);
+dff MAR3 (input: mar_next[3] clk rst, output: mar[3]);
+dff MAR4 (input: mar_next[4] clk rst, output: mar[4]);
+dff MAR5 (input: mar_next[5] clk rst, output: mar[5]);
+dff MAR6 (input: mar_next[6] clk rst, output: mar[6]);
+dff MAR7 (input: mar_next[7] clk rst, output: mar[7]);
+
+wire [7:0] mar_next;    # Next value for MAR
+
+# MDR Register (4 D flip-flops)
+dff MDR0 (input: mdr_next[0] clk rst, output: mdr[0]);
+dff MDR1 (input: mdr_next[1] clk rst, output: mdr[1]);
+dff MDR2 (input: mdr_next[2] clk rst, output: mdr[2]);
+dff MDR3 (input: mdr_next[3] clk rst, output: mdr[3]);
+
+wire [3:0] mdr_next;    # Next value for MDR
+
+# Connect MAR to memory address bus
+buf MEM_ADDR0 (input: mar[0], output: mem_addr[0]);
+buf MEM_ADDR1 (input: mar[1], output: mem_addr[1]);
+buf MEM_ADDR2 (input: mar[2], output: mem_addr[2]);
+buf MEM_ADDR3 (input: mar[3], output: mem_addr[3]);
+buf MEM_ADDR4 (input: mar[4], output: mem_addr[4]);
+buf MEM_ADDR5 (input: mar[5], output: mem_addr[5]);
+buf MEM_ADDR6 (input: mar[6], output: mem_addr[6]);
+buf MEM_ADDR7 (input: mar[7], output: mem_addr[7]);
+
+# Connect accumulator to memory data output (for STA instruction)
+buf MEM_DOUT0 (input: acc[0], output: mem_data_out[0]);
+buf MEM_DOUT1 (input: acc[1], output: mem_data_out[1]);
+buf MEM_DOUT2 (input: acc[2], output: mem_data_out[2]);
+buf MEM_DOUT3 (input: acc[3], output: mem_data_out[3]);
+
+# ============================================================
+# SECTION 7: INSTRUCTION DECODER (PROVIDED - WORKING)
+# ============================================================
+# The decoder extracts the opcode from IR[7:4] and generates
+# individual instruction signals (is_hlt, is_lda, etc.)
+#
+# Opcodes:
+#   0000 (0x0) = HLT    0100 (0x4) = SUB
+#   0001 (0x1) = LDA    0101 (0x5) = JMP
+#   0010 (0x2) = STA    0110 (0x6) = JZ
+#   0011 (0x3) = ADD    0111 (0x7) = LDI
+
+wire [3:0] opcode;      # Extracted opcode from IR[7:4]
+wire is_hlt;            # Decoded: is this HLT instruction?
+wire is_lda;            # Decoded: is this LDA instruction?
+wire is_sta;            # Decoded: is this STA instruction?
+wire is_add;            # Decoded: is this ADD instruction?
+wire is_sub;            # Decoded: is this SUB instruction?
+wire is_jmp;            # Decoded: is this JMP instruction?
+wire is_jz;             # Decoded: is this JZ instruction?
+wire is_ldi;            # Decoded: is this LDI instruction?
+
+# Extract opcode from IR upper nibble
+buf DEC_OP0 (input: ir[4], output: opcode[0]);
+buf DEC_OP1 (input: ir[5], output: opcode[1]);
+buf DEC_OP2 (input: ir[6], output: opcode[2]);
+buf DEC_OP3 (input: ir[7], output: opcode[3]);
+
+# Inverted opcode bits (needed for decoding)
+wire op0n, op1n, op2n, op3n;
+not DEC_NOT0 (input: opcode[0], output: op0n);
+not DEC_NOT1 (input: opcode[1], output: op1n);
+not DEC_NOT2 (input: opcode[2], output: op2n);
+not DEC_NOT3 (input: opcode[3], output: op3n);
+
+# HLT = 0000: !op3 & !op2 & !op1 & !op0
+wire hlt_t1, hlt_t2;
+and DEC_HLT1 (input: op3n op2n, output: hlt_t1);
+and DEC_HLT2 (input: op1n op0n, output: hlt_t2);
+and DEC_HLT3 (input: hlt_t1 hlt_t2, output: is_hlt);
+
+# LDA = 0001: !op3 & !op2 & !op1 & op0
+wire lda_t;
+and DEC_LDA1 (input: hlt_t1 op1n, output: lda_t);
+and DEC_LDA2 (input: lda_t opcode[0], output: is_lda);
+
+# STA = 0010: !op3 & !op2 & op1 & !op0
+wire sta_t1, sta_t2;
+and DEC_STA1 (input: op3n op2n, output: sta_t1);
+and DEC_STA2 (input: opcode[1] op0n, output: sta_t2);
+and DEC_STA3 (input: sta_t1 sta_t2, output: is_sta);
+
+# ADD = 0011: !op3 & !op2 & op1 & op0
+wire add_t;
+and DEC_ADD1 (input: opcode[1] opcode[0], output: add_t);
+and DEC_ADD2 (input: sta_t1 add_t, output: is_add);
+
+# SUB = 0100: !op3 & op2 & !op1 & !op0
+wire sub_t1, sub_t2;
+and DEC_SUB1 (input: op3n opcode[2], output: sub_t1);
+and DEC_SUB2 (input: op1n op0n, output: sub_t2);
+and DEC_SUB3 (input: sub_t1 sub_t2, output: is_sub);
+
+# JMP = 0101: !op3 & op2 & !op1 & op0
+wire jmp_t;
+and DEC_JMP1 (input: op1n opcode[0], output: jmp_t);
+and DEC_JMP2 (input: sub_t1 jmp_t, output: is_jmp);
+
+# JZ = 0110: !op3 & op2 & op1 & !op0
+wire jz_t;
+and DEC_JZ1 (input: opcode[1] op0n, output: jz_t);
+and DEC_JZ2 (input: sub_t1 jz_t, output: is_jz);
+
+# LDI = 0111: !op3 & op2 & op1 & op0
+wire ldi_t;
+and DEC_LDI1 (input: opcode[1] opcode[0], output: ldi_t);
+and DEC_LDI2 (input: sub_t1 ldi_t, output: is_ldi);
+
+# ============================================================
+# SECTION 8: CONTROL UNIT STATE MACHINE (PROVIDED - BASIC)
+# ============================================================
+# The control unit sequences through states to execute instructions.
+# Each instruction takes multiple clock cycles.
+#
+# Basic states:
+#   S0 = FETCH: Get instruction from memory at PC
+#   S1 = DECODE: Figure out what instruction it is
+#   S2 = EXECUTE: Do the operation
+#   S3-S7 = Additional states for multi-cycle operations
+
+wire [2:0] state;       # Current state (0-7)
+wire [2:0] state_next;  # Next state
+
+# State register (3 D flip-flops)
+dff STATE0 (input: state_next[0] clk rst, output: state[0]);
+dff STATE1 (input: state_next[1] clk rst, output: state[1]);
+dff STATE2 (input: state_next[2] clk rst, output: state[2]);
+
+# ============================================================
+# SECTION 9: ALU - ARITHMETIC LOGIC UNIT
+# ============================================================
+#
+# !!! TODO: THIS IS YOUR MAIN TASK !!!
+#
+# The ALU performs arithmetic and logic operations.
+# Currently it just passes input A through unchanged.
+#
+# ALU Inputs:
+#   alu_a_in[3:0] = First operand (from accumulator)
+#   alu_b_in[3:0] = Second operand (from memory via MDR)
+#   alu_op[1:0]   = Operation select:
+#                   00 = PASS (just output A, used for loads)
+#                   01 = ADD  (A + B)
+#                   10 = SUB  (A - B)
+#                   11 = reserved (use for AND/OR/XOR challenge!)
+#
+# ALU Outputs:
+#   alu_result[3:0] = Result of operation
+#   alu_zero        = 1 if result is 0000
+#   alu_carry       = Carry/borrow output (for multi-precision math)
+
+wire [3:0] alu_a_in;    # ALU input A (from accumulator)
+wire [3:0] alu_b_in;    # ALU input B (from MDR)
+wire [1:0] alu_op;      # ALU operation select
+wire [3:0] alu_result;  # ALU result
+wire alu_zero;          # Zero flag output
+wire alu_carry;         # Carry flag output
+
+# Connect accumulator to ALU input A
+buf ALU_A0 (input: acc[0], output: alu_a_in[0]);
+buf ALU_A1 (input: acc[1], output: alu_a_in[1]);
+buf ALU_A2 (input: acc[2], output: alu_a_in[2]);
+buf ALU_A3 (input: acc[3], output: alu_a_in[3]);
+
+# Connect MDR to ALU input B
+buf ALU_B0 (input: mdr[0], output: alu_b_in[0]);
+buf ALU_B1 (input: mdr[1], output: alu_b_in[1]);
+buf ALU_B2 (input: mdr[2], output: alu_b_in[2]);
+buf ALU_B3 (input: mdr[3], output: alu_b_in[3]);
+
+# ALU operation select from instruction decoder
+# is_sub sets alu_op[1], is_add sets alu_op[0]
+buf ALU_OP0 (input: is_add, output: alu_op[0]);
+buf ALU_OP1 (input: is_sub, output: alu_op[1]);
+
+# ---------------------------------------------------------
+# TODO: IMPLEMENT THE ALU
+# ---------------------------------------------------------
+# Current implementation: ALU just passes A through (no-op)
+# This means LDA and LDI work, but ADD and SUB don't!
+#
+# Your task: Replace this pass-through with actual arithmetic.
+#
+# HINT 1: Start with a half-adder for single-bit addition
+#         sum = a XOR b
+#         carry = a AND b
+#
+# HINT 2: Chain half-adders into a full adder
+#         Full adder adds three bits: a, b, carry_in
+#         sum = a XOR b XOR carry_in
+#         carry_out = (a AND b) OR (carry_in AND (a XOR b))
+#
+# HINT 3: For subtraction, use two's complement
+#         A - B = A + (~B) + 1
+#         Invert B and set carry_in to 1
+#
+# HINT 4: See hdl/03_alu.m4hdl for a complete ALU reference!
+
+# PLACEHOLDER: ALU just passes A through (makes LDA/LDI work)
+# DELETE THIS and implement real arithmetic!
+buf ALU_PASS0 (input: alu_a_in[0], output: alu_result[0]);
+buf ALU_PASS1 (input: alu_a_in[1], output: alu_result[1]);
+buf ALU_PASS2 (input: alu_a_in[2], output: alu_result[2]);
+buf ALU_PASS3 (input: alu_a_in[3], output: alu_result[3]);
+
+# PLACEHOLDER: Carry is always 0 (needs real implementation)
+# wire const_zero;
+# buf ALU_CARRY_PLACEHOLDER (input: const_zero, output: alu_carry);
+
+# Zero detection for ALU result
+wire alu_or_01, alu_or_23, alu_or_all;
+or ALU_Z_OR01 (input: alu_result[0] alu_result[1], output: alu_or_01);
+or ALU_Z_OR23 (input: alu_result[2] alu_result[3], output: alu_or_23);
+or ALU_Z_OR_ALL (input: alu_or_01 alu_or_23, output: alu_or_all);
+not ALU_Z_NOT (input: alu_or_all, output: alu_zero);
+
+# ---------------------------------------------------------
+# END TODO: ALU IMPLEMENTATION
+# ---------------------------------------------------------
+
+# ============================================================
+# SECTION 10: CONDITIONAL JUMP LOGIC
+# ============================================================
+#
+# !!! TODO: COMPLETE THE JZ (JUMP IF ZERO) LOGIC !!!
+#
+# JZ should jump to the target address ONLY if the zero flag is set.
+# Currently, JZ is wired the same as JMP (always jumps).
+#
+# Your task: Make JZ conditional on the zero flag.
+#
+# HINT: Use an AND gate
+#       take_jz = is_jz AND z_flag
+#       The PC should load the new address only when take_jz is true.
+
+wire take_jump;         # Should we take this jump?
+
+# JMP always jumps
+# JZ should only jump if z_flag is set
+
+# PLACEHOLDER: Currently JZ always jumps (incorrect!)
+# TODO: Fix this so JZ only jumps when z_flag == 1
+wire jz_taken;
+and JZ_COND (input: is_jz z_flag, output: jz_taken);  # JZ: only if zero
+
+# Combine jump signals: take jump if JMP or (JZ and zero flag)
+or TAKE_JUMP (input: is_jmp jz_taken, output: take_jump);
+
+# ============================================================
+# SECTION 11: CONTROL SIGNAL GENERATION (PROVIDED - BASIC)
+# ============================================================
+# These signals control data flow through the CPU.
+# They're generated based on the current state and instruction.
+
+wire alu_to_acc;        # Route ALU result to accumulator
+wire mdr_to_acc;        # Route MDR to accumulator (for LDA)
+wire imm_to_acc;        # Route immediate to accumulator (for LDI)
+
+# ============================================================
+# COMPONENT COUNT SUMMARY
+# ============================================================
+#
+# Registers (provided):
+#   PC (8-bit):        8 DFFs
+#   Accumulator:       4 DFFs
+#   Zero Flag:         1 DFF
+#   IR (8-bit):        8 DFFs
+#   MAR (8-bit):       8 DFFs
+#   MDR (4-bit):       4 DFFs
+#   State (3-bit):     3 DFFs
+#   --------------------------
+#   Total:            36 DFFs
+#
+# Decoder (provided): ~50 gates
+#
+# ALU (TODO):         ~50-100 gates (your implementation!)
+#
+# Control Logic:      ~100 gates
+#
+# Estimated total when complete: ~400-500 gates
+# (Compare to Intel 4004: ~2,300 transistors)
+
+# ============================================================
+# HOMEWORK CHALLENGES (after completing basic ALU)
+# ============================================================
+#
+# Challenge 1: Add AND operation (opcode 0x8)
+#   result[i] = a[i] AND b[i]
+#
+# Challenge 2: Add OR operation (opcode 0x9)
+#   result[i] = a[i] OR b[i]
+#
+# Challenge 3: Add XOR operation (opcode 0xA)
+#   result[i] = a[i] XOR b[i]
+#
+# Challenge 4: Add INC operation (A = A + 1, opcode 0xB)
+#   Hint: Set B = 0001 internally
+#
+# Challenge 5: Add DEC operation (A = A - 1, opcode 0xC)
+#   Hint: Set B = 0001 internally, use subtraction
+#
+# Challenge 6: Add JNZ (Jump if Not Zero, opcode 0xD)
+#   Hint: take_jnz = is_jnz AND NOT(z_flag)
+#
+# Challenge 7: Add CMP operation (compare without storing, opcode 0xE)
+#   Hint: Do subtraction but don't write result to A, only set flags
+#
+# See hdl/04_micro4_cpu.m4hdl for reference implementations!

@@ -1,0 +1,241 @@
+{
+  "plan_id": "edu-platform-2026-01-14",
+  "goal": "Transform CPU project into comprehensive educational platform",
+  "status": "pending",
+  "created": "2026-01-14",
+  "sprints": [
+    {
+      "id": "sprint1-visualizer",
+      "name": "Visualizer Core",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "vis-core-engine",
+          "name": "Core simulation engine",
+          "file": "visualizer/modules/core-engine.js",
+          "prompt": ".claude/prompts/vis-core-engine.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "vis-gate-view",
+          "name": "Gate-level animation",
+          "file": "visualizer/modules/gate-view.js",
+          "prompt": ".claude/prompts/vis-gate-view.md",
+          "status": "pending",
+          "depends_on": ["vis-core-engine"]
+        },
+        {
+          "id": "vis-cpu-state",
+          "name": "CPU state viewer",
+          "file": "visualizer/modules/cpu-state-view.js",
+          "prompt": ".claude/prompts/vis-cpu-state.md",
+          "status": "pending",
+          "depends_on": ["vis-core-engine"]
+        },
+        {
+          "id": "vis-debugger",
+          "name": "Step debugger",
+          "file": "visualizer/modules/debugger-view.js",
+          "prompt": ".claude/prompts/vis-debugger.md",
+          "status": "pending",
+          "depends_on": ["vis-core-engine"]
+        }
+      ]
+    },
+    {
+      "id": "sprint2-micro4-edu",
+      "name": "Micro4 Educational",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "m4-starter-hdl",
+          "name": "Micro4 starter HDL",
+          "file": "templates/micro4/hdl/starter.m4hdl",
+          "prompt": ".claude/prompts/m4-starter-hdl.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m4-hints",
+          "name": "Micro4 hints",
+          "file": "templates/micro4/hints/",
+          "prompt": ".claude/prompts/m4-hints.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m4-homework",
+          "name": "Micro4 homework",
+          "file": "homework/micro4/",
+          "prompt": ".claude/prompts/m4-homework.md",
+          "status": "pending",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "sprint3-micro8-edu",
+      "name": "Micro8 Educational",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "m8-starter-hdl",
+          "name": "Micro8 starter HDL",
+          "file": "templates/micro8/hdl/starter.m4hdl",
+          "prompt": ".claude/prompts/m8-starter-hdl.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m8-hints",
+          "name": "Micro8 hints",
+          "file": "templates/micro8/hints/",
+          "prompt": ".claude/prompts/m8-hints.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m8-homework",
+          "name": "Micro8 homework",
+          "file": "homework/micro8/",
+          "prompt": ".claude/prompts/m8-homework.md",
+          "status": "pending",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "sprint4-micro16",
+      "name": "Micro16 Completion",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "m16-disasm",
+          "name": "Micro16 disassembler",
+          "file": "src/micro16/disasm.c",
+          "prompt": ".claude/prompts/m16-disasm.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m16-debugger",
+          "name": "Micro16 debugger",
+          "file": "src/micro16/debugger.c",
+          "prompt": ".claude/prompts/m16-debugger.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m16-templates",
+          "name": "Micro16 templates",
+          "file": "templates/micro16/",
+          "prompt": ".claude/prompts/m16-templates.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m16-homework",
+          "name": "Micro16 homework",
+          "file": "homework/micro16/",
+          "prompt": ".claude/prompts/m16-homework.md",
+          "status": "pending",
+          "depends_on": []
+        }
+      ]
+    },
+    {
+      "id": "sprint5-micro32",
+      "name": "Micro32 New Stage",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "m32-isa",
+          "name": "Micro32 ISA spec",
+          "file": "docs/micro32_isa.md",
+          "prompt": ".claude/prompts/m32-isa.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "m32-cpu",
+          "name": "Micro32 CPU emulator",
+          "file": "src/micro32/cpu.c",
+          "prompt": ".claude/prompts/m32-cpu.md",
+          "status": "pending",
+          "depends_on": ["m32-isa"]
+        },
+        {
+          "id": "m32-asm",
+          "name": "Micro32 assembler",
+          "file": "src/micro32/assembler.c",
+          "prompt": ".claude/prompts/m32-asm.md",
+          "status": "pending",
+          "depends_on": ["m32-isa"]
+        },
+        {
+          "id": "m32-hdl",
+          "name": "Micro32 HDL",
+          "file": "hdl/07_micro32_cpu.m4hdl",
+          "prompt": ".claude/prompts/m32-hdl.md",
+          "status": "pending",
+          "depends_on": ["m32-isa"]
+        }
+      ]
+    },
+    {
+      "id": "sprint6-advanced",
+      "name": "Advanced Stages",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "m32p-full",
+          "name": "Micro32-P pipelined CPU",
+          "file": "src/micro32p/",
+          "prompt": ".claude/prompts/m32p-full.md",
+          "status": "pending",
+          "depends_on": ["m32-cpu"]
+        },
+        {
+          "id": "m32s-full",
+          "name": "Micro32-S superscalar CPU",
+          "file": "src/micro32s/",
+          "prompt": ".claude/prompts/m32s-full.md",
+          "status": "pending",
+          "depends_on": ["m32p-full"]
+        }
+      ]
+    },
+    {
+      "id": "sprint7-literature",
+      "name": "Literature Articles",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "lit-basics",
+          "name": "Basic concepts (01-06)",
+          "file": "literature/",
+          "prompt": ".claude/prompts/lit-basics.md",
+          "status": "pending",
+          "depends_on": []
+        },
+        {
+          "id": "lit-intermediate",
+          "name": "Intermediate concepts (07-12)",
+          "file": "literature/",
+          "prompt": ".claude/prompts/lit-intermediate.md",
+          "status": "pending",
+          "depends_on": ["lit-basics"]
+        },
+        {
+          "id": "lit-advanced",
+          "name": "Advanced concepts (13-20)",
+          "file": "literature/",
+          "prompt": ".claude/prompts/lit-advanced.md",
+          "status": "pending",
+          "depends_on": ["lit-intermediate"]
+        }
+      ]
+    }
+  ]
+}

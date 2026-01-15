@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git worktree*)",
+      "Bash(claude -p*)",
+      "Bash(npm install*)",
+      "Bash(yarn*)",
+      "Bash(tail -f*)",
+      "Bash(ps aux*)",
+      "Bash(mkdir -p*)",
+      "Bash(.claude/skills/parallel-executor/*.sh*)"
+    ]
+  },
+ "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📁 Worktree created. Remember: npm install in new worktree before running Claude.'"
+          }
+        ]
+      }
+    ]
+  }
+}

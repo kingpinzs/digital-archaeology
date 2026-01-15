@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU State Viewer - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: #0d0d1a;
+            color: #eee;
+            min-height: 100vh;
+        }
+        header {
+            background: #16213e;
+            padding: 15px 20px;
+            border-bottom: 2px solid #e94560;
+        }
+        h1 {
+            color: #e94560;
+            font-size: 1.3em;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+        .control-panel {
+            width: 250px;
+            background: #16213e;
+            padding: 15px;
+            border-right: 2px solid #0f3460;
+        }
+        .control-section {
+            margin-bottom: 20px;
+        }
+        .control-section h3 {
+            color: #e94560;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 5px;
+        }
+        .cpu-viewer-container {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            max-width: 400px;
+        }
+        .demo-output {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            margin: 3px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        button.active {
+            background: #e94560;
+        }
+        select {
+            background: #1a1a2e;
+            color: #eee;
+            border: 1px solid #0f3460;
+            padding: 6px 10px;
+            border-radius: 4px;
+            width: 100%;
+            font-family: inherit;
+            margin-bottom: 10px;
+        }
+        .event-log {
+            background: #0a0a12;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .event-log-item {
+            padding: 4px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        .event-log-item.watchpoint {
+            color: #ffaa00;
+        }
+        .event-log-item.stateUpdate {
+            color: #00ff00;
+        }
+        .event-log-item.memoryNavigate {
+            color: #0077b6;
+        }
+        .reg-control {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+            align-items: center;
+        }
+        .reg-control label {
+            width: 40px;
+            color: #888;
+            font-size: 11px;
+        }
+        .reg-control input {
+            flex: 1;
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            color: #00ff00;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CPU State Viewer - Demo</h1>
+        <div class="subtitle">Interactive demonstration of the CPU State Viewer module</div>
+    </header>
+
+    <div class="main-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-section">
+                <h3>CPU Type</h3>
+                <select id="cpuTypeSelect" onchange="changeCPUType()">
+                    <option value="MICRO4">Micro4 (4-bit)</option>
+                    <option value="MICRO8" selected>Micro8 (8-bit)</option>
+                    <option value="MICRO16">Micro16 (16-bit)</option>
+                    <option value="MICRO32">Micro32 (32-bit)</option>
+                </select>
+            </div>
+
+            <div class="control-section">
+                <h3>Simulation</h3>
+                <button onclick="stepSimulation()">Step</button>
+                <button onclick="resetSimulation()">Reset</button>
+                <button onclick="randomizeState()">Randomize</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Set Register Values</h3>
+                <div id="regControls"></div>
+            </div>
+
+            <div class="control-section">
+                <h3>Set Flags</h3>
+                <div id="flagControls"></div>
+            </div>
+
+            <div class="control-section">
+                <h3>Watchpoints</h3>
+                <button onclick="clearWatchpoints()">Clear All</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Export</h3>
+                <button onclick="exportState()">Export JSON</button>
+            </div>
+        </div>
+
+        <!-- CPU Viewer -->
+        <div class="cpu-viewer-container">
+            <div id="cpuStateViewer"></div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="demo-output">
+            <div class="control-section">
+                <h3>Event Log</h3>
+                <button onclick="clearLog()">Clear Log</button>
+            </div>
+            <div id="eventLog" class="event-log">
+                <div class="event-log-item">Ready. Select a CPU type and use the controls to test.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load CPU State Viewer module -->
+    <script src="modules/cpu-state-view.js"></script>
+
+    <script>
+        // Get module exports
+        const { CPUStateView, CPUArchitectures } = window;
+
+        // Global state
+        let cpuView = null;
+        let currentState = null;
+        let stepCount = 0;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initViewer();
+        });
+
+        function initViewer() {
+            // Create viewer
+            cpuView = new CPUStateView('cpuStateViewer', {
+                memoryViewRows: 16,
+                highlightDuration: 500
+            });
+
+            // Subscribe to events
+            cpuView.on('watchpointSet', function(data) {
+                logEvent('watchpointSet', 'Watchpoint ' + (data.active ? 'SET' : 'CLEARED') + ': ' + data.type + ':' + data.name);
+            });
+
+            cpuView.on('watchpointTriggered', function(data) {
+                logEvent('watchpoint', 'TRIGGERED: ' + data.type + ':' + data.name + ' changed from ' + data.oldValue + ' to ' + data.newValue);
+            });
+
+            cpuView.on('memoryNavigate', function(addr) {
+                logEvent('memoryNavigate', 'Navigate to address: 0x' + addr.toString(16).toUpperCase());
+            });
+
+            cpuView.on('stateUpdate', function(state) {
+                logEvent('stateUpdate', 'State updated (step ' + stepCount + ')');
+            });
+
+            // Initialize with default CPU type
+            changeCPUType();
+        }
+
+        function changeCPUType() {
+            var cpuType = document.getElementById('cpuTypeSelect').value;
+            cpuView.setArchitecture(cpuType);
+
+            // Create initial state for this CPU type
+            currentState = createInitialState(cpuType);
+            cpuView.update(currentState);
+
+            // Update controls
+            updateRegControls(cpuType);
+            updateFlagControls(cpuType);
+
+            stepCount = 0;
+            logEvent('info', 'CPU type changed to: ' + cpuType);
+        }
+
+        function createInitialState(cpuType) {
+            var arch = CPUArchitectures[cpuType];
+            var state = {
+                cpuType: cpuType,
+                registers: {},
+                segments: {},
+                flags: 0,
+                pc: arch.name === 'Micro4' ? 0 : 0x0200,
+                sp: arch.hasStack ? 0xFFFF : undefined,
+                memory: new Array(256).fill(0),
+                cycles: 0,
+                instructions: 0,
+                currentInstruction: null
+            };
+
+            // Initialize registers to 0
+            for (var i = 0; i < arch.registers.length; i++) {
+                state.registers[arch.registers[i].name] = 0;
+            }
+
+            // Initialize segment registers if applicable
+            if (arch.segmentRegisters) {
+                for (var i = 0; i < arch.segmentRegisters.length; i++) {
+                    state.segments[arch.segmentRegisters[i].name] = 0;
+                }
+            }
+
+            // Put some sample data in memory
+            for (var i = 0; i < 256; i++) {
+                state.memory[i] = i;
+            }
+
+            return state;
+        }
+
+        function stepSimulation() {
+            if (!currentState) return;
+
+            stepCount++;
+
+            // Simulate some changes
+            var arch = CPUArchitectures[currentState.cpuType];
+
+            // Increment PC
+            currentState.pc = (currentState.pc + 1) & ((1 << arch.addressBits) - 1);
+
+            // Randomly modify a register
+            var regNames = arch.registers.map(function(r) { return r.name; });
+            var randomReg = regNames[Math.floor(Math.random() * regNames.length)];
+            var regBits = arch.registers.find(function(r) { return r.name === randomReg; }).bits;
+            currentState.registers[randomReg] = Math.floor(Math.random() * (1 << regBits));
+
+            // Maybe toggle a flag
+            if (Math.random() > 0.5) {
+                var randomFlag = arch.flags[Math.floor(Math.random() * arch.flags.length)];
+                currentState.flags ^= (1 << randomFlag.bit);
+            }
+
+            // Update cycles and instructions
+            currentState.cycles += Math.floor(Math.random() * 4) + 1;
+            currentState.instructions++;
+
+            // Create a fake instruction
+            currentState.currentInstruction = {
+                address: currentState.pc - 1,
+                opcode: Math.floor(Math.random() * 256),
+                operand: Math.floor(Math.random() * 256),
+                mnemonic: ['NOP', 'LD', 'ST', 'ADD', 'SUB', 'JMP', 'JZ', 'CALL'][Math.floor(Math.random() * 8)],
+                operandStr: 'R' + Math.floor(Math.random() * 8)
+            };
+
+            cpuView.update(currentState);
+        }
+
+        function resetSimulation() {
+            var cpuType = document.getElementById('cpuTypeSelect').value;
+            currentState = createInitialState(cpuType);
+            stepCount = 0;
+            cpuView.update(currentState);
+            logEvent('info', 'Simulation reset');
+        }
+
+        function randomizeState() {
+            if (!currentState) return;
+
+            var arch = CPUArchitectures[currentState.cpuType];
+
+            // Randomize all registers
+            for (var i = 0; i < arch.registers.length; i++) {
+                var reg = arch.registers[i];
+                currentState.registers[reg.name] = Math.floor(Math.random() * (1 << reg.bits));
+            }
+
+            // Randomize flags
+            currentState.flags = Math.floor(Math.random() * 256);
+
+            // Randomize PC and SP
+            currentState.pc = Math.floor(Math.random() * (1 << Math.min(arch.addressBits, 16)));
+            if (arch.hasStack) {
+                currentState.sp = Math.floor(Math.random() * 65536);
+            }
+
+            // Randomize some memory
+            for (var i = 0; i < 256; i++) {
+                currentState.memory[i] = Math.floor(Math.random() * 256);
+            }
+
+            stepCount++;
+            cpuView.update(currentState);
+            logEvent('info', 'State randomized');
+        }
+
+        function updateRegControls(cpuType) {
+            var container = document.getElementById('regControls');
+            // Clear existing
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            var arch = CPUArchitectures[cpuType];
+            for (var i = 0; i < Math.min(arch.registers.length, 4); i++) {
+                var reg = arch.registers[i];
+                var div = document.createElement('div');
+                div.className = 'reg-control';
+
+                var label = document.createElement('label');
+                label.textContent = reg.name + ':';
+                div.appendChild(label);
+
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.value = '0x00';
+                input.dataset.reg = reg.name;
+                input.addEventListener('change', function() {
+                    setRegisterValue(this.dataset.reg, this.value);
+                });
+                div.appendChild(input);
+
+                container.appendChild(div);
+            }
+        }
+
+        function updateFlagControls(cpuType) {
+            var container = document.getElementById('flagControls');
+            // Clear existing
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            var arch = CPUArchitectures[cpuType];
+            for (var i = 0; i < arch.flags.length; i++) {
+                var flag = arch.flags[i];
+                var btn = document.createElement('button');
+                btn.textContent = flag.name;
+                btn.dataset.flag = flag.name;
+                btn.dataset.bit = flag.bit;
+                btn.addEventListener('click', function() {
+                    toggleFlag(parseInt(this.dataset.bit));
+                });
+                container.appendChild(btn);
+            }
+        }
+
+        function setRegisterValue(regName, value) {
+            if (!currentState) return;
+
+            var parsedValue;
+            if (value.startsWith('0x') || value.startsWith('0X')) {
+                parsedValue = parseInt(value, 16);
+            } else {
+                parsedValue = parseInt(value);
+            }
+
+            if (isNaN(parsedValue)) parsedValue = 0;
+
+            currentState.registers[regName] = parsedValue;
+            cpuView.update(currentState);
+            logEvent('info', 'Set ' + regName + ' = 0x' + parsedValue.toString(16).toUpperCase());
+        }
+
+        function toggleFlag(bit) {
+            if (!currentState) return;
+
+            currentState.flags ^= (1 << bit);
+            cpuView.update(currentState);
+            logEvent('info', 'Toggled flag bit ' + bit);
+        }
+
+        function clearWatchpoints() {
+            cpuView.clearWatchpoints();
+            logEvent('info', 'All watchpoints cleared');
+        }
+
+        function exportState() {
+            var json = cpuView.toJSON();
+            console.log('Exported state:', json);
+            logEvent('info', 'State exported to console (see browser dev tools)');
+        }
+
+        function logEvent(type, message) {
+            var log = document.getElementById('eventLog');
+            var item = document.createElement('div');
+            item.className = 'event-log-item ' + type;
+
+            var timestamp = new Date().toLocaleTimeString();
+            item.textContent = '[' + timestamp + '] ' + message;
+
+            log.insertBefore(item, log.firstChild);
+
+            // Limit log size
+            while (log.children.length > 100) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        function clearLog() {
+            var log = document.getElementById('eventLog');
+            while (log.firstChild) {
+                log.removeChild(log.firstChild);
+            }
+            var item = document.createElement('div');
+            item.className = 'event-log-item';
+            item.textContent = 'Log cleared.';
+            log.appendChild(item);
+        }
+    </script>
+</body>
+</html>

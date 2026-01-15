@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step Debugger Demo - Digital Archaeology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #16213e;
+            padding: 15px 20px;
+            border-bottom: 2px solid #0f3460;
+        }
+        h1 {
+            font-size: 1.4em;
+            color: #e94560;
+        }
+        .subtitle {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 4px;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .debugger-panel {
+            width: 320px;
+            background: #16213e;
+            padding: 15px;
+            border-right: 2px solid #0f3460;
+            overflow-y: auto;
+        }
+        .circuit-panel {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+        }
+        .circuit-view {
+            background: #0d0d1a;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+        }
+        .circuit-view h3 {
+            color: #e94560;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .wire-states {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .wire-item {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .wire-name {
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .wire-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .wire-value.high { color: #00ff00; }
+        .wire-value.low { color: #0088dd; }
+        .wire-value.unknown { color: #666; }
+
+        .keyboard-hints {
+            background: #0d0d1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 11px;
+        }
+        .keyboard-hints h4 {
+            color: #e94560;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .keyboard-hint {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .keyboard-key {
+            background: #0f3460;
+            padding: 2px 8px;
+            border-radius: 3px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .console-output {
+            background: #0d0d1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .console-output h4 {
+            color: #e94560;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .console-line {
+            color: #aaa;
+            margin-bottom: 2px;
+        }
+        .console-line.info { color: #0088dd; }
+        .console-line.warn { color: #ff9900; }
+        .console-line.error { color: #e94560; }
+        .console-line.breakpoint { color: #e94560; font-weight: bold; }
+
+        .bp-controls {
+            background: #0d0d1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .bp-controls h4 {
+            color: #e94560;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .bp-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .bp-form select, .bp-form input {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            color: #eee;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .bp-form input {
+            width: 80px;
+        }
+        .bp-form button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .bp-form button:hover {
+            background: #e94560;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Step Debugger Demo</h1>
+        <div class="subtitle">Testing debugger-view.js module with SimEngine</div>
+    </header>
+
+    <div class="main-container">
+        <div class="debugger-panel">
+            <div id="debugger-container"></div>
+
+            <div class="keyboard-hints">
+                <h4>Keyboard Shortcuts</h4>
+                <div class="keyboard-hint"><span class="keyboard-key">Space</span> Step</div>
+                <div class="keyboard-hint"><span class="keyboard-key">R</span> Run/Pause</div>
+                <div class="keyboard-hint"><span class="keyboard-key">P</span> Pause</div>
+                <div class="keyboard-hint"><span class="keyboard-key">Esc</span> Reset</div>
+            </div>
+
+            <div class="bp-controls">
+                <h4>Add Breakpoint</h4>
+                <div class="bp-form">
+                    <select id="bp-type">
+                        <option value="cycle">Cycle</option>
+                        <option value="wire">Wire Value</option>
+                    </select>
+                    <input type="text" id="bp-value" placeholder="Value">
+                    <button id="bp-add">Add</button>
+                </div>
+            </div>
+
+            <div class="console-output">
+                <h4>Console</h4>
+                <div id="console-lines"></div>
+            </div>
+        </div>
+
+        <div class="circuit-panel">
+            <div class="circuit-view">
+                <h3>Circuit State - Half Adder</h3>
+                <div id="wire-states" class="wire-states"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load SimEngine modules -->
+    <script src="engine/types.js"></script>
+    <script src="engine/wire.js"></script>
+    <script src="engine/gate.js"></script>
+    <script src="engine/circuit.js"></script>
+    <script src="engine/io.js"></script>
+    <script src="engine/index.js"></script>
+
+    <!-- Load Debugger View module -->
+    <script src="modules/debugger-view.js"></script>
+
+    <script>
+        // Inject CSS for debugger
+        const style = document.createElement('style');
+        style.textContent = SimEngine.DebuggerView.getDefaultCSS();
+        document.head.appendChild(style);
+
+        // Console logging
+        const consoleEl = document.getElementById('console-lines');
+        function logToConsole(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = 'console-line ' + type;
+            line.textContent = message;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // Create a test circuit (half adder with oscillating input)
+        const circuit = SimEngine.Circuits.halfAdder();
+
+        // Get wire references
+        const wireA = circuit.findWire('a');
+        const wireB = circuit.findWire('b');
+        const wireSum = circuit.findWire('sum');
+        const wireCarry = circuit.findWire('carry');
+
+        logToConsole('Created half adder circuit', 'info');
+
+        // Create debugger
+        const debugger_ = SimEngine.DebuggerView.create('debugger-container', {
+            circuit: circuit,
+            speed: 2,
+            maxHistory: 100,
+
+            // Custom state extraction
+            getExecutionState: () => ({
+                pc: debugger_.cycleCount,  // Using cycle as "PC" for demo
+                cycle: debugger_.cycleCount,
+                values: {
+                    'a': circuit.getWire(wireA, 0),
+                    'b': circuit.getWire(wireB, 0),
+                    'sum': circuit.getWire(wireSum, 0),
+                    'carry': circuit.getWire(wireCarry, 0)
+                },
+                instruction: `Cycle ${debugger_.cycleCount}`
+            }),
+
+            onStep: () => {
+                // Toggle inputs to simulate changing state
+                const cycle = debugger_.cycleCount;
+                const aVal = (cycle % 4) >= 2 ? SimEngine.WireState.HIGH : SimEngine.WireState.LOW;
+                const bVal = (cycle % 2) === 1 ? SimEngine.WireState.HIGH : SimEngine.WireState.LOW;
+                circuit.setWire(wireA, 0, aVal);
+                circuit.setWire(wireB, 0, bVal);
+                circuit.propagate();
+
+                updateWireDisplay();
+            },
+
+            onStateChange: (state) => {
+                logToConsole(`State: ${state}`, 'info');
+            },
+
+            onBreakpoint: (bp) => {
+                logToConsole(`BREAKPOINT HIT: ${bp.label}`, 'breakpoint');
+            },
+
+            onError: (err) => {
+                logToConsole(`Error: ${err}`, 'error');
+            },
+
+            onHistoryUpdate: (history) => {
+                updateHistoryUI(history);
+            }
+        });
+
+        // Wire state display
+        const wireStatesEl = document.getElementById('wire-states');
+
+        function updateWireDisplay() {
+            // Clear safely
+            while (wireStatesEl.firstChild) {
+                wireStatesEl.removeChild(wireStatesEl.firstChild);
+            }
+
+            const wires = [
+                { name: 'A (Input)', idx: wireA },
+                { name: 'B (Input)', idx: wireB },
+                { name: 'Sum', idx: wireSum },
+                { name: 'Carry', idx: wireCarry }
+            ];
+
+            for (const w of wires) {
+                const state = circuit.getWire(w.idx, 0);
+                const stateStr = ['0', '1', 'X', 'Z'][state];
+                const stateClass = ['low', 'high', 'unknown', 'unknown'][state];
+
+                const item = document.createElement('div');
+                item.className = 'wire-item';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'wire-name';
+                nameDiv.textContent = w.name;
+
+                const valueDiv = document.createElement('div');
+                valueDiv.className = 'wire-value ' + stateClass;
+                valueDiv.textContent = stateStr;
+
+                item.appendChild(nameDiv);
+                item.appendChild(valueDiv);
+                wireStatesEl.appendChild(item);
+            }
+        }
+
+        // History display in debugger
+        function updateHistoryUI(history) {
+            const histList = document.querySelector('.dbg-history-list');
+            if (!histList) return;
+
+            // Clear safely
+            while (histList.firstChild) {
+                histList.removeChild(histList.firstChild);
+            }
+
+            // Show last 20 entries
+            const recentHistory = history.slice(-20);
+
+            for (const entry of recentHistory) {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.style.cssText = 'display: flex; justify-content: space-between; padding: 4px 6px; cursor: pointer; border-radius: 3px; font-size: 11px;';
+
+                const cycleSpan = document.createElement('span');
+                cycleSpan.className = 'history-cycle';
+                cycleSpan.textContent = `#${entry.cycle}`;
+
+                const instrSpan = document.createElement('span');
+                instrSpan.className = 'history-instruction';
+                instrSpan.textContent = entry.instruction;
+
+                item.appendChild(cycleSpan);
+                item.appendChild(instrSpan);
+
+                item.addEventListener('click', () => {
+                    debugger_.jumpToHistory(entry.index);
+                    logToConsole(`Jumped to cycle ${entry.cycle}`, 'info');
+                });
+
+                histList.appendChild(item);
+            }
+
+            histList.scrollTop = histList.scrollHeight;
+        }
+
+        // Breakpoint form
+        document.getElementById('bp-add').addEventListener('click', () => {
+            const type = document.getElementById('bp-type').value;
+            const value = parseInt(document.getElementById('bp-value').value, 10);
+
+            if (isNaN(value)) {
+                logToConsole('Invalid breakpoint value', 'error');
+                return;
+            }
+
+            if (type === 'cycle') {
+                debugger_.addConditionBreakpoint(
+                    (state) => state.cycle === value,
+                    `Cycle == ${value}`
+                );
+                logToConsole(`Added breakpoint at cycle ${value}`, 'info');
+            } else if (type === 'wire') {
+                debugger_.addValueBreakpoint('sum', '==', value, `sum == ${value}`);
+                logToConsole(`Added breakpoint for sum == ${value}`, 'info');
+            }
+
+            document.getElementById('bp-value').value = '';
+        });
+
+        // Initial display
+        updateWireDisplay();
+        logToConsole('Debugger initialized. Press Space to step, R to run.', 'info');
+
+        // Add a sample breakpoint
+        debugger_.addConditionBreakpoint(
+            (state) => state.cycle === 10,
+            'Cycle == 10'
+        );
+        logToConsole('Sample breakpoint added at cycle 10', 'info');
+    </script>
+</body>
+</html>

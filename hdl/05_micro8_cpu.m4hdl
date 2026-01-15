@@ -1,0 +1,958 @@
+# ============================================
+# Micro8 CPU - 8-bit CPU Implementation
+# ============================================
+# An 8-bit CPU with 8 registers, 16-bit addressing,
+# Z/C/S/O flags, and interrupt support.
+
+# ============================================
+# CPU Signals
+# ============================================
+wire clk;
+wire rst;
+
+# ============================================
+# 8-BIT ALU
+# ============================================
+wire [7:0] alu_a;
+wire [7:0] alu_b;
+wire [3:0] alu_op;    # 0=ADD,1=SUB,2=AND,3=OR,4=XOR,5=NOT,6=SHL,7=SHR
+wire [7:0] alu_r;
+wire alu_z;           # Zero flag
+wire alu_c;           # Carry flag
+wire alu_s;           # Sign flag
+wire alu_o;           # Overflow flag
+wire alu_cin;
+
+# ALU B inversion for SUB
+wire [7:0] alu_b_inv;
+wire [7:0] alu_b_adj;
+wire alu_do_sub;
+
+not ALU_INV0 (input: alu_b[0], output: alu_b_inv[0]);
+not ALU_INV1 (input: alu_b[1], output: alu_b_inv[1]);
+not ALU_INV2 (input: alu_b[2], output: alu_b_inv[2]);
+not ALU_INV3 (input: alu_b[3], output: alu_b_inv[3]);
+not ALU_INV4 (input: alu_b[4], output: alu_b_inv[4]);
+not ALU_INV5 (input: alu_b[5], output: alu_b_inv[5]);
+not ALU_INV6 (input: alu_b[6], output: alu_b_inv[6]);
+not ALU_INV7 (input: alu_b[7], output: alu_b_inv[7]);
+
+# do_sub when op=SUB(1)
+wire alu_op0n;
+not ALU_OP0N (input: alu_op[0], output: alu_op0n);
+
+# B_adj mux: SUB uses ~B, ADD uses B
+wire alu_badj_t0_0; wire alu_badj_t0_1;
+and ALU_BADJ0_0 (input: alu_b[0] alu_op0n, output: alu_badj_t0_0);
+and ALU_BADJ0_1 (input: alu_b_inv[0] alu_op[0], output: alu_badj_t0_1);
+or  ALU_BADJ0 (input: alu_badj_t0_0 alu_badj_t0_1, output: alu_b_adj[0]);
+
+wire alu_badj_t1_0; wire alu_badj_t1_1;
+and ALU_BADJ1_0 (input: alu_b[1] alu_op0n, output: alu_badj_t1_0);
+and ALU_BADJ1_1 (input: alu_b_inv[1] alu_op[0], output: alu_badj_t1_1);
+or  ALU_BADJ1 (input: alu_badj_t1_0 alu_badj_t1_1, output: alu_b_adj[1]);
+
+wire alu_badj_t2_0; wire alu_badj_t2_1;
+and ALU_BADJ2_0 (input: alu_b[2] alu_op0n, output: alu_badj_t2_0);
+and ALU_BADJ2_1 (input: alu_b_inv[2] alu_op[0], output: alu_badj_t2_1);
+or  ALU_BADJ2 (input: alu_badj_t2_0 alu_badj_t2_1, output: alu_b_adj[2]);
+
+wire alu_badj_t3_0; wire alu_badj_t3_1;
+and ALU_BADJ3_0 (input: alu_b[3] alu_op0n, output: alu_badj_t3_0);
+and ALU_BADJ3_1 (input: alu_b_inv[3] alu_op[0], output: alu_badj_t3_1);
+or  ALU_BADJ3 (input: alu_badj_t3_0 alu_badj_t3_1, output: alu_b_adj[3]);
+
+wire alu_badj_t4_0; wire alu_badj_t4_1;
+and ALU_BADJ4_0 (input: alu_b[4] alu_op0n, output: alu_badj_t4_0);
+and ALU_BADJ4_1 (input: alu_b_inv[4] alu_op[0], output: alu_badj_t4_1);
+or  ALU_BADJ4 (input: alu_badj_t4_0 alu_badj_t4_1, output: alu_b_adj[4]);
+
+wire alu_badj_t5_0; wire alu_badj_t5_1;
+and ALU_BADJ5_0 (input: alu_b[5] alu_op0n, output: alu_badj_t5_0);
+and ALU_BADJ5_1 (input: alu_b_inv[5] alu_op[0], output: alu_badj_t5_1);
+or  ALU_BADJ5 (input: alu_badj_t5_0 alu_badj_t5_1, output: alu_b_adj[5]);
+
+wire alu_badj_t6_0; wire alu_badj_t6_1;
+and ALU_BADJ6_0 (input: alu_b[6] alu_op0n, output: alu_badj_t6_0);
+and ALU_BADJ6_1 (input: alu_b_inv[6] alu_op[0], output: alu_badj_t6_1);
+or  ALU_BADJ6 (input: alu_badj_t6_0 alu_badj_t6_1, output: alu_b_adj[6]);
+
+wire alu_badj_t7_0; wire alu_badj_t7_1;
+and ALU_BADJ7_0 (input: alu_b[7] alu_op0n, output: alu_badj_t7_0);
+and ALU_BADJ7_1 (input: alu_b_inv[7] alu_op[0], output: alu_badj_t7_1);
+or  ALU_BADJ7 (input: alu_badj_t7_0 alu_badj_t7_1, output: alu_b_adj[7]);
+
+# Carry in = op[0] for SUB
+buf ALU_CIN (input: alu_op[0], output: alu_cin);
+
+# 8-bit adder chain
+wire [7:0] alu_add_r;
+wire alu_c0; wire alu_c1; wire alu_c2; wire alu_c3;
+wire alu_c4; wire alu_c5; wire alu_c6; wire alu_cout;
+
+# FA0
+wire alu_s0_t; wire alu_c0_t1; wire alu_c0_t2;
+xor ALU_FA0_X1 (input: alu_a[0] alu_b_adj[0], output: alu_s0_t);
+and ALU_FA0_A1 (input: alu_a[0] alu_b_adj[0], output: alu_c0_t1);
+xor ALU_FA0_X2 (input: alu_s0_t alu_cin, output: alu_add_r[0]);
+and ALU_FA0_A2 (input: alu_s0_t alu_cin, output: alu_c0_t2);
+or  ALU_FA0_O1 (input: alu_c0_t1 alu_c0_t2, output: alu_c0);
+
+# FA1
+wire alu_s1_t; wire alu_c1_t1; wire alu_c1_t2;
+xor ALU_FA1_X1 (input: alu_a[1] alu_b_adj[1], output: alu_s1_t);
+and ALU_FA1_A1 (input: alu_a[1] alu_b_adj[1], output: alu_c1_t1);
+xor ALU_FA1_X2 (input: alu_s1_t alu_c0, output: alu_add_r[1]);
+and ALU_FA1_A2 (input: alu_s1_t alu_c0, output: alu_c1_t2);
+or  ALU_FA1_O1 (input: alu_c1_t1 alu_c1_t2, output: alu_c1);
+
+# FA2
+wire alu_s2_t; wire alu_c2_t1; wire alu_c2_t2;
+xor ALU_FA2_X1 (input: alu_a[2] alu_b_adj[2], output: alu_s2_t);
+and ALU_FA2_A1 (input: alu_a[2] alu_b_adj[2], output: alu_c2_t1);
+xor ALU_FA2_X2 (input: alu_s2_t alu_c1, output: alu_add_r[2]);
+and ALU_FA2_A2 (input: alu_s2_t alu_c1, output: alu_c2_t2);
+or  ALU_FA2_O1 (input: alu_c2_t1 alu_c2_t2, output: alu_c2);
+
+# FA3
+wire alu_s3_t; wire alu_c3_t1; wire alu_c3_t2;
+xor ALU_FA3_X1 (input: alu_a[3] alu_b_adj[3], output: alu_s3_t);
+and ALU_FA3_A1 (input: alu_a[3] alu_b_adj[3], output: alu_c3_t1);
+xor ALU_FA3_X2 (input: alu_s3_t alu_c2, output: alu_add_r[3]);
+and ALU_FA3_A2 (input: alu_s3_t alu_c2, output: alu_c3_t2);
+or  ALU_FA3_O1 (input: alu_c3_t1 alu_c3_t2, output: alu_c3);
+
+# FA4
+wire alu_s4_t; wire alu_c4_t1; wire alu_c4_t2;
+xor ALU_FA4_X1 (input: alu_a[4] alu_b_adj[4], output: alu_s4_t);
+and ALU_FA4_A1 (input: alu_a[4] alu_b_adj[4], output: alu_c4_t1);
+xor ALU_FA4_X2 (input: alu_s4_t alu_c3, output: alu_add_r[4]);
+and ALU_FA4_A2 (input: alu_s4_t alu_c3, output: alu_c4_t2);
+or  ALU_FA4_O1 (input: alu_c4_t1 alu_c4_t2, output: alu_c4);
+
+# FA5
+wire alu_s5_t; wire alu_c5_t1; wire alu_c5_t2;
+xor ALU_FA5_X1 (input: alu_a[5] alu_b_adj[5], output: alu_s5_t);
+and ALU_FA5_A1 (input: alu_a[5] alu_b_adj[5], output: alu_c5_t1);
+xor ALU_FA5_X2 (input: alu_s5_t alu_c4, output: alu_add_r[5]);
+and ALU_FA5_A2 (input: alu_s5_t alu_c4, output: alu_c5_t2);
+or  ALU_FA5_O1 (input: alu_c5_t1 alu_c5_t2, output: alu_c5);
+
+# FA6
+wire alu_s6_t; wire alu_c6_t1; wire alu_c6_t2;
+xor ALU_FA6_X1 (input: alu_a[6] alu_b_adj[6], output: alu_s6_t);
+and ALU_FA6_A1 (input: alu_a[6] alu_b_adj[6], output: alu_c6_t1);
+xor ALU_FA6_X2 (input: alu_s6_t alu_c5, output: alu_add_r[6]);
+and ALU_FA6_A2 (input: alu_s6_t alu_c5, output: alu_c6_t2);
+or  ALU_FA6_O1 (input: alu_c6_t1 alu_c6_t2, output: alu_c6);
+
+# FA7
+wire alu_s7_t; wire alu_c7_t1; wire alu_c7_t2;
+xor ALU_FA7_X1 (input: alu_a[7] alu_b_adj[7], output: alu_s7_t);
+and ALU_FA7_A1 (input: alu_a[7] alu_b_adj[7], output: alu_c7_t1);
+xor ALU_FA7_X2 (input: alu_s7_t alu_c6, output: alu_add_r[7]);
+and ALU_FA7_A2 (input: alu_s7_t alu_c6, output: alu_c7_t2);
+or  ALU_FA7_O1 (input: alu_c7_t1 alu_c7_t2, output: alu_cout);
+
+# Logic operations
+wire [7:0] alu_and_r;
+and ALU_AND0 (input: alu_a[0] alu_b[0], output: alu_and_r[0]);
+and ALU_AND1 (input: alu_a[1] alu_b[1], output: alu_and_r[1]);
+and ALU_AND2 (input: alu_a[2] alu_b[2], output: alu_and_r[2]);
+and ALU_AND3 (input: alu_a[3] alu_b[3], output: alu_and_r[3]);
+and ALU_AND4 (input: alu_a[4] alu_b[4], output: alu_and_r[4]);
+and ALU_AND5 (input: alu_a[5] alu_b[5], output: alu_and_r[5]);
+and ALU_AND6 (input: alu_a[6] alu_b[6], output: alu_and_r[6]);
+and ALU_AND7 (input: alu_a[7] alu_b[7], output: alu_and_r[7]);
+
+wire [7:0] alu_or_r;
+or ALU_OR0 (input: alu_a[0] alu_b[0], output: alu_or_r[0]);
+or ALU_OR1 (input: alu_a[1] alu_b[1], output: alu_or_r[1]);
+or ALU_OR2 (input: alu_a[2] alu_b[2], output: alu_or_r[2]);
+or ALU_OR3 (input: alu_a[3] alu_b[3], output: alu_or_r[3]);
+or ALU_OR4 (input: alu_a[4] alu_b[4], output: alu_or_r[4]);
+or ALU_OR5 (input: alu_a[5] alu_b[5], output: alu_or_r[5]);
+or ALU_OR6 (input: alu_a[6] alu_b[6], output: alu_or_r[6]);
+or ALU_OR7 (input: alu_a[7] alu_b[7], output: alu_or_r[7]);
+
+wire [7:0] alu_xor_r;
+xor ALU_XOR0 (input: alu_a[0] alu_b[0], output: alu_xor_r[0]);
+xor ALU_XOR1 (input: alu_a[1] alu_b[1], output: alu_xor_r[1]);
+xor ALU_XOR2 (input: alu_a[2] alu_b[2], output: alu_xor_r[2]);
+xor ALU_XOR3 (input: alu_a[3] alu_b[3], output: alu_xor_r[3]);
+xor ALU_XOR4 (input: alu_a[4] alu_b[4], output: alu_xor_r[4]);
+xor ALU_XOR5 (input: alu_a[5] alu_b[5], output: alu_xor_r[5]);
+xor ALU_XOR6 (input: alu_a[6] alu_b[6], output: alu_xor_r[6]);
+xor ALU_XOR7 (input: alu_a[7] alu_b[7], output: alu_xor_r[7]);
+
+wire [7:0] alu_not_r;
+not ALU_NOT0 (input: alu_a[0], output: alu_not_r[0]);
+not ALU_NOT1 (input: alu_a[1], output: alu_not_r[1]);
+not ALU_NOT2 (input: alu_a[2], output: alu_not_r[2]);
+not ALU_NOT3 (input: alu_a[3], output: alu_not_r[3]);
+not ALU_NOT4 (input: alu_a[4], output: alu_not_r[4]);
+not ALU_NOT5 (input: alu_a[5], output: alu_not_r[5]);
+not ALU_NOT6 (input: alu_a[6], output: alu_not_r[6]);
+not ALU_NOT7 (input: alu_a[7], output: alu_not_r[7]);
+
+# Result is ADD/SUB result (full mux would select based on alu_op)
+buf ALU_R0 (input: alu_add_r[0], output: alu_r[0]);
+buf ALU_R1 (input: alu_add_r[1], output: alu_r[1]);
+buf ALU_R2 (input: alu_add_r[2], output: alu_r[2]);
+buf ALU_R3 (input: alu_add_r[3], output: alu_r[3]);
+buf ALU_R4 (input: alu_add_r[4], output: alu_r[4]);
+buf ALU_R5 (input: alu_add_r[5], output: alu_r[5]);
+buf ALU_R6 (input: alu_add_r[6], output: alu_r[6]);
+buf ALU_R7 (input: alu_add_r[7], output: alu_r[7]);
+
+# Zero flag: Z = NOR(all result bits)
+wire alu_z_t1; wire alu_z_t2; wire alu_z_t3; wire alu_z_t4;
+or ALU_Z1 (input: alu_r[0] alu_r[1], output: alu_z_t1);
+or ALU_Z2 (input: alu_r[2] alu_r[3], output: alu_z_t2);
+or ALU_Z3 (input: alu_r[4] alu_r[5], output: alu_z_t3);
+or ALU_Z4 (input: alu_r[6] alu_r[7], output: alu_z_t4);
+wire alu_z_t5; wire alu_z_t6;
+or ALU_Z5 (input: alu_z_t1 alu_z_t2, output: alu_z_t5);
+or ALU_Z6 (input: alu_z_t3 alu_z_t4, output: alu_z_t6);
+wire alu_z_t7;
+or ALU_Z7 (input: alu_z_t5 alu_z_t6, output: alu_z_t7);
+not ALU_ZFLAG (input: alu_z_t7, output: alu_z);
+
+# Sign flag: S = result[7]
+buf ALU_SFLAG (input: alu_r[7], output: alu_s);
+
+# Carry flag
+buf ALU_CFLAG (input: alu_cout, output: alu_c);
+
+# Overflow flag: O = carry_in_to_msb XOR carry_out_of_msb
+xor ALU_OFLAG (input: alu_c6 alu_cout, output: alu_o);
+
+# ============================================
+# REGISTER FILE (8 x 8-bit registers R0-R7)
+# ============================================
+wire [7:0] r0; wire [7:0] r1; wire [7:0] r2; wire [7:0] r3;
+wire [7:0] r4; wire [7:0] r5; wire [7:0] r6; wire [7:0] r7;
+wire [7:0] reg_write_data;
+wire [2:0] reg_write_sel;
+wire [2:0] reg_read_sel_a;
+wire [2:0] reg_read_sel_b;
+wire reg_write_en;
+
+# Write decoder (3-to-8)
+wire wr_sel_0; wire wr_sel_1; wire wr_sel_2; wire wr_sel_3;
+wire wr_sel_4; wire wr_sel_5; wire wr_sel_6; wire wr_sel_7;
+wire ws0n; wire ws1n; wire ws2n;
+not WS0N (input: reg_write_sel[0], output: ws0n);
+not WS1N (input: reg_write_sel[1], output: ws1n);
+not WS2N (input: reg_write_sel[2], output: ws2n);
+
+wire ws_t0; wire ws_t1; wire ws_t2; wire ws_t3;
+and WS_T0 (input: ws1n ws0n, output: ws_t0);
+and WS_T1 (input: ws1n reg_write_sel[0], output: ws_t1);
+and WS_T2 (input: reg_write_sel[1] ws0n, output: ws_t2);
+and WS_T3 (input: reg_write_sel[1] reg_write_sel[0], output: ws_t3);
+
+and WS0 (input: ws2n ws_t0, output: wr_sel_0);
+and WS1 (input: ws2n ws_t1, output: wr_sel_1);
+and WS2 (input: ws2n ws_t2, output: wr_sel_2);
+and WS3 (input: ws2n ws_t3, output: wr_sel_3);
+and WS4 (input: reg_write_sel[2] ws_t0, output: wr_sel_4);
+and WS5 (input: reg_write_sel[2] ws_t1, output: wr_sel_5);
+and WS6 (input: reg_write_sel[2] ws_t2, output: wr_sel_6);
+and WS7 (input: reg_write_sel[2] ws_t3, output: wr_sel_7);
+
+# Register load enables
+wire r0_load; wire r1_load; wire r2_load; wire r3_load;
+wire r4_load; wire r5_load; wire r6_load; wire r7_load;
+and R0_LD (input: wr_sel_0 reg_write_en, output: r0_load);
+and R1_LD (input: wr_sel_1 reg_write_en, output: r1_load);
+and R2_LD (input: wr_sel_2 reg_write_en, output: r2_load);
+and R3_LD (input: wr_sel_3 reg_write_en, output: r3_load);
+and R4_LD (input: wr_sel_4 reg_write_en, output: r4_load);
+and R5_LD (input: wr_sel_5 reg_write_en, output: r5_load);
+and R6_LD (input: wr_sel_6 reg_write_en, output: r6_load);
+and R7_LD (input: wr_sel_7 reg_write_en, output: r7_load);
+
+# R0 register (8 DFFs with load mux)
+wire [7:0] r0_next;
+wire r0_loadn;
+not R0_LDN (input: r0_load, output: r0_loadn);
+
+wire r0_h0; wire r0_n0;
+and R0_H0 (input: r0[0] r0_loadn, output: r0_h0);
+and R0_N0 (input: reg_write_data[0] r0_load, output: r0_n0);
+or  R0_M0 (input: r0_h0 r0_n0, output: r0_next[0]);
+dff R0_D0 (input: r0_next[0] clk, output: r0[0]);
+
+wire r0_h1; wire r0_n1;
+and R0_H1 (input: r0[1] r0_loadn, output: r0_h1);
+and R0_N1 (input: reg_write_data[1] r0_load, output: r0_n1);
+or  R0_M1 (input: r0_h1 r0_n1, output: r0_next[1]);
+dff R0_D1 (input: r0_next[1] clk, output: r0[1]);
+
+wire r0_h2; wire r0_n2;
+and R0_H2 (input: r0[2] r0_loadn, output: r0_h2);
+and R0_N2 (input: reg_write_data[2] r0_load, output: r0_n2);
+or  R0_M2 (input: r0_h2 r0_n2, output: r0_next[2]);
+dff R0_D2 (input: r0_next[2] clk, output: r0[2]);
+
+wire r0_h3; wire r0_n3;
+and R0_H3 (input: r0[3] r0_loadn, output: r0_h3);
+and R0_N3 (input: reg_write_data[3] r0_load, output: r0_n3);
+or  R0_M3 (input: r0_h3 r0_n3, output: r0_next[3]);
+dff R0_D3 (input: r0_next[3] clk, output: r0[3]);
+
+wire r0_h4; wire r0_n4;
+and R0_H4 (input: r0[4] r0_loadn, output: r0_h4);
+and R0_N4 (input: reg_write_data[4] r0_load, output: r0_n4);
+or  R0_M4 (input: r0_h4 r0_n4, output: r0_next[4]);
+dff R0_D4 (input: r0_next[4] clk, output: r0[4]);
+
+wire r0_h5; wire r0_n5;
+and R0_H5 (input: r0[5] r0_loadn, output: r0_h5);
+and R0_N5 (input: reg_write_data[5] r0_load, output: r0_n5);
+or  R0_M5 (input: r0_h5 r0_n5, output: r0_next[5]);
+dff R0_D5 (input: r0_next[5] clk, output: r0[5]);
+
+wire r0_h6; wire r0_n6;
+and R0_H6 (input: r0[6] r0_loadn, output: r0_h6);
+and R0_N6 (input: reg_write_data[6] r0_load, output: r0_n6);
+or  R0_M6 (input: r0_h6 r0_n6, output: r0_next[6]);
+dff R0_D6 (input: r0_next[6] clk, output: r0[6]);
+
+wire r0_h7; wire r0_n7;
+and R0_H7 (input: r0[7] r0_loadn, output: r0_h7);
+and R0_N7 (input: reg_write_data[7] r0_load, output: r0_n7);
+or  R0_M7 (input: r0_h7 r0_n7, output: r0_next[7]);
+dff R0_D7 (input: r0_next[7] clk, output: r0[7]);
+
+# R1-R7 use same pattern (abbreviated for space)
+wire [7:0] r1_next; wire r1_loadn;
+not R1_LDN (input: r1_load, output: r1_loadn);
+wire r1_h0; wire r1_n0;
+and R1_H0 (input: r1[0] r1_loadn, output: r1_h0);
+and R1_N0 (input: reg_write_data[0] r1_load, output: r1_n0);
+or  R1_M0 (input: r1_h0 r1_n0, output: r1_next[0]);
+dff R1_D0 (input: r1_next[0] clk, output: r1[0]);
+wire r1_h1; wire r1_n1;
+and R1_H1 (input: r1[1] r1_loadn, output: r1_h1);
+and R1_N1 (input: reg_write_data[1] r1_load, output: r1_n1);
+or  R1_M1 (input: r1_h1 r1_n1, output: r1_next[1]);
+dff R1_D1 (input: r1_next[1] clk, output: r1[1]);
+wire r1_h2; wire r1_n2;
+and R1_H2 (input: r1[2] r1_loadn, output: r1_h2);
+and R1_N2 (input: reg_write_data[2] r1_load, output: r1_n2);
+or  R1_M2 (input: r1_h2 r1_n2, output: r1_next[2]);
+dff R1_D2 (input: r1_next[2] clk, output: r1[2]);
+wire r1_h3; wire r1_n3;
+and R1_H3 (input: r1[3] r1_loadn, output: r1_h3);
+and R1_N3 (input: reg_write_data[3] r1_load, output: r1_n3);
+or  R1_M3 (input: r1_h3 r1_n3, output: r1_next[3]);
+dff R1_D3 (input: r1_next[3] clk, output: r1[3]);
+wire r1_h4; wire r1_n4;
+and R1_H4 (input: r1[4] r1_loadn, output: r1_h4);
+and R1_N4 (input: reg_write_data[4] r1_load, output: r1_n4);
+or  R1_M4 (input: r1_h4 r1_n4, output: r1_next[4]);
+dff R1_D4 (input: r1_next[4] clk, output: r1[4]);
+wire r1_h5; wire r1_n5;
+and R1_H5 (input: r1[5] r1_loadn, output: r1_h5);
+and R1_N5 (input: reg_write_data[5] r1_load, output: r1_n5);
+or  R1_M5 (input: r1_h5 r1_n5, output: r1_next[5]);
+dff R1_D5 (input: r1_next[5] clk, output: r1[5]);
+wire r1_h6; wire r1_n6;
+and R1_H6 (input: r1[6] r1_loadn, output: r1_h6);
+and R1_N6 (input: reg_write_data[6] r1_load, output: r1_n6);
+or  R1_M6 (input: r1_h6 r1_n6, output: r1_next[6]);
+dff R1_D6 (input: r1_next[6] clk, output: r1[6]);
+wire r1_h7; wire r1_n7;
+and R1_H7 (input: r1[7] r1_loadn, output: r1_h7);
+and R1_N7 (input: reg_write_data[7] r1_load, output: r1_n7);
+or  R1_M7 (input: r1_h7 r1_n7, output: r1_next[7]);
+dff R1_D7 (input: r1_next[7] clk, output: r1[7]);
+
+# R2
+wire [7:0] r2_next; wire r2_loadn;
+not R2_LDN (input: r2_load, output: r2_loadn);
+wire r2_h0; wire r2_n0;
+and R2_H0 (input: r2[0] r2_loadn, output: r2_h0);
+and R2_N0 (input: reg_write_data[0] r2_load, output: r2_n0);
+or  R2_M0 (input: r2_h0 r2_n0, output: r2_next[0]);
+dff R2_D0 (input: r2_next[0] clk, output: r2[0]);
+wire r2_h1; wire r2_n1;
+and R2_H1 (input: r2[1] r2_loadn, output: r2_h1);
+and R2_N1 (input: reg_write_data[1] r2_load, output: r2_n1);
+or  R2_M1 (input: r2_h1 r2_n1, output: r2_next[1]);
+dff R2_D1 (input: r2_next[1] clk, output: r2[1]);
+wire r2_h2; wire r2_n2;
+and R2_H2 (input: r2[2] r2_loadn, output: r2_h2);
+and R2_N2 (input: reg_write_data[2] r2_load, output: r2_n2);
+or  R2_M2 (input: r2_h2 r2_n2, output: r2_next[2]);
+dff R2_D2 (input: r2_next[2] clk, output: r2[2]);
+wire r2_h3; wire r2_n3;
+and R2_H3 (input: r2[3] r2_loadn, output: r2_h3);
+and R2_N3 (input: reg_write_data[3] r2_load, output: r2_n3);
+or  R2_M3 (input: r2_h3 r2_n3, output: r2_next[3]);
+dff R2_D3 (input: r2_next[3] clk, output: r2[3]);
+wire r2_h4; wire r2_n4;
+and R2_H4 (input: r2[4] r2_loadn, output: r2_h4);
+and R2_N4 (input: reg_write_data[4] r2_load, output: r2_n4);
+or  R2_M4 (input: r2_h4 r2_n4, output: r2_next[4]);
+dff R2_D4 (input: r2_next[4] clk, output: r2[4]);
+wire r2_h5; wire r2_n5;
+and R2_H5 (input: r2[5] r2_loadn, output: r2_h5);
+and R2_N5 (input: reg_write_data[5] r2_load, output: r2_n5);
+or  R2_M5 (input: r2_h5 r2_n5, output: r2_next[5]);
+dff R2_D5 (input: r2_next[5] clk, output: r2[5]);
+wire r2_h6; wire r2_n6;
+and R2_H6 (input: r2[6] r2_loadn, output: r2_h6);
+and R2_N6 (input: reg_write_data[6] r2_load, output: r2_n6);
+or  R2_M6 (input: r2_h6 r2_n6, output: r2_next[6]);
+dff R2_D6 (input: r2_next[6] clk, output: r2[6]);
+wire r2_h7; wire r2_n7;
+and R2_H7 (input: r2[7] r2_loadn, output: r2_h7);
+and R2_N7 (input: reg_write_data[7] r2_load, output: r2_n7);
+or  R2_M7 (input: r2_h7 r2_n7, output: r2_next[7]);
+dff R2_D7 (input: r2_next[7] clk, output: r2[7]);
+
+# R3
+wire [7:0] r3_next; wire r3_loadn;
+not R3_LDN (input: r3_load, output: r3_loadn);
+wire r3_h0; wire r3_n0;
+and R3_H0 (input: r3[0] r3_loadn, output: r3_h0);
+and R3_N0 (input: reg_write_data[0] r3_load, output: r3_n0);
+or  R3_M0 (input: r3_h0 r3_n0, output: r3_next[0]);
+dff R3_D0 (input: r3_next[0] clk, output: r3[0]);
+wire r3_h1; wire r3_n1;
+and R3_H1 (input: r3[1] r3_loadn, output: r3_h1);
+and R3_N1 (input: reg_write_data[1] r3_load, output: r3_n1);
+or  R3_M1 (input: r3_h1 r3_n1, output: r3_next[1]);
+dff R3_D1 (input: r3_next[1] clk, output: r3[1]);
+wire r3_h2; wire r3_n2;
+and R3_H2 (input: r3[2] r3_loadn, output: r3_h2);
+and R3_N2 (input: reg_write_data[2] r3_load, output: r3_n2);
+or  R3_M2 (input: r3_h2 r3_n2, output: r3_next[2]);
+dff R3_D2 (input: r3_next[2] clk, output: r3[2]);
+wire r3_h3; wire r3_n3;
+and R3_H3 (input: r3[3] r3_loadn, output: r3_h3);
+and R3_N3 (input: reg_write_data[3] r3_load, output: r3_n3);
+or  R3_M3 (input: r3_h3 r3_n3, output: r3_next[3]);
+dff R3_D3 (input: r3_next[3] clk, output: r3[3]);
+wire r3_h4; wire r3_n4;
+and R3_H4 (input: r3[4] r3_loadn, output: r3_h4);
+and R3_N4 (input: reg_write_data[4] r3_load, output: r3_n4);
+or  R3_M4 (input: r3_h4 r3_n4, output: r3_next[4]);
+dff R3_D4 (input: r3_next[4] clk, output: r3[4]);
+wire r3_h5; wire r3_n5;
+and R3_H5 (input: r3[5] r3_loadn, output: r3_h5);
+and R3_N5 (input: reg_write_data[5] r3_load, output: r3_n5);
+or  R3_M5 (input: r3_h5 r3_n5, output: r3_next[5]);
+dff R3_D5 (input: r3_next[5] clk, output: r3[5]);
+wire r3_h6; wire r3_n6;
+and R3_H6 (input: r3[6] r3_loadn, output: r3_h6);
+and R3_N6 (input: reg_write_data[6] r3_load, output: r3_n6);
+or  R3_M6 (input: r3_h6 r3_n6, output: r3_next[6]);
+dff R3_D6 (input: r3_next[6] clk, output: r3[6]);
+wire r3_h7; wire r3_n7;
+and R3_H7 (input: r3[7] r3_loadn, output: r3_h7);
+and R3_N7 (input: reg_write_data[7] r3_load, output: r3_n7);
+or  R3_M7 (input: r3_h7 r3_n7, output: r3_next[7]);
+dff R3_D7 (input: r3_next[7] clk, output: r3[7]);
+
+# R4
+wire [7:0] r4_next; wire r4_loadn;
+not R4_LDN (input: r4_load, output: r4_loadn);
+wire r4_h0; wire r4_n0;
+and R4_H0 (input: r4[0] r4_loadn, output: r4_h0);
+and R4_N0 (input: reg_write_data[0] r4_load, output: r4_n0);
+or  R4_M0 (input: r4_h0 r4_n0, output: r4_next[0]);
+dff R4_D0 (input: r4_next[0] clk, output: r4[0]);
+wire r4_h1; wire r4_n1;
+and R4_H1 (input: r4[1] r4_loadn, output: r4_h1);
+and R4_N1 (input: reg_write_data[1] r4_load, output: r4_n1);
+or  R4_M1 (input: r4_h1 r4_n1, output: r4_next[1]);
+dff R4_D1 (input: r4_next[1] clk, output: r4[1]);
+wire r4_h2; wire r4_n2;
+and R4_H2 (input: r4[2] r4_loadn, output: r4_h2);
+and R4_N2 (input: reg_write_data[2] r4_load, output: r4_n2);
+or  R4_M2 (input: r4_h2 r4_n2, output: r4_next[2]);
+dff R4_D2 (input: r4_next[2] clk, output: r4[2]);
+wire r4_h3; wire r4_n3;
+and R4_H3 (input: r4[3] r4_loadn, output: r4_h3);
+and R4_N3 (input: reg_write_data[3] r4_load, output: r4_n3);
+or  R4_M3 (input: r4_h3 r4_n3, output: r4_next[3]);
+dff R4_D3 (input: r4_next[3] clk, output: r4[3]);
+wire r4_h4; wire r4_n4;
+and R4_H4 (input: r4[4] r4_loadn, output: r4_h4);
+and R4_N4 (input: reg_write_data[4] r4_load, output: r4_n4);
+or  R4_M4 (input: r4_h4 r4_n4, output: r4_next[4]);
+dff R4_D4 (input: r4_next[4] clk, output: r4[4]);
+wire r4_h5; wire r4_n5;
+and R4_H5 (input: r4[5] r4_loadn, output: r4_h5);
+and R4_N5 (input: reg_write_data[5] r4_load, output: r4_n5);
+or  R4_M5 (input: r4_h5 r4_n5, output: r4_next[5]);
+dff R4_D5 (input: r4_next[5] clk, output: r4[5]);
+wire r4_h6; wire r4_n6;
+and R4_H6 (input: r4[6] r4_loadn, output: r4_h6);
+and R4_N6 (input: reg_write_data[6] r4_load, output: r4_n6);
+or  R4_M6 (input: r4_h6 r4_n6, output: r4_next[6]);
+dff R4_D6 (input: r4_next[6] clk, output: r4[6]);
+wire r4_h7; wire r4_n7;
+and R4_H7 (input: r4[7] r4_loadn, output: r4_h7);
+and R4_N7 (input: reg_write_data[7] r4_load, output: r4_n7);
+or  R4_M7 (input: r4_h7 r4_n7, output: r4_next[7]);
+dff R4_D7 (input: r4_next[7] clk, output: r4[7]);
+
+# R5 (H register)
+wire [7:0] r5_next; wire r5_loadn;
+not R5_LDN (input: r5_load, output: r5_loadn);
+wire r5_h0; wire r5_n0;
+and R5_H0 (input: r5[0] r5_loadn, output: r5_h0);
+and R5_N0 (input: reg_write_data[0] r5_load, output: r5_n0);
+or  R5_M0 (input: r5_h0 r5_n0, output: r5_next[0]);
+dff R5_D0 (input: r5_next[0] clk, output: r5[0]);
+wire r5_h1; wire r5_n1;
+and R5_H1 (input: r5[1] r5_loadn, output: r5_h1);
+and R5_N1 (input: reg_write_data[1] r5_load, output: r5_n1);
+or  R5_M1 (input: r5_h1 r5_n1, output: r5_next[1]);
+dff R5_D1 (input: r5_next[1] clk, output: r5[1]);
+wire r5_h2; wire r5_n2;
+and R5_H2 (input: r5[2] r5_loadn, output: r5_h2);
+and R5_N2 (input: reg_write_data[2] r5_load, output: r5_n2);
+or  R5_M2 (input: r5_h2 r5_n2, output: r5_next[2]);
+dff R5_D2 (input: r5_next[2] clk, output: r5[2]);
+wire r5_h3; wire r5_n3;
+and R5_H3 (input: r5[3] r5_loadn, output: r5_h3);
+and R5_N3 (input: reg_write_data[3] r5_load, output: r5_n3);
+or  R5_M3 (input: r5_h3 r5_n3, output: r5_next[3]);
+dff R5_D3 (input: r5_next[3] clk, output: r5[3]);
+wire r5_h4; wire r5_n4;
+and R5_H4 (input: r5[4] r5_loadn, output: r5_h4);
+and R5_N4 (input: reg_write_data[4] r5_load, output: r5_n4);
+or  R5_M4 (input: r5_h4 r5_n4, output: r5_next[4]);
+dff R5_D4 (input: r5_next[4] clk, output: r5[4]);
+wire r5_h5; wire r5_n5;
+and R5_H5 (input: r5[5] r5_loadn, output: r5_h5);
+and R5_N5 (input: reg_write_data[5] r5_load, output: r5_n5);
+or  R5_M5 (input: r5_h5 r5_n5, output: r5_next[5]);
+dff R5_D5 (input: r5_next[5] clk, output: r5[5]);
+wire r5_h6; wire r5_n6;
+and R5_H6 (input: r5[6] r5_loadn, output: r5_h6);
+and R5_N6 (input: reg_write_data[6] r5_load, output: r5_n6);
+or  R5_M6 (input: r5_h6 r5_n6, output: r5_next[6]);
+dff R5_D6 (input: r5_next[6] clk, output: r5[6]);
+wire r5_h7; wire r5_n7;
+and R5_H7 (input: r5[7] r5_loadn, output: r5_h7);
+and R5_N7 (input: reg_write_data[7] r5_load, output: r5_n7);
+or  R5_M7 (input: r5_h7 r5_n7, output: r5_next[7]);
+dff R5_D7 (input: r5_next[7] clk, output: r5[7]);
+
+# R6 (L register)
+wire [7:0] r6_next; wire r6_loadn;
+not R6_LDN (input: r6_load, output: r6_loadn);
+wire r6_h0; wire r6_n0;
+and R6_H0 (input: r6[0] r6_loadn, output: r6_h0);
+and R6_N0 (input: reg_write_data[0] r6_load, output: r6_n0);
+or  R6_M0 (input: r6_h0 r6_n0, output: r6_next[0]);
+dff R6_D0 (input: r6_next[0] clk, output: r6[0]);
+wire r6_h1; wire r6_n1;
+and R6_H1 (input: r6[1] r6_loadn, output: r6_h1);
+and R6_N1 (input: reg_write_data[1] r6_load, output: r6_n1);
+or  R6_M1 (input: r6_h1 r6_n1, output: r6_next[1]);
+dff R6_D1 (input: r6_next[1] clk, output: r6[1]);
+wire r6_h2; wire r6_n2;
+and R6_H2 (input: r6[2] r6_loadn, output: r6_h2);
+and R6_N2 (input: reg_write_data[2] r6_load, output: r6_n2);
+or  R6_M2 (input: r6_h2 r6_n2, output: r6_next[2]);
+dff R6_D2 (input: r6_next[2] clk, output: r6[2]);
+wire r6_h3; wire r6_n3;
+and R6_H3 (input: r6[3] r6_loadn, output: r6_h3);
+and R6_N3 (input: reg_write_data[3] r6_load, output: r6_n3);
+or  R6_M3 (input: r6_h3 r6_n3, output: r6_next[3]);
+dff R6_D3 (input: r6_next[3] clk, output: r6[3]);
+wire r6_h4; wire r6_n4;
+and R6_H4 (input: r6[4] r6_loadn, output: r6_h4);
+and R6_N4 (input: reg_write_data[4] r6_load, output: r6_n4);
+or  R6_M4 (input: r6_h4 r6_n4, output: r6_next[4]);
+dff R6_D4 (input: r6_next[4] clk, output: r6[4]);
+wire r6_h5; wire r6_n5;
+and R6_H5 (input: r6[5] r6_loadn, output: r6_h5);
+and R6_N5 (input: reg_write_data[5] r6_load, output: r6_n5);
+or  R6_M5 (input: r6_h5 r6_n5, output: r6_next[5]);
+dff R6_D5 (input: r6_next[5] clk, output: r6[5]);
+wire r6_h6; wire r6_n6;
+and R6_H6 (input: r6[6] r6_loadn, output: r6_h6);
+and R6_N6 (input: reg_write_data[6] r6_load, output: r6_n6);
+or  R6_M6 (input: r6_h6 r6_n6, output: r6_next[6]);
+dff R6_D6 (input: r6_next[6] clk, output: r6[6]);
+wire r6_h7; wire r6_n7;
+and R6_H7 (input: r6[7] r6_loadn, output: r6_h7);
+and R6_N7 (input: reg_write_data[7] r6_load, output: r6_n7);
+or  R6_M7 (input: r6_h7 r6_n7, output: r6_next[7]);
+dff R6_D7 (input: r6_next[7] clk, output: r6[7]);
+
+# R7
+wire [7:0] r7_next; wire r7_loadn;
+not R7_LDN (input: r7_load, output: r7_loadn);
+wire r7_h0; wire r7_n0;
+and R7_H0 (input: r7[0] r7_loadn, output: r7_h0);
+and R7_N0 (input: reg_write_data[0] r7_load, output: r7_n0);
+or  R7_M0 (input: r7_h0 r7_n0, output: r7_next[0]);
+dff R7_D0 (input: r7_next[0] clk, output: r7[0]);
+wire r7_h1; wire r7_n1;
+and R7_H1 (input: r7[1] r7_loadn, output: r7_h1);
+and R7_N1 (input: reg_write_data[1] r7_load, output: r7_n1);
+or  R7_M1 (input: r7_h1 r7_n1, output: r7_next[1]);
+dff R7_D1 (input: r7_next[1] clk, output: r7[1]);
+wire r7_h2; wire r7_n2;
+and R7_H2 (input: r7[2] r7_loadn, output: r7_h2);
+and R7_N2 (input: reg_write_data[2] r7_load, output: r7_n2);
+or  R7_M2 (input: r7_h2 r7_n2, output: r7_next[2]);
+dff R7_D2 (input: r7_next[2] clk, output: r7[2]);
+wire r7_h3; wire r7_n3;
+and R7_H3 (input: r7[3] r7_loadn, output: r7_h3);
+and R7_N3 (input: reg_write_data[3] r7_load, output: r7_n3);
+or  R7_M3 (input: r7_h3 r7_n3, output: r7_next[3]);
+dff R7_D3 (input: r7_next[3] clk, output: r7[3]);
+wire r7_h4; wire r7_n4;
+and R7_H4 (input: r7[4] r7_loadn, output: r7_h4);
+and R7_N4 (input: reg_write_data[4] r7_load, output: r7_n4);
+or  R7_M4 (input: r7_h4 r7_n4, output: r7_next[4]);
+dff R7_D4 (input: r7_next[4] clk, output: r7[4]);
+wire r7_h5; wire r7_n5;
+and R7_H5 (input: r7[5] r7_loadn, output: r7_h5);
+and R7_N5 (input: reg_write_data[5] r7_load, output: r7_n5);
+or  R7_M5 (input: r7_h5 r7_n5, output: r7_next[5]);
+dff R7_D5 (input: r7_next[5] clk, output: r7[5]);
+wire r7_h6; wire r7_n6;
+and R7_H6 (input: r7[6] r7_loadn, output: r7_h6);
+and R7_N6 (input: reg_write_data[6] r7_load, output: r7_n6);
+or  R7_M6 (input: r7_h6 r7_n6, output: r7_next[6]);
+dff R7_D6 (input: r7_next[6] clk, output: r7[6]);
+wire r7_h7; wire r7_n7;
+and R7_H7 (input: r7[7] r7_loadn, output: r7_h7);
+and R7_N7 (input: reg_write_data[7] r7_load, output: r7_n7);
+or  R7_M7 (input: r7_h7 r7_n7, output: r7_next[7]);
+dff R7_D7 (input: r7_next[7] clk, output: r7[7]);
+
+# ============================================
+# 16-BIT PROGRAM COUNTER
+# ============================================
+wire [15:0] pc;
+wire [15:0] pc_next;
+wire pc_load;
+wire pc_inc;
+wire [15:0] pc_load_val;
+
+# PC incrementer (16-bit)
+wire [15:0] pc_plus1;
+wire pc_inc_c0; wire pc_inc_c1; wire pc_inc_c2; wire pc_inc_c3;
+wire pc_inc_c4; wire pc_inc_c5; wire pc_inc_c6; wire pc_inc_c7;
+wire pc_inc_c8; wire pc_inc_c9; wire pc_inc_c10; wire pc_inc_c11;
+wire pc_inc_c12; wire pc_inc_c13; wire pc_inc_c14;
+
+# Bit 0: just invert
+not PC_INC0 (input: pc[0], output: pc_plus1[0]);
+buf PC_INC_C0 (input: pc[0], output: pc_inc_c0);
+
+# Bits 1-15: half-adder chain
+xor PC_INC1 (input: pc[1] pc_inc_c0, output: pc_plus1[1]);
+and PC_INC_C1 (input: pc[1] pc_inc_c0, output: pc_inc_c1);
+
+xor PC_INC2 (input: pc[2] pc_inc_c1, output: pc_plus1[2]);
+and PC_INC_C2 (input: pc[2] pc_inc_c1, output: pc_inc_c2);
+
+xor PC_INC3 (input: pc[3] pc_inc_c2, output: pc_plus1[3]);
+and PC_INC_C3 (input: pc[3] pc_inc_c2, output: pc_inc_c3);
+
+xor PC_INC4 (input: pc[4] pc_inc_c3, output: pc_plus1[4]);
+and PC_INC_C4 (input: pc[4] pc_inc_c3, output: pc_inc_c4);
+
+xor PC_INC5 (input: pc[5] pc_inc_c4, output: pc_plus1[5]);
+and PC_INC_C5 (input: pc[5] pc_inc_c4, output: pc_inc_c5);
+
+xor PC_INC6 (input: pc[6] pc_inc_c5, output: pc_plus1[6]);
+and PC_INC_C6 (input: pc[6] pc_inc_c5, output: pc_inc_c6);
+
+xor PC_INC7 (input: pc[7] pc_inc_c6, output: pc_plus1[7]);
+and PC_INC_C7 (input: pc[7] pc_inc_c6, output: pc_inc_c7);
+
+xor PC_INC8 (input: pc[8] pc_inc_c7, output: pc_plus1[8]);
+and PC_INC_C8 (input: pc[8] pc_inc_c7, output: pc_inc_c8);
+
+xor PC_INC9 (input: pc[9] pc_inc_c8, output: pc_plus1[9]);
+and PC_INC_C9 (input: pc[9] pc_inc_c8, output: pc_inc_c9);
+
+xor PC_INC10 (input: pc[10] pc_inc_c9, output: pc_plus1[10]);
+and PC_INC_C10 (input: pc[10] pc_inc_c9, output: pc_inc_c10);
+
+xor PC_INC11 (input: pc[11] pc_inc_c10, output: pc_plus1[11]);
+and PC_INC_C11 (input: pc[11] pc_inc_c10, output: pc_inc_c11);
+
+xor PC_INC12 (input: pc[12] pc_inc_c11, output: pc_plus1[12]);
+and PC_INC_C12 (input: pc[12] pc_inc_c11, output: pc_inc_c12);
+
+xor PC_INC13 (input: pc[13] pc_inc_c12, output: pc_plus1[13]);
+and PC_INC_C13 (input: pc[13] pc_inc_c12, output: pc_inc_c13);
+
+xor PC_INC14 (input: pc[14] pc_inc_c13, output: pc_plus1[14]);
+and PC_INC_C14 (input: pc[14] pc_inc_c13, output: pc_inc_c14);
+
+xor PC_INC15 (input: pc[15] pc_inc_c14, output: pc_plus1[15]);
+
+# PC DFFs (simplified - would need full mux logic)
+dff PC_D0 (input: pc_next[0] clk, output: pc[0]);
+dff PC_D1 (input: pc_next[1] clk, output: pc[1]);
+dff PC_D2 (input: pc_next[2] clk, output: pc[2]);
+dff PC_D3 (input: pc_next[3] clk, output: pc[3]);
+dff PC_D4 (input: pc_next[4] clk, output: pc[4]);
+dff PC_D5 (input: pc_next[5] clk, output: pc[5]);
+dff PC_D6 (input: pc_next[6] clk, output: pc[6]);
+dff PC_D7 (input: pc_next[7] clk, output: pc[7]);
+dff PC_D8 (input: pc_next[8] clk, output: pc[8]);
+dff PC_D9 (input: pc_next[9] clk, output: pc[9]);
+dff PC_D10 (input: pc_next[10] clk, output: pc[10]);
+dff PC_D11 (input: pc_next[11] clk, output: pc[11]);
+dff PC_D12 (input: pc_next[12] clk, output: pc[12]);
+dff PC_D13 (input: pc_next[13] clk, output: pc[13]);
+dff PC_D14 (input: pc_next[14] clk, output: pc[14]);
+dff PC_D15 (input: pc_next[15] clk, output: pc[15]);
+
+# ============================================
+# 16-BIT STACK POINTER
+# ============================================
+wire [15:0] sp;
+wire [15:0] sp_next;
+wire sp_load;
+wire sp_inc;
+wire sp_dec;
+
+# SP DFFs
+dff SP_D0 (input: sp_next[0] clk, output: sp[0]);
+dff SP_D1 (input: sp_next[1] clk, output: sp[1]);
+dff SP_D2 (input: sp_next[2] clk, output: sp[2]);
+dff SP_D3 (input: sp_next[3] clk, output: sp[3]);
+dff SP_D4 (input: sp_next[4] clk, output: sp[4]);
+dff SP_D5 (input: sp_next[5] clk, output: sp[5]);
+dff SP_D6 (input: sp_next[6] clk, output: sp[6]);
+dff SP_D7 (input: sp_next[7] clk, output: sp[7]);
+dff SP_D8 (input: sp_next[8] clk, output: sp[8]);
+dff SP_D9 (input: sp_next[9] clk, output: sp[9]);
+dff SP_D10 (input: sp_next[10] clk, output: sp[10]);
+dff SP_D11 (input: sp_next[11] clk, output: sp[11]);
+dff SP_D12 (input: sp_next[12] clk, output: sp[12]);
+dff SP_D13 (input: sp_next[13] clk, output: sp[13]);
+dff SP_D14 (input: sp_next[14] clk, output: sp[14]);
+dff SP_D15 (input: sp_next[15] clk, output: sp[15]);
+
+# ============================================
+# FLAGS REGISTER
+# ============================================
+wire flag_z;    # Zero
+wire flag_c;    # Carry
+wire flag_s;    # Sign
+wire flag_o;    # Overflow
+wire flag_ie;   # Interrupt enable
+wire flags_load;
+
+dff FLAG_Z_DFF (input: alu_z clk, output: flag_z);
+dff FLAG_C_DFF (input: alu_c clk, output: flag_c);
+dff FLAG_S_DFF (input: alu_s clk, output: flag_s);
+dff FLAG_O_DFF (input: alu_o clk, output: flag_o);
+
+# ============================================
+# INSTRUCTION REGISTER (8-bit opcode)
+# ============================================
+wire [7:0] ir;
+wire [7:0] ir_next;
+wire ir_load;
+
+dff IR_D0 (input: ir_next[0] clk, output: ir[0]);
+dff IR_D1 (input: ir_next[1] clk, output: ir[1]);
+dff IR_D2 (input: ir_next[2] clk, output: ir[2]);
+dff IR_D3 (input: ir_next[3] clk, output: ir[3]);
+dff IR_D4 (input: ir_next[4] clk, output: ir[4]);
+dff IR_D5 (input: ir_next[5] clk, output: ir[5]);
+dff IR_D6 (input: ir_next[6] clk, output: ir[6]);
+dff IR_D7 (input: ir_next[7] clk, output: ir[7]);
+
+# ============================================
+# OPERAND REGISTERS (for multi-byte instructions)
+# ============================================
+wire [7:0] operand_lo;
+wire [7:0] operand_hi;
+wire operand_lo_load;
+wire operand_hi_load;
+
+dff OPL_D0 (input: mem_data_in[0] clk, output: operand_lo[0]);
+dff OPL_D1 (input: mem_data_in[1] clk, output: operand_lo[1]);
+dff OPL_D2 (input: mem_data_in[2] clk, output: operand_lo[2]);
+dff OPL_D3 (input: mem_data_in[3] clk, output: operand_lo[3]);
+dff OPL_D4 (input: mem_data_in[4] clk, output: operand_lo[4]);
+dff OPL_D5 (input: mem_data_in[5] clk, output: operand_lo[5]);
+dff OPL_D6 (input: mem_data_in[6] clk, output: operand_lo[6]);
+dff OPL_D7 (input: mem_data_in[7] clk, output: operand_lo[7]);
+
+dff OPH_D0 (input: mem_data_in[0] clk, output: operand_hi[0]);
+dff OPH_D1 (input: mem_data_in[1] clk, output: operand_hi[1]);
+dff OPH_D2 (input: mem_data_in[2] clk, output: operand_hi[2]);
+dff OPH_D3 (input: mem_data_in[3] clk, output: operand_hi[3]);
+dff OPH_D4 (input: mem_data_in[4] clk, output: operand_hi[4]);
+dff OPH_D5 (input: mem_data_in[5] clk, output: operand_hi[5]);
+dff OPH_D6 (input: mem_data_in[6] clk, output: operand_hi[6]);
+dff OPH_D7 (input: mem_data_in[7] clk, output: operand_hi[7]);
+
+# ============================================
+# MEMORY INTERFACE
+# ============================================
+wire [15:0] mem_addr;
+wire [7:0] mem_data_in;
+wire [7:0] mem_data_out;
+wire mem_read;
+wire mem_write;
+
+# ============================================
+# INSTRUCTION DECODER
+# ============================================
+# Decode opcode to instruction type
+wire is_nop;    # 0x00
+wire is_hlt;    # 0x01
+wire is_mov;    # 0x40-0x7F (bits 7:6 = 01)
+wire is_ldi;    # 0x06-0x0D
+wire is_add;    # 0x40-0x47
+wire is_sub;    # 0x50-0x57
+wire is_inc;    # 0x70-0x77
+wire is_dec;    # 0x78-0x7F
+wire is_and;    # 0xA0-0xA7
+wire is_or;     # 0xA8-0xAF
+wire is_xor;    # 0xB0-0xB7
+wire is_not;    # 0xB8-0xBF
+wire is_jmp;    # 0xC0
+wire is_jz;     # 0xC2
+wire is_jnz;    # 0xC3
+wire is_call;   # 0xCF
+wire is_ret;    # 0xD0
+wire is_push;   # 0xD2-0xD9
+wire is_pop;    # 0xDA-0xE1
+
+# NOP: 0x00 = 00000000
+wire ir0n; wire ir1n; wire ir2n; wire ir3n;
+wire ir4n; wire ir5n; wire ir6n; wire ir7n;
+not IR0N (input: ir[0], output: ir0n);
+not IR1N (input: ir[1], output: ir1n);
+not IR2N (input: ir[2], output: ir2n);
+not IR3N (input: ir[3], output: ir3n);
+not IR4N (input: ir[4], output: ir4n);
+not IR5N (input: ir[5], output: ir5n);
+not IR6N (input: ir[6], output: ir6n);
+not IR7N (input: ir[7], output: ir7n);
+
+wire nop_t1; wire nop_t2; wire nop_t3;
+and NOP_T1 (input: ir7n ir6n, output: nop_t1);
+and NOP_T2 (input: ir5n ir4n, output: nop_t2);
+and NOP_T3 (input: ir3n ir2n, output: nop_t3);
+wire nop_t4; wire nop_t5;
+and NOP_T4 (input: ir1n ir0n, output: nop_t4);
+and NOP_T5 (input: nop_t1 nop_t2, output: nop_t5);
+wire nop_t6;
+and NOP_T6 (input: nop_t3 nop_t4, output: nop_t6);
+and IS_NOP (input: nop_t5 nop_t6, output: is_nop);
+
+# HLT: 0x01 = 00000001
+wire hlt_t1;
+and HLT_T1 (input: nop_t5 nop_t3, output: hlt_t1);
+wire hlt_t2;
+and HLT_T2 (input: ir1n ir[0], output: hlt_t2);
+and IS_HLT (input: hlt_t1 hlt_t2, output: is_hlt);
+
+# MOV: bits 7:6 = 01 (0x40-0x7F)
+and IS_MOV (input: ir7n ir[6], output: is_mov);
+
+# JMP: 0xC0 = 11000000
+wire jmp_t1;
+and JMP_T1 (input: ir[7] ir[6], output: jmp_t1);
+wire jmp_t2;
+and JMP_T2 (input: ir5n ir4n, output: jmp_t2);
+wire jmp_t3;
+and JMP_T3 (input: jmp_t1 jmp_t2, output: jmp_t3);
+and IS_JMP (input: jmp_t3 nop_t6, output: is_jmp);
+
+# ============================================
+# CONTROL UNIT STATE MACHINE
+# ============================================
+# States:
+#   000 = FETCH1: MAR <- PC, read mem
+#   001 = FETCH2: IR <- mem, PC++
+#   010 = DECODE: decode opcode
+#   011 = FETCH_OP1: fetch operand byte 1
+#   100 = FETCH_OP2: fetch operand byte 2
+#   101 = EXECUTE: execute instruction
+#   110 = WRITEBACK: write results
+#   111 = HALT: stopped
+
+wire [2:0] state;
+wire [2:0] state_next;
+
+dff STATE_D0 (input: state_next[0] clk, output: state[0]);
+dff STATE_D1 (input: state_next[1] clk, output: state[1]);
+dff STATE_D2 (input: state_next[2] clk, output: state[2]);
+
+# State decode
+wire st0n; wire st1n; wire st2n;
+not ST0N (input: state[0], output: st0n);
+not ST1N (input: state[1], output: st1n);
+not ST2N (input: state[2], output: st2n);
+
+wire is_fetch1; wire is_fetch2; wire is_decode;
+wire is_fetch_op1; wire is_fetch_op2; wire is_execute;
+wire is_writeback; wire is_halt_state;
+
+wire st_t1; wire st_t2;
+and ST_T1 (input: st2n st1n, output: st_t1);
+and ST_T2 (input: st2n state[1], output: st_t2);
+wire st_t3; wire st_t4;
+and ST_T3 (input: state[2] st1n, output: st_t3);
+and ST_T4 (input: state[2] state[1], output: st_t4);
+
+and IS_FETCH1 (input: st_t1 st0n, output: is_fetch1);
+and IS_FETCH2 (input: st_t1 state[0], output: is_fetch2);
+and IS_DECODE (input: st_t2 st0n, output: is_decode);
+and IS_FETCH_OP1 (input: st_t2 state[0], output: is_fetch_op1);
+and IS_FETCH_OP2 (input: st_t3 st0n, output: is_fetch_op2);
+and IS_EXECUTE (input: st_t3 state[0], output: is_execute);
+and IS_WRITEBACK (input: st_t4 st0n, output: is_writeback);
+and IS_HALT_STATE (input: st_t4 state[0], output: is_halt_state);
+
+# ============================================
+# INTERRUPT LOGIC
+# ============================================
+wire int_req;      # External interrupt request
+wire int_ack;      # Interrupt acknowledge
+wire ie_flag;      # Interrupt enable flag
+wire ie_next;
+
+dff IE_DFF (input: ie_next clk, output: ie_flag);
+
+# Interrupt pending when request and enabled
+wire int_pending;
+and INT_PEND (input: int_req ie_flag, output: int_pending);
+
+# ============================================
+# CONTROL SIGNALS (generated by control unit)
+# ============================================
+wire halt;
+wire alu_to_reg;
+wire mem_to_reg;
+wire imm_to_reg;
+
+# ============================================
+# SUMMARY
+# ============================================
+# Total estimated gates: ~2500
+# - 8-bit ALU: ~400 gates
+# - Register file (8x8): ~640 gates
+# - 16-bit PC: ~200 gates
+# - 16-bit SP: ~200 gates
+# - Instruction decoder: ~300 gates
+# - Control state machine: ~500 gates
+# - Memory interface: ~150 gates
+# - Interrupt logic: ~100 gates

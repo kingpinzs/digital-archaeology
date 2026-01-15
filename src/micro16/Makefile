@@ -21,7 +21,7 @@ ASM_SRCS = asm_main.c assembler.c
 ASM_OBJS = asm_main.o assembler.o
 
 # Default target - build all tools
-all: $(TARGET) $(ASSEMBLER)
+all: $(TARGET) $(ASSEMBLER) $(DISASM)
 
 # Main emulator
 $(TARGET): $(MAIN_OBJS)
@@ -42,6 +42,10 @@ asm_main.o: asm_main.c assembler.h cpu.h
 
 assembler.o: assembler.c assembler.h cpu.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Disassembler (standalone, single file)
+$(DISASM): disasm.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 # Clean
 clean:
@@ -83,8 +87,10 @@ debug: $(TARGET)
 # Help
 help:
 	@echo "Micro16 Makefile targets:"
-	@echo "  make              Build main emulator"
+	@echo "  make              Build main emulator, assembler, and disassembler"
 	@echo "  make micro16      Build main emulator"
+	@echo "  make micro16-asm  Build assembler"
+	@echo "  make micro16-disasm Build disassembler"
 	@echo "  make clean        Remove build artifacts"
 	@echo "  make install      Install emulator to bin directory"
 	@echo "  make test         Run basic sanity test"
@@ -92,8 +98,6 @@ help:
 	@echo "  make help         Show this help"
 	@echo ""
 	@echo "Future targets (not yet implemented):"
-	@echo "  make micro16-asm   Build assembler"
-	@echo "  make micro16-disasm Build disassembler"
 	@echo "  make micro16-dbg   Build standalone debugger"
 
 .PHONY: all clean install test debug help

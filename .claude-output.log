@@ -1,74 +1,69 @@
-I have completed the CPU State Viewer module. Here's a summary of what was created:
+The module has been created successfully. Let me provide a summary of what was implemented:
 
-## Summary
+## Summary: Step Debugger Module Implementation
 
-### Files Created
+I've created the `visualizer/modules/debugger-view.js` module with the following features:
 
-1. **`visualizer/modules/cpu-state-view.js`** (1240 lines)
-   - Main CPU state viewer module with full functionality
+### Files Created:
+1. **`visualizer/modules/debugger-view.js`** (1188 lines) - Main debugger module
+2. **`visualizer/debugger-demo.html`** - Demo page for testing
 
-2. **`visualizer/cpu-state-demo.html`**
-   - Interactive demo page to test the viewer
+### Features Implemented:
 
-### Features Implemented
+**Execution Controls:**
+- **Step** - Execute one cycle (keyboard: Space)
+- **Run** - Start continuous execution (keyboard: R)
+- **Pause** - Stop execution (keyboard: P)
+- **Reset** - Reset circuit to initial state (keyboard: Esc)
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| CPU Type Detection | Done | Auto-detects from circuit metadata or wire names |
-| Register Display | Done | CSS grid layout, adapts to Micro4/8/16/32 |
-| Flags Display | Done | Visual indicators (green=set, gray=clear) |
-| PC/SP Display | Done | Hex values with proper width for architecture |
-| Instruction Decoder | Done | Shows address, opcode, and decoded mnemonic |
-| Memory Hex Dump | Done | Scrollable, 16 bytes per row, ASCII column |
-| Event Subscription | Done | `on()` method for step/reset/watchpoint events |
-| Watchpoints | Done | Click register/memory to set, events emitted |
-| Change Highlighting | Done | Yellow flash animation on value changes |
+**Speed Control:**
+- Slider for 1-1000 cycles per second (CPS)
+- Uses `requestAnimationFrame` for smooth animation
+- Frame rate limiting to prevent performance issues
 
-### CPU Architectures Supported
+**Breakpoint Management:**
+- **Address breakpoints** - `addAddressBreakpoint(0x1234)`
+- **Value breakpoints** - `addValueBreakpoint('R0', '==', 0xFF)`
+- **Condition breakpoints** - `addConditionBreakpoint((state) => state.flags.Z)`
+- Enable/disable individual breakpoints
+- Hit counter for each breakpoint
+- Breakpoint list UI with delete buttons
 
-- **Micro4**: 4-bit data, 8-bit address, 1 accumulator, Z flag
-- **Micro8**: 8-bit data, 16-bit address, R0-R7, flags C/O/Z/S
-- **Micro16**: 16-bit data, 20-bit address, AX-DX/SI/DI/BP, segment registers CS/DS/SS/ES
-- **Micro32**: 32-bit data/address, EAX-EDX/ESI/EDI/EBP/ESP, control registers
+**Execution History:**
+- Stores last 100 state snapshots
+- Click to jump to any historical state
+- Restores wire states and DFF values
+- Shows cycle number and timestamp
 
-### Usage Example
+**Integration:**
+- Works with existing `SimEngine.Circuit` class
+- Callbacks: `onStep`, `onStateChange`, `onBreakpoint`, `onHistoryUpdate`, `onError`
+- Static factory method: `DebuggerView.create(container, options)`
+- Built-in CSS styles via `DebuggerView.getDefaultCSS()`
 
+### Usage Example:
 ```javascript
-// Create viewer
-const cpuView = new CPUStateView('container', {
-    memoryViewRows: 16,
-    highlightDuration: 500
+const debugger_ = SimEngine.DebuggerView.create('container', {
+    circuit: myCircuit,
+    speed: 10,
+    onStep: () => updateDisplay(),
+    onBreakpoint: (bp) => console.log('Hit:', bp.label)
 });
 
-// Set architecture
-cpuView.setArchitecture('MICRO8');
+// Add breakpoints
+debugger_.addConditionBreakpoint((s) => s.cycle === 100, 'Cycle 100');
+debugger_.addValueBreakpoint('sum', '==', 1, 'Sum is HIGH');
 
-// Subscribe to events
-cpuView.on('watchpointTriggered', (data) => {
-    console.log(`${data.type}:${data.name} changed`);
-});
-
-// Update with new state
-cpuView.update({
-    registers: { R0: 0x42, R1: 0x10 },
-    flags: 0x40,  // Z flag set
-    pc: 0x0200,
-    sp: 0xFFFF,
-    memory: new Array(256).fill(0),
-    currentInstruction: {
-        address: 0x01FF,
-        opcode: 0x06,
-        mnemonic: 'LDI',
-        operandStr: 'R0, #42'
-    }
-});
+// Control execution
+debugger_.step();   // Single step
+debugger_.run();    // Continuous
+debugger_.pause();  // Stop
+debugger_.reset();  // Reset
 ```
 
-### To Test
-
-Open `visualizer/cpu-state-demo.html` in a browser to interactively test:
-- Switch between CPU architectures
-- Step/reset/randomize simulation
-- Click registers/memory to set watchpoints
-- See change highlighting in action
-- View event log for all events
+### Testing:
+Open `visualizer/debugger-demo.html` in a browser to test the debugger with a half-adder circuit. The demo includes:
+- Visual wire state display
+- Console output
+- Interactive breakpoint form
+- All keyboard shortcuts

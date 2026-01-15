@@ -8,7 +8,8 @@ claude plugin add ralph-wiggum
 
 # Build current components
 cd src/micro4 && make        # 4-bit CPU emulator
-cd src/micro8 && make        # 8-bit CPU emulator (partial)
+cd src/micro8 && make        # 8-bit CPU emulator (functional)
+cd src/micro16 && make       # 16-bit CPU emulator (functional)
 cd src/simulator && make     # HDL circuit simulator
 
 # Run tests
@@ -27,11 +28,11 @@ Build CPUs incrementally from 4-bit to 32-bit superscalar, learning **why** each
 ```
 Stage 1: Micro4    (4-bit)   ──► Stage 2: Micro8    (8-bit)
          4004-like                        8080-like
-         ✅ COMPLETE                      ⚠️ IN PROGRESS
+         ✅ COMPLETE                      ✅ FUNCTIONAL
 
 Stage 3: Micro16   (16-bit)  ──► Stage 4: Micro32   (32-bit)
          8086-like                        386-like
-         ❌ NOT STARTED                   ❌ NOT STARTED
+         ✅ FUNCTIONAL                    ❌ NOT STARTED
 
 Stage 5: Micro32-P (32-bit)  ──► Stage 6: Micro32-S (32-bit)
          486-like (pipelined)             Pentium-like (superscalar)
@@ -102,7 +103,7 @@ programs/negative.asm         - Signed number handling
 
 ---
 
-## Stage 2: Micro8 (8-bit) - ⚠️ IN PROGRESS
+## Stage 2: Micro8 (8-bit) - ✅ FUNCTIONAL
 
 ### Specifications
 | Feature | Value |
@@ -148,79 +149,89 @@ programs/negative.asm         - Signed number handling
 ### Implementation Status
 | Component | File | Lines | Status |
 |-----------|------|-------|--------|
-| ISA Spec | docs/micro8_isa.md | 1024 | ✅ Complete |
-| CPU Emulator | src/micro8/cpu.c | 618 | ⚠️ ~25% (20/80 opcodes) |
-| CPU Header | src/micro8/cpu.h | 118 | ✅ Complete |
-| Main CLI | src/micro8/main.c | 237 | ✅ Complete |
-| Assembler | src/micro8/assembler.c | - | ❌ Missing |
-| Disassembler | src/micro8/disasm.c | - | ❌ Missing |
-| Debugger | src/micro8/debugger.c | - | ❌ Missing |
-| Test Programs | programs/micro8/ | - | ❌ Missing |
-| HDL Design | hdl/05_micro8_cpu.m4hdl | - | ❌ Missing |
+| ISA Spec | docs/micro8_isa.md | 1,024 | ✅ Complete |
+| CPU Emulator | src/micro8/cpu.c | 924 | ✅ Complete |
+| CPU Header | src/micro8/cpu.h | 296 | ✅ Complete |
+| Main CLI | src/micro8/main.c | 171 | ✅ Complete |
+| Assembler | src/micro8/assembler.c | 1,687 | ✅ Complete |
+| Disassembler | src/micro8/disasm.c | 1,258 | ✅ Complete |
+| Debugger | src/micro8/debugger.c | 582 | ✅ Complete |
+| Test Programs | programs/micro8/ | 15 files | ✅ Complete |
+| HDL Design | hdl/05_micro8_cpu.m4hdl | ~500 | ✅ Complete |
 
-### Currently Implemented Opcodes
+### Test Programs (15)
 ```
-✅ NOP, HLT
-✅ MOV_RR, MOV_RI, MOV_RM, MOV_MR
-✅ ADD_RR, ADD_RI, SUB_RR, SUB_RI
-✅ PUSH, POP
-✅ JMP, JZ, JNZ, JC, JNC, CALL, RET
-```
-
-### Missing Opcodes (to implement)
-```
-❌ LDZ, STZ (zero page)
-❌ LD [HL], ST [HL], LD [HL+d], ST [HL+d]
-❌ LDI16 (16-bit immediate)
-❌ ADC, SBC (with carry)
-❌ INC, DEC (8-bit)
-❌ INC16, DEC16, ADD16 (16-bit)
-❌ CMP, CMPI
-❌ NEG
-❌ AND, OR, XOR, NOT
-❌ ANDI, ORI, XORI
-❌ SHL, SHR, SAR, ROL, ROR
-❌ JS, JNS, JO, JNO (sign/overflow jumps)
-❌ JR, JRZ, JRNZ, JRC, JRNC (relative jumps)
-❌ JP HL (indirect jump)
-❌ PUSH16, POP16, PUSHF, POPF
-❌ RETI
-❌ EI, DI
-❌ SCF, CCF, CMF
-❌ IN, OUT
-❌ SWAP
+programs/micro8/all_instructions.asm  - Comprehensive opcode test
+programs/micro8/arithmetic.asm        - ADD, SUB, ADC, SBC tests
+programs/micro8/basic_mov.asm         - Data movement tests
+programs/micro8/bubble_sort.asm       - Sorting algorithm
+programs/micro8/calls.asm             - CALL/RET tests
+programs/micro8/divide.asm            - Division via subtraction
+programs/micro8/fibonacci.asm         - Fibonacci sequence
+programs/micro8/flags.asm             - Flag behavior tests
+programs/micro8/interrupts.asm        - Interrupt handling tests
+programs/micro8/jumps.asm             - Conditional jump tests
+programs/micro8/logic.asm             - AND, OR, XOR, NOT tests
+programs/micro8/memory.asm            - Memory access tests
+programs/micro8/multiply.asm          - Multiplication algorithm
+programs/micro8/stack.asm             - PUSH/POP tests
+programs/micro8/string_ops.asm        - String operations
 ```
 
 ---
 
-## Stage 3: Micro16 (16-bit) - ❌ NOT STARTED
+## Stage 3: Micro16 (16-bit) - ✅ FUNCTIONAL
 
-### Planned Specifications
+### Specifications
 | Feature | Value |
 |---------|-------|
 | Data width | 16-bit |
 | Address space | 20-bit (1MB) via segmentation |
-| Registers | 8 × 16-bit GP + 4 segment registers |
+| Registers | 8 × 16-bit GP (AX, BX, CX, DX, SI, DI, BP, R7) |
 | Segments | CS, DS, SS, ES |
 | Interrupts | Vectored (256 vectors) |
-| Instructions | ~150 |
+| Instructions | ~120 |
 
-### New Concepts to Implement
+### Key Features
 - Memory segmentation (segment:offset addressing)
-- Hardware multiply/divide
+- Hardware multiply/divide support
 - String operations (MOVS, CMPS, SCAS, STOS)
 - Instruction prefixes (REP, LOCK)
-- Microcode-based control unit
-- Instruction prefetch queue
+- Physical address = (Segment << 4) + Offset
 
-### Required Components
-- [ ] ISA specification (docs/micro16_isa.md)
-- [ ] CPU emulator (src/micro16/cpu.c)
-- [ ] Assembler (src/micro16/assembler.c)
-- [ ] Disassembler (src/micro16/disasm.c)
-- [ ] Debugger (src/micro16/debugger.c)
-- [ ] Test programs (programs/micro16/)
-- [ ] HDL design (hdl/06_micro16_cpu.m4hdl)
+### Implementation Status
+| Component | File | Lines | Status |
+|-----------|------|-------|--------|
+| CPU Emulator | src/micro16/cpu.c | 1,611 | ✅ Complete |
+| CPU Header | src/micro16/cpu.h | 457 | ✅ Complete |
+| Main CLI | src/micro16/main.c | 280 | ✅ Complete |
+| Assembler | src/micro16/assembler.c | 1,443 | ✅ Complete |
+| Disassembler | src/micro16/disasm.c | - | ❌ Not implemented |
+| Debugger | src/micro16/debugger.c | - | ❌ Not implemented |
+| Test Programs | programs/micro16/ | 13 files | ✅ Complete |
+| HDL Design | hdl/06_micro16_cpu.m4hdl | ~600 | ✅ Complete |
+
+### Test Programs (13)
+```
+programs/micro16/arithmetic.asm   - 16-bit arithmetic tests
+programs/micro16/basic_mov.asm    - Data movement tests
+programs/micro16/calls.asm        - CALL/RET tests
+programs/micro16/divide.asm       - Division tests
+programs/micro16/flags.asm        - Flag behavior tests
+programs/micro16/interrupts.asm   - Interrupt handling tests
+programs/micro16/jumps.asm        - Conditional jump tests
+programs/micro16/logic.asm        - Bitwise operation tests
+programs/micro16/memory.asm       - Memory access tests
+programs/micro16/multiply.asm     - Multiply instruction tests
+programs/micro16/segments.asm     - Segmentation tests
+programs/micro16/stack.asm        - Stack operation tests
+programs/micro16/strings.asm      - String operation tests
+```
+
+### Remaining Work
+- [ ] Implement standalone disassembler
+- [ ] Implement interactive debugger
+- [ ] Add memory-mapped I/O support
 
 ---
 
@@ -295,6 +306,8 @@ hdl/01_adders.m4hdl       - Half/full adder, ripple-carry
 hdl/02_flipflops.m4hdl    - D flip-flop, SR latch
 hdl/03_alu.m4hdl          - 4-bit ALU
 hdl/04_micro4_cpu.m4hdl   - Micro4 CPU design
+hdl/05_micro8_cpu.m4hdl   - Micro8 CPU design ✅
+hdl/06_micro16_cpu.m4hdl  - Micro16 CPU design ✅
 ```
 
 ### Historical Logic Implementations
@@ -398,53 +411,52 @@ done
 ### Current
 | Directory | Lines | Status |
 |-----------|-------|--------|
-| src/micro4/ | 1,906 | ✅ Complete |
-| src/micro8/ | 854 | ⚠️ 25% |
-| src/simulator/ | 1,958 | ✅ Complete |
-| **Total C** | **4,718** | |
+| src/micro4/ | ~1,900 | ✅ Complete |
+| src/micro8/ | ~4,500 | ✅ Functional |
+| src/micro16/ | ~3,800 | ✅ Functional |
+| src/simulator/ | ~1,960 | ✅ Complete |
+| **Total C** | **~12,160** | |
 | docs/ | ~4,500 | ✅ Comprehensive |
-| hdl/ | ~1,500 | ⚠️ Partial |
-| programs/ | ~300 | ✅ 12 programs |
+| hdl/ | ~2,500 | ✅ Complete |
+| programs/ | 40 files | ✅ Micro4 (12), Micro8 (15), Micro16 (13) |
 
-### Estimated to Complete Micro8
+### Remaining Work
 | Component | Est. Lines |
 |-----------|------------|
-| Finish CPU (~60 opcodes) | ~400 |
-| Assembler | ~600 |
-| Disassembler | ~500 |
-| Debugger | ~500 |
-| Test programs (10-15) | ~400 |
-| HDL implementation | ~1,000 |
-| **Total** | **~3,400** |
+| Micro16 disassembler | ~500 |
+| Micro16 debugger | ~500 |
+| Micro32 (full stage) | ~5,000 |
+| Micro32-P (pipelined) | ~3,000 |
+| Micro32-S (superscalar) | ~4,000 |
 
 ---
 
 ## Next Steps
 
-### 1. Install Plugin
-```bash
-claude plugin add ralph-wiggum
+### 1. Complete Micro16 Toolchain
+```
+/cpt:quick "Add Micro16 disassembler and debugger"
 ```
 
-### 2. Complete Micro8 (Parallel)
+Remaining for Micro16:
+- [ ] `src/micro16/disasm.c` - Standalone disassembler
+- [ ] `src/micro16/debugger.c` - Interactive debugger
+- [ ] Memory-mapped I/O support
+
+### 2. Start Micro32 (32-bit)
 ```
-/cpt:quick "Complete Micro8: assembler, disassembler, debugger, test programs"
+/cpt:quick "Implement Micro32: ISA spec, CPU emulator, assembler"
 ```
 
-This spawns 4 parallel agents:
-- Agent 1: `src/micro8/assembler.c`
-- Agent 2: `src/micro8/disasm.c`
-- Agent 3: `src/micro8/debugger.c`
-- Agent 4: `programs/micro8/*.asm`
+This is the next major milestone:
+- Protected mode with privilege rings
+- Paging with TLB
+- 32-bit flat address space
 
-### 3. Complete Micro8 CPU (Sequential)
-Extend `src/micro8/cpu.c` to implement all 80 opcodes.
-
-### 4. Future Stages
-After Micro8 is complete:
-1. Write Micro16 ISA specification
-2. Implement Micro16 toolchain
-3. Continue to Micro32, Micro32-P, Micro32-S
+### 3. Future Stages
+After Micro32 is complete:
+1. Micro32-P: 5-stage pipeline, cache, FPU
+2. Micro32-S: Superscalar, branch prediction
 
 ---
 

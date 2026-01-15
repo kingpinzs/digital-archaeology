@@ -17,8 +17,8 @@ claude plugin add ralph-wiggum
 | Stage | CPU | Data | Status |
 |-------|-----|------|--------|
 | 1 | Micro4 | 4-bit | Complete |
-| 2 | Micro8 | 8-bit | In Progress |
-| 3 | Micro16 | 16-bit | Planned |
+| 2 | Micro8 | 8-bit | Functional |
+| 3 | Micro16 | 16-bit | Functional |
 | 4 | Micro32 | 32-bit | Planned |
 | 5 | Micro32-P | Pipelined | Planned |
 | 6 | Micro32-S | Superscalar | Planned |
@@ -36,11 +36,12 @@ claude plugin add ralph-wiggum
 ```
 src/
 ├── micro4/      # 4-bit CPU emulator (complete)
-├── micro8/      # 8-bit CPU emulator (in progress)
+├── micro8/      # 8-bit CPU emulator (functional)
+├── micro16/     # 16-bit CPU emulator (functional)
 └── simulator/   # M4HDL circuit simulator
 
-hdl/             # Hardware description files
-programs/        # Assembly test programs
+hdl/             # Hardware description files (7 files)
+programs/        # Assembly test programs (40 files)
 docs/            # Architecture documentation
 ```
 
@@ -49,5 +50,5 @@ docs/            # Architecture documentation
 See [CLAUDE.md](CLAUDE.md) for parallel development protocol.
 
 ```bash
-/cpt:quick "Complete Micro8 toolchain"
+/cpt:quick "Add Micro16 disassembler and debugger"
 ```

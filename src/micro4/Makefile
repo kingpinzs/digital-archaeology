@@ -1,6 +1,6 @@
 # Micro4 CPU Emulator Makefile
 
-CC = gcc-14
+CC ?= gcc
 CFLAGS = -Wall -Wextra -std=c99 -g -O2
 LDFLAGS =
 

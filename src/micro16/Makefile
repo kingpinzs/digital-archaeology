@@ -20,8 +20,12 @@ MAIN_OBJS = main.o cpu.o
 ASM_SRCS = asm_main.c assembler.c
 ASM_OBJS = asm_main.o assembler.o
 
+# Source files for debugger
+DBG_SRCS = debugger.c cpu.c
+DBG_OBJS = debugger.o cpu.o
+
 # Default target - build all tools
-all: $(TARGET) $(ASSEMBLER) $(DISASM)
+all: $(TARGET) $(ASSEMBLER) $(DISASM) $(DEBUGGER)
 
 # Main emulator
 $(TARGET): $(MAIN_OBJS)
@@ -46,6 +50,17 @@ assembler.o: assembler.c assembler.h cpu.h
 # Disassembler (standalone, single file)
 $(DISASM): disasm.c
 	$(CC) $(CFLAGS) -o $@ $<
+
+# Debugger
+$(DEBUGGER): debugger.o cpu_dbg.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+debugger.o: debugger.c debugger.h cpu.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Separate cpu.o for debugger to avoid conflicts with main.o
+cpu_dbg.o: cpu.c cpu.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Clean
 clean:
@@ -87,17 +102,24 @@ debug: $(TARGET)
 # Help
 help:
 	@echo "Micro16 Makefile targets:"
-	@echo "  make              Build main emulator, assembler, and disassembler"
+	@echo "  make              Build all tools (emulator, assembler, disassembler, debugger)"
 	@echo "  make micro16      Build main emulator"
 	@echo "  make micro16-asm  Build assembler"
 	@echo "  make micro16-disasm Build disassembler"
+	@echo "  make micro16-dbg  Build standalone debugger"
 	@echo "  make clean        Remove build artifacts"
-	@echo "  make install      Install emulator to bin directory"
+	@echo "  make install      Install tools to bin directory"
 	@echo "  make test         Run basic sanity test"
-	@echo "  make debug FILE=x Debug a binary file"
+	@echo "  make debug FILE=x Debug a binary file with integrated debugger"
+	@echo "  make dbg FILE=x   Debug a binary file with standalone debugger"
 	@echo "  make help         Show this help"
-	@echo ""
-	@echo "Future targets (not yet implemented):"
-	@echo "  make micro16-dbg   Build standalone debugger"
 
-.PHONY: all clean install test debug help
+# Debug with standalone debugger
+dbg: $(DEBUGGER)
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make dbg FILE=<binary>"; \
+	else \
+		./$(DEBUGGER) $(FILE); \
+	fi
+
+.PHONY: all clean install test debug dbg help

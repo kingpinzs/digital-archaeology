@@ -1,20 +1,21 @@
 {
   "plan_id": "edu-platform-2026-01-14",
   "goal": "Transform CPU project into comprehensive educational platform",
-  "status": "pending",
+  "status": "in_progress",
   "created": "2026-01-14",
   "sprints": [
     {
       "id": "sprint1-visualizer",
       "name": "Visualizer Core",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "vis-core-engine",
           "name": "Core simulation engine",
           "file": "visualizer/modules/core-engine.js",
           "prompt": ".claude/prompts/vis-core-engine.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/vis-core-engine",
           "depends_on": []
         },
         {
@@ -46,14 +47,15 @@
     {
       "id": "sprint2-micro4-edu",
       "name": "Micro4 Educational",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "m4-starter-hdl",
           "name": "Micro4 starter HDL",
           "file": "templates/micro4/hdl/starter.m4hdl",
           "prompt": ".claude/prompts/m4-starter-hdl.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m4-starter-hdl",
           "depends_on": []
         },
         {
@@ -61,7 +63,8 @@
           "name": "Micro4 hints",
           "file": "templates/micro4/hints/",
           "prompt": ".claude/prompts/m4-hints.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m4-hints",
           "depends_on": []
         },
         {
@@ -69,7 +72,8 @@
           "name": "Micro4 homework",
           "file": "homework/micro4/",
           "prompt": ".claude/prompts/m4-homework.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m4-homework",
           "depends_on": []
         }
       ]
@@ -77,14 +81,15 @@
     {
       "id": "sprint3-micro8-edu",
       "name": "Micro8 Educational",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "m8-starter-hdl",
           "name": "Micro8 starter HDL",
           "file": "templates/micro8/hdl/starter.m4hdl",
           "prompt": ".claude/prompts/m8-starter-hdl.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m8-starter-hdl",
           "depends_on": []
         },
         {
@@ -100,7 +105,8 @@
           "name": "Micro8 homework",
           "file": "homework/micro8/",
           "prompt": ".claude/prompts/m8-homework.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m8-homework",
           "depends_on": []
         }
       ]
@@ -108,14 +114,15 @@
     {
       "id": "sprint4-micro16",
       "name": "Micro16 Completion",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "m16-disasm",
           "name": "Micro16 disassembler",
           "file": "src/micro16/disasm.c",
           "prompt": ".claude/prompts/m16-disasm.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m16-disasm",
           "depends_on": []
         },
         {
@@ -123,7 +130,8 @@
           "name": "Micro16 debugger",
           "file": "src/micro16/debugger.c",
           "prompt": ".claude/prompts/m16-debugger.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m16-debugger",
           "depends_on": []
         },
         {
@@ -147,14 +155,15 @@
     {
       "id": "sprint5-micro32",
       "name": "Micro32 New Stage",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "m32-isa",
           "name": "Micro32 ISA spec",
           "file": "docs/micro32_isa.md",
           "prompt": ".claude/prompts/m32-isa.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/m32-isa",
           "depends_on": []
         },
         {
@@ -209,14 +218,15 @@
     {
       "id": "sprint7-literature",
       "name": "Literature Articles",
-      "status": "pending",
+      "status": "in_progress",
       "tasks": [
         {
           "id": "lit-basics",
           "name": "Basic concepts (01-06)",
           "file": "literature/",
           "prompt": ".claude/prompts/lit-basics.md",
-          "status": "pending",
+          "status": "in_progress",
+          "branch": "feature/lit-basics",
           "depends_on": []
         },
         {

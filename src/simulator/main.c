@@ -524,9 +524,14 @@ int main(int argc, char *argv[]) {
     printf("\nFinal state:\n");
     circuit_dump_wires(&c);
 
+    /* Timing analysis */
+    CircuitTiming timing;
+    circuit_analyze_timing(&c, &timing);
+    circuit_print_clock_speeds(&timing);
+
     /* Also export JSON for visualizer */
     circuit_export_json(&c, "circuit.json");
-    printf("\nExported to circuit.json for visualizer\n");
+    printf("Exported to circuit.json for visualizer\n");
 
     return 0;
 }

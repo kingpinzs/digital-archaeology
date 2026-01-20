@@ -158,4 +158,15 @@ const char* gate_type_str(GateType t);
 void circuit_export_json(Circuit *c, const char *filename);
 void circuit_export_json_state(Circuit *c, const char *filename);
 
+/* === Timing Analysis === */
+typedef struct {
+    int critical_path_depth;    /* Longest combinational path (gate delays) */
+    int total_gates;            /* Total gate count */
+    int total_transistors;      /* Estimated transistor count */
+    int num_flip_flops;         /* Number of sequential elements */
+} CircuitTiming;
+
+void circuit_analyze_timing(Circuit *c, CircuitTiming *timing);
+void circuit_print_clock_speeds(CircuitTiming *timing);
+
 #endif /* CIRCUIT_H */

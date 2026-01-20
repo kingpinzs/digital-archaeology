@@ -2,5 +2,19 @@
 bin/*
 .history/
 !*/*.gitkeep
+
+# Compiled binaries
 src/micro4/micro4-dbg
+src/micro4/disasm
+src/micro8/micro8
+src/micro8/micro8-asm
+src/micro8/micro8-dbg
+src/micro8/micro8-disasm
+src/micro16/micro16
+src/micro16/micro16-asm
+src/simulator/m4sim
 src/simulator/circuit.json
+
+# Backup files
+*.backup
+CLAUDE.md.backup

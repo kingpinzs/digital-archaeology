@@ -112,6 +112,10 @@
 #define OP_XCHG     0x12    /* XCHG Rd, Rs */
 #define OP_MOV_SR   0x13    /* MOV Seg, Rs (reg to seg) */
 #define OP_MOV_RS   0x14    /* MOV Rd, Seg (seg to reg) */
+#define OP_MOV_R_SP 0x15    /* MOV Rd, SP (SP to reg) */
+#define OP_MOV_SP_R 0x16    /* MOV SP, Rs (reg to SP) */
+#define OP_ADD_SP_I 0x17    /* ADD SP, #imm16 */
+#define OP_SUB_SP_I 0x18    /* SUB SP, #imm16 */
 
 /* Data Transfer - Memory (0x20-0x3F) */
 #define OP_LD       0x20    /* LD Rd, [addr] (memory to reg) */
@@ -123,6 +127,8 @@
 #define OP_LEA      0x26    /* LEA Rd, [addr] (load effective address) */
 #define OP_LDS      0x27    /* LDS Rd, [addr] (load reg + DS) */
 #define OP_LES      0x28    /* LES Rd, [addr] (load reg + ES) */
+#define OP_LD_IDX_SP 0x29   /* LD Rd, [SP + offset] indexed via SP */
+#define OP_ST_IDX_SP 0x2A   /* ST [SP + offset], Rs indexed via SP */
 
 /* Stack Operations (0x40-0x4F) */
 #define OP_PUSH_R   0x40    /* PUSH Rd */

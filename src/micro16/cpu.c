@@ -332,9 +332,11 @@ int cpu_step(Micro16CPU *cpu) {
     /* Instruction operands */
     uint8_t reg, reg2, seg;
     uint16_t imm16, addr16;
+    int16_t offset16;
     int8_t offset8;
     uint32_t result32;
     (void)addr16;  /* May be unused in skeleton */
+    (void)offset16;
 
     /* Decode and execute */
     switch (opcode) {
@@ -454,6 +456,34 @@ int cpu_step(Micro16CPU *cpu) {
         cycles += 2;
         break;
 
+    case OP_MOV_R_SP:
+        /* MOV Rd, SP - Copy SP to register */
+        reg = fetch_byte(cpu) & 0x07;
+        cpu->r[reg] = cpu->sp;
+        cycles += 2;
+        break;
+
+    case OP_MOV_SP_R:
+        /* MOV SP, Rs - Copy register to SP */
+        reg = fetch_byte(cpu) & 0x07;
+        cpu->sp = cpu->r[reg];
+        cycles += 2;
+        break;
+
+    case OP_ADD_SP_I:
+        /* ADD SP, #imm16 */
+        imm16 = fetch_word(cpu);
+        cpu->sp += imm16;
+        cycles += 3;
+        break;
+
+    case OP_SUB_SP_I:
+        /* SUB SP, #imm16 */
+        imm16 = fetch_word(cpu);
+        cpu->sp -= imm16;
+        cycles += 3;
+        break;
+
     /* ========== Data Transfer - Memory (0x20-0x28) ========== */
     case OP_LD:
         /* LD Rd, [addr] - Load 16-bit word from memory */
@@ -537,6 +567,24 @@ int cpu_step(Micro16CPU *cpu) {
         cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16);
         cpu->seg[SEG_ES] = cpu_read_word(cpu, cpu->seg[SEG_DS], addr16 + 2);
         cycles += 6;
+        break;
+
+    case OP_LD_IDX_SP:
+        /* LD Rd, [SP + offset] - Load word from stack with offset */
+        reg = fetch_byte(cpu) & 0x07;
+        offset16 = (int16_t)fetch_word(cpu);
+        addr16 = cpu->sp + offset16;
+        cpu->r[reg] = cpu_read_word(cpu, cpu->seg[SEG_SS], addr16);
+        cycles += 5;
+        break;
+
+    case OP_ST_IDX_SP:
+        /* ST [SP + offset], Rs - Store word to stack with offset */
+        reg = fetch_byte(cpu) & 0x07;
+        offset16 = (int16_t)fetch_word(cpu);
+        addr16 = cpu->sp + offset16;
+        cpu_write_word(cpu, cpu->seg[SEG_SS], addr16, cpu->r[reg]);
+        cycles += 5;
         break;
 
     /* ========== Stack Operations (0x40-0x47) ========== */

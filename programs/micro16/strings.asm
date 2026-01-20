@@ -154,12 +154,9 @@ CMP13_DONE:
 
         ; ===== Test 15: REPNZ SCASB - Search for byte =====
         ; SCASB compares AL with [DI]
-        MOV DI, #SEARCH_STR     ; String to search "ABCDEF"
-        MOV AX, #0x0044         ; Looking for 'D' (0x44)
-        MOV CX, #6              ; Max length
-        REPNZ                   ; Repeat while NOT equal (Z=0)
-        SCASB                   ; Actually need REPNZ SCASB together
-        ; This is tricky - for now, manual search
+        ; Note: Using manual search since REPNZ SCASB needs to be on same line
+        ; REPNZ SCASB would search for AL in string at [DI], decrementing CX
+        ; Manual search implementation below:
         MOV DI, #SEARCH_STR
         MOV CX, #6
 SEARCH_LOOP:

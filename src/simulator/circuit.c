@@ -562,3 +562,175 @@ void circuit_export_json_state(Circuit *c, const char *filename) {
     fprintf(f, "]\n}\n");
     fclose(f);
 }
+
+/* === Timing Analysis === */
+
+/* Get transistor count for a gate type */
+static int gate_transistor_count(GateType type) {
+    switch (type) {
+        case GATE_NOT:    return 2;   /* 1 NMOS + 1 PMOS */
+        case GATE_BUF:    return 4;   /* 2 inverters */
+        case GATE_AND:    return 6;   /* NAND + NOT */
+        case GATE_OR:     return 6;   /* NOR + NOT */
+        case GATE_NAND:   return 4;   /* 2 NMOS + 2 PMOS */
+        case GATE_NOR:    return 4;   /* 2 NMOS + 2 PMOS */
+        case GATE_XOR:    return 12;  /* Complex gate */
+        case GATE_XNOR:   return 12;  /* Complex gate */
+        case GATE_MUX2:   return 12;  /* Transmission gates + inverter */
+        case GATE_DFF:    return 40;  /* Master-slave latch */
+        case GATE_DLATCH: return 20;  /* D latch */
+        case GATE_NMOS:   return 1;
+        case GATE_PMOS:   return 1;
+        case GATE_CONST:  return 0;
+        case GATE_MODULE: return 0;   /* Counted separately */
+        default:          return 4;
+    }
+}
+
+/* Analyze circuit timing */
+void circuit_analyze_timing(Circuit *c, CircuitTiming *timing) {
+    timing->total_gates = 0;
+    timing->total_transistors = 0;
+    timing->num_flip_flops = 0;
+    timing->critical_path_depth = 0;
+
+    /* Count gates and transistors */
+    for (int i = 0; i < c->num_gates; i++) {
+        Gate *g = &c->gates[i];
+        timing->total_gates++;
+        timing->total_transistors += gate_transistor_count(g->type);
+        if (g->type == GATE_DFF || g->type == GATE_DLATCH) {
+            timing->num_flip_flops++;
+        }
+    }
+
+    /* Calculate critical path using level propagation */
+    /* Each wire gets a level = max(input_levels) + 1 */
+    int *wire_levels = calloc(c->num_wires, sizeof(int));
+    int max_iterations = c->num_gates + 1;
+
+    for (int iter = 0; iter < max_iterations; iter++) {
+        int changed = 0;
+        for (int i = 0; i < c->num_gates; i++) {
+            Gate *g = &c->gates[i];
+            /* Skip flip-flops for combinational path */
+            if (g->type == GATE_DFF || g->type == GATE_DLATCH) continue;
+
+            /* Find max input level */
+            int max_level = 0;
+            for (int j = 0; j < g->num_inputs; j++) {
+                int wire_idx = g->inputs[j];
+                if (wire_idx >= 0 && wire_idx < c->num_wires) {
+                    if (wire_levels[wire_idx] > max_level) {
+                        max_level = wire_levels[wire_idx];
+                    }
+                }
+            }
+
+            /* Set output level = max_input + 1 */
+            for (int j = 0; j < g->num_outputs; j++) {
+                int wire_idx = g->outputs[j];
+                if (wire_idx >= 0 && wire_idx < c->num_wires) {
+                    int new_level = max_level + 1;
+                    if (new_level > wire_levels[wire_idx]) {
+                        wire_levels[wire_idx] = new_level;
+                        changed = 1;
+                    }
+                }
+            }
+        }
+        if (!changed) break;
+    }
+
+    /* Find maximum level */
+    for (int i = 0; i < c->num_wires; i++) {
+        if (wire_levels[i] > timing->critical_path_depth) {
+            timing->critical_path_depth = wire_levels[i];
+        }
+    }
+
+    free(wire_levels);
+}
+
+/* Print clock speed estimates */
+void circuit_print_clock_speeds(CircuitTiming *timing) {
+    printf("\n=== Circuit Timing Analysis ===\n");
+    printf("Total gates:        %d\n", timing->total_gates);
+    printf("Total transistors:  ~%d\n", timing->total_transistors);
+    printf("Flip-flops:         %d\n", timing->num_flip_flops);
+    printf("Critical path:      %d gate delays\n", timing->critical_path_depth);
+
+    if (timing->critical_path_depth == 0) {
+        printf("\n(No combinational logic path found)\n");
+        return;
+    }
+
+    printf("\n=== Estimated Clock Speeds ===\n");
+    printf("%-20s | %-12s | %-12s | %-12s\n",
+           "Technology", "Gate Delay", "Max Clock", "MIPS (est)");
+    printf("---------------------|--------------|--------------|-------------\n");
+
+    /* Technology specs: name, gate_delay_ns, description */
+    struct {
+        const char *name;
+        double gate_delay_ns;
+    } technologies[] = {
+        {"Relay (1940s)",       10000000.0},  /* 10 ms */
+        {"Vacuum Tube (1950s)", 100000.0},    /* 100 us */
+        {"RTL (1960s)",         50.0},        /* 50 ns */
+        {"DTL (1965)",          30.0},        /* 30 ns */
+        {"TTL (1970s)",         10.0},        /* 10 ns */
+        {"NMOS (1980s)",        5.0},         /* 5 ns */
+        {"CMOS 1um (1985)",     2.0},         /* 2 ns */
+        {"CMOS 350nm (1995)",   0.5},         /* 0.5 ns */
+        {"CMOS 65nm (2005)",    0.1},         /* 100 ps */
+        {"CMOS 7nm (2020)",     0.01},        /* 10 ps */
+    };
+    int num_tech = sizeof(technologies) / sizeof(technologies[0]);
+
+    for (int i = 0; i < num_tech; i++) {
+        double total_delay_ns = timing->critical_path_depth * technologies[i].gate_delay_ns;
+        double max_freq_hz = 1.0e9 / total_delay_ns;
+        double mips = max_freq_hz / 5.0e6;  /* Assume 5 cycles per instruction */
+
+        /* Format frequency */
+        char freq_str[32];
+        if (max_freq_hz >= 1e9) {
+            snprintf(freq_str, sizeof(freq_str), "%.2f GHz", max_freq_hz / 1e9);
+        } else if (max_freq_hz >= 1e6) {
+            snprintf(freq_str, sizeof(freq_str), "%.2f MHz", max_freq_hz / 1e6);
+        } else if (max_freq_hz >= 1e3) {
+            snprintf(freq_str, sizeof(freq_str), "%.2f kHz", max_freq_hz / 1e3);
+        } else {
+            snprintf(freq_str, sizeof(freq_str), "%.2f Hz", max_freq_hz);
+        }
+
+        /* Format gate delay */
+        char delay_str[32];
+        if (technologies[i].gate_delay_ns >= 1e6) {
+            snprintf(delay_str, sizeof(delay_str), "%.0f ms", technologies[i].gate_delay_ns / 1e6);
+        } else if (technologies[i].gate_delay_ns >= 1e3) {
+            snprintf(delay_str, sizeof(delay_str), "%.0f us", technologies[i].gate_delay_ns / 1e3);
+        } else if (technologies[i].gate_delay_ns >= 1.0) {
+            snprintf(delay_str, sizeof(delay_str), "%.0f ns", technologies[i].gate_delay_ns);
+        } else {
+            snprintf(delay_str, sizeof(delay_str), "%.0f ps", technologies[i].gate_delay_ns * 1000);
+        }
+
+        /* Format MIPS */
+        char mips_str[32];
+        if (mips >= 1000) {
+            snprintf(mips_str, sizeof(mips_str), "%.0f", mips);
+        } else if (mips >= 1) {
+            snprintf(mips_str, sizeof(mips_str), "%.1f", mips);
+        } else if (mips >= 0.001) {
+            snprintf(mips_str, sizeof(mips_str), "%.4f", mips);
+        } else {
+            snprintf(mips_str, sizeof(mips_str), "%.2e", mips);
+        }
+
+        printf("%-20s | %-12s | %-12s | %-12s\n",
+               technologies[i].name, delay_str, freq_str, mips_str);
+    }
+    printf("\n");
+}

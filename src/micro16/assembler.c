@@ -768,6 +768,15 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
                     as->current_addr += 2;
                 }
                 return true;
+            } else if (rs == -2) {
+                /* MOV Rd, SP */
+                if (pass2) {
+                    emit_byte(as, OP_MOV_R_SP);
+                    emit_byte(as, rd);
+                } else {
+                    as->current_addr += 2;
+                }
+                return true;
             } else if (ss >= 0) {
                 /* MOV Rd, Seg */
                 if (pass2) {
@@ -828,6 +837,25 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
                 }
                 return true;
             }
+        } else if (rd == -2) {
+            /* MOV SP, Rs */
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            int rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, OP_MOV_SP_R);
+                emit_byte(as, rs);
+            } else {
+                as->current_addr += 2;
+            }
+            return true;
         } else if (sd >= 0) {
             /* MOV Seg, Rs */
             p += seg_len;
@@ -909,13 +937,65 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         return true;
     }
 
+    /* Special case: ADD SP, #imm16 */
+    if (strcasecmp(mnemonic, "ADD") == 0) {
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd == -2) {  /* SP */
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            if (*p == '#') p++;
+            uint32_t imm;
+            if (parse_operand(as, p, &imm, pass2) == 0 && pass2) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected immediate");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, OP_ADD_SP_I);
+                emit_word(as, (uint16_t)imm);
+            } else {
+                as->current_addr += 3;
+            }
+            return true;
+        }
+    }
+
+    /* Special case: SUB SP, #imm16 */
+    if (strcasecmp(mnemonic, "SUB") == 0) {
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd == -2) {  /* SP */
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            if (*p == '#') p++;
+            uint32_t imm;
+            if (parse_operand(as, p, &imm, pass2) == 0 && pass2) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected immediate");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, OP_SUB_SP_I);
+                emit_word(as, (uint16_t)imm);
+            } else {
+                as->current_addr += 3;
+            }
+            return true;
+        }
+    }
+
     /* Two-operand arithmetic: ADD, ADC, SUB, SBC, AND, OR, XOR, CMP, TEST */
     if (strcasecmp(mnemonic, "ADD") == 0 || strcasecmp(mnemonic, "ADC") == 0 ||
         strcasecmp(mnemonic, "SUB") == 0 || strcasecmp(mnemonic, "SBC") == 0 ||
         strcasecmp(mnemonic, "AND") == 0 || strcasecmp(mnemonic, "OR") == 0 ||
         strcasecmp(mnemonic, "XOR") == 0 || strcasecmp(mnemonic, "CMP") == 0 ||
         strcasecmp(mnemonic, "TEST") == 0) {
-        
+
         uint8_t op_rr, op_ri;
         if (strcasecmp(mnemonic, "ADD") == 0) { op_rr = OP_ADD_RR; op_ri = OP_ADD_RI; }
         else if (strcasecmp(mnemonic, "ADC") == 0) { op_rr = OP_ADC_RR; op_ri = OP_ADC_RI; }
@@ -1015,10 +1095,12 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
         return true;
     }
 
-    /* MUL, IMUL, DIV, IDIV */
+    /* MUL, IMUL, DIV, IDIV - syntax: OP Rd, Rs (or just OP Rs) */
+    /* For DIV/IDIV: DX:AX / Rs -> AX=quotient, DX=remainder */
+    /* For MUL/IMUL: AX * Rs -> DX:AX */
     if (strcasecmp(mnemonic, "MUL") == 0 || strcasecmp(mnemonic, "IMUL") == 0 ||
         strcasecmp(mnemonic, "DIV") == 0 || strcasecmp(mnemonic, "IDIV") == 0) {
-        
+
         uint8_t opcode;
         if (strcasecmp(mnemonic, "MUL") == 0) opcode = OP_MUL;
         else if (strcasecmp(mnemonic, "IMUL") == 0) opcode = OP_IMUL;
@@ -1032,6 +1114,21 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             as->error = true;
             return false;
         }
+        p += reg_len;
+        p = skip_whitespace(p);
+
+        /* Check for two-operand form: OP Rd, Rs (skip Rd, use Rs) */
+        if (*p == ',') {
+            p++;
+            p = skip_whitespace(p);
+            rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected source register");
+                as->error = true;
+                return false;
+            }
+        }
+
         if (pass2) {
             emit_byte(as, opcode);
             emit_byte(as, rs);
@@ -1087,6 +1184,538 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             emit_byte(as, OP_IRET);
         } else {
             as->current_addr++;
+        }
+        return true;
+    }
+
+    /* LD Rd, [addr] or LD Rd, [Rs+offset] - Load word from memory */
+    if (strcasecmp(mnemonic, "LD") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+
+        if (*p != '[') {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for memory operand");
+            as->error = true;
+            return false;
+        }
+        p++;  /* Skip '[' */
+        p = skip_whitespace(p);
+
+        /* Try indexed: [Rs+offset] or [Rs-offset] or [SP+offset] */
+        int base_reg = parse_register(p, &reg_len);
+        if (base_reg >= 0 || base_reg == -2) {
+            bool use_sp = (base_reg == -2);
+            p += reg_len;
+            p = skip_whitespace(p);
+            int16_t offset = 0;
+            if (*p == '+' || *p == '-') {
+                char sign = *p++;
+                p = skip_whitespace(p);
+                if (*p == '#') p++;
+                uint32_t off_val = 0;
+                parse_operand(as, p, &off_val, pass2);
+                offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                while (*p && *p != ']') p++;
+            }
+            if (*p == ']') p++;
+            if (pass2) {
+                if (use_sp) {
+                    emit_byte(as, OP_LD_IDX_SP);
+                    emit_byte(as, rd);
+                } else {
+                    emit_byte(as, OP_LD_IDX);
+                    emit_byte(as, (rd << 4) | base_reg);
+                }
+                emit_word(as, (uint16_t)offset);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        }
+
+        /* Direct: [addr] */
+        uint32_t addr;
+        parse_operand(as, p, &addr, pass2);
+        while (*p && *p != ']') p++;
+        if (pass2) {
+            emit_byte(as, OP_LD);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)addr);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* ST [addr], Rs or ST Rs, [addr] - Store word to memory */
+    if (strcasecmp(mnemonic, "ST") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+
+        /* Check if first operand is register or [addr] */
+        if (*p == '[') {
+            /* ST [addr], Rs or ST [Rd+offset], Rs */
+            p++;  /* Skip '[' */
+            p = skip_whitespace(p);
+
+            /* Try indexed: [Rd+offset], Rs or [SP+offset], Rs */
+            int base_reg = parse_register(p, &reg_len);
+            if (base_reg >= 0 || base_reg == -2) {
+                bool use_sp = (base_reg == -2);
+                p += reg_len;
+                p = skip_whitespace(p);
+                int16_t offset = 0;
+                if (*p == '+' || *p == '-') {
+                    char sign = *p++;
+                    p = skip_whitespace(p);
+                    if (*p == '#') p++;
+                    uint32_t off_val = 0;
+                    parse_operand(as, p, &off_val, pass2);
+                    offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                    while (*p && *p != ']') p++;
+                }
+                if (*p == ']') p++;
+                p = skip_whitespace(p);
+                if (*p == ',') p++;
+                p = skip_whitespace(p);
+                int rs = parse_register(p, &reg_len);
+                if (rs < 0) {
+                    snprintf(as->error_msg, sizeof(as->error_msg), "Expected source register");
+                    as->error = true;
+                    return false;
+                }
+                if (pass2) {
+                    if (use_sp) {
+                        emit_byte(as, OP_ST_IDX_SP);
+                        emit_byte(as, rs);
+                    } else {
+                        emit_byte(as, OP_ST_IDX);
+                        emit_byte(as, (base_reg << 4) | rs);
+                    }
+                    emit_word(as, (uint16_t)offset);
+                } else {
+                    as->current_addr += 4;
+                }
+                return true;
+            }
+
+            /* Direct: [addr], Rs */
+            uint32_t addr;
+            parse_operand(as, p, &addr, pass2);
+            while (*p && *p != ']') p++;
+            if (*p == ']') p++;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            int rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected source register");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, OP_ST);
+                emit_byte(as, rs);
+                emit_word(as, (uint16_t)addr);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        } else {
+            /* ST Rs, [addr] - alternate syntax */
+            int rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected register or '['");
+                as->error = true;
+                return false;
+            }
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            if (*p != '[') {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for memory operand");
+                as->error = true;
+                return false;
+            }
+            p++;  /* Skip '[' */
+            p = skip_whitespace(p);
+
+            /* Check for indexed addressing or SP-indexed */
+            int base_reg = parse_register(p, &reg_len);
+            if (base_reg >= 0 || base_reg == -2) {
+                bool use_sp = (base_reg == -2);
+                p += reg_len;
+                p = skip_whitespace(p);
+                int16_t offset = 0;
+                if (*p == '+' || *p == '-') {
+                    char sign = *p++;
+                    p = skip_whitespace(p);
+                    if (*p == '#') p++;
+                    uint32_t off_val = 0;
+                    parse_operand(as, p, &off_val, pass2);
+                    offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                    while (*p && *p != ']') p++;
+                }
+                if (*p == ']') p++;
+                if (pass2) {
+                    if (use_sp) {
+                        emit_byte(as, OP_ST_IDX_SP);
+                        emit_byte(as, rs);
+                    } else {
+                        emit_byte(as, OP_ST_IDX);
+                        emit_byte(as, (base_reg << 4) | rs);
+                    }
+                    emit_word(as, (uint16_t)offset);
+                } else {
+                    as->current_addr += 4;
+                }
+                return true;
+            }
+
+            uint32_t addr;
+            parse_operand(as, p, &addr, pass2);
+            if (pass2) {
+                emit_byte(as, OP_ST);
+                emit_byte(as, rs);
+                emit_word(as, (uint16_t)addr);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        }
+    }
+
+    /* LDB Rd, [addr] or LDB Rd, [Rs+offset] - Load byte from memory */
+    if (strcasecmp(mnemonic, "LDB") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+
+        if (*p != '[') {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for memory operand");
+            as->error = true;
+            return false;
+        }
+        p++;  /* Skip '[' */
+        p = skip_whitespace(p);
+
+        /* Check for indexed: [Rs+offset] */
+        int base_reg = parse_register(p, &reg_len);
+        if (base_reg >= 0) {
+            p += reg_len;
+            p = skip_whitespace(p);
+            int16_t offset = 0;
+            if (*p == '+' || *p == '-') {
+                char sign = *p++;
+                p = skip_whitespace(p);
+                if (*p == '#') p++;
+                uint32_t off_val = 0;
+                parse_operand(as, p, &off_val, pass2);
+                offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                while (*p && *p != ']') p++;
+            }
+            if (*p == ']') p++;
+            if (pass2) {
+                emit_byte(as, OP_LDB);
+                emit_byte(as, (rd << 4) | base_reg);
+                emit_word(as, (uint16_t)offset);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        }
+
+        /* Direct: [addr] */
+        uint32_t addr;
+        parse_operand(as, p, &addr, pass2);
+        while (*p && *p != ']') p++;
+        if (pass2) {
+            emit_byte(as, OP_LDB);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)addr);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* STB [addr], Rs or STB Rs, [addr] or STB [Rd+offset], Rs - Store byte to memory */
+    if (strcasecmp(mnemonic, "STB") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+
+        if (*p == '[') {
+            /* STB [addr], Rs or STB [Rd+offset], Rs */
+            p++;  /* Skip '[' */
+            p = skip_whitespace(p);
+
+            /* Check for indexed: [Rd+offset], Rs */
+            int base_reg = parse_register(p, &reg_len);
+            if (base_reg >= 0) {
+                p += reg_len;
+                p = skip_whitespace(p);
+                int16_t offset = 0;
+                if (*p == '+' || *p == '-') {
+                    char sign = *p++;
+                    p = skip_whitespace(p);
+                    if (*p == '#') p++;
+                    uint32_t off_val = 0;
+                    parse_operand(as, p, &off_val, pass2);
+                    offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                    while (*p && *p != ']') p++;
+                }
+                if (*p == ']') p++;
+                p = skip_whitespace(p);
+                if (*p == ',') p++;
+                p = skip_whitespace(p);
+                int rs = parse_register(p, &reg_len);
+                if (rs < 0) {
+                    snprintf(as->error_msg, sizeof(as->error_msg), "Expected source register");
+                    as->error = true;
+                    return false;
+                }
+                if (pass2) {
+                    emit_byte(as, OP_STB);
+                    emit_byte(as, (base_reg << 4) | rs);
+                    emit_word(as, (uint16_t)offset);
+                } else {
+                    as->current_addr += 4;
+                }
+                return true;
+            }
+
+            /* Direct: [addr], Rs */
+            uint32_t addr;
+            parse_operand(as, p, &addr, pass2);
+            while (*p && *p != ']') p++;
+            if (*p == ']') p++;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            int rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected source register");
+                as->error = true;
+                return false;
+            }
+            if (pass2) {
+                emit_byte(as, OP_STB);
+                emit_byte(as, rs);
+                emit_word(as, (uint16_t)addr);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        } else {
+            /* STB Rs, [addr] or STB Rs, [Rd+offset] - alternate syntax */
+            int rs = parse_register(p, &reg_len);
+            if (rs < 0) {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected register or '['");
+                as->error = true;
+                return false;
+            }
+            p += reg_len;
+            p = skip_whitespace(p);
+            if (*p == ',') p++;
+            p = skip_whitespace(p);
+            if (*p != '[') {
+                snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for memory operand");
+                as->error = true;
+                return false;
+            }
+            p++;  /* Skip '[' */
+            p = skip_whitespace(p);
+
+            /* Check for indexed addressing */
+            int base_reg = parse_register(p, &reg_len);
+            if (base_reg >= 0) {
+                p += reg_len;
+                p = skip_whitespace(p);
+                int16_t offset = 0;
+                if (*p == '+' || *p == '-') {
+                    char sign = *p++;
+                    p = skip_whitespace(p);
+                    if (*p == '#') p++;
+                    uint32_t off_val = 0;
+                    parse_operand(as, p, &off_val, pass2);
+                    offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                    while (*p && *p != ']') p++;
+                }
+                if (*p == ']') p++;
+                if (pass2) {
+                    emit_byte(as, OP_STB);
+                    emit_byte(as, (base_reg << 4) | rs);
+                    emit_word(as, (uint16_t)offset);
+                } else {
+                    as->current_addr += 4;
+                }
+                return true;
+            }
+
+            uint32_t addr;
+            parse_operand(as, p, &addr, pass2);
+            if (pass2) {
+                emit_byte(as, OP_STB);
+                emit_byte(as, rs);
+                emit_word(as, (uint16_t)addr);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        }
+    }
+
+    /* LEA Rd, [addr] or LEA Rd, [Rs+offset] - Load effective address */
+    if (strcasecmp(mnemonic, "LEA") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+
+        if (*p != '[') {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for address operand");
+            as->error = true;
+            return false;
+        }
+        p++;  /* Skip '[' */
+        p = skip_whitespace(p);
+
+        /* Check for indexed: [Rs+offset] */
+        int base_reg = parse_register(p, &reg_len);
+        if (base_reg >= 0) {
+            /* LEA Rd, [Rs+offset] - compute effective address at assembly time */
+            p += reg_len;
+            p = skip_whitespace(p);
+            int16_t offset = 0;
+            if (*p == '+' || *p == '-') {
+                char sign = *p++;
+                p = skip_whitespace(p);
+                if (*p == '#') p++;
+                uint32_t off_val = 0;
+                parse_operand(as, p, &off_val, pass2);
+                offset = (sign == '-') ? -(int16_t)off_val : (int16_t)off_val;
+                while (*p && *p != ']') p++;
+            }
+            if (*p == ']') p++;
+            /* For LEA with register base, we store as indexed load address */
+            if (pass2) {
+                emit_byte(as, OP_LEA);
+                emit_byte(as, (rd << 4) | base_reg);
+                emit_word(as, (uint16_t)offset);
+            } else {
+                as->current_addr += 4;
+            }
+            return true;
+        }
+
+        /* Direct: [addr] */
+        uint32_t addr;
+        parse_operand(as, p, &addr, pass2);
+        while (*p && *p != ']') p++;
+        if (pass2) {
+            emit_byte(as, OP_LEA);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)addr);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* LDS Rd, [addr] - Load far pointer with DS */
+    if (strcasecmp(mnemonic, "LDS") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+
+        if (*p != '[') {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for address operand");
+            as->error = true;
+            return false;
+        }
+        p++;  /* Skip '[' */
+        p = skip_whitespace(p);
+        uint32_t addr;
+        parse_operand(as, p, &addr, pass2);
+        while (*p && *p != ']') p++;
+        if (pass2) {
+            emit_byte(as, OP_LDS);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)addr);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* LES Rd, [addr] - Load far pointer with ES */
+    if (strcasecmp(mnemonic, "LES") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+
+        if (*p != '[') {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected '[' for address operand");
+            as->error = true;
+            return false;
+        }
+        p++;  /* Skip '[' */
+        p = skip_whitespace(p);
+        uint32_t addr;
+        parse_operand(as, p, &addr, pass2);
+        while (*p && *p != ']') p++;
+        if (pass2) {
+            emit_byte(as, OP_LES);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)addr);
+        } else {
+            as->current_addr += 4;
         }
         return true;
     }
@@ -1148,6 +1777,137 @@ static bool process_line(Assembler *as, char *line, bool pass2) {
             as->current_addr += 4;
         }
         return true;
+    }
+
+    /* INB Rd, port - Input byte */
+    if (strcasecmp(mnemonic, "INB") == 0) {
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        p += reg_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        p = skip_whitespace(p);
+        uint32_t port;
+        if (parse_operand(as, p, &port, pass2) == 0 && pass2) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected port number");
+            as->error = true;
+            return false;
+        }
+        if (pass2) {
+            emit_byte(as, OP_INB);
+            emit_byte(as, rd);
+            emit_word(as, (uint16_t)port);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* OUTB port, Rs - Output byte */
+    if (strcasecmp(mnemonic, "OUTB") == 0) {
+        p = skip_whitespace(p);
+        uint32_t port;
+        int port_len = parse_operand(as, p, &port, pass2);
+        if (port_len == 0 && pass2) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected port number");
+            as->error = true;
+            return false;
+        }
+        p += port_len;
+        p = skip_whitespace(p);
+        if (*p == ',') p++;
+        int reg_len;
+        int rs = parse_register(p, &reg_len);
+        if (rs < 0) {
+            snprintf(as->error_msg, sizeof(as->error_msg), "Expected register");
+            as->error = true;
+            return false;
+        }
+        if (pass2) {
+            emit_byte(as, OP_OUTB);
+            emit_byte(as, rs);
+            emit_word(as, (uint16_t)port);
+        } else {
+            as->current_addr += 4;
+        }
+        return true;
+    }
+
+    /* PUSH - check for segment register first */
+    if (strcasecmp(mnemonic, "PUSH") == 0) {
+        p = skip_whitespace(p);
+        int seg_len;
+        int seg = parse_segment(p, &seg_len);
+        if (seg >= 0) {
+            /* PUSH Seg */
+            if (pass2) {
+                emit_byte(as, OP_PUSH_S);
+                emit_byte(as, seg);
+            } else {
+                as->current_addr += 2;
+            }
+            return true;
+        }
+        /* Fall through to instruction table for PUSH Rd */
+    }
+
+    /* POP - check for segment register first */
+    if (strcasecmp(mnemonic, "POP") == 0) {
+        p = skip_whitespace(p);
+        int seg_len;
+        int seg = parse_segment(p, &seg_len);
+        if (seg >= 0) {
+            /* POP Seg */
+            if (pass2) {
+                emit_byte(as, OP_POP_S);
+                emit_byte(as, seg);
+            } else {
+                as->current_addr += 2;
+            }
+            return true;
+        }
+        /* Fall through to instruction table for POP Rd */
+    }
+
+    /* JMP - check for indirect (register) operand */
+    if (strcasecmp(mnemonic, "JMP") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd >= 0) {
+            /* JMP Rd - indirect jump */
+            if (pass2) {
+                emit_byte(as, OP_JMP_R);
+                emit_byte(as, rd);
+            } else {
+                as->current_addr += 2;
+            }
+            return true;
+        }
+        /* Fall through to instruction table for JMP addr */
+    }
+
+    /* CALL - check for indirect (register) operand */
+    if (strcasecmp(mnemonic, "CALL") == 0) {
+        p = skip_whitespace(p);
+        int reg_len;
+        int rd = parse_register(p, &reg_len);
+        if (rd >= 0) {
+            /* CALL Rd - indirect call */
+            if (pass2) {
+                emit_byte(as, OP_CALL_R);
+                emit_byte(as, rd);
+            } else {
+                as->current_addr += 2;
+            }
+            return true;
+        }
+        /* Fall through to instruction table for CALL addr */
     }
 
     /* Look up instruction in table */

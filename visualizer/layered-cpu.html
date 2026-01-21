@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layered CPU Visualizer - Peel Back the Onion</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 100%);
+            color: #eee;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background: #16213e;
+            padding: 10px 20px;
+            border-bottom: 2px solid #e94560;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+        }
+        h1 { color: #e94560; font-size: 1.2em; }
+        .subtitle { color: #888; font-size: 11px; }
+
+        .layer-nav { display: flex; gap: 10px; align-items: center; }
+        .layer-btn {
+            background: #0f3460; color: #eee; border: 2px solid transparent;
+            padding: 8px 16px; border-radius: 20px; cursor: pointer;
+            font-size: 11px; transition: all 0.3s;
+        }
+        .layer-btn:hover { background: #e94560; }
+        .layer-btn.active { background: #e94560; border-color: #fff; transform: scale(1.05); }
+        .layer-dots { display: flex; gap: 8px; margin-left: 20px; }
+        .layer-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #333; border: 2px solid #555; transition: all 0.3s; cursor: pointer;
+        }
+        .layer-dot.active { background: #e94560; border-color: #e94560; box-shadow: 0 0 10px #e94560; }
+        .layer-dot.passed { background: #0f3460; border-color: #0f3460; }
+
+        .main-container { display: flex; height: calc(100vh - 52px); margin-top: 52px; }
+
+        .control-panel {
+            width: 220px; background: #16213e; padding: 15px;
+            border-right: 2px solid #0f3460; overflow-y: auto;
+        }
+        .control-section { margin-bottom: 15px; }
+        .control-section h3 {
+            color: #e94560; font-size: 10px; text-transform: uppercase;
+            margin-bottom: 8px; border-bottom: 1px solid #0f3460; padding-bottom: 4px;
+        }
+        select, input {
+            background: #1a1a2e; color: #eee; border: 1px solid #0f3460;
+            padding: 6px 10px; border-radius: 4px; width: 100%;
+            font-family: inherit; font-size: 11px;
+        }
+        button {
+            background: #0f3460; color: #eee; border: none;
+            padding: 6px 12px; border-radius: 4px; cursor: pointer;
+            font-family: inherit; font-size: 11px; margin: 2px; transition: background 0.2s;
+        }
+        button:hover { background: #e94560; }
+
+        .viz-area { flex: 1; position: relative; overflow: hidden; }
+        .layer {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            padding: 20px; opacity: 0; transform: scale(0.9);
+            transition: all 0.5s ease; pointer-events: none; overflow: auto;
+        }
+        .layer.active { opacity: 1; transform: scale(1); pointer-events: all; }
+
+        /* Layer 1: Physical Computer */
+        .computer-case {
+            background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
+            border: 3px solid #444; border-radius: 15px; padding: 20px;
+            max-width: 700px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .monitor { background: #111; border: 8px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .screen {
+            background: #001a00; border: 2px solid #004400; height: 200px;
+            padding: 10px; font-size: 12px; color: #00ff00; overflow-y: auto; border-radius: 4px;
+        }
+        .keyboard {
+            background: linear-gradient(180deg, #333 0%, #222 100%);
+            border-radius: 8px; padding: 10px; display: grid;
+            grid-template-columns: repeat(15, 1fr); gap: 3px;
+        }
+        .key {
+            background: #444; border: 1px solid #555; border-radius: 3px;
+            height: 25px; display: flex; align-items: center; justify-content: center;
+            font-size: 9px; color: #ccc; cursor: pointer; transition: all 0.1s;
+        }
+        .key:hover { background: #555; transform: translateY(-1px); }
+        .key.space { grid-column: span 5; }
+        .key.enter { grid-column: span 2; background: #0f3460; }
+
+        /* ========================================
+           Layer 2: System Architecture (FLOWCHART)
+           ======================================== */
+        .system-view {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* SVG Flowchart */
+        .flow-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .flow-line {
+            stroke-width: 1;
+            fill: none;
+            transition: stroke 0.3s, stroke-width 0.3s, opacity 0.3s;
+            opacity: 0.8;
+        }
+        .addr-line { stroke: #ffaa00; }
+        .data-line { stroke: #00ff00; }
+        .ctrl-line { stroke: #ff6699; }
+        .flow-line.active {
+            stroke-width: 1.5;
+            filter: url(#glow);
+            opacity: 1;
+        }
+        .bus-backbone {
+            fill: #1a1a2e;
+            stroke: #0f3460;
+            stroke-width: 0.8;
+        }
+        .bus-title {
+            fill: #e94560;
+            font-weight: bold;
+            text-anchor: middle;
+            font-family: inherit;
+        }
+
+        /* Cycle Phase Box */
+        .cycle-box {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            border: 2px solid #e94560;
+            border-radius: 8px;
+            padding: 8px 20px;
+            text-align: center;
+            z-index: 10;
+            min-width: 180px;
+        }
+        .cycle-phase {
+            color: #e94560;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .cycle-desc {
+            color: #ccc;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        .cycle-step {
+            color: #888;
+            font-size: 9px;
+            margin-top: 3px;
+        }
+
+        /* Flowchart Component Boxes */
+        .flow-box {
+            position: absolute;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            border: 3px solid #0f3460;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 5;
+        }
+        .flow-box:hover {
+            border-color: #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+        .flow-box.active {
+            border-color: #00ff00;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        }
+        .box-title {
+            color: #e94560;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .box-subtitle {
+            color: #888;
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+        .box-registers {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .box-reg {
+            display: flex;
+            justify-content: space-between;
+            background: #0a0a12;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .reg-label { color: #888; font-size: 10px; }
+        .reg-val { color: #00ff00; font-size: 10px; font-weight: bold; }
+        .box-content { font-size: 10px; }
+        .mem-cell, .io-port {
+            background: #0a0a12;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 3px 0;
+            color: #aaa;
+        }
+
+        /* Component positions for flowchart */
+        .cpu-box {
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+        }
+        .mem-box {
+            bottom: 100px;
+            left: 25%;
+            transform: translateX(-50%);
+            width: 130px;
+        }
+        .io-box {
+            bottom: 100px;
+            left: 75%;
+            transform: translateX(-50%);
+            width: 120px;
+        }
+
+        /* Bus Status Panel */
+        .bus-status {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #0a0a12;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 8px;
+            z-index: 10;
+            min-width: 130px;
+        }
+        .bus-status-title {
+            color: #e94560;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 4px;
+        }
+        .bus-line-status {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 10px;
+        }
+        .line-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .line-dot.addr { background: #ffaa00; }
+        .line-dot.data { background: #00ff00; }
+        .line-dot.ctrl { background: #ff6699; }
+        .line-name { color: #888; margin-right: 5px; }
+        .line-val { color: #fff; font-weight: bold; }
+
+        /* Flow Description */
+        .flow-desc {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            background: #0a0a12;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 8px;
+            z-index: 10;
+            width: 160px;
+        }
+        .flow-desc-title {
+            color: #e94560;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 4px;
+        }
+        .flow-desc-text {
+            color: #ccc;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        /* Message Log */
+        .message-log {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a12;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            padding: 8px;
+            width: 60%;
+            max-width: 400px;
+            font-size: 9px;
+            max-height: 70px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        /* Bus Label */
+        .bus-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, #16213e 0%, #0f3460 50%, #16213e 100%);
+            border-top: 3px solid #0f3460;
+            border-bottom: 3px solid #0f3460;
+            padding: 8px 80px;
+            z-index: 3;
+            color: #e94560;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        .message-log-title {
+            color: #e94560;
+            font-size: 9px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .message {
+            padding: 2px 0;
+            border-bottom: 1px solid #1a1a2e;
+        }
+        .message .time { color: #555; }
+        .message .arrow { color: #e94560; margin: 0 5px; }
+        .message .src { color: #00aaff; }
+        .message .dst { color: #ffaa00; }
+        .message .data { color: #00ff00; }
+
+        /* Line animation */
+        @keyframes flowPulse {
+            0%, 100% { stroke-opacity: 1; }
+            50% { stroke-opacity: 0.5; }
+        }
+        .flow-line.pulsing {
+            animation: flowPulse 0.5s ease-in-out infinite;
+        }
+
+        /* Layer 3: CPU Internals */
+        .cpu-internals {
+            display: grid; grid-template-columns: 200px 1fr 200px;
+            gap: 20px; max-width: 900px; margin: 0 auto;
+        }
+        .cpu-section {
+            background: #0f0f1a; border: 2px solid #0f3460;
+            border-radius: 8px; padding: 12px;
+        }
+        .cpu-section h4 {
+            color: #e94560; font-size: 11px; margin-bottom: 10px;
+            text-align: center; border-bottom: 1px solid #0f3460; padding-bottom: 5px;
+        }
+        .register-bank { display: flex; flex-direction: column; gap: 5px; }
+        .register {
+            display: flex; justify-content: space-between;
+            background: #1a1a2e; padding: 5px 8px; border-radius: 4px; font-size: 10px;
+        }
+        .reg-name { color: #888; }
+        .reg-value { color: #00ff00; font-weight: bold; }
+        .alu-display { text-align: center; padding: 20px; }
+        .alu-box {
+            background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+            padding: 30px; border-radius: 8px; margin-bottom: 15px;
+        }
+        .alu-box h5 { font-size: 18px; margin-bottom: 5px; }
+        .alu-ops { font-size: 10px; color: #ccc; }
+        .flags-display { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+        .flag { background: #1a1a2e; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+        .flag.set { background: #00aa00; color: #fff; }
+        .control-signals { font-size: 10px; color: #888; }
+        .signal { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #1a1a2e; }
+        .signal-val { color: #ffaa00; }
+
+        /* Layer 4: Gate Level */
+        .gate-level { display: flex; flex-direction: column; gap: 15px; max-width: 900px; margin: 0 auto; }
+        .gate-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .gate {
+            background: #1a1a2e; border: 2px solid #0f3460; border-radius: 6px;
+            padding: 8px 12px; text-align: center; font-size: 10px;
+            cursor: pointer; transition: all 0.2s; min-width: 70px;
+        }
+        .gate:hover { border-color: #e94560; transform: scale(1.1); }
+        .gate-type { color: #e94560; font-weight: bold; font-size: 11px; }
+        .gate-io { color: #888; font-size: 9px; margin-top: 3px; }
+        .gate.and { border-color: #00aa00; }
+        .gate.or { border-color: #0077b6; }
+        .gate.not { border-color: #ffaa00; }
+        .gate.xor { border-color: #aa00aa; }
+        .gate.dff { border-color: #00aaaa; background: #0a1a2a; }
+
+        .gate-stats {
+            background: #0f0f1a; border: 2px solid #0f3460;
+            border-radius: 8px; padding: 15px; text-align: center;
+        }
+        .stat-row { display: flex; justify-content: space-around; margin-top: 10px; }
+        .stat { text-align: center; }
+        .stat-value { color: #00ff00; font-size: 24px; font-weight: bold; }
+        .stat-label { color: #888; font-size: 10px; }
+
+        /* Info Panel */
+        .info-panel {
+            width: 280px; background: #16213e; border-left: 2px solid #0f3460;
+            padding: 15px; overflow-y: auto;
+        }
+        .info-section { margin-bottom: 15px; }
+        .info-section h3 {
+            color: #e94560; font-size: 10px; text-transform: uppercase;
+            margin-bottom: 8px; border-bottom: 1px solid #0f3460; padding-bottom: 4px;
+        }
+        .info-text { font-size: 11px; color: #aaa; line-height: 1.5; }
+        .layer-desc { font-size: 11px; color: #ccc; margin-bottom: 10px; }
+
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .pulse { animation: pulse 1s infinite; }
+
+        @keyframes packetMove {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Layered CPU Visualizer</h1>
+            <div class="subtitle">Peel back the layers to understand how computers work</div>
+        </div>
+        <div class="layer-nav">
+            <button class="layer-btn active" data-layer="1">Physical</button>
+            <button class="layer-btn" data-layer="2">System</button>
+            <button class="layer-btn" data-layer="3">CPU</button>
+            <button class="layer-btn" data-layer="4">Gates</button>
+            <div class="layer-dots">
+                <div class="layer-dot active" data-layer="1"></div>
+                <div class="layer-dot" data-layer="2"></div>
+                <div class="layer-dot" data-layer="3"></div>
+                <div class="layer-dot" data-layer="4"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="control-panel">
+            <div class="control-section">
+                <h3>CPU Selection</h3>
+                <select id="cpuSelect">
+                    <option value="micro4" selected>Micro4 (4-bit)</option>
+                    <option value="micro8">Micro8 (8-bit)</option>
+                    <option value="micro16">Micro16 (16-bit)</option>
+                </select>
+            </div>
+
+            <div class="control-section">
+                <h3>Program</h3>
+                <select id="programSelect">
+                    <option value="add">add.asm - Add numbers</option>
+                    <option value="count">count.asm - Count 1-10</option>
+                    <option value="fib">fib.asm - Fibonacci</option>
+                </select>
+                <button id="loadBtn" style="width:100%;margin-top:5px;">Load Program</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Execution</h3>
+                <button id="stepBtn">Step</button>
+                <button id="runBtn">Run</button>
+                <button id="resetBtn">Reset</button>
+                <button id="stopBtn">Stop</button>
+            </div>
+
+            <div class="control-section">
+                <h3>Speed</h3>
+                <input type="range" id="speedSlider" min="1" max="20" value="5">
+                <div style="font-size:10px;color:#888;text-align:center;" id="speedLabel">5 Hz (slow for visualization)</div>
+            </div>
+
+            <div class="control-section">
+                <h3>Statistics</h3>
+                <div style="font-size:10px;color:#888;">
+                    <div>Cycles: <span id="statCycles" style="color:#00ff00;">0</span></div>
+                    <div>Instructions: <span id="statInstr" style="color:#00ff00;">0</span></div>
+                    <div>PC: <span id="statPC" style="color:#ffaa00;">0x00</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="viz-area">
+            <!-- Layer 1: Physical Computer -->
+            <div class="layer active" id="layer1">
+                <div class="computer-case">
+                    <div class="monitor">
+                        <div class="screen" id="screenOutput">
+                            <div>Micro4 Computer v1.0</div>
+                            <div>Ready.</div>
+                            <div id="screenCursor" class="pulse">_</div>
+                        </div>
+                    </div>
+                    <div class="keyboard" id="keyboard"></div>
+                </div>
+            </div>
+
+            <!-- Layer 2: System Architecture (FLOWCHART STYLE) -->
+            <div class="layer" id="layer2">
+                <div class="system-view">
+                    <!-- SVG for connection lines -->
+                    <svg class="flow-svg" id="flowSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                            <!-- Arrow markers -->
+                            <marker id="arrowDown" markerWidth="10" markerHeight="10" refX="3" refY="9" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L6,0 L3,9 z" fill="#e94560"/>
+                            </marker>
+                            <marker id="arrowUp" markerWidth="10" markerHeight="10" refX="3" refY="0" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,9 L6,9 L3,0 z" fill="#00ff00"/>
+                            </marker>
+                            <!-- Glow filter -->
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- Bus backbone (middle of diagram at ~48%) -->
+                        <rect x="5" y="46" width="90" height="8" rx="1" class="bus-backbone"/>
+
+                        <!-- CPU to Bus lines (from CPU bottom ~32% to bus top ~46%) -->
+                        <g id="cpuToBus">
+                            <line x1="47" y1="32" x2="47" y2="46" class="flow-line ctrl-line" marker-end="url(#arrowDown)"/>
+                            <line x1="50" y1="32" x2="50" y2="46" class="flow-line addr-line" marker-end="url(#arrowDown)"/>
+                            <line x1="53" y1="32" x2="53" y2="46" class="flow-line data-line"/>
+                        </g>
+
+                        <!-- Bus to Memory lines (from bus bottom ~54% to Memory top ~72%) -->
+                        <g id="busToMem">
+                            <line x1="23" y1="54" x2="23" y2="72" class="flow-line addr-line" marker-end="url(#arrowDown)"/>
+                            <line x1="27" y1="72" x2="27" y2="54" class="flow-line data-line" marker-end="url(#arrowUp)"/>
+                        </g>
+
+                        <!-- Bus to I/O lines -->
+                        <g id="busToIO">
+                            <line x1="73" y1="54" x2="73" y2="72" class="flow-line addr-line" marker-end="url(#arrowDown)"/>
+                            <line x1="77" y1="72" x2="77" y2="54" class="flow-line data-line" marker-end="url(#arrowUp)"/>
+                        </g>
+                    </svg>
+
+                    <!-- Bus Label -->
+                    <div class="bus-label">
+                        <span>System Bus</span>
+                        <div style="display:flex;gap:10px;margin-top:5px;font-size:9px;font-weight:normal;letter-spacing:0;">
+                            <span style="color:#ff6699;">● CTRL</span>
+                            <span style="color:#ffaa00;">● ADDR</span>
+                            <span style="color:#00ff00;">● DATA</span>
+                        </div>
+                    </div>
+
+                    <!-- Cycle Phase Indicator -->
+                    <div class="cycle-box" id="cycleBox">
+                        <div class="cycle-phase" id="cyclePhase">FETCH</div>
+                        <div class="cycle-desc" id="cycleDesc">CPU requests instruction from memory</div>
+                        <div class="cycle-step" id="cycleStep">Step 1 of 4</div>
+                    </div>
+
+                    <!-- CPU Component Box -->
+                    <div class="flow-box cpu-box" id="sysCPU">
+                        <div class="box-title">CPU</div>
+                        <div class="box-subtitle">Micro4 Processor</div>
+                        <div class="box-registers">
+                            <div class="box-reg"><span class="reg-label">PC</span><span class="reg-val" id="cpuPC">0x00</span></div>
+                            <div class="box-reg"><span class="reg-label">IR</span><span class="reg-val" id="cpuIR">--</span></div>
+                            <div class="box-reg"><span class="reg-label">A</span><span class="reg-val" id="cpuA">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Memory Component Box -->
+                    <div class="flow-box mem-box" id="sysMemory">
+                        <div class="box-title">MEMORY</div>
+                        <div class="box-subtitle">256 x 4-bit</div>
+                        <div class="box-content">
+                            <div class="mem-cell" id="memAddr">Addr: --</div>
+                            <div class="mem-cell" id="memData">Data: --</div>
+                        </div>
+                    </div>
+
+                    <!-- I/O Component Box -->
+                    <div class="flow-box io-box" id="sysIO">
+                        <div class="box-title">I/O</div>
+                        <div class="box-subtitle">Controller</div>
+                        <div class="box-content">
+                            <div class="io-port">⌨ Keyboard</div>
+                            <div class="io-port">🖥 Screen</div>
+                        </div>
+                    </div>
+
+                    <!-- Bus Status Panel -->
+                    <div class="bus-status" id="busStatus">
+                        <div class="bus-status-title">Bus Status</div>
+                        <div class="bus-line-status">
+                            <span class="line-dot addr"></span>
+                            <span class="line-name">Address:</span>
+                            <span class="line-val" id="addrBusVal">--</span>
+                        </div>
+                        <div class="bus-line-status">
+                            <span class="line-dot data"></span>
+                            <span class="line-name">Data:</span>
+                            <span class="line-val" id="dataBusVal">--</span>
+                        </div>
+                        <div class="bus-line-status">
+                            <span class="line-dot ctrl"></span>
+                            <span class="line-name">Control:</span>
+                            <span class="line-val" id="ctrlBusVal">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Flow Description -->
+                    <div class="flow-desc" id="flowDesc">
+                        <div class="flow-desc-title">Current Operation</div>
+                        <div class="flow-desc-text" id="flowDescText">
+                            Ready. Click "Step" to begin execution.
+                        </div>
+                    </div>
+
+                    <!-- Message Log -->
+                    <div class="message-log">
+                        <div class="message-log-title">Transaction Log</div>
+                        <div id="busLog"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer 3: CPU Internals -->
+            <div class="layer" id="layer3">
+                <div class="cpu-internals">
+                    <div class="cpu-section">
+                        <h4>Registers</h4>
+                        <div class="register-bank" id="registerBank"></div>
+                    </div>
+
+                    <div class="cpu-section">
+                        <h4>ALU (Arithmetic Logic Unit)</h4>
+                        <div class="alu-display">
+                            <div class="alu-box">
+                                <h5>ALU</h5>
+                                <div class="alu-ops">ADD SUB AND OR XOR NOT SHL SHR</div>
+                            </div>
+                            <div class="flags-display" id="flagsDisplay"></div>
+                        </div>
+                    </div>
+
+                    <div class="cpu-section">
+                        <h4>Control Unit</h4>
+                        <div class="control-signals" id="controlSignals"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer 4: Gate Level -->
+            <div class="layer" id="layer4">
+                <div class="gate-level">
+                    <div class="gate-stats">
+                        <h4 style="color:#e94560;margin-bottom:10px;">Circuit Statistics</h4>
+                        <div class="stat-row">
+                            <div class="stat">
+                                <div class="stat-value" id="gateCount">167</div>
+                                <div class="stat-label">Gates</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value" id="transistorCount">1,864</div>
+                                <div class="stat-label">Transistors</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value" id="ffCount">28</div>
+                                <div class="stat-label">Flip-Flops</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value" id="pathDepth">11</div>
+                                <div class="stat-label">Critical Path</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gate-row" id="gateRow1"></div>
+                    <div class="gate-row" id="gateRow2"></div>
+                    <div class="gate-row" id="gateRow3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-section">
+                <h3>Current Layer</h3>
+                <div class="layer-desc" id="layerDesc"></div>
+            </div>
+            <div class="info-section">
+                <h3>How It Works</h3>
+                <div class="info-text" id="layerInfo"></div>
+            </div>
+            <div class="info-section">
+                <h3>Key Concepts</h3>
+                <div class="info-text" id="keyConcepts"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // Micro4 CPU Emulator
+        // ========================================
+        const CPU = {
+            pc: 0, a: 0, z: false, halted: false,
+            memory: new Array(256).fill(0),
+            cycles: 0, instructions: 0,
+            ir: 0, mar: 0, mdr: 0,
+            phase: 'FETCH', // FETCH, DECODE, EXECUTE, WRITEBACK
+            subPhase: 0
+        };
+
+        const OPCODES = ['HLT','LDA','STA','ADD','SUB','JMP','JZ','LDI','AND','OR','XOR','NOT','SHL','SHR','INC','DEC'];
+
+        const PROGRAMS = {
+            add: [0x10,0x20, 0x30,0x21, 0x20,0x22, 0x00,0x00,
+                  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0x05,0x03,0x00],
+            count: [0x70,0x01, 0x20,0x20, 0xE0,0x00, 0x40,0x21, 0x60,0x0C, 0x30,0x21, 0x50,0x02, 0x00,0x00,
+                    0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0x00,0x0A],
+            fib: [0x70,0x01, 0x20,0x30, 0x70,0x01, 0x20,0x31, 0x10,0x30, 0x30,0x31, 0x20,0x32, 0x00,0x00]
+        };
+
+        function cpuReset() {
+            CPU.pc = 0; CPU.a = 0; CPU.z = false; CPU.halted = false;
+            CPU.cycles = 0; CPU.instructions = 0;
+            CPU.ir = 0; CPU.mar = 0; CPU.mdr = 0;
+            CPU.phase = 'FETCH'; CPU.subPhase = 0;
+        }
+
+        function cpuLoadProgram(prog) {
+            CPU.memory.fill(0);
+            for (let i = 0; i < prog.length; i++) {
+                const hi = (prog[i] >> 4) & 0x0F;
+                const lo = prog[i] & 0x0F;
+                CPU.memory[i * 2] = hi;
+                CPU.memory[i * 2 + 1] = lo;
+            }
+        }
+
+        // Micro-step execution for visualization
+        let busActivity = [];
+
+        function logBus(src, dst, type, data) {
+            busActivity.unshift({ src, dst, type, data, time: CPU.cycles });
+            if (busActivity.length > 10) busActivity.pop();
+            updateBusLog();
+        }
+
+        function updateBusLog() {
+            const log = document.getElementById('busLog');
+            while (log.firstChild) log.removeChild(log.firstChild);
+            busActivity.slice(0, 5).forEach(function(msg) {
+                const div = document.createElement('div');
+                div.className = 'message';
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'time';
+                timeSpan.textContent = '[' + msg.time + ']';
+                const srcSpan = document.createElement('span');
+                srcSpan.className = 'src';
+                srcSpan.textContent = msg.src;
+                const arrow = document.createElement('span');
+                arrow.className = 'arrow';
+                arrow.textContent = '→';
+                const dstSpan = document.createElement('span');
+                dstSpan.className = 'dst';
+                dstSpan.textContent = msg.dst;
+                const dataSpan = document.createElement('span');
+                dataSpan.className = 'data';
+                dataSpan.textContent = ' [' + msg.type + ': ' + msg.data + ']';
+                div.appendChild(timeSpan);
+                div.appendChild(document.createTextNode(' '));
+                div.appendChild(srcSpan);
+                div.appendChild(arrow);
+                div.appendChild(dstSpan);
+                div.appendChild(dataSpan);
+                log.appendChild(div);
+            });
+        }
+
+        // Flow line animation helpers
+        function highlightFlowLines(lines) {
+            // Reset all lines
+            document.querySelectorAll('.flow-line').forEach(function(line) {
+                line.classList.remove('active', 'pulsing');
+            });
+            // Activate specified lines
+            lines.forEach(function(lineClass) {
+                document.querySelectorAll('.' + lineClass).forEach(function(line) {
+                    line.classList.add('active', 'pulsing');
+                });
+            });
+        }
+
+        function setActiveComponent(id) {
+            document.querySelectorAll('.flow-box').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            if (id) document.getElementById(id).classList.add('active');
+        }
+
+        function setBusValues(addr, data, ctrl) {
+            document.getElementById('addrBusVal').textContent = addr || '--';
+            document.getElementById('dataBusVal').textContent = data || '--';
+            document.getElementById('ctrlBusVal').textContent = ctrl || '--';
+        }
+
+        function setCyclePhase(phase, desc, step) {
+            document.getElementById('cyclePhase').textContent = phase;
+            document.getElementById('cycleDesc').textContent = desc;
+            document.getElementById('cycleStep').textContent = step || '';
+        }
+
+        function setFlowDesc(text) {
+            document.getElementById('flowDescText').textContent = text;
+        }
+
+        function updateMemoryDisplay(addr, data) {
+            document.getElementById('memAddr').textContent = 'Addr: ' + (addr || '--');
+            document.getElementById('memData').textContent = 'Data: ' + (data || '--');
+        }
+
+        // Slow step with bus visualization and flow animation
+        function cpuMicroStep() {
+            if (CPU.halted) return false;
+
+            switch (CPU.phase) {
+                case 'FETCH':
+                    if (CPU.subPhase === 0) {
+                        // Phase 1: CPU puts PC on address bus
+                        setCyclePhase('FETCH', 'CPU → Bus → Memory', 'Step 1: Send Address');
+                        setFlowDesc('CPU places the Program Counter (PC) value on the ADDRESS BUS.\n\nThe CONTROL line signals READ.\n\nMemory will respond with the instruction at that address.');
+                        setActiveComponent('sysCPU');
+                        highlightFlowLines(['addr-line', 'ctrl-line']);
+                        const addr = '0x' + CPU.pc.toString(16).toUpperCase().padStart(2,'0');
+                        setBusValues(addr, null, 'READ');
+                        updateMemoryDisplay(addr, '...');
+                        logBus('CPU', 'Memory', 'ADDR', addr);
+                        CPU.subPhase = 1;
+                    } else {
+                        // Phase 2: Memory returns data
+                        setCyclePhase('FETCH', 'Memory → Bus → CPU', 'Step 2: Receive Instruction');
+                        setFlowDesc('Memory reads the instruction at the requested address.\n\nThe instruction is placed on the DATA BUS.\n\nCPU receives the instruction in the IR register.');
+                        setActiveComponent('sysMemory');
+                        highlightFlowLines(['data-line']);
+                        const hi = CPU.memory[CPU.pc] & 0x0F;
+                        const lo = CPU.memory[CPU.pc + 1] & 0x0F;
+                        CPU.ir = (hi << 4) | lo;
+                        const data = '0x' + CPU.ir.toString(16).toUpperCase().padStart(2,'0');
+                        setBusValues(null, data, 'ACK');
+                        updateMemoryDisplay('0x' + CPU.pc.toString(16).toUpperCase().padStart(2,'0'), data);
+                        logBus('Memory', 'CPU', 'DATA', data);
+                        CPU.pc += 2;
+                        CPU.cycles += 2;
+                        CPU.subPhase = 0;
+                        CPU.phase = 'DECODE';
+                    }
+                    break;
+
+                case 'DECODE':
+                    setCyclePhase('DECODE', 'CPU internal operation', 'Step 3: Decode Instruction');
+                    setActiveComponent('sysCPU');
+                    highlightFlowLines([]); // No bus activity during decode
+                    setBusValues(null, null, null);
+                    const opcode = (CPU.ir >> 4) & 0x0F;
+                    const operand = CPU.ir & 0x0F;
+                    const instrName = OPCODES[opcode];
+                    setFlowDesc('CPU decodes instruction:\n\n' + instrName + '\n\nThe opcode tells the CPU what operation to perform.\n\nNo bus activity - purely internal.');
+                    logBus('CPU', 'CPU', 'DECODE', instrName);
+
+                    // Determine next phase based on instruction
+                    if (opcode === 0) { // HLT
+                        CPU.halted = true;
+                        CPU.phase = 'FETCH';
+                        setFlowDesc('HALT instruction decoded.\n\nCPU stops execution.\n\nProgram complete!');
+                    } else if (opcode === 7) { // LDI - immediate, no memory access
+                        CPU.a = operand;
+                        CPU.z = (CPU.a === 0);
+                        CPU.cycles++;
+                        CPU.instructions++;
+                        CPU.phase = 'WRITEBACK';
+                    } else if (opcode >= 11) { // NOT, SHL, SHR, INC, DEC - no memory
+                        CPU.phase = 'EXECUTE';
+                    } else {
+                        CPU.phase = 'EXECUTE';
+                    }
+                    break;
+
+                case 'EXECUTE':
+                    const op = (CPU.ir >> 4) & 0x0F;
+                    const imm = CPU.ir & 0x0F;
+
+                    if (CPU.subPhase === 0 && op >= 1 && op <= 6 || op >= 8 && op <= 10) {
+                        // Need to fetch address from memory
+                        setCyclePhase('EXECUTE', 'CPU → Bus → Memory', 'Step 4a: Fetch Operand Address');
+                        setFlowDesc('This instruction needs a memory address.\n\nCPU fetches the address from the next memory location.\n\nADDRESS BUS: PC value\nCONTROL: READ');
+                        setActiveComponent('sysCPU');
+                        highlightFlowLines(['addr-line', 'ctrl-line']);
+                        const addr = '0x' + CPU.pc.toString(16).toUpperCase().padStart(2,'0');
+                        setBusValues(addr, null, 'READ');
+                        updateMemoryDisplay(addr, '...');
+                        logBus('CPU', 'Memory', 'ADDR', addr);
+                        CPU.subPhase = 1;
+                    } else if (CPU.subPhase === 1) {
+                        // Memory returns address
+                        setCyclePhase('EXECUTE', 'Memory → Bus → CPU', 'Step 4b: Receive Address');
+                        setFlowDesc('Memory returns the target address.\n\nThis address tells the CPU where to read/write data.\n\nDATA BUS carries the address value back to CPU.');
+                        setActiveComponent('sysMemory');
+                        highlightFlowLines(['data-line']);
+                        const addrHi = CPU.memory[CPU.pc] & 0x0F;
+                        const addrLo = CPU.memory[CPU.pc + 1] & 0x0F;
+                        CPU.mar = (addrHi << 4) | addrLo;
+                        CPU.pc += 2;
+                        const data = '0x' + CPU.mar.toString(16).toUpperCase().padStart(2,'0');
+                        setBusValues(null, data, 'ACK');
+                        updateMemoryDisplay(null, data);
+                        logBus('Memory', 'CPU', 'DATA', data);
+                        CPU.subPhase = 2;
+                        CPU.cycles += 2;
+                    } else if (CPU.subPhase === 2) {
+                        // Now execute the operation
+                        if (op === 2) { // STA - write to memory
+                            setCyclePhase('EXECUTE', 'CPU → Bus → Memory', 'Step 5: Write to Memory');
+                            setFlowDesc('STORE instruction:\n\nCPU writes Accumulator value to memory.\n\nADDRESS BUS: target address\nDATA BUS: value to store\nCONTROL: WRITE');
+                            setActiveComponent('sysMemory');
+                            highlightFlowLines(['addr-line', 'data-line', 'ctrl-line']);
+                            const addr = '0x' + CPU.mar.toString(16).toUpperCase().padStart(2,'0');
+                            const data = '0x' + CPU.a.toString(16).toUpperCase();
+                            setBusValues(addr, data, 'WRITE');
+                            updateMemoryDisplay(addr, data);
+                            logBus('CPU', 'Memory', 'WRITE', addr + '=' + data);
+                            CPU.memory[CPU.mar] = CPU.a;
+                        } else if (op === 5) { // JMP
+                            CPU.pc = CPU.mar;
+                            setCyclePhase('EXECUTE', 'CPU internal', 'Step 5: Jump');
+                            setFlowDesc('JUMP instruction:\n\nPC is set to the target address.\n\nNext instruction will be fetched from the new location.\n\nNo bus activity.');
+                            highlightFlowLines([]);
+                            setBusValues(null, null, null);
+                        } else if (op === 6) { // JZ
+                            const taken = CPU.z;
+                            if (taken) CPU.pc = CPU.mar;
+                            setCyclePhase('EXECUTE', 'CPU internal', 'Step 5: Conditional Jump');
+                            setFlowDesc('JUMP IF ZERO:\n\nZ flag is ' + (CPU.z ? 'SET' : 'CLEAR') + '\n\nJump ' + (taken ? 'TAKEN!' : 'NOT taken.') + '\n\nNo bus activity.');
+                            highlightFlowLines([]);
+                            setBusValues(null, null, null);
+                        } else { // LDA, ADD, SUB, AND, OR, XOR - read from memory
+                            setCyclePhase('EXECUTE', 'Memory → Bus → CPU', 'Step 5: Read from Memory');
+                            setFlowDesc(OPCODES[op] + ' instruction:\n\nCPU reads value from memory.\n\nADDRESS BUS: target address\nDATA BUS: value from memory\nCONTROL: READ');
+                            setActiveComponent('sysMemory');
+                            highlightFlowLines(['addr-line', 'data-line', 'ctrl-line']);
+                            CPU.mdr = CPU.memory[CPU.mar] & 0x0F;
+                            const addr = '0x' + CPU.mar.toString(16).toUpperCase().padStart(2,'0');
+                            const data = '0x' + CPU.mdr.toString(16).toUpperCase();
+                            setBusValues(addr, data, 'READ');
+                            updateMemoryDisplay(addr, data);
+                            logBus('Memory', 'CPU', 'DATA', data);
+
+                            // Perform ALU operation
+                            switch (op) {
+                                case 1: CPU.a = CPU.mdr; break; // LDA
+                                case 3: CPU.a = (CPU.a + CPU.mdr) & 0x0F; break; // ADD
+                                case 4: CPU.a = (CPU.a - CPU.mdr) & 0x0F; break; // SUB
+                                case 8: CPU.a = (CPU.a & CPU.mdr) & 0x0F; break; // AND
+                                case 9: CPU.a = (CPU.a | CPU.mdr) & 0x0F; break; // OR
+                                case 10: CPU.a = (CPU.a ^ CPU.mdr) & 0x0F; break; // XOR
+                            }
+                            CPU.z = (CPU.a === 0);
+                        }
+                        CPU.cycles++;
+                        CPU.subPhase = 0;
+                        CPU.phase = 'WRITEBACK';
+                    } else {
+                        // Single-cycle ops (NOT, SHL, SHR, INC, DEC)
+                        setCyclePhase('EXECUTE', 'CPU internal (ALU)', 'Step 4: ALU Operation');
+                        setFlowDesc(OPCODES[op] + ' instruction:\n\nALU performs operation on Accumulator.\n\nNo memory access needed.\n\nNo bus activity.');
+                        setActiveComponent('sysCPU');
+                        highlightFlowLines([]);
+                        setBusValues(null, null, null);
+                        switch (op) {
+                            case 11: CPU.a = (~CPU.a) & 0x0F; break; // NOT
+                            case 12: CPU.a = (CPU.a << 1) & 0x0F; break; // SHL
+                            case 13: CPU.a = (CPU.a >> 1) & 0x0F; break; // SHR
+                            case 14: CPU.a = (CPU.a + 1) & 0x0F; break; // INC
+                            case 15: CPU.a = (CPU.a - 1) & 0x0F; break; // DEC
+                        }
+                        CPU.z = (CPU.a === 0);
+                        CPU.cycles++;
+                        CPU.phase = 'WRITEBACK';
+                    }
+                    break;
+
+                case 'WRITEBACK':
+                    setCyclePhase('WRITEBACK', 'CPU internal', 'Complete');
+                    setFlowDesc('Instruction complete!\n\nRegisters updated:\nA = ' + CPU.a + '\nZ = ' + (CPU.z ? '1' : '0') + '\n\nReady for next instruction.');
+                    setActiveComponent('sysCPU');
+                    highlightFlowLines([]);
+                    setBusValues(null, null, null);
+                    CPU.instructions++;
+                    CPU.phase = 'FETCH';
+                    break;
+            }
+
+            updateDisplay();
+            return !CPU.halted;
+        }
+
+        // Full step (complete instruction)
+        function cpuStep() {
+            if (CPU.halted) return false;
+
+            // Run until we complete a full instruction
+            const startInstr = CPU.instructions;
+            while (CPU.instructions === startInstr && !CPU.halted) {
+                cpuMicroStep();
+            }
+            return !CPU.halted;
+        }
+
+        // ========================================
+        // UI State
+        // ========================================
+        let currentLayer = 1;
+        let running = false;
+        let runInterval = null;
+
+        const LAYER_INFO = {
+            1: {
+                title: 'Layer 1: Physical Computer',
+                desc: 'This is what you see and interact with - the monitor, keyboard, and computer case.',
+                howItWorks: 'When you type on the keyboard, electrical signals travel through the I/O controller to the CPU. The CPU fetches instructions from memory, decodes them, and executes operations. Results are sent back through the I/O to appear on screen.',
+                concepts: '• Input/Output devices convert human actions to electrical signals\n• The system bus connects all components\n• Memory stores both programs and data\n• The CPU is the "brain" that executes instructions'
+            },
+            2: {
+                title: 'Layer 2: System Bus Communication',
+                desc: 'Watch data flow between CPU, Memory, and I/O! The colored boxes show actual values traveling on the buses.',
+                howItWorks: 'Each instruction follows these steps:\n\n1. FETCH: CPU puts PC address on bus, Memory returns instruction\n\n2. DECODE: CPU figures out what to do\n\n3. EXECUTE: CPU may read/write memory via bus\n\n4. WRITEBACK: Update registers',
+                concepts: '• Address Bus (orange): CPU sends location\n• Data Bus (green): Actual values move here\n• Control Bus (pink): READ/WRITE signals\n• Watch the animated packets move!'
+            },
+            3: {
+                title: 'Layer 3: CPU Internals',
+                desc: 'Inside the CPU: registers, ALU, and control unit.',
+                howItWorks: 'Registers hold temporary data:\n• A (Accumulator): Main working register\n• PC: Points to next instruction\n• IR: Holds current instruction\n• MAR/MDR: Interface to memory',
+                concepts: '• ALU does math (ADD, SUB) and logic (AND, OR)\n• Zero flag (Z) set when result is 0\n• Control unit orchestrates everything'
+            },
+            4: {
+                title: 'Layer 4: Gate Level',
+                desc: 'Everything built from simple logic gates.',
+                howItWorks: '• AND: Output 1 only if ALL inputs are 1\n• OR: Output 1 if ANY input is 1\n• NOT: Inverts the input\n• DFF: Remembers one bit until clock ticks',
+                concepts: '• ~1,864 transistors total\n• 11 gate delays = max clock speed\n• Similar to Intel 4004 (1971)'
+            }
+        };
+
+        function switchLayer(layer) {
+            currentLayer = layer;
+            document.querySelectorAll('.layer').forEach(function(l) { l.classList.remove('active'); });
+            document.getElementById('layer' + layer).classList.add('active');
+
+            document.querySelectorAll('.layer-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.layer) === layer) btn.classList.add('active');
+            });
+
+            document.querySelectorAll('.layer-dot').forEach(function(dot) {
+                const dl = parseInt(dot.dataset.layer);
+                dot.classList.remove('active', 'passed');
+                if (dl === layer) dot.classList.add('active');
+                else if (dl < layer) dot.classList.add('passed');
+            });
+
+            const info = LAYER_INFO[layer];
+            document.getElementById('layerDesc').textContent = info.title + '\n\n' + info.desc;
+            document.getElementById('layerInfo').textContent = info.howItWorks;
+            document.getElementById('keyConcepts').textContent = info.concepts;
+        }
+
+        function updateDisplay() {
+            document.getElementById('statCycles').textContent = CPU.cycles;
+            document.getElementById('statInstr').textContent = CPU.instructions;
+            document.getElementById('statPC').textContent = '0x' + CPU.pc.toString(16).toUpperCase().padStart(2, '0');
+
+            // Layer 2 updates - flowchart boxes
+            const cpuPCEl = document.getElementById('cpuPC');
+            const cpuIREl = document.getElementById('cpuIR');
+            const cpuAEl = document.getElementById('cpuA');
+            if (cpuPCEl) cpuPCEl.textContent = '0x' + CPU.pc.toString(16).toUpperCase().padStart(2,'0');
+            if (cpuIREl) cpuIREl.textContent = CPU.ir ? OPCODES[(CPU.ir >> 4) & 0xF] : '--';
+            if (cpuAEl) cpuAEl.textContent = '0x' + CPU.a.toString(16).toUpperCase();
+
+            // Layer 3 updates
+            const regBank = document.getElementById('registerBank');
+            while (regBank.firstChild) regBank.removeChild(regBank.firstChild);
+            const regs = [
+                { name: 'A', value: CPU.a, width: 1 },
+                { name: 'PC', value: CPU.pc, width: 2 },
+                { name: 'IR', value: CPU.ir, width: 2 },
+                { name: 'MAR', value: CPU.mar, width: 2 },
+                { name: 'MDR', value: CPU.mdr, width: 1 }
+            ];
+            regs.forEach(function(reg) {
+                const div = document.createElement('div');
+                div.className = 'register';
+                const ns = document.createElement('span');
+                ns.className = 'reg-name';
+                ns.textContent = reg.name;
+                const vs = document.createElement('span');
+                vs.className = 'reg-value';
+                vs.textContent = '0x' + reg.value.toString(16).toUpperCase().padStart(reg.width, '0');
+                div.appendChild(ns);
+                div.appendChild(vs);
+                regBank.appendChild(div);
+            });
+
+            const flagsDiv = document.getElementById('flagsDisplay');
+            while (flagsDiv.firstChild) flagsDiv.removeChild(flagsDiv.firstChild);
+            const zf = document.createElement('span');
+            zf.className = 'flag' + (CPU.z ? ' set' : '');
+            zf.textContent = 'Z=' + (CPU.z ? '1' : '0');
+            flagsDiv.appendChild(zf);
+            const hf = document.createElement('span');
+            hf.className = 'flag' + (CPU.halted ? ' set' : '');
+            hf.textContent = 'HALT=' + (CPU.halted ? '1' : '0');
+            flagsDiv.appendChild(hf);
+
+            const ctrlDiv = document.getElementById('controlSignals');
+            while (ctrlDiv.firstChild) ctrlDiv.removeChild(ctrlDiv.firstChild);
+            const signals = [
+                { name: 'phase', val: CPU.phase },
+                { name: 'mem_read', val: CPU.phase === 'FETCH' || CPU.phase === 'EXECUTE' ? '1' : '0' },
+                { name: 'halt', val: CPU.halted ? '1' : '0' }
+            ];
+            signals.forEach(function(sig) {
+                const div = document.createElement('div');
+                div.className = 'signal';
+                const ns = document.createElement('span');
+                ns.textContent = sig.name;
+                const vs = document.createElement('span');
+                vs.className = 'signal-val';
+                vs.textContent = sig.val;
+                div.appendChild(ns);
+                div.appendChild(vs);
+                ctrlDiv.appendChild(div);
+            });
+        }
+
+        function appendToScreen(text) {
+            const screen = document.getElementById('screenOutput');
+            const cursor = document.getElementById('screenCursor');
+            const line = document.createElement('div');
+            line.textContent = text;
+            screen.insertBefore(line, cursor);
+            screen.scrollTop = screen.scrollHeight;
+        }
+
+        function buildKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            const keys = '1234567890-=QWERTYUIOP[]ASDFGHJKL;\'ZXCVBNM,./';
+            keys.split('').forEach(function(k) {
+                const key = document.createElement('div');
+                key.className = 'key';
+                key.textContent = k;
+                key.addEventListener('click', function() { appendToScreen('> ' + k); });
+                keyboard.appendChild(key);
+            });
+            const space = document.createElement('div');
+            space.className = 'key space';
+            space.textContent = 'SPACE';
+            keyboard.appendChild(space);
+            const enter = document.createElement('div');
+            enter.className = 'key enter';
+            enter.textContent = 'ENTER';
+            enter.addEventListener('click', function() { appendToScreen(''); });
+            keyboard.appendChild(enter);
+        }
+
+        function buildGateView() {
+            const gateTypes = [
+                { type: 'and', name: 'AND', io: 'A,B→Y', count: 8 },
+                { type: 'or', name: 'OR', io: 'A,B→Y', count: 6 },
+                { type: 'not', name: 'NOT', io: 'A→Y', count: 5 },
+                { type: 'xor', name: 'XOR', io: 'A,B→Y', count: 4 },
+                { type: 'dff', name: 'DFF', io: 'D,CLK→Q', count: 5 }
+            ];
+            const row1 = document.getElementById('gateRow1');
+            const row2 = document.getElementById('gateRow2');
+            const row3 = document.getElementById('gateRow3');
+
+            gateTypes.forEach(function(gt, idx) {
+                for (let i = 0; i < gt.count; i++) {
+                    const gate = document.createElement('div');
+                    gate.className = 'gate ' + gt.type;
+                    const td = document.createElement('div');
+                    td.className = 'gate-type';
+                    td.textContent = gt.name;
+                    gate.appendChild(td);
+                    const io = document.createElement('div');
+                    io.className = 'gate-io';
+                    io.textContent = gt.io;
+                    gate.appendChild(io);
+                    if (idx < 2) row1.appendChild(gate);
+                    else if (idx < 4) row2.appendChild(gate);
+                    else row3.appendChild(gate);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.layer-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() { switchLayer(parseInt(this.dataset.layer)); });
+            });
+            document.querySelectorAll('.layer-dot').forEach(function(dot) {
+                dot.addEventListener('click', function() { switchLayer(parseInt(this.dataset.layer)); });
+            });
+
+            document.getElementById('loadBtn').addEventListener('click', function() {
+                const prog = document.getElementById('programSelect').value;
+                cpuReset();
+                cpuLoadProgram(PROGRAMS[prog]);
+                busActivity = [];
+                updateBusLog();
+                updateDisplay();
+                setBusValues(null, null, null);
+                setCyclePhase('READY', 'Program loaded: ' + prog + '.asm');
+                appendToScreen('Loaded: ' + prog + '.asm');
+            });
+
+            document.getElementById('stepBtn').addEventListener('click', function() {
+                if (!CPU.halted) {
+                    cpuMicroStep(); // Use micro-step for detailed visualization
+                    if (CPU.halted) appendToScreen('HALTED. A=' + CPU.a);
+                }
+            });
+
+            document.getElementById('runBtn').addEventListener('click', function() {
+                if (!running && !CPU.halted) {
+                    running = true;
+                    const speed = parseInt(document.getElementById('speedSlider').value);
+                    runInterval = setInterval(function() {
+                        if (!cpuMicroStep()) {
+                            clearInterval(runInterval);
+                            running = false;
+                            appendToScreen('HALTED. A=' + CPU.a);
+                        }
+                    }, 1000 / speed);
+                }
+            });
+
+            document.getElementById('stopBtn').addEventListener('click', function() {
+                if (running) { clearInterval(runInterval); running = false; }
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                if (running) { clearInterval(runInterval); running = false; }
+                cpuReset();
+                busActivity = [];
+                updateBusLog();
+                updateDisplay();
+                setBusValues(null, null, null);
+                setCyclePhase('READY', 'CPU Reset');
+                appendToScreen('CPU Reset');
+            });
+
+            document.getElementById('speedSlider').addEventListener('input', function() {
+                document.getElementById('speedLabel').textContent = this.value + ' Hz (slow for visualization)';
+                if (running) {
+                    clearInterval(runInterval);
+                    runInterval = setInterval(function() {
+                        if (!cpuMicroStep()) { clearInterval(runInterval); running = false; }
+                    }, 1000 / parseInt(this.value));
+                }
+            });
+
+            document.getElementById('sysCPU').addEventListener('click', function() { switchLayer(3); });
+
+            buildKeyboard();
+            buildGateView();
+            cpuLoadProgram(PROGRAMS.add);
+            updateDisplay();
+            switchLayer(1);
+            appendToScreen('Program loaded: add.asm');
+        });
+    </script>
+</body>
+</html>

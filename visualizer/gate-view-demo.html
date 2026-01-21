@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate View Demo - Digital Archaeology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            background: #0d0d1a;
+            color: #eee;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #16213e;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f3460;
+        }
+        h1 {
+            font-size: 1.2em;
+            color: #e94560;
+        }
+        .version {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        button {
+            background: #0f3460;
+            color: #eee;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        button.active {
+            background: #e94560;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .control-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .control-group label {
+            color: #888;
+            font-size: 11px;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 220px;
+            background: #16213e;
+            border-right: 2px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-section {
+            padding: 12px;
+            border-bottom: 1px solid #0f3460;
+        }
+        .sidebar-section h3 {
+            color: #e94560;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .circuit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .circuit-btn {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+        }
+        .circuit-btn:hover {
+            border-color: #e94560;
+        }
+        .circuit-btn .circuit-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .circuit-btn .circuit-desc {
+            font-size: 10px;
+            color: #888;
+        }
+        .state-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .state-panel h3 {
+            color: #e94560;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .wire-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #0f3460;
+            font-size: 11px;
+        }
+        .wire-name {
+            color: #aaa;
+        }
+        .wire-state {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+        .wire-state.high {
+            background: #00aa00;
+            color: #fff;
+        }
+        .wire-state.low {
+            background: #0077cc;
+            color: #fff;
+        }
+        .wire-state.unknown {
+            background: #444;
+            color: #888;
+        }
+        .canvas-container {
+            flex: 1;
+            position: relative;
+        }
+        #gateCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(22, 33, 62, 0.95);
+            padding: 8px 15px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #0f3460;
+        }
+        .status-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .status-label {
+            color: #888;
+        }
+        .status-value {
+            color: #00ff00;
+        }
+        .legend {
+            display: flex;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .legend-color.high { background: #00ff00; }
+        .legend-color.low { background: #0077cc; }
+        .legend-color.unknown { background: #555; }
+        .help-text {
+            color: #666;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Gate View Demo</h1>
+            <span class="version">GateView Module v1.0.0</span>
+        </div>
+        <div class="controls">
+            <div class="control-group">
+                <button id="stepBtn" title="Step simulation">Step</button>
+                <button id="runBtn" title="Run continuous">Run</button>
+                <button id="resetBtn" title="Reset simulation">Reset</button>
+            </div>
+            <div class="control-group">
+                <button id="xrayBtn" title="Toggle X-Ray mode">X-Ray</button>
+                <button id="fitBtn" title="Fit to view">Fit</button>
+            </div>
+            <div class="control-group">
+                <label>Zoom:</label>
+                <button id="zoomOutBtn">-</button>
+                <span id="zoomLevel">100%</span>
+                <button id="zoomInBtn">+</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <h3>Example Circuits</h3>
+                <div class="circuit-list">
+                    <button class="circuit-btn" data-circuit="half-adder">
+                        <div class="circuit-name">Half Adder</div>
+                        <div class="circuit-desc">XOR + AND (Sum & Carry)</div>
+                    </button>
+                    <button class="circuit-btn" data-circuit="sr-latch">
+                        <div class="circuit-name">SR Latch</div>
+                        <div class="circuit-desc">Two cross-coupled NOR gates</div>
+                    </button>
+                    <button class="circuit-btn" data-circuit="mux2">
+                        <div class="circuit-name">2:1 Multiplexer</div>
+                        <div class="circuit-desc">Select between two inputs</div>
+                    </button>
+                    <button class="circuit-btn" data-circuit="not-chain">
+                        <div class="circuit-name">NOT Chain</div>
+                        <div class="circuit-desc">Three inverters in series</div>
+                    </button>
+                    <button class="circuit-btn" data-circuit="dff">
+                        <div class="circuit-name">D Flip-Flop</div>
+                        <div class="circuit-desc">Edge-triggered storage</div>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>Input Controls</h3>
+                <div id="inputControls">
+                    <p class="help-text">Load a circuit to see input controls</p>
+                </div>
+            </div>
+            <div class="state-panel">
+                <h3>Wire States</h3>
+                <div id="wireList">
+                    <p class="help-text">No circuit loaded</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="gateCanvas"></canvas>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Cycle:</span>
+                    <span class="status-value" id="cycleCount">0</span>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color high"></div>
+                        <span>HIGH (1)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color low"></div>
+                        <span>LOW (0)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color unknown"></div>
+                        <span>Unknown (X)</span>
+                    </div>
+                </div>
+                <div class="help-text">
+                    Scroll to zoom | Click + Drag to pan
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load SimEngine dependencies -->
+    <script src="engine/types.js"></script>
+    <script src="engine/wire.js"></script>
+    <script src="engine/gate.js"></script>
+    <script src="engine/circuit.js"></script>
+
+    <!-- Load GateView module -->
+    <script src="modules/gate-view.js"></script>
+
+    <script>
+        // Get SimEngine components
+        const { WireState, GateType, Circuit, GateView } = window.SimEngine || {};
+
+        // State
+        let gateView = null;
+        let currentCircuit = null;
+        let inputStates = {};
+        let running = false;
+        let runIntervalId = null;
+
+        // Helper to clear children safely
+        function clearChildren(element) {
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initGateView();
+            setupEventListeners();
+            loadCircuit('half-adder');
+        });
+
+        function initGateView() {
+            const canvas = document.getElementById('gateCanvas');
+            gateView = new GateView(canvas, {
+                autoResize: true,
+                showGrid: true,
+                animateParticles: true,
+                particleSpawnRate: 0.1
+            });
+
+            gateView.on('gateClick', function(data) {
+                console.log('Gate clicked:', data);
+                gateView.highlightGate(data.index);
+            });
+
+            gateView.on('update', function(data) {
+                document.getElementById('cycleCount').textContent = data.cycle;
+            });
+
+            // Start animation loop
+            gateView.startAnimation();
+        }
+
+        function setupEventListeners() {
+            // Circuit selection buttons
+            document.querySelectorAll('.circuit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    loadCircuit(btn.dataset.circuit);
+                });
+            });
+
+            // Control buttons
+            document.getElementById('stepBtn').addEventListener('click', stepSimulation);
+            document.getElementById('runBtn').addEventListener('click', toggleRun);
+            document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+            document.getElementById('xrayBtn').addEventListener('click', toggleXray);
+            document.getElementById('fitBtn').addEventListener('click', () => gateView.fitToView());
+
+            document.getElementById('zoomInBtn').addEventListener('click', () => {
+                gateView.setZoom(gateView.zoom * 1.2);
+                updateZoomDisplay();
+            });
+            document.getElementById('zoomOutBtn').addEventListener('click', () => {
+                gateView.setZoom(gateView.zoom * 0.8);
+                updateZoomDisplay();
+            });
+        }
+
+        function updateZoomDisplay() {
+            document.getElementById('zoomLevel').textContent =
+                Math.round(gateView.zoom * 100) + '%';
+        }
+
+        function loadCircuit(name) {
+            const circuitData = getExampleCircuit(name);
+            if (!circuitData) {
+                console.error('Unknown circuit:', name);
+                return;
+            }
+
+            currentCircuit = circuitData;
+            inputStates = {};
+
+            // Initialize input states
+            for (const wire of circuitData.wires) {
+                if (wire.is_input && wire.name !== 'gnd' && wire.name !== 'vdd') {
+                    inputStates[wire.name] = 0;
+                    wire.state = [0];
+                }
+            }
+
+            // Load into view
+            gateView.loadCircuit(circuitData);
+            gateView.fitToView();
+
+            // Update UI
+            updateInputControls();
+            updateWireList();
+            document.getElementById('cycleCount').textContent = '0';
+
+            // Highlight active button
+            document.querySelectorAll('.circuit-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.circuit === name);
+            });
+        }
+
+        function stepSimulation() {
+            if (!currentCircuit) return;
+
+            // Simple propagation simulation
+            simulateStep();
+
+            // Update view
+            gateView.loadCircuit(currentCircuit);
+            gateView.update();
+            updateWireList();
+        }
+
+        function simulateStep() {
+            const wires = currentCircuit.wires;
+            const gates = currentCircuit.gates;
+
+            // Get wire values by index
+            const wireValues = new Map();
+            for (let i = 0; i < wires.length; i++) {
+                wireValues.set(i, wires[i].state ? wires[i].state[0] : 2);
+            }
+
+            // Evaluate gates
+            for (const gate of gates) {
+                const inputs = gate.inputs.map(inp => {
+                    const wireIdx = inp.wire !== undefined ? inp.wire : inp.wireIndex;
+                    return wireValues.get(wireIdx);
+                });
+
+                let output = 2; // Unknown
+                const type = gate.type.toUpperCase();
+
+                // Only compute if all inputs are known
+                const allKnown = inputs.every(v => v === 0 || v === 1);
+                if (allKnown) {
+                    switch (type) {
+                        case 'NOT':
+                        case 'BUF':
+                            output = type === 'NOT' ? (inputs[0] === 0 ? 1 : 0) : inputs[0];
+                            break;
+                        case 'AND':
+                            output = (inputs[0] === 1 && inputs[1] === 1) ? 1 : 0;
+                            break;
+                        case 'OR':
+                            output = (inputs[0] === 1 || inputs[1] === 1) ? 1 : 0;
+                            break;
+                        case 'NAND':
+                            output = (inputs[0] === 1 && inputs[1] === 1) ? 0 : 1;
+                            break;
+                        case 'NOR':
+                            output = (inputs[0] === 1 || inputs[1] === 1) ? 0 : 1;
+                            break;
+                        case 'XOR':
+                            output = inputs[0] !== inputs[1] ? 1 : 0;
+                            break;
+                        case 'XNOR':
+                            output = inputs[0] === inputs[1] ? 1 : 0;
+                            break;
+                        case 'DFF':
+                            // DFF captures D on clock edge (simplified)
+                            if (gate.storedValue === undefined) {
+                                gate.storedValue = 0;
+                            }
+                            output = gate.storedValue;
+                            // On step, capture D
+                            gate.storedValue = inputs[0];
+                            break;
+                    }
+                }
+
+                // Set output wire
+                if (gate.outputs && gate.outputs.length > 0) {
+                    const outWire = gate.outputs[0].wire !== undefined
+                        ? gate.outputs[0].wire
+                        : gate.outputs[0].wireIndex;
+                    wireValues.set(outWire, output);
+                    wires[outWire].state = [output];
+                }
+            }
+
+            // Increment cycle
+            currentCircuit.cycle = (currentCircuit.cycle || 0) + 1;
+        }
+
+        function toggleRun() {
+            running = !running;
+            const btn = document.getElementById('runBtn');
+            btn.textContent = running ? 'Stop' : 'Run';
+            btn.classList.toggle('active', running);
+
+            if (running) {
+                runIntervalId = setInterval(() => {
+                    stepSimulation();
+                }, 200);
+            } else {
+                if (runIntervalId) {
+                    clearInterval(runIntervalId);
+                    runIntervalId = null;
+                }
+            }
+        }
+
+        function resetSimulation() {
+            if (running) {
+                toggleRun();
+            }
+
+            // Reset wire states
+            for (const wire of currentCircuit.wires) {
+                if (wire.is_input) {
+                    wire.state = [inputStates[wire.name] || 0];
+                } else if (wire.name === 'vdd') {
+                    wire.state = [1];
+                } else if (wire.name === 'gnd') {
+                    wire.state = [0];
+                } else {
+                    wire.state = [2];
+                }
+            }
+
+            // Reset DFFs
+            for (const gate of currentCircuit.gates) {
+                if (gate.type === 'DFF') {
+                    gate.storedValue = 0;
+                }
+            }
+
+            currentCircuit.cycle = 0;
+
+            gateView.loadCircuit(currentCircuit);
+            gateView.update();
+            updateWireList();
+        }
+
+        function toggleXray() {
+            const btn = document.getElementById('xrayBtn');
+            const enabled = !gateView.xrayMode;
+            gateView.enableXRay(enabled);
+            btn.classList.toggle('active', enabled);
+        }
+
+        function updateInputControls() {
+            const container = document.getElementById('inputControls');
+            clearChildren(container);
+
+            const inputWires = currentCircuit.wires.filter(
+                w => w.is_input && w.name !== 'gnd' && w.name !== 'vdd'
+            );
+
+            if (inputWires.length === 0) {
+                const helpText = document.createElement('p');
+                helpText.className = 'help-text';
+                helpText.textContent = 'No input wires';
+                container.appendChild(helpText);
+                return;
+            }
+
+            for (const wire of inputWires) {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #0f3460;';
+
+                const label = document.createElement('span');
+                label.textContent = wire.name;
+                label.style.color = '#aaa';
+
+                const btn = document.createElement('button');
+                btn.textContent = inputStates[wire.name] ? '1' : '0';
+                btn.style.cssText = 'width: 40px; background: ' + (inputStates[wire.name] ? '#00aa00' : '#0077cc') + ';';
+                btn.addEventListener('click', () => {
+                    inputStates[wire.name] = inputStates[wire.name] ? 0 : 1;
+                    wire.state = [inputStates[wire.name]];
+                    btn.textContent = inputStates[wire.name] ? '1' : '0';
+                    btn.style.background = inputStates[wire.name] ? '#00aa00' : '#0077cc';
+
+                    // Propagate change
+                    stepSimulation();
+                });
+
+                div.appendChild(label);
+                div.appendChild(btn);
+                container.appendChild(div);
+            }
+        }
+
+        function updateWireList() {
+            const container = document.getElementById('wireList');
+            clearChildren(container);
+
+            if (!currentCircuit || !currentCircuit.wires) {
+                const helpText = document.createElement('p');
+                helpText.className = 'help-text';
+                helpText.textContent = 'No circuit loaded';
+                container.appendChild(helpText);
+                return;
+            }
+
+            for (const wire of currentCircuit.wires) {
+                const state = wire.state ? wire.state[0] : 2;
+
+                const div = document.createElement('div');
+                div.className = 'wire-item';
+
+                const name = document.createElement('span');
+                name.className = 'wire-name';
+                name.textContent = wire.name;
+
+                const stateSpan = document.createElement('span');
+                stateSpan.className = 'wire-state';
+                if (state === 1) {
+                    stateSpan.classList.add('high');
+                    stateSpan.textContent = '1';
+                } else if (state === 0) {
+                    stateSpan.classList.add('low');
+                    stateSpan.textContent = '0';
+                } else {
+                    stateSpan.classList.add('unknown');
+                    stateSpan.textContent = 'X';
+                }
+
+                div.appendChild(name);
+                div.appendChild(stateSpan);
+                container.appendChild(div);
+            }
+        }
+
+        // Example circuit definitions
+        function getExampleCircuit(name) {
+            switch (name) {
+                case 'half-adder':
+                    return {
+                        cycle: 0,
+                        stable: true,
+                        wires: [
+                            { id: 0, name: 'gnd', width: 1, is_input: false, is_output: false, state: [0] },
+                            { id: 1, name: 'vdd', width: 1, is_input: false, is_output: false, state: [1] },
+                            { id: 2, name: 'A', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 3, name: 'B', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 4, name: 'Sum', width: 1, is_input: false, is_output: true, state: [2] },
+                            { id: 5, name: 'Carry', width: 1, is_input: false, is_output: true, state: [2] }
+                        ],
+                        gates: [
+                            { id: 0, name: 'XOR1', type: 'XOR', inputs: [{wire: 2, bit: 0}, {wire: 3, bit: 0}], outputs: [{wire: 4, bit: 0}] },
+                            { id: 1, name: 'AND1', type: 'AND', inputs: [{wire: 2, bit: 0}, {wire: 3, bit: 0}], outputs: [{wire: 5, bit: 0}] }
+                        ]
+                    };
+
+                case 'sr-latch':
+                    return {
+                        cycle: 0,
+                        stable: true,
+                        wires: [
+                            { id: 0, name: 'gnd', width: 1, is_input: false, is_output: false, state: [0] },
+                            { id: 1, name: 'vdd', width: 1, is_input: false, is_output: false, state: [1] },
+                            { id: 2, name: 'S', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 3, name: 'R', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 4, name: 'Q', width: 1, is_input: false, is_output: true, state: [2] },
+                            { id: 5, name: 'Qn', width: 1, is_input: false, is_output: true, state: [2] }
+                        ],
+                        gates: [
+                            { id: 0, name: 'NOR1', type: 'NOR', inputs: [{wire: 2, bit: 0}, {wire: 5, bit: 0}], outputs: [{wire: 4, bit: 0}] },
+                            { id: 1, name: 'NOR2', type: 'NOR', inputs: [{wire: 3, bit: 0}, {wire: 4, bit: 0}], outputs: [{wire: 5, bit: 0}] }
+                        ]
+                    };
+
+                case 'mux2':
+                    return {
+                        cycle: 0,
+                        stable: true,
+                        wires: [
+                            { id: 0, name: 'gnd', width: 1, is_input: false, is_output: false, state: [0] },
+                            { id: 1, name: 'vdd', width: 1, is_input: false, is_output: false, state: [1] },
+                            { id: 2, name: 'A', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 3, name: 'B', width: 1, is_input: true, is_output: false, state: [1] },
+                            { id: 4, name: 'Sel', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 5, name: 'notSel', width: 1, is_input: false, is_output: false, state: [2] },
+                            { id: 6, name: 'and0', width: 1, is_input: false, is_output: false, state: [2] },
+                            { id: 7, name: 'and1', width: 1, is_input: false, is_output: false, state: [2] },
+                            { id: 8, name: 'Y', width: 1, is_input: false, is_output: true, state: [2] }
+                        ],
+                        gates: [
+                            { id: 0, name: 'NOT1', type: 'NOT', inputs: [{wire: 4, bit: 0}], outputs: [{wire: 5, bit: 0}] },
+                            { id: 1, name: 'AND1', type: 'AND', inputs: [{wire: 2, bit: 0}, {wire: 5, bit: 0}], outputs: [{wire: 6, bit: 0}] },
+                            { id: 2, name: 'AND2', type: 'AND', inputs: [{wire: 3, bit: 0}, {wire: 4, bit: 0}], outputs: [{wire: 7, bit: 0}] },
+                            { id: 3, name: 'OR1', type: 'OR', inputs: [{wire: 6, bit: 0}, {wire: 7, bit: 0}], outputs: [{wire: 8, bit: 0}] }
+                        ]
+                    };
+
+                case 'not-chain':
+                    return {
+                        cycle: 0,
+                        stable: true,
+                        wires: [
+                            { id: 0, name: 'gnd', width: 1, is_input: false, is_output: false, state: [0] },
+                            { id: 1, name: 'vdd', width: 1, is_input: false, is_output: false, state: [1] },
+                            { id: 2, name: 'In', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 3, name: 'w1', width: 1, is_input: false, is_output: false, state: [2] },
+                            { id: 4, name: 'w2', width: 1, is_input: false, is_output: false, state: [2] },
+                            { id: 5, name: 'Out', width: 1, is_input: false, is_output: true, state: [2] }
+                        ],
+                        gates: [
+                            { id: 0, name: 'NOT1', type: 'NOT', inputs: [{wire: 2, bit: 0}], outputs: [{wire: 3, bit: 0}] },
+                            { id: 1, name: 'NOT2', type: 'NOT', inputs: [{wire: 3, bit: 0}], outputs: [{wire: 4, bit: 0}] },
+                            { id: 2, name: 'NOT3', type: 'NOT', inputs: [{wire: 4, bit: 0}], outputs: [{wire: 5, bit: 0}] }
+                        ]
+                    };
+
+                case 'dff':
+                    return {
+                        cycle: 0,
+                        stable: true,
+                        wires: [
+                            { id: 0, name: 'gnd', width: 1, is_input: false, is_output: false, state: [0] },
+                            { id: 1, name: 'vdd', width: 1, is_input: false, is_output: false, state: [1] },
+                            { id: 2, name: 'D', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 3, name: 'CLK', width: 1, is_input: true, is_output: false, state: [0] },
+                            { id: 4, name: 'Q', width: 1, is_input: false, is_output: true, state: [2] }
+                        ],
+                        gates: [
+                            { id: 0, name: 'DFF1', type: 'DFF', inputs: [{wire: 2, bit: 0}, {wire: 3, bit: 0}], outputs: [{wire: 4, bit: 0}], storedValue: 0 }
+                        ]
+                    };
+
+                default:
+                    return null;
+            }
+        }
+    </script>
+</body>
+</html>

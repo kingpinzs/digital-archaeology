@@ -3,51 +3,55 @@
   "goal": "Transform CPU project into comprehensive educational platform",
   "status": "in_progress",
   "created": "2026-01-14",
+  "updated": "2026-01-20",
   "sprints": [
     {
       "id": "sprint1-visualizer",
       "name": "Visualizer Core",
-      "status": "in_progress",
+      "status": "completed",
       "tasks": [
         {
           "id": "vis-core-engine",
           "name": "Core simulation engine",
-          "file": "visualizer/modules/core-engine.js",
+          "file": "visualizer/engine/",
           "prompt": ".claude/prompts/vis-core-engine.md",
           "status": "merged",
-          "branch": "feature/vis-core-engine",
-          "depends_on": []
+          "depends_on": [],
+          "notes": "Implemented in visualizer/engine/ directory with SimEngine v1.1.0"
         },
         {
           "id": "vis-gate-view",
           "name": "Gate-level animation",
           "file": "visualizer/modules/gate-view.js",
           "prompt": ".claude/prompts/vis-gate-view.md",
-          "status": "pending",
-          "depends_on": ["vis-core-engine"]
+          "status": "merged",
+          "depends_on": [],
+          "notes": "Complete: 1936 lines with GateView, GateRenderer, WireRenderer, LayoutEngine"
         },
         {
           "id": "vis-cpu-state",
           "name": "CPU state viewer",
           "file": "visualizer/modules/cpu-state-view.js",
           "prompt": ".claude/prompts/vis-cpu-state.md",
-          "status": "pending",
-          "depends_on": ["vis-core-engine"]
+          "status": "merged",
+          "depends_on": [],
+          "notes": "Complete: 1241 lines with Micro4/8/16/32 support"
         },
         {
           "id": "vis-debugger",
           "name": "Step debugger",
           "file": "visualizer/modules/debugger-view.js",
           "prompt": ".claude/prompts/vis-debugger.md",
-          "status": "pending",
-          "depends_on": ["vis-core-engine"]
+          "status": "merged",
+          "depends_on": [],
+          "notes": "Complete: 1189 lines with breakpoints, history, keyboard shortcuts"
         }
       ]
     },
     {
       "id": "sprint2-micro4-edu",
       "name": "Micro4 Educational",
-      "status": "complete",
+      "status": "completed",
       "tasks": [
         {
           "id": "m4-starter-hdl",
@@ -55,8 +59,8 @@
           "file": "templates/micro4/hdl/starter.m4hdl",
           "prompt": ".claude/prompts/m4-starter-hdl.md",
           "status": "merged",
-          "branch": "feature/m4-starter-hdl",
-          "depends_on": []
+          "depends_on": [],
+          "notes": "Complete: 560-line starter HDL with working decoder, TODOs for ALU"
         },
         {
           "id": "m4-hints",
@@ -64,8 +68,8 @@
           "file": "templates/micro4/hints/",
           "prompt": ".claude/prompts/m4-hints.md",
           "status": "merged",
-          "branch": "feature/m4-hints",
-          "depends_on": []
+          "depends_on": [],
+          "notes": "Complete: 5 progressive hint files (860 lines total)"
         },
         {
           "id": "m4-homework",
@@ -73,8 +77,8 @@
           "file": "homework/micro4/",
           "prompt": ".claude/prompts/m4-homework.md",
           "status": "merged",
-          "branch": "feature/m4-homework",
-          "depends_on": []
+          "depends_on": [],
+          "notes": "Complete: 5 optimization exercises (1899 lines total)"
         }
       ]
     },

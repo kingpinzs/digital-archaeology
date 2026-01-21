@@ -1,0 +1,5 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS custom properties will be added in Story 1.4 (Implement CSS Theme System) */

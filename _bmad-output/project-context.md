@@ -16,7 +16,7 @@ _Critical rules and patterns for implementing code in Digital Archaeology. Focus
 
 | Technology | Version | Notes |
 |------------|---------|-------|
-| Vite | 6.x | Build tool with vanilla-ts template |
+| Vite | 7.x | Build tool with vanilla-ts template |
 | TypeScript | ES2022+ | esbuild transpilation, tsc for type-checking |
 | Tailwind CSS | Latest | PostCSS pipeline, utility-first |
 | Monaco Editor | Latest | VS Code's editor engine |
@@ -31,6 +31,7 @@ _Critical rules and patterns for implementing code in Digital Archaeology. Focus
 - **Explicit null** - Use `null` for missing values, never `undefined`
 - **Type exports** - Export interfaces from module `types.ts` or central `types/index.ts`
 - **No default exports** - Use named exports for better tree-shaking
+  - *Exception:* Config files (vite.config.ts, tailwind.config.js, postcss.config.js) require default exports per tool conventions
 
 ### Naming Conventions
 
@@ -112,7 +113,8 @@ src/
 ├── state/          # Store, persistence
 ├── story/          # Story mode components
 ├── ui/             # Shared UI components
-└── types/          # Shared TypeScript types
+├── types/          # Shared TypeScript types
+└── utils/          # Utility functions
 
 public/
 ├── wasm/           # Compiled WASM + glue code

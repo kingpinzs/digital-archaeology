@@ -1,0 +1,8 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="2.6497829999999998">
+<testsuite name="app.spec.ts" timestamp="2026-01-21T06:23:02.709Z" hostname="chromium" tests="2" failures="0" skipped="0" time="1.106" errors="0">
+<testcase name="Digital Archaeology App › [P0] should load the application" classname="app.spec.ts" time="0.316">
+</testcase>
+<testcase name="Digital Archaeology App › [P1] should display without JavaScript errors" classname="app.spec.ts" time="0.79">
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B: Dense Professional - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-elevated: #1f2847;
+      --text-primary: #e4e4e4;
+      --text-secondary: #b0b0b0;
+      --text-muted: #6a6a8a;
+      --accent: #00b4d8;
+      --signal-high: #00ff88;
+      --signal-low: #3a3a4a;
+      --error: #ff6b6b;
+      --success: #51cf66;
+      --warning: #ffc107;
+      --gate-and: #4ecdc4;
+      --gate-or: #ff6b6b;
+      --gate-xor: #c44dff;
+      --gate-mux: #6bcb77;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    /* Full menu bar */
+    .menu-bar {
+      background: var(--bg-secondary);
+      padding: 4px 12px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .menu-item {
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    /* Toolbar with everything */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+    }
+
+    .toolbar-group:last-child {
+      border-right: none;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn-icon {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .speed-slider {
+      width: 100px;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+    }
+
+    .speed-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    /* Main content - dense 3-column */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 280px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .panel-close {
+      width: 18px;
+      height: 18px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+
+    .panel-close:hover {
+      background: var(--error);
+      color: #fff;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 8px;
+    }
+
+    /* Code editor with metadata */
+    .code-area {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .code-line:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .code-line.active {
+      background: rgba(0, 180, 216, 0.15);
+      border-left: 3px solid var(--accent);
+      margin-left: -3px;
+    }
+
+    .code-line.breakpoint::before {
+      content: "●";
+      color: var(--error);
+      margin-right: 4px;
+    }
+
+    .gutter {
+      width: 30px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .code-line.active .gutter {
+      color: var(--accent);
+    }
+
+    .code-content {
+      flex: 1;
+    }
+
+    .comment { color: #5a6a7a; }
+    .instruction { color: #e4e4e4; }
+    .operand { color: var(--signal-high); }
+    .directive { color: var(--accent); }
+
+    /* Code metadata sidebar */
+    .code-meta {
+      padding: 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-label {
+      color: var(--text-muted);
+    }
+
+    .meta-value {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .meta-value.type {
+      color: var(--accent);
+    }
+
+    /* Circuit with labels */
+    .circuit-toolbar {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .circuit-path {
+      color: var(--text-muted);
+    }
+
+    .circuit-path span {
+      color: var(--text-primary);
+    }
+
+    .circuit-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .circuit-btn {
+      padding: 4px 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    .circuit-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .circuit-canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .circuit-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .gate {
+      stroke-width: 2;
+    }
+
+    .gate.and { fill: rgba(78, 205, 196, 0.2); stroke: var(--gate-and); }
+    .gate.or { fill: rgba(255, 107, 107, 0.2); stroke: var(--gate-or); }
+    .gate.xor { fill: rgba(196, 77, 255, 0.2); stroke: var(--gate-xor); }
+    .gate.mux { fill: rgba(107, 203, 119, 0.2); stroke: var(--gate-mux); }
+
+    .gate-label {
+      font-size: 9px;
+      fill: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .gate-type {
+      font-size: 10px;
+      fill: var(--text-secondary);
+      font-family: -apple-system, sans-serif;
+      font-weight: 600;
+    }
+
+    .wire {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire.high {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 3px var(--signal-high));
+    }
+
+    /* Signal info panel */
+    .signal-info {
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .signal-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+    }
+
+    .signal-name {
+      color: var(--text-muted);
+    }
+
+    .signal-value {
+      color: var(--signal-high);
+    }
+
+    .signal-value.low {
+      color: var(--text-muted);
+    }
+
+    /* State panel - dense tables */
+    .state-section {
+      margin-bottom: 8px;
+    }
+
+    .section-header {
+      padding: 6px 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-header:hover {
+      background: var(--bg-elevated);
+    }
+
+    .section-content {
+      padding: 8px 0;
+    }
+
+    .state-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .state-table th {
+      text-align: left;
+      padding: 4px 8px;
+      color: var(--text-muted);
+      font-weight: normal;
+      font-size: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .state-table td {
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .state-table tr:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .state-table .changed {
+      color: var(--signal-high);
+      position: relative;
+    }
+
+    .state-table .changed::after {
+      content: "◀";
+      position: absolute;
+      right: -16px;
+      color: var(--signal-high);
+      font-size: 10px;
+    }
+
+    /* Status bar - full info */
+    .status-bar {
+      background: var(--bg-tertiary);
+      padding: 6px 12px;
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .status-item .value {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-item.success .indicator {
+      color: var(--success);
+    }
+
+    .status-spacer {
+      flex: 1;
+    }
+
+    /* Design label */
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">OPTION B: Dense Professional</div>
+
+  <div class="menu-bar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Debug</div>
+    <div class="menu-item">Help</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="btn primary">⚡ Assemble</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="btn">▶ Run</button>
+      <button class="btn btn-icon">⏸</button>
+      <button class="btn btn-icon">⏹</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="btn">⏭ Step</button>
+      <button class="btn btn-icon">⏮</button>
+    </div>
+    <div class="toolbar-group">
+      <div class="speed-control">
+        <span>Speed:</span>
+        <input type="range" class="speed-slider" min="1" max="100" value="30">
+        <span>10 Hz</span>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div class="toolbar-group" style="border:none">
+      <button class="btn btn-icon">?</button>
+      <button class="btn btn-icon">⚙</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Code Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Code</span>
+        <button class="panel-close">×</button>
+      </div>
+      <div class="panel-content">
+        <div class="code-area">
+          <div class="code-line"><span class="gutter">1</span><span class="code-content"><span class="comment">; Micro4 Demo</span></span></div>
+          <div class="code-line"><span class="gutter">2</span><span class="code-content"><span class="comment">; Add two numbers</span></span></div>
+          <div class="code-line"><span class="gutter">3</span><span class="code-content"></span></div>
+          <div class="code-line active"><span class="gutter">4</span><span class="code-content"><span class="instruction">LDA</span> <span class="operand">0x10</span></span></div>
+          <div class="code-line"><span class="gutter">5</span><span class="code-content"><span class="instruction">ADD</span> <span class="operand">0x11</span></span></div>
+          <div class="code-line"><span class="gutter">6</span><span class="code-content"><span class="instruction">STA</span> <span class="operand">0x12</span></span></div>
+          <div class="code-line breakpoint"><span class="gutter">7</span><span class="code-content"><span class="instruction">HLT</span></span></div>
+          <div class="code-line"><span class="gutter">8</span><span class="code-content"></span></div>
+          <div class="code-line"><span class="gutter">9</span><span class="code-content"><span class="directive">.org</span> <span class="operand">0x10</span></span></div>
+          <div class="code-line"><span class="gutter">10</span><span class="code-content"><span class="directive">.byte</span> <span class="operand">0x05</span></span></div>
+          <div class="code-line"><span class="gutter">11</span><span class="code-content"><span class="directive">.byte</span> <span class="operand">0x0A</span></span></div>
+        </div>
+      </div>
+      <div class="code-meta">
+        <div class="meta-row">
+          <span class="meta-label">Instruction</span>
+          <span class="meta-value">LDA</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Type</span>
+          <span class="meta-value type">DATA_MOVEMENT</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Opcode</span>
+          <span class="meta-value">0x1</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Operand</span>
+          <span class="meta-value">ADDRESS (8-bit)</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Location</span>
+          <span class="meta-value">Ln 4, Col 1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Circuit Panel -->
+    <div class="panel" style="border-right: 1px solid var(--border)">
+      <div class="panel-header">
+        <span>Circuit</span>
+        <button class="panel-close">×</button>
+      </div>
+      <div class="circuit-toolbar">
+        <div class="circuit-path">CPU › <span>ALU</span> › Adder</div>
+        <div class="circuit-controls">
+          <button class="circuit-btn">100%</button>
+          <button class="circuit-btn">Fit</button>
+          <button class="circuit-btn">1:1</button>
+          <label class="circuit-btn"><input type="checkbox" checked style="margin-right:4px">Grid</label>
+        </div>
+      </div>
+      <div class="circuit-canvas-wrap">
+        <svg class="circuit-canvas" viewBox="0 0 500 300">
+          <!-- Grid -->
+          <defs>
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)"/>
+
+          <!-- Wires -->
+          <path class="wire high" d="M 80,100 L 140,100"/>
+          <path class="wire high" d="M 80,130 L 140,130"/>
+          <path class="wire high" d="M 200,115 L 260,115"/>
+          <path class="wire" d="M 260,90 L 260,115 L 300,115"/>
+          <path class="wire high" d="M 300,140 L 300,170 L 360,170"/>
+          <path class="wire" d="M 420,170 L 470,170"/>
+
+          <!-- AND Gate -->
+          <g transform="translate(140, 85)">
+            <path class="gate and" d="M 0,0 L 35,0 Q 60,30 35,60 L 0,60 Z"/>
+            <text class="gate-type" x="12" y="35">AND</text>
+            <text class="gate-label" x="10" y="75">G17</text>
+          </g>
+
+          <!-- OR Gate -->
+          <g transform="translate(300, 100)">
+            <path class="gate or" d="M 0,0 Q 15,0 35,15 Q 60,30 35,45 Q 15,60 0,60 Q 15,30 0,0"/>
+            <text class="gate-type" x="12" y="35">OR</text>
+            <text class="gate-label" x="12" y="75">G23</text>
+          </g>
+
+          <!-- MUX -->
+          <g transform="translate(360, 140)">
+            <path class="gate mux" d="M 0,0 L 60,15 L 60,45 L 0,60 Z"/>
+            <text class="gate-type" x="15" y="35">MUX</text>
+            <text class="gate-label" x="18" y="75">G45</text>
+          </g>
+
+          <!-- Signal dots -->
+          <circle cx="200" cy="115" r="5" fill="#00ff88" filter="url(#glow)"/>
+          <circle cx="80" cy="100" r="4" fill="#00ff88" filter="url(#glow)"/>
+          <circle cx="80" cy="130" r="4" fill="#00ff88" filter="url(#glow)"/>
+
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+        </svg>
+      </div>
+      <div class="signal-info">
+        <div class="signal-row">
+          <span class="signal-name">data_bus</span>
+          <span class="signal-value">0x05</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-name">addr_bus</span>
+          <span class="signal-value">0x10</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-name">alu_op</span>
+          <span class="signal-value low">PASS</span>
+        </div>
+        <div class="signal-row">
+          <span class="signal-name">write_en</span>
+          <span class="signal-value low">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- State Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>State</span>
+        <button class="panel-close">×</button>
+      </div>
+      <div class="panel-content">
+        <div class="state-section">
+          <div class="section-header">
+            <span>▼ Registers</span>
+          </div>
+          <div class="section-content">
+            <table class="state-table">
+              <thead>
+                <tr><th>Name</th><th>Hex</th><th>Dec</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>PC</td><td>0x04</td><td>4</td></tr>
+                <tr><td>ACC</td><td class="changed">0x0F</td><td>15</td></tr>
+                <tr><td>Z</td><td>0x00</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="state-section">
+          <div class="section-header">
+            <span>▼ Flags</span>
+          </div>
+          <div class="section-content">
+            <table class="state-table">
+              <thead>
+                <tr><th>Flag</th><th>Value</th><th>State</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Zero</td><td>0</td><td>clear</td></tr>
+                <tr><td>Carry</td><td class="changed">1</td><td>SET</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="state-section">
+          <div class="section-header">
+            <span>▼ Memory</span>
+            <span style="font-weight:normal;text-transform:none">0x10-0x1F</span>
+          </div>
+          <div class="section-content">
+            <table class="state-table">
+              <thead>
+                <tr><th>Addr</th><th>Hex</th><th>Dec</th><th>Chr</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>0x10</td><td>0x05</td><td>5</td><td>.</td></tr>
+                <tr><td>0x11</td><td>0x0A</td><td>10</td><td>.</td></tr>
+                <tr><td>0x12</td><td class="changed">0x0F</td><td>15</td><td>.</td></tr>
+                <tr><td>0x13</td><td>0x00</td><td>0</td><td>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item success">
+      <span class="indicator">✓</span>
+      <span>Assembled:</span>
+      <span class="value">12B</span>
+    </div>
+    <div class="status-item">
+      <span>PC:</span>
+      <span class="value">0x04</span>
+    </div>
+    <div class="status-item">
+      <span>Inst:</span>
+      <span class="value">LDA (DATA_MOVE)</span>
+    </div>
+    <div class="status-item">
+      <span>Cycle:</span>
+      <span class="value">4</span>
+    </div>
+    <div class="status-item">
+      <span>Breakpoints:</span>
+      <span class="value">1</span>
+    </div>
+    <div class="status-spacer"></div>
+    <div class="status-item">
+      <span>Errors:</span>
+      <span class="value">0</span>
+    </div>
+  </div>
+</body>
+</html>

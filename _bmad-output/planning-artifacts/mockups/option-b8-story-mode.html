@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Mode - Digital Archaeology</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-deep: #0a0a12;
+      --bg-primary: #12121a;
+      --bg-secondary: #1a1a24;
+      --bg-card: #1e1e2a;
+      --bg-hover: #252532;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a0a0a8;
+      --text-muted: #606068;
+      --text-narrative: #d4d4dc;
+      --accent-gold: #d4a574;
+      --accent-warm: #c9956e;
+      --accent-copper: #b87333;
+      --accent-blue: #4a9eff;
+      --accent-cyan: #00b4d8;
+      --border: rgba(212, 165, 116, 0.15);
+      --border-bright: rgba(212, 165, 116, 0.3);
+      --glow: rgba(212, 165, 116, 0.4);
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      font-family: 'Crimson Text', Georgia, serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    /* Top navigation */
+    .top-nav {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      font-family: -apple-system, sans-serif;
+    }
+
+    .nav-progress {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: -apple-system, sans-serif;
+      font-size: 13px;
+    }
+
+    .progress-label {
+      color: var(--text-muted);
+    }
+
+    .progress-acts {
+      display: flex;
+      gap: 8px;
+    }
+
+    .act-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      border: 2px solid var(--text-muted);
+      transition: all 0.3s;
+    }
+
+    .act-dot.complete {
+      background: var(--accent-gold);
+      border-color: var(--accent-gold);
+    }
+
+    .act-dot.current {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 12px var(--glow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 8px var(--glow); }
+      50% { box-shadow: 0 0 16px var(--glow); }
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: -apple-system, sans-serif;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    /* Main story container */
+    .story-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 32px;
+      width: 100%;
+    }
+
+    /* Era/Chapter header */
+    .chapter-header {
+      text-align: center;
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chapter-era {
+      font-size: 13px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      margin-bottom: 12px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .chapter-title {
+      font-size: 42px;
+      font-weight: 600;
+      color: var(--accent-gold);
+      margin-bottom: 8px;
+      text-shadow: 0 0 30px var(--glow);
+    }
+
+    .chapter-subtitle {
+      font-size: 20px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    /* Scene/setting description */
+    .scene-setting {
+      background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .scene-setting::before {
+      content: "Setting";
+      position: absolute;
+      top: -10px;
+      left: 24px;
+      background: var(--bg-deep);
+      padding: 0 12px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      font-family: -apple-system, sans-serif;
+    }
+
+    .scene-text {
+      color: var(--text-narrative);
+      font-style: italic;
+    }
+
+    /* Narrative text */
+    .narrative {
+      margin-bottom: 32px;
+    }
+
+    .narrative p {
+      margin-bottom: 24px;
+      color: var(--text-narrative);
+    }
+
+    .narrative .emphasis {
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .narrative .thought {
+      font-style: italic;
+      color: var(--text-secondary);
+      padding-left: 24px;
+      border-left: 2px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* Character/dialogue */
+    .dialogue-block {
+      background: var(--bg-card);
+      border-left: 3px solid var(--accent-copper);
+      padding: 20px 24px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .dialogue-speaker {
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-copper);
+      margin-bottom: 8px;
+      font-family: -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .speaker-title {
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    .dialogue-text {
+      color: var(--text-primary);
+      font-size: 19px;
+    }
+
+    /* Technical insert */
+    .technical-insert {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 180, 216, 0.2);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+    }
+
+    .technical-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .technical-content {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .technical-content code {
+      color: var(--accent-cyan);
+      background: rgba(0, 180, 216, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* Choice section */
+    .choices-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    .choices-prompt {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .choices-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      margin-bottom: 8px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .choices-question {
+      font-size: 24px;
+      color: var(--text-primary);
+    }
+
+    .choices-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .choice-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .choice-card:hover {
+      border-color: var(--accent-gold);
+      background: var(--bg-hover);
+      transform: translateX(8px);
+      box-shadow: 0 4px 20px var(--shadow), 0 0 30px rgba(212, 165, 116, 0.1);
+    }
+
+    .choice-card.selected {
+      border-color: var(--accent-gold);
+      background: rgba(212, 165, 116, 0.1);
+    }
+
+    .choice-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .choice-card:hover .choice-icon {
+      border-color: var(--accent-gold);
+      background: rgba(212, 165, 116, 0.1);
+    }
+
+    .choice-content {
+      flex: 1;
+    }
+
+    .choice-title {
+      font-size: 20px;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .choice-description {
+      font-size: 15px;
+      color: var(--text-secondary);
+      font-family: -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+
+    .choice-arrow {
+      color: var(--text-muted);
+      font-size: 24px;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .choice-card:hover .choice-arrow {
+      opacity: 1;
+      color: var(--accent-gold);
+    }
+
+    /* Action buttons */
+    .story-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: -apple-system, sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-btn:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .action-btn.primary {
+      background: var(--accent-gold);
+      border-color: var(--accent-gold);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .action-btn.primary:hover {
+      background: var(--accent-warm);
+      border-color: var(--accent-warm);
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    .action-btn.lab {
+      background: linear-gradient(135deg, #0f3460, #16213e);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .action-btn.lab:hover {
+      background: linear-gradient(135deg, #16213e, #1a1a2e);
+      box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
+    }
+
+    /* Journal sidebar (collapsible) */
+    .journal-toggle {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+
+    .journal-toggle:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 15px var(--glow);
+    }
+
+    .journal-icon {
+      font-size: 24px;
+    }
+
+    /* Inventory/status panel */
+    .status-panel {
+      position: fixed;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      width: 200px;
+    }
+
+    .status-title {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-warm);
+      margin-bottom: 16px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-family: -apple-system, sans-serif;
+      font-size: 13px;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      color: var(--text-muted);
+    }
+
+    .status-value {
+      color: var(--accent-gold);
+      font-weight: 500;
+    }
+
+    .discoveries-mini {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .discovery-chip {
+      display: inline-block;
+      background: rgba(212, 165, 116, 0.15);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: var(--accent-gold);
+      margin: 4px 4px 4px 0;
+      font-family: -apple-system, sans-serif;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .status-panel,
+      .journal-toggle {
+        display: none;
+      }
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent-gold);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+      font-family: -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B8: Story Mode Interface</div>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-title">Digital Archaeology</div>
+    <div class="nav-progress">
+      <span class="progress-label">Journey Progress</span>
+      <div class="progress-acts">
+        <div class="act-dot current" title="Act 1: The Humbling Beginning"></div>
+        <div class="act-dot" title="Act 2: Discovering Necessity"></div>
+        <div class="act-dot" title="Act 3: Scaling Up"></div>
+        <div class="act-dot" title="Act 4: The Real Machine"></div>
+        <div class="act-dot" title="Act 5: Performance"></div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn">Settings</button>
+      <button class="nav-btn">Save Progress</button>
+    </div>
+  </nav>
+
+  <!-- Status Panel (left side) -->
+  <div class="status-panel">
+    <div class="status-title">Your Status</div>
+    <div class="status-item">
+      <span class="status-label">Era</span>
+      <span class="status-value">1971</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Role</span>
+      <span class="status-value">Logic Designer</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Company</span>
+      <span class="status-value">Fairchild</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">Discoveries</span>
+      <span class="status-value">3 / 7</span>
+    </div>
+    <div class="discoveries-mini">
+      <div class="discovery-chip">AND Gate</div>
+      <div class="discovery-chip">Half Adder</div>
+      <div class="discovery-chip">Full Adder</div>
+    </div>
+  </div>
+
+  <!-- Journal Toggle (right side) -->
+  <div class="journal-toggle" title="Inventor's Journal">
+    <span class="journal-icon">📜</span>
+  </div>
+
+  <!-- Main Story Content -->
+  <main class="story-container">
+    <!-- Chapter Header -->
+    <header class="chapter-header">
+      <div class="chapter-era">Act I — 1971</div>
+      <h1 class="chapter-title">The Humbling Beginning</h1>
+      <p class="chapter-subtitle">In which you discover that computation begins with the simplest of gates</p>
+    </header>
+
+    <!-- Scene Setting -->
+    <div class="scene-setting">
+      <p class="scene-text">
+        A fluorescent-lit laboratory at Fairchild Semiconductor, Mountain View, California.
+        Oscilloscopes hum. The smell of solder hangs in the air. On your bench: a breadboard,
+        a handful of 7400-series TTL chips, and a dream of building something that can think.
+      </p>
+    </div>
+
+    <!-- Narrative -->
+    <div class="narrative">
+      <p>
+        You've spent three weeks on this project now. Three weeks of late nights, of tracing
+        signals with a logic probe, of the peculiar satisfaction that comes from watching
+        electrons dance through silicon.
+      </p>
+
+      <p>
+        Your supervisor, <span class="emphasis">Dr. Chen</span>, stops by your workstation.
+        She examines your latest creation—a ripple-carry adder built from discrete gates.
+      </p>
+
+      <div class="dialogue-block">
+        <div class="dialogue-speaker">
+          Dr. Sarah Chen <span class="speaker-title">— Senior Design Engineer</span>
+        </div>
+        <div class="dialogue-text">
+          "Four bits. That's a good start. But you're going to hit a wall soon.
+          What happens when you need to add two 8-bit numbers? Or 16?"
+        </div>
+      </div>
+
+      <p>
+        You look at your adder. Four full adders chained together. It works—beautifully,
+        even—but she's right. The carry has to ripple through each stage.
+        <span class="emphasis">Four gates of delay becomes eight, becomes sixteen...</span>
+      </p>
+
+      <p class="thought">
+        There has to be a better way. What if you could predict the carry somehow,
+        instead of waiting for it to ripple through?
+      </p>
+    </div>
+
+    <!-- Technical Insert -->
+    <div class="technical-insert">
+      <div class="technical-label">
+        <span>📐</span> Technical Note
+      </div>
+      <div class="technical-content">
+        Your current adder has a <code>propagation delay</code> of O(n), where n is the number
+        of bits. Each carry must wait for the previous stage. For a 4-bit adder with 10ns gates,
+        that's 40ns worst-case. An 8-bit adder: 80ns. This limits your clock speed.
+      </div>
+    </div>
+
+    <div class="narrative">
+      <p>
+        Dr. Chen leaves you with a knowing smile. She's seen this moment before—the moment
+        when a young engineer realizes that the elegant solution isn't always the fast one.
+      </p>
+
+      <p>
+        You have a choice to make. The project deadline is in two weeks. You could continue
+        with the ripple-carry approach—it works, after all. Or you could try something new.
+        Something that might fail spectacularly.
+      </p>
+    </div>
+
+    <!-- Choices Section -->
+    <section class="choices-section">
+      <div class="choices-prompt">
+        <div class="choices-label">What will you do?</div>
+        <h2 class="choices-question">How do you approach the carry problem?</h2>
+      </div>
+
+      <div class="choices-grid">
+        <div class="choice-card">
+          <div class="choice-icon">🔧</div>
+          <div class="choice-content">
+            <div class="choice-title">Stick with Ripple-Carry</div>
+            <div class="choice-description">
+              "If it ain't broke, don't fix it." Continue with the working design.
+              It's slower, but reliable. Ship what works.
+            </div>
+          </div>
+          <span class="choice-arrow">→</span>
+        </div>
+
+        <div class="choice-card">
+          <div class="choice-icon">💡</div>
+          <div class="choice-content">
+            <div class="choice-title">Investigate Carry Look-Ahead</div>
+            <div class="choice-description">
+              Dr. Chen's hint wasn't subtle. There must be a way to predict carries
+              in parallel. Time to hit the library and find out.
+            </div>
+          </div>
+          <span class="choice-arrow">→</span>
+        </div>
+
+        <div class="choice-card">
+          <div class="choice-icon">⚡</div>
+          <div class="choice-content">
+            <div class="choice-title">Experiment in the Lab</div>
+            <div class="choice-description">
+              Skip the theory. Build a test circuit and measure. What if you generate
+              all the carries simultaneously? Wire it up and see what happens.
+            </div>
+          </div>
+          <span class="choice-arrow">→</span>
+        </div>
+
+        <div class="choice-card">
+          <div class="choice-icon">🗣️</div>
+          <div class="choice-content">
+            <div class="choice-title">Ask Dr. Chen for Guidance</div>
+            <div class="choice-description">
+              She clearly knows something. Maybe it's time to swallow your pride
+              and ask for a more direct hint.
+            </div>
+          </div>
+          <span class="choice-arrow">→</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <div class="story-actions">
+      <button class="action-btn">
+        <span>←</span> Previous Scene
+      </button>
+      <button class="action-btn lab">
+        <span>⚡</span> Enter the Lab
+      </button>
+      <button class="action-btn primary">
+        Continue <span>→</span>
+      </button>
+    </div>
+  </main>
+</body>
+</html>

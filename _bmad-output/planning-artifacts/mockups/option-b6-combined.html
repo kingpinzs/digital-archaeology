@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B6: Dense + VS Code Layout - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-elevated: #1f2847;
+      --bg-hover: #243b5a;
+      --text-primary: #e4e4e4;
+      --text-secondary: #b0b0b0;
+      --text-muted: #6a6a8a;
+      --accent: #00b4d8;
+      --accent-hover: #00c9f2;
+      --signal-high: #00ff88;
+      --signal-low: #3a3a4a;
+      --error: #ff6b6b;
+      --warning: #ffc107;
+      --success: #51cf66;
+      --border: rgba(255,255,255,0.08);
+      --border-bright: rgba(255,255,255,0.15);
+      --selection: rgba(0, 180, 216, 0.25);
+      --gate-and: #4ecdc4;
+      --gate-or: #ff6b6b;
+      --gate-xor: #c44dff;
+      --gate-mux: #6bcb77;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    /* Menu bar */
+    .menubar {
+      background: var(--bg-secondary);
+      padding: 0 12px;
+      display: flex;
+      height: 32px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-item {
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .menu-item:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .menu-spacer { flex: 1; }
+
+    .menu-title {
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-bright);
+      margin: 0 8px;
+    }
+
+    .btn {
+      padding: 5px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text-primary);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-icon {
+      width: 28px;
+      padding: 5px;
+      justify-content: center;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .speed-value {
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    /* Main layout */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Activity bar */
+    .activity-bar {
+      width: 48px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .activity-icon {
+      width: 48px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .activity-icon:hover {
+      color: var(--text-primary);
+    }
+
+    .activity-icon.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(0, 180, 216, 0.1);
+    }
+
+    .activity-spacer { flex: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow: auto;
+      padding: 8px;
+    }
+
+    /* Collapsible sections */
+    .section {
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+    }
+
+    .section-header:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .section-icon {
+      font-size: 8px;
+      transition: transform 0.15s;
+    }
+
+    .section.collapsed .section-icon {
+      transform: rotate(-90deg);
+    }
+
+    .section.collapsed .section-content {
+      display: none;
+    }
+
+    .section-content {
+      padding: 6px 0;
+    }
+
+    /* State displays */
+    .state-table {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .state-row {
+      display: flex;
+      padding: 5px 10px 5px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .state-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .state-name {
+      flex: 1;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .state-hex {
+      width: 50px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .state-dec {
+      width: 40px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .state-row.changed .state-hex {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    .state-row.changed::after {
+      content: "◀";
+      color: var(--signal-high);
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* Instruction info */
+    .inst-info {
+      background: var(--bg-primary);
+      border-radius: 6px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    .inst-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .inst-row:last-child {
+      border-bottom: none;
+    }
+
+    .inst-label {
+      color: var(--text-muted);
+    }
+
+    .inst-value {
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Editor area */
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Tab bar for editors */
+    .editor-tabs {
+      background: var(--bg-tertiary);
+      display: flex;
+      height: 36px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--bg-primary);
+    }
+
+    .tab-icon {
+      font-size: 14px;
+    }
+
+    .tab-close {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 14px;
+      opacity: 0;
+      margin-left: 4px;
+    }
+
+    .tab:hover .tab-close {
+      opacity: 0.6;
+    }
+
+    .tab-close:hover {
+      opacity: 1 !important;
+      background: var(--bg-elevated);
+    }
+
+    /* Split editors */
+    .editors-split {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .editor-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    .editor-panel:last-child {
+      border-right: none;
+    }
+
+    .editor-panel-tabs {
+      background: var(--bg-secondary);
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .panel-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .panel-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .editor-content {
+      flex: 1;
+      overflow: auto;
+      background: var(--bg-primary);
+    }
+
+    /* Code editor */
+    .code-editor {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 22px;
+      padding: 8px 0;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 0 12px;
+      min-height: 22px;
+    }
+
+    .code-line:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-line.active {
+      background: var(--selection);
+    }
+
+    .line-gutter {
+      width: 50px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .line-bp {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .line-bp:hover {
+      background: rgba(255, 107, 107, 0.3);
+    }
+
+    .line-bp.active {
+      background: var(--error);
+    }
+
+    .line-num {
+      flex: 1;
+      text-align: right;
+      color: var(--text-muted);
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .code-line.active .line-num {
+      color: var(--accent);
+    }
+
+    .line-content {
+      flex: 1;
+    }
+
+    .comment { color: #5a7a6a; font-style: italic; }
+    .keyword { color: #ff79c6; }
+    .number { color: var(--signal-high); }
+    .directive { color: var(--accent); }
+    .label { color: #f1fa8c; }
+
+    /* Circuit view */
+    .circuit-toolbar {
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .circuit-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .circuit-breadcrumb .current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .circuit-breadcrumb .sep {
+      color: var(--text-muted);
+    }
+
+    .circuit-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .circuit-btn {
+      padding: 4px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .circuit-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .circuit-btn.active {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .circuit-canvas {
+      flex: 1;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    /* Grid overlay */
+    .circuit-canvas::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gate {
+      stroke-width: 2;
+    }
+
+    .gate.and { fill: rgba(78, 205, 196, 0.15); stroke: var(--gate-and); }
+    .gate.or { fill: rgba(255, 107, 107, 0.15); stroke: var(--gate-or); }
+    .gate.xor { fill: rgba(196, 77, 255, 0.15); stroke: var(--gate-xor); }
+    .gate.mux { fill: rgba(107, 203, 119, 0.15); stroke: var(--gate-mux); }
+
+    .gate.active {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    .gate-label {
+      font-size: 10px;
+      fill: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .gate-id {
+      font-size: 8px;
+      fill: var(--text-muted);
+    }
+
+    .wire {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire.high {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 3px var(--signal-high));
+    }
+
+    .junction {
+      fill: var(--signal-high);
+    }
+
+    /* Signal panel */
+    .signal-panel {
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .signal-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .signal-name {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .signal-value {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    .signal-value.low {
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* Bottom panel */
+    .bottom-panel {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .bottom-tabs {
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bottom-tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .bottom-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .bottom-tab.active {
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--accent);
+    }
+
+    .bottom-tab .badge {
+      background: var(--error);
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+    }
+
+    .bottom-content {
+      height: 120px;
+      padding: 10px 14px;
+      overflow: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .output-line {
+      padding: 2px 0;
+      color: var(--text-secondary);
+    }
+
+    .output-line.success {
+      color: var(--success);
+    }
+
+    .output-line .timestamp {
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    /* Status bar */
+    .statusbar {
+      background: var(--accent);
+      padding: 0 12px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: #fff;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-spacer { flex: 1; }
+
+    .status-item.clickable {
+      cursor: pointer;
+      padding: 2px 6px;
+      margin: -2px -6px;
+      border-radius: 3px;
+    }
+
+    .status-item.clickable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B6: Dense + Tabbed Layout</div>
+
+  <!-- Menu Bar -->
+  <div class="menubar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Debug</div>
+    <div class="menu-item">Help</div>
+    <div class="menu-spacer"></div>
+    <div class="menu-title">Digital Archaeology</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="btn primary">⚡ Assemble</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="toolbar-group">
+      <button class="btn">▶ Run</button>
+      <button class="btn btn-icon">⏸</button>
+      <button class="btn btn-icon">⏹</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="toolbar-group">
+      <button class="btn">⏭ Step</button>
+      <button class="btn">⏮ Back</button>
+    </div>
+    <div class="speed-control">
+      <span>Speed:</span>
+      <input type="range" style="width: 80px; accent-color: var(--accent);">
+      <span class="speed-value">10 Hz</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Activity Bar -->
+    <div class="activity-bar">
+      <div class="activity-icon active" title="Explorer">📁</div>
+      <div class="activity-icon" title="Search">🔍</div>
+      <div class="activity-icon" title="Debug">🐛</div>
+      <div class="activity-icon" title="Circuit">⚡</div>
+      <div class="activity-spacer"></div>
+      <div class="activity-icon" title="Settings">⚙</div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">CPU State</div>
+      <div class="sidebar-content">
+        <!-- Registers Section -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-icon">▼</span>
+            <span>Registers</span>
+          </div>
+          <div class="section-content">
+            <div class="state-table">
+              <div class="state-row">
+                <span class="state-name">PC</span>
+                <span class="state-hex">0x04</span>
+                <span class="state-dec">(4)</span>
+              </div>
+              <div class="state-row changed">
+                <span class="state-name">ACC</span>
+                <span class="state-hex">0x0F</span>
+                <span class="state-dec">(15)</span>
+              </div>
+              <div class="state-row">
+                <span class="state-name">Z</span>
+                <span class="state-hex">0x00</span>
+                <span class="state-dec">(0)</span>
+              </div>
+              <div class="state-row changed">
+                <span class="state-name">C</span>
+                <span class="state-hex">0x01</span>
+                <span class="state-dec">(1)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory Section -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-icon">▼</span>
+            <span>Memory (0x10)</span>
+          </div>
+          <div class="section-content">
+            <div class="state-table">
+              <div class="state-row">
+                <span class="state-name">0x10</span>
+                <span class="state-hex">0x05</span>
+                <span class="state-dec">(5)</span>
+              </div>
+              <div class="state-row">
+                <span class="state-name">0x11</span>
+                <span class="state-hex">0x0A</span>
+                <span class="state-dec">(10)</span>
+              </div>
+              <div class="state-row changed">
+                <span class="state-name">0x12</span>
+                <span class="state-hex">0x0F</span>
+                <span class="state-dec">(15)</span>
+              </div>
+              <div class="state-row">
+                <span class="state-name">0x13</span>
+                <span class="state-hex">0x00</span>
+                <span class="state-dec">(0)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instruction Info -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-icon">▼</span>
+            <span>Current Instruction</span>
+          </div>
+          <div class="section-content">
+            <div class="inst-info">
+              <div class="inst-row">
+                <span class="inst-label">Mnemonic</span>
+                <span class="inst-value">LDA</span>
+              </div>
+              <div class="inst-row">
+                <span class="inst-label">Type</span>
+                <span class="inst-value">DATA_MOVEMENT</span>
+              </div>
+              <div class="inst-row">
+                <span class="inst-label">Opcode</span>
+                <span class="inst-value">0x1</span>
+              </div>
+              <div class="inst-row">
+                <span class="inst-label">Operand</span>
+                <span class="inst-value">ADDRESS (8-bit)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flags Section -->
+        <div class="section">
+          <div class="section-header">
+            <span class="section-icon">▼</span>
+            <span>Flags</span>
+          </div>
+          <div class="section-content">
+            <div class="state-table">
+              <div class="state-row">
+                <span class="state-name">Zero</span>
+                <span class="state-hex">clear</span>
+              </div>
+              <div class="state-row changed">
+                <span class="state-name">Carry</span>
+                <span class="state-hex">SET</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor Area -->
+    <div class="editor-area">
+      <!-- Top tabs -->
+      <div class="editor-tabs">
+        <div class="tab active">
+          <span class="tab-icon">📄</span>
+          <span>main.asm</span>
+          <span class="tab-close">×</span>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">⚡</span>
+          <span>Circuit View</span>
+          <span class="tab-close">×</span>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">📊</span>
+          <span>Memory Map</span>
+          <span class="tab-close">×</span>
+        </div>
+      </div>
+
+      <!-- Split editors -->
+      <div class="editors-split">
+        <!-- Code Editor -->
+        <div class="editor-panel">
+          <div class="editor-panel-tabs">
+            <div class="panel-tab active">Source</div>
+            <div class="panel-tab">Disassembly</div>
+            <div class="panel-tab">Hex</div>
+          </div>
+          <div class="editor-content">
+            <div class="code-editor">
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">1</span></div>
+                <div class="line-content"><span class="comment">; Micro4 Demo Program</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">2</span></div>
+                <div class="line-content"><span class="comment">; Adds two numbers</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">3</span></div>
+                <div class="line-content"></div>
+              </div>
+              <div class="code-line active">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">4</span></div>
+                <div class="line-content"><span class="keyword">LDA</span> <span class="number">0x10</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">5</span></div>
+                <div class="line-content"><span class="keyword">ADD</span> <span class="number">0x11</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">6</span></div>
+                <div class="line-content"><span class="keyword">STA</span> <span class="number">0x12</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp active"></span><span class="line-num">7</span></div>
+                <div class="line-content"><span class="keyword">HLT</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">8</span></div>
+                <div class="line-content"></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">9</span></div>
+                <div class="line-content"><span class="directive">.org</span> <span class="number">0x10</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">10</span></div>
+                <div class="line-content"><span class="directive">.byte</span> <span class="number">0x05</span></div>
+              </div>
+              <div class="code-line">
+                <div class="line-gutter"><span class="line-bp"></span><span class="line-num">11</span></div>
+                <div class="line-content"><span class="directive">.byte</span> <span class="number">0x0A</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Circuit View -->
+        <div class="editor-panel">
+          <div class="editor-panel-tabs">
+            <div class="panel-tab active">Schematic</div>
+            <div class="panel-tab">Timing</div>
+            <div class="panel-tab">HDL</div>
+          </div>
+          <div class="circuit-toolbar">
+            <div class="circuit-breadcrumb">
+              CPU <span class="sep">›</span> <span class="current">ALU</span> <span class="sep">›</span> Adder
+            </div>
+            <div class="circuit-controls">
+              <button class="circuit-btn">Fit</button>
+              <button class="circuit-btn active">100%</button>
+              <button class="circuit-btn">1:1</button>
+            </div>
+          </div>
+          <div class="circuit-canvas">
+            <svg class="circuit-svg" viewBox="0 0 400 220">
+              <!-- Wires -->
+              <path class="wire high" d="M 50,60 L 100,60"/>
+              <path class="wire high" d="M 50,100 L 100,100"/>
+              <path class="wire high" d="M 160,80 L 200,80"/>
+              <path class="wire" d="M 200,60 L 200,80 L 240,80"/>
+              <path class="wire high" d="M 240,110 L 240,140 L 280,140"/>
+              <path class="wire" d="M 340,140 L 370,140"/>
+
+              <!-- AND Gate -->
+              <g transform="translate(100, 45)" style="color: var(--gate-and)">
+                <rect class="gate and active" x="0" y="0" width="60" height="50" rx="4"/>
+                <text class="gate-label" x="18" y="30">AND</text>
+                <text class="gate-id" x="22" y="62">G17</text>
+              </g>
+
+              <!-- OR Gate -->
+              <g transform="translate(240, 65)" style="color: var(--gate-or)">
+                <rect class="gate or" x="0" y="0" width="60" height="50" rx="4"/>
+                <text class="gate-label" x="22" y="30">OR</text>
+                <text class="gate-id" x="22" y="62">G23</text>
+              </g>
+
+              <!-- MUX -->
+              <g transform="translate(280, 115)" style="color: var(--gate-mux)">
+                <rect class="gate mux" x="0" y="0" width="60" height="50" rx="4"/>
+                <text class="gate-label" x="18" y="30">MUX</text>
+                <text class="gate-id" x="22" y="62">G45</text>
+              </g>
+
+              <!-- Junction points -->
+              <circle class="junction" cx="160" cy="80" r="4"/>
+              <circle class="junction" cx="50" cy="60" r="3"/>
+              <circle class="junction" cx="50" cy="100" r="3"/>
+            </svg>
+          </div>
+          <div class="signal-panel">
+            <div class="signal-item">
+              <span class="signal-name">data_bus</span>
+              <span class="signal-value">0x05</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">addr_bus</span>
+              <span class="signal-value">0x10</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">alu_op</span>
+              <span class="signal-value low">PASS</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">write_en</span>
+              <span class="signal-value low">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Panel -->
+      <div class="bottom-panel">
+        <div class="bottom-tabs">
+          <div class="bottom-tab active">Output</div>
+          <div class="bottom-tab">Problems <span class="badge">0</span></div>
+          <div class="bottom-tab">Debug Console</div>
+          <div class="bottom-tab">Terminal</div>
+        </div>
+        <div class="bottom-content">
+          <div class="output-line success">
+            <span class="timestamp">[10:42:15]</span>
+            Assembly successful: 12 bytes generated
+          </div>
+          <div class="output-line">
+            <span class="timestamp">[10:42:15]</span>
+            Code segment: 0x00-0x07 (8 bytes)
+          </div>
+          <div class="output-line">
+            <span class="timestamp">[10:42:15]</span>
+            Data segment: 0x10-0x12 (3 bytes)
+          </div>
+          <div class="output-line">
+            <span class="timestamp">[10:42:16]</span>
+            Execution started at PC=0x00
+          </div>
+          <div class="output-line">
+            <span class="timestamp">[10:42:16]</span>
+            Step: PC=0x04, executing LDA 0x10
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <div class="status-item">✓ Assembled: 12B</div>
+    <div class="status-item">PC: 0x04</div>
+    <div class="status-item">Cycle: 4</div>
+    <div class="status-item">Breakpoints: 1</div>
+    <div class="status-spacer"></div>
+    <div class="status-item clickable">Ln 4, Col 1</div>
+    <div class="status-item clickable">UTF-8</div>
+    <div class="status-item clickable">Micro4 Assembly</div>
+  </div>
+</body>
+</html>

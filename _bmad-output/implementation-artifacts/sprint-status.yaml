@@ -1,0 +1,327 @@
+# generated: 2026-01-20
+# project: cpu_ideas
+# project_key: digital-archaeology
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-20
+project: cpu_ideas
+project_key: digital-archaeology
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Project Foundation & App Shell
+  epic-1: in-progress
+  1-1-initialize-vite-project-with-typescript: done
+  1-2-configure-build-dependencies: backlog
+  1-3-create-feature-folder-structure: backlog
+  1-4-implement-css-theme-system: backlog
+  1-5-create-basic-app-shell-with-3-panel-layout: backlog
+  1-6-implement-resizable-panel-system: backlog
+  1-7-create-toolbar-component: backlog
+  1-8-create-menu-bar-component: backlog
+  1-9-create-status-bar-component: backlog
+  1-10-create-panel-header-components: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Assembly Code Editor
+  epic-2: backlog
+  2-1-integrate-monaco-editor: backlog
+  2-2-implement-micro4-syntax-highlighting: backlog
+  2-3-display-line-numbers: backlog
+  2-4-enable-undo-redo-functionality: backlog
+  2-5-display-cursor-position-in-status-bar: backlog
+  2-6-implement-editor-keyboard-shortcuts: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Code Assembly & Error Handling
+  epic-3: backlog
+  3-1-compile-assembler-to-wasm: backlog
+  3-2-create-assembler-web-worker: backlog
+  3-3-implement-assemble-button: backlog
+  3-4-display-assembly-errors-with-line-numbers: backlog
+  3-5-implement-rich-error-display: backlog
+  3-6-show-binary-output-view: backlog
+  3-7-validate-syntax-before-execution: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Program Execution
+  epic-4: backlog
+  4-1-compile-emulator-to-wasm: backlog
+  4-2-create-emulator-web-worker: backlog
+  4-3-implement-emulatorbridge-class: backlog
+  4-4-implement-load-program: backlog
+  4-5-implement-run-button: backlog
+  4-6-implement-stop-button: backlog
+  4-7-implement-reset-button: backlog
+  4-8-implement-speed-control: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Debugging & State Inspection
+  epic-5: backlog
+  5-1-implement-step-execution: backlog
+  5-2-implement-step-back: backlog
+  5-3-create-register-view-panel: backlog
+  5-4-create-flags-display: backlog
+  5-5-create-memory-view-panel: backlog
+  5-6-implement-jump-to-address: backlog
+  5-7-highlight-current-instruction-in-editor: backlog
+  5-8-implement-breakpoint-toggle: backlog
+  5-9-implement-run-to-breakpoint: backlog
+  5-10-display-rich-runtime-errors: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Circuit Visualization
+  epic-6: backlog
+  6-1-create-canvas-circuit-renderer: backlog
+  6-2-load-and-parse-circuit-data: backlog
+  6-3-render-gates-with-type-colors: backlog
+  6-4-render-wires-with-signal-states: backlog
+  6-5-animate-signal-propagation: backlog
+  6-6-implement-zoom-controls: backlog
+  6-7-implement-pan-navigation: backlog
+  6-8-show-component-tooltips: backlog
+  6-9-implement-code-to-circuit-linking: backlog
+  6-10-implement-circuit-to-code-linking: backlog
+  6-11-display-signal-values-panel: backlog
+  6-12-show-breadcrumb-navigation: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: HDL Editor & Management
+  epic-7: backlog
+  7-1-create-hdl-viewer-panel: backlog
+  7-2-implement-hdl-syntax-highlighting: backlog
+  7-3-enable-hdl-editing: backlog
+  7-4-implement-hdl-validation: backlog
+  7-5-reload-visualizer-after-hdl-changes: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Example Programs
+  epic-8: backlog
+  8-1-create-example-browser: backlog
+  8-2-load-example-programs: backlog
+  8-3-display-program-descriptions: backlog
+  8-4-show-program-comments: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Work Persistence
+  epic-9: backlog
+  9-1-implement-local-storage-for-settings: backlog
+  9-2-implement-indexeddb-for-projects: backlog
+  9-3-restore-previous-session: backlog
+  9-4-export-assembly-code: backlog
+  9-5-export-binary-file: backlog
+  9-6-import-assembly-code: backlog
+  9-7-implement-unsaved-work-warning: backlog
+  9-8-create-file-menu-integration: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: Story Mode Experience
+  epic-10: backlog
+  10-1-implement-story-lab-mode-toggle: backlog
+  10-2-create-story-mode-layout: backlog
+  10-3-create-fixed-navigation-bar: backlog
+  10-4-create-your-role-panel: backlog
+  10-5-create-chapter-header-component: backlog
+  10-6-create-scene-setting-component: backlog
+  10-7-create-character-card-component: backlog
+  10-8-create-dialogue-block-component: backlog
+  10-9-create-choice-card-component: backlog
+  10-10-create-technical-note-component: backlog
+  10-11-create-enter-the-lab-button: backlog
+  10-12-create-story-actions-footer: backlog
+  10-13-create-challenge-objectives-in-lab-mode: backlog
+  10-14-implement-story-content-data-structure: backlog
+  10-15-create-story-progression-engine: backlog
+  10-16-display-era-badge-and-progress: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: Multi-Stage Architecture
+  epic-11: backlog
+  11-1-create-stage-selector-ui: backlog
+  11-2-implement-stage-configuration-system: backlog
+  11-3-implement-stage-specific-wasm-loading: backlog
+  11-4-implement-stage-specific-syntax-highlighting: backlog
+  11-5-implement-stage-specific-circuit-loading: backlog
+  11-6-implement-stage-specific-examples: backlog
+  11-7-implement-url-routing-for-stages: backlog
+  epic-11-retrospective: optional
+
+  # Epic 12: Micro8 Stage
+  epic-12: backlog
+  12-1-compile-micro8-emulator-to-wasm: backlog
+  12-2-compile-micro8-assembler-to-wasm: backlog
+  12-3-create-micro8-syntax-highlighting: backlog
+  12-4-create-8-register-display: backlog
+  12-5-create-stack-view: backlog
+  12-6-visualize-call-ret-operations: backlog
+  12-7-create-micro8-circuit-visualization: backlog
+  12-8-load-micro8-example-programs: backlog
+  epic-12-retrospective: optional
+
+  # Epic 13: Micro16 Stage
+  epic-13: backlog
+  13-1-compile-micro16-emulator-to-wasm: backlog
+  13-2-compile-micro16-assembler-to-wasm: backlog
+  13-3-create-micro16-disassembler: backlog
+  13-4-create-segment-registers-display: backlog
+  13-5-create-1mb-memory-view: backlog
+  13-6-visualize-hardware-multiply: backlog
+  13-7-create-micro16-circuit-visualization: backlog
+  13-8-load-micro16-example-programs: backlog
+  epic-13-retrospective: optional
+
+  # Epic 14: Micro32 Stage
+  epic-14: backlog
+  14-1-design-micro32-isa: backlog
+  14-2-implement-micro32-emulator: backlog
+  14-3-implement-micro32-assembler: backlog
+  14-4-create-protected-mode-visualization: backlog
+  14-5-create-paging-visualization: backlog
+  14-6-create-micro32-circuit-visualization: backlog
+  14-7-create-micro32-hdl: backlog
+  epic-14-retrospective: optional
+
+  # Epic 15: Micro32-P Pipeline Stage
+  epic-15: backlog
+  15-1-implement-5-stage-pipeline: backlog
+  15-2-create-pipeline-visualization: backlog
+  15-3-visualize-data-hazards: backlog
+  15-4-visualize-forwarding-paths: backlog
+  15-5-show-pipeline-timing-diagram: backlog
+  15-6-create-micro32-p-hdl: backlog
+  epic-15-retrospective: optional
+
+  # Epic 16: Micro32-S Superscalar Stage
+  epic-16: backlog
+  16-1-implement-superscalar-execution: backlog
+  16-2-visualize-multiple-execution-units: backlog
+  16-3-visualize-issue-queue: backlog
+  16-4-visualize-register-renaming: backlog
+  16-5-visualize-reorder-buffer: backlog
+  16-6-visualize-branch-prediction: backlog
+  16-7-create-micro32-s-hdl: backlog
+  epic-16-retrospective: optional
+
+  # Epic 17: PWA & Offline Support
+  epic-17: backlog
+  17-1-create-service-worker: backlog
+  17-2-implement-offline-indicator: backlog
+  17-3-create-app-manifest: backlog
+  17-4-cache-example-programs-offline: backlog
+  17-5-implement-background-sync: backlog
+  epic-17-retrospective: optional
+
+  # Epic 18: Period-Accurate Constraints System
+  epic-18: backlog
+  18-1-define-stage-constraints: backlog
+  18-2-enforce-memory-limits: backlog
+  18-3-enforce-instruction-set-limits: backlog
+  18-4-create-educational-error-messages: backlog
+  18-5-implement-experimentation-mode: backlog
+  epic-18-retrospective: optional
+
+  # Epic 19: Progress & Journey Tracking
+  epic-19: backlog
+  19-1-track-first-time-discoveries: backlog
+  19-2-track-act-completion: backlog
+  19-3-create-milestone-achievements: backlog
+  19-4-create-progress-visualization: backlog
+  19-5-implement-stage-unlock-system: backlog
+  19-6-create-statistics-dashboard: backlog
+  epic-19-retrospective: optional
+
+  # Epic 20: Educational Content System
+  epic-20: backlog
+  20-1-create-literature-browser: backlog
+  20-2-implement-article-categories: backlog
+  20-3-create-contextual-help-links: backlog
+  20-4-implement-reading-progress: backlog
+  20-5-create-progressive-hint-system: backlog
+  20-6-create-technical-deep-dives: backlog
+  epic-20-retrospective: optional
+
+  # Epic 21: Homework & Exercises System
+  epic-21: backlog
+  21-1-create-exercise-browser: backlog
+  21-2-implement-exercise-metadata: backlog
+  21-3-create-starter-code-templates: backlog
+  21-4-implement-output-validation: backlog
+  21-5-implement-progressive-hints: backlog
+  21-6-implement-solution-reveal: backlog
+  21-7-track-exercise-completion: backlog
+  epic-21-retrospective: optional
+
+  # Epic 22: FPGA Export Pipeline
+  epic-22: backlog
+  22-1-create-export-format-options: backlog
+  22-2-implement-hdl-to-verilog-export: backlog
+  22-3-create-pin-mapping-configuration: backlog
+  22-4-implement-target-board-selection: backlog
+  22-5-generate-build-scripts: backlog
+  22-6-show-resource-estimation: backlog
+  epic-22-retrospective: optional
+
+  # Epic 23: Custom Microcontroller Toolkit
+  epic-23: backlog
+  23-1-create-isa-designer-tool: backlog
+  23-2-create-instruction-encoding-editor: backlog
+  23-3-create-register-file-configurator: backlog
+  23-4-create-alu-operation-selector: backlog
+  23-5-create-memory-map-designer: backlog
+  23-6-generate-custom-hdl: backlog
+  23-7-generate-custom-assembler: backlog
+  23-8-generate-custom-emulator: backlog
+  epic-23-retrospective: optional
+
+  # Epic 24: Fab Preparation Tools
+  epic-24: backlog
+  24-1-implement-design-rule-check: backlog
+  24-2-create-process-node-selection: backlog
+  24-3-implement-timing-analysis: backlog
+  24-4-implement-power-estimation: backlog
+  24-5-implement-area-estimation: backlog
+  24-6-generate-fab-documentation: backlog
+  epic-24-retrospective: optional
+
+  # Epic 25: Community & Sharing
+  epic-25: backlog
+  25-1-create-design-export-format: backlog
+  25-2-implement-design-import: backlog
+  25-3-create-design-gallery-browser: backlog
+  25-4-implement-user-profiles-optional: backlog
+  25-5-enable-design-comments: backlog
+  25-6-implement-design-forking: backlog
+  25-7-track-version-history: backlog
+  25-8-implement-open-source-workflow: backlog
+  epic-25-retrospective: optional

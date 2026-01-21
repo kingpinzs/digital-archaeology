@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B5: VS Code Style - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d2d;
+      --bg-elevated: #3c3c3c;
+      --bg-hover: #2a2d2e;
+      --text-primary: #cccccc;
+      --text-secondary: #9d9d9d;
+      --text-muted: #6e6e6e;
+      --accent: #007acc;
+      --accent-light: #1a8cdb;
+      --border: #3c3c3c;
+      --selection: #264f78;
+      --signal-high: #4ec9b0;
+      --signal-low: #505050;
+      --error: #f14c4c;
+      --warning: #cca700;
+      --success: #89d185;
+      --keyword: #569cd6;
+      --string: #ce9178;
+      --number: #b5cea8;
+      --comment: #6a9955;
+      --function: #dcdcaa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    /* VS Code title bar */
+    .titlebar {
+      background: var(--bg-tertiary);
+      padding: 0 12px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      -webkit-app-region: drag;
+    }
+
+    .titlebar-title {
+      color: var(--text-secondary);
+    }
+
+    .titlebar-title span {
+      color: var(--text-primary);
+    }
+
+    /* Menu bar */
+    .menubar {
+      background: var(--bg-secondary);
+      padding: 0 8px;
+      display: flex;
+      height: 30px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-item {
+      padding: 4px 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* Toolbar - VS Code action bar style */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .toolbar-separator {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+
+    .toolbar-btn {
+      padding: 4px 8px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .toolbar-btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .toolbar-btn.primary:hover {
+      background: var(--accent-light);
+    }
+
+    .toolbar-btn.icon {
+      padding: 4px 6px;
+      font-size: 14px;
+    }
+
+    .toolbar-spacer { flex: 1; }
+
+    .toolbar-info {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 0 8px;
+    }
+
+    /* Main editor area */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Activity bar (left icons) */
+    .activity-bar {
+      width: 48px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .activity-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 20px;
+      border-left: 2px solid transparent;
+    }
+
+    .activity-icon:hover {
+      color: var(--text-primary);
+    }
+
+    .activity-icon.active {
+      color: var(--text-primary);
+      border-left-color: var(--accent);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 10px 16px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow: auto;
+      padding: 0 8px;
+    }
+
+    /* State sections */
+    .section {
+      margin-bottom: 8px;
+    }
+
+    .section-header {
+      padding: 6px 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 4px;
+    }
+
+    .section-header:hover {
+      background: var(--bg-hover);
+    }
+
+    .section-header .icon {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .section-content {
+      padding: 4px 0;
+    }
+
+    .state-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 8px 4px 20px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+
+    .state-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .state-name { color: var(--signal-high); }
+    .state-value { color: var(--text-primary); }
+    .state-value.changed { color: var(--warning); }
+
+    /* Editor group */
+    .editor-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Tabs */
+    .tabs {
+      background: var(--bg-tertiary);
+      display: flex;
+      height: 35px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      background: var(--bg-tertiary);
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--bg-primary);
+      margin-bottom: -1px;
+    }
+
+    .tab-close {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      opacity: 0;
+    }
+
+    .tab:hover .tab-close {
+      opacity: 0.5;
+    }
+
+    .tab-close:hover {
+      background: var(--bg-hover);
+      opacity: 1 !important;
+    }
+
+    /* Editor split */
+    .editors {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .editor {
+      background: var(--bg-primary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor:last-child {
+      border-right: none;
+    }
+
+    .editor-tabs {
+      background: var(--bg-tertiary);
+      display: flex;
+      height: 35px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .editor-content {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* Code editor */
+    .code-editor {
+      font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      font-size: 13px;
+      line-height: 20px;
+      padding: 8px 0;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 0 16px;
+      min-height: 20px;
+    }
+
+    .code-line:hover {
+      background: var(--bg-hover);
+    }
+
+    .code-line.active {
+      background: var(--selection);
+    }
+
+    .line-number {
+      width: 40px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 16px;
+      user-select: none;
+    }
+
+    .code-line.active .line-number {
+      color: var(--text-secondary);
+    }
+
+    .line-content {
+      flex: 1;
+    }
+
+    .comment { color: var(--comment); }
+    .keyword { color: var(--keyword); }
+    .string { color: var(--string); }
+    .number { color: var(--number); }
+    .function { color: var(--function); }
+
+    /* Minimap placeholder */
+    .minimap {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 60px;
+      background: var(--bg-secondary);
+      opacity: 0.7;
+    }
+
+    /* Circuit canvas */
+    .circuit-canvas {
+      flex: 1;
+      background: var(--bg-primary);
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .gate-vs {
+      fill: var(--bg-tertiary);
+      stroke: var(--accent);
+      stroke-width: 1.5;
+      rx: 4;
+    }
+
+    .gate-vs.active {
+      stroke: var(--signal-high);
+      stroke-width: 2;
+    }
+
+    .gate-text {
+      fill: var(--text-secondary);
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .wire-vs {
+      stroke: var(--signal-low);
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .wire-vs.high {
+      stroke: var(--signal-high);
+    }
+
+    .node-vs {
+      fill: var(--signal-high);
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      padding: 4px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .breadcrumb span {
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb .sep {
+      color: var(--text-muted);
+    }
+
+    /* Panel bar (bottom) */
+    .panel-bar {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .panel-tabs {
+      display: flex;
+      height: 35px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-tab {
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .panel-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .panel-tab.active {
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--accent);
+      margin-bottom: -1px;
+    }
+
+    .panel-content {
+      height: 100px;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      overflow: auto;
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .signal-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .signal-name { color: var(--text-muted); }
+    .signal-val { color: var(--signal-high); }
+    .signal-val.low { color: var(--text-muted); }
+
+    /* Status bar */
+    .statusbar {
+      background: var(--accent);
+      padding: 0 12px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: #fff;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .statusbar-spacer { flex: 1; }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B5: VS Code Style</div>
+
+  <div class="titlebar">
+    <div class="titlebar-title">main.asm - <span>Digital Archaeology</span></div>
+  </div>
+
+  <div class="menubar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">Selection</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Run</div>
+    <div class="menu-item">Help</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="toolbar-btn primary">⚡ Assemble</button>
+    </div>
+    <div class="toolbar-separator"></div>
+    <div class="toolbar-group">
+      <button class="toolbar-btn icon">▶</button>
+      <button class="toolbar-btn icon">⏸</button>
+      <button class="toolbar-btn icon">⏹</button>
+    </div>
+    <div class="toolbar-separator"></div>
+    <div class="toolbar-group">
+      <button class="toolbar-btn">Step Over</button>
+      <button class="toolbar-btn">Step Back</button>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <div class="toolbar-info">Speed: 10 Hz</div>
+  </div>
+
+  <div class="main">
+    <div class="activity-bar">
+      <div class="activity-icon active">📄</div>
+      <div class="activity-icon">🔍</div>
+      <div class="activity-icon">⚙</div>
+      <div class="activity-icon">🐛</div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span>CPU State</span>
+      </div>
+      <div class="sidebar-content">
+        <div class="section">
+          <div class="section-header">
+            <span class="icon">▼</span>
+            <span>Registers</span>
+          </div>
+          <div class="section-content">
+            <div class="state-row">
+              <span class="state-name">PC</span>
+              <span class="state-value">0x04</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">ACC</span>
+              <span class="state-value changed">0x0F</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">Z</span>
+              <span class="state-value">0</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">C</span>
+              <span class="state-value changed">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <span class="icon">▼</span>
+            <span>Memory (0x10)</span>
+          </div>
+          <div class="section-content">
+            <div class="state-row">
+              <span class="state-name">0x10</span>
+              <span class="state-value">05</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">0x11</span>
+              <span class="state-value">0A</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">0x12</span>
+              <span class="state-value changed">0F</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">0x13</span>
+              <span class="state-value">00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <span class="icon">▶</span>
+            <span>Instruction</span>
+          </div>
+          <div class="section-content">
+            <div class="state-row">
+              <span class="state-name">Mnemonic</span>
+              <span class="state-value">LDA</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">Type</span>
+              <span class="state-value">DATA_MOVE</span>
+            </div>
+            <div class="state-row">
+              <span class="state-name">Opcode</span>
+              <span class="state-value">0x1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor-group">
+      <div class="editors">
+        <!-- Code editor -->
+        <div class="editor">
+          <div class="editor-tabs">
+            <div class="tab active">
+              <span>main.asm</span>
+              <span class="tab-close">×</span>
+            </div>
+          </div>
+          <div class="editor-content">
+            <div class="code-editor">
+              <div class="code-line"><span class="line-number">1</span><span class="line-content"><span class="comment">; Micro4 Demo</span></span></div>
+              <div class="code-line"><span class="line-number">2</span><span class="line-content"><span class="comment">; Add two numbers</span></span></div>
+              <div class="code-line"><span class="line-number">3</span><span class="line-content"></span></div>
+              <div class="code-line active"><span class="line-number">4</span><span class="line-content"><span class="keyword">LDA</span> <span class="number">0x10</span></span></div>
+              <div class="code-line"><span class="line-number">5</span><span class="line-content"><span class="keyword">ADD</span> <span class="number">0x11</span></span></div>
+              <div class="code-line"><span class="line-number">6</span><span class="line-content"><span class="keyword">STA</span> <span class="number">0x12</span></span></div>
+              <div class="code-line"><span class="line-number">7</span><span class="line-content"><span class="keyword">HLT</span></span></div>
+              <div class="code-line"><span class="line-number">8</span><span class="line-content"></span></div>
+              <div class="code-line"><span class="line-number">9</span><span class="line-content"><span class="function">.org</span> <span class="number">0x10</span></span></div>
+              <div class="code-line"><span class="line-number">10</span><span class="line-content"><span class="function">.byte</span> <span class="number">0x05</span></span></div>
+              <div class="code-line"><span class="line-number">11</span><span class="line-content"><span class="function">.byte</span> <span class="number">0x0A</span></span></div>
+            </div>
+            <div class="minimap"></div>
+          </div>
+        </div>
+
+        <!-- Circuit view -->
+        <div class="editor">
+          <div class="editor-tabs">
+            <div class="tab active">
+              <span>Circuit View</span>
+              <span class="tab-close">×</span>
+            </div>
+          </div>
+          <div class="breadcrumb">
+            CPU <span class="sep">›</span> <span>ALU</span> <span class="sep">›</span> <span>Adder</span>
+          </div>
+          <div class="circuit-canvas">
+            <svg class="circuit-svg" viewBox="0 0 400 250">
+              <!-- Wires -->
+              <path class="wire-vs high" d="M 60,70 L 110,70"/>
+              <path class="wire-vs high" d="M 60,110 L 110,110"/>
+              <path class="wire-vs high" d="M 170,90 L 210,90"/>
+              <path class="wire-vs" d="M 210,70 L 210,90 L 250,90"/>
+              <path class="wire-vs high" d="M 250,120 L 250,150 L 290,150"/>
+              <path class="wire-vs" d="M 350,150 L 380,150"/>
+
+              <!-- AND Gate -->
+              <g transform="translate(110, 55)">
+                <rect class="gate-vs active" x="0" y="0" width="60" height="50"/>
+                <text class="gate-text" x="18" y="30">AND</text>
+              </g>
+
+              <!-- OR Gate -->
+              <g transform="translate(250, 75)">
+                <rect class="gate-vs" x="0" y="0" width="60" height="50"/>
+                <text class="gate-text" x="22" y="30">OR</text>
+              </g>
+
+              <!-- MUX -->
+              <g transform="translate(290, 130)">
+                <rect class="gate-vs" x="0" y="0" width="60" height="50"/>
+                <text class="gate-text" x="18" y="30">MUX</text>
+              </g>
+
+              <!-- Nodes -->
+              <circle class="node-vs" cx="170" cy="90" r="4"/>
+              <circle class="node-vs" cx="60" cy="70" r="3"/>
+              <circle class="node-vs" cx="60" cy="110" r="3"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-bar">
+        <div class="panel-tabs">
+          <div class="panel-tab active">Signals</div>
+          <div class="panel-tab">Problems</div>
+          <div class="panel-tab">Output</div>
+          <div class="panel-tab">Debug Console</div>
+        </div>
+        <div class="panel-content">
+          <div class="signal-grid">
+            <div class="signal-item">
+              <span class="signal-name">data_bus</span>
+              <span class="signal-val">0x05</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">addr_bus</span>
+              <span class="signal-val">0x10</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">alu_op</span>
+              <span class="signal-val low">PASS</span>
+            </div>
+            <div class="signal-item">
+              <span class="signal-name">write_en</span>
+              <span class="signal-val low">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="status-item">✓ Assembled: 12B</div>
+    <div class="status-item">PC: 0x04</div>
+    <div class="status-item">Cycle: 4</div>
+    <div class="statusbar-spacer"></div>
+    <div class="status-item">Ln 4, Col 1</div>
+    <div class="status-item">UTF-8</div>
+    <div class="status-item">Micro4 Assembly</div>
+  </div>
+</body>
+</html>

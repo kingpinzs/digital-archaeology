@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B3: Neon Dense - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-tertiary: #1a1a25;
+      --bg-elevated: #22222f;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --text-muted: #606070;
+      --neon-cyan: #00ffff;
+      --neon-magenta: #ff00ff;
+      --neon-green: #00ff66;
+      --neon-yellow: #ffff00;
+      --neon-orange: #ff8800;
+      --signal-high: #00ff66;
+      --signal-low: #333340;
+      --error: #ff4466;
+      --border: rgba(0, 255, 255, 0.15);
+      --glow-cyan: 0 0 10px rgba(0, 255, 255, 0.5);
+      --glow-green: 0 0 10px rgba(0, 255, 102, 0.5);
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+    }
+
+    /* Header with neon glow */
+    .header {
+      background: var(--bg-secondary);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .logo {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+
+    .logo span {
+      color: var(--neon-magenta);
+      text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .header-btn {
+      padding: 6px 12px;
+      background: transparent;
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .header-btn:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* Toolbar with glowing buttons */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tool-btn {
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+
+    .tool-btn:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .tool-btn.primary {
+      background: var(--neon-green);
+      border-color: var(--neon-green);
+      color: #000;
+      font-weight: 700;
+      box-shadow: var(--glow-green);
+    }
+
+    .tool-btn.run {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
+
+    .tool-btn.run:hover {
+      background: var(--neon-magenta);
+      color: #000;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    .tool-divider {
+      width: 1px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+
+    .speed-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      color: var(--neon-yellow);
+      text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);
+    }
+
+    /* Main grid */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 280px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 10px 14px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* Code - neon syntax */
+    .code-area {
+      line-height: 1.8;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 2px 8px;
+    }
+
+    .code-line.active {
+      background: rgba(0, 255, 255, 0.1);
+      border-left: 2px solid var(--neon-cyan);
+      box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    .line-num {
+      width: 32px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 16px;
+    }
+
+    .code-line.active .line-num {
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+
+    .comment { color: #505060; }
+    .instruction { color: var(--neon-magenta); text-shadow: 0 0 5px rgba(255, 0, 255, 0.3); }
+    .operand { color: var(--neon-green); text-shadow: 0 0 5px rgba(0, 255, 102, 0.3); }
+    .directive { color: var(--neon-yellow); text-shadow: 0 0 5px rgba(255, 255, 0, 0.3); }
+
+    /* Code info with glow */
+    .code-info {
+      padding: 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .info-cell {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+    }
+
+    .info-label { color: var(--text-muted); }
+    .info-value { color: var(--neon-cyan); }
+
+    /* Circuit - neon wires */
+    .circuit-header {
+      padding: 8px 14px;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+    }
+
+    .circuit-path {
+      color: var(--text-muted);
+    }
+
+    .circuit-path .active {
+      color: var(--neon-cyan);
+    }
+
+    .circuit-wrap {
+      flex: 1;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    /* Grid background */
+    .circuit-wrap::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gate-neon {
+      fill: var(--bg-tertiary);
+      stroke-width: 2;
+    }
+
+    .gate-neon.and { stroke: var(--neon-cyan); filter: drop-shadow(0 0 4px var(--neon-cyan)); }
+    .gate-neon.or { stroke: var(--neon-magenta); filter: drop-shadow(0 0 4px var(--neon-magenta)); }
+    .gate-neon.xor { stroke: var(--neon-yellow); filter: drop-shadow(0 0 4px var(--neon-yellow)); }
+    .gate-neon.mux { stroke: var(--neon-green); filter: drop-shadow(0 0 4px var(--neon-green)); }
+
+    .gate-text {
+      fill: currentColor;
+      font-size: 9px;
+    }
+
+    .wire-neon {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire-neon.high {
+      stroke: var(--neon-green);
+      filter: drop-shadow(0 0 6px var(--neon-green));
+      animation: wire-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes wire-pulse {
+      0%, 100% { filter: drop-shadow(0 0 4px var(--neon-green)); }
+      50% { filter: drop-shadow(0 0 10px var(--neon-green)); }
+    }
+
+    .node-neon {
+      fill: var(--neon-green);
+      filter: drop-shadow(0 0 8px var(--neon-green));
+    }
+
+    /* Signal display */
+    .signal-bar {
+      padding: 10px 14px;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .signal-item {
+      text-align: center;
+    }
+
+    .signal-name {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .signal-value {
+      font-size: 14px;
+      color: var(--neon-green);
+      text-shadow: var(--glow-green);
+    }
+
+    .signal-value.low {
+      color: var(--text-muted);
+      text-shadow: none;
+    }
+
+    /* State panel - neon cards */
+    .state-section {
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--neon-cyan);
+      margin-bottom: 8px;
+    }
+
+    .register-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .register-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid transparent;
+    }
+
+    .register-row:hover {
+      border-color: var(--border);
+    }
+
+    .reg-name {
+      color: var(--neon-cyan);
+    }
+
+    .reg-hex {
+      color: var(--text-primary);
+    }
+
+    .reg-dec {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .register-row.changed {
+      border-color: var(--neon-green);
+      box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.1);
+    }
+
+    .register-row.changed .reg-hex {
+      color: var(--neon-green);
+      text-shadow: var(--glow-green);
+    }
+
+    /* Memory grid */
+    .memory-table {
+      font-size: 11px;
+    }
+
+    .mem-row {
+      display: flex;
+      padding: 4px 0;
+    }
+
+    .mem-addr {
+      width: 45px;
+      color: var(--neon-cyan);
+    }
+
+    .mem-cells {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mem-cell {
+      width: 22px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .mem-cell.changed {
+      color: var(--neon-green);
+      text-shadow: var(--glow-green);
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      gap: 24px;
+      font-size: 10px;
+    }
+
+    .status-item {
+      display: flex;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .status-value {
+      color: var(--neon-cyan);
+    }
+
+    .status-item.success .status-icon {
+      color: var(--neon-green);
+      text-shadow: var(--glow-green);
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+      color: #000;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B3: Neon Dense</div>
+
+  <div class="header">
+    <div class="logo">DIGITAL<span>:</span>ARCHAEOLOGY</div>
+    <div class="header-controls">
+      <button class="header-btn">File</button>
+      <button class="header-btn">View</button>
+      <button class="header-btn">Help</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="tool-btn primary">⚡ ASSEMBLE</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn run">▶ RUN</button>
+    <button class="tool-btn">⏸ PAUSE</button>
+    <button class="tool-btn">⏹ RESET</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn">⏭ STEP</button>
+    <button class="tool-btn">⏮ BACK</button>
+    <div class="speed-indicator">
+      <span>SPEED:</span>
+      <span>10 HZ</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Code Panel -->
+    <div class="panel">
+      <div class="panel-header">// SOURCE</div>
+      <div class="panel-content">
+        <div class="code-area">
+          <div class="code-line"><span class="line-num">01</span><span class="comment">; MICRO4 DEMO</span></div>
+          <div class="code-line"><span class="line-num">02</span><span class="comment">; ADD TWO NUMS</span></div>
+          <div class="code-line"><span class="line-num">03</span></div>
+          <div class="code-line active"><span class="line-num">04</span><span class="instruction">LDA</span> <span class="operand">0x10</span></div>
+          <div class="code-line"><span class="line-num">05</span><span class="instruction">ADD</span> <span class="operand">0x11</span></div>
+          <div class="code-line"><span class="line-num">06</span><span class="instruction">STA</span> <span class="operand">0x12</span></div>
+          <div class="code-line"><span class="line-num">07</span><span class="instruction">HLT</span></div>
+          <div class="code-line"><span class="line-num">08</span></div>
+          <div class="code-line"><span class="line-num">09</span><span class="directive">.ORG</span> <span class="operand">0x10</span></div>
+          <div class="code-line"><span class="line-num">10</span><span class="directive">.BYTE</span> <span class="operand">0x05</span></div>
+          <div class="code-line"><span class="line-num">11</span><span class="directive">.BYTE</span> <span class="operand">0x0A</span></div>
+        </div>
+      </div>
+      <div class="code-info">
+        <div class="info-grid">
+          <div class="info-cell">
+            <span class="info-label">INST</span>
+            <span class="info-value">LDA</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">TYPE</span>
+            <span class="info-value">DATA_MV</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">OPCODE</span>
+            <span class="info-value">0x1</span>
+          </div>
+          <div class="info-cell">
+            <span class="info-label">OPER</span>
+            <span class="info-value">ADDR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Circuit Panel -->
+    <div class="panel">
+      <div class="panel-header">// CIRCUIT</div>
+      <div class="circuit-header">
+        <div class="circuit-path">CPU › <span class="active">ALU</span> › ADDER</div>
+        <div>100%</div>
+      </div>
+      <div class="circuit-wrap">
+        <svg class="circuit-svg" viewBox="0 0 450 260">
+          <!-- Wires -->
+          <path class="wire-neon high" d="M 70,80 L 130,80"/>
+          <path class="wire-neon high" d="M 70,120 L 130,120"/>
+          <path class="wire-neon high" d="M 190,100 L 240,100"/>
+          <path class="wire-neon" d="M 240,80 L 240,100 L 280,100"/>
+          <path class="wire-neon high" d="M 280,130 L 280,160 L 330,160"/>
+          <path class="wire-neon" d="M 390,160 L 420,160"/>
+
+          <!-- AND Gate -->
+          <g transform="translate(130, 70)" style="color: var(--neon-cyan)">
+            <rect class="gate-neon and" x="0" y="0" width="60" height="50" rx="4"/>
+            <text class="gate-text" x="18" y="30">AND</text>
+          </g>
+
+          <!-- OR Gate -->
+          <g transform="translate(280, 90)" style="color: var(--neon-magenta)">
+            <rect class="gate-neon or" x="0" y="0" width="60" height="50" rx="4"/>
+            <text class="gate-text" x="22" y="30">OR</text>
+          </g>
+
+          <!-- MUX -->
+          <g transform="translate(330, 135)" style="color: var(--neon-green)">
+            <rect class="gate-neon mux" x="0" y="0" width="60" height="50" rx="4"/>
+            <text class="gate-text" x="18" y="30">MUX</text>
+          </g>
+
+          <!-- Nodes -->
+          <circle class="node-neon" cx="190" cy="100" r="5"/>
+          <circle class="node-neon" cx="70" cy="80" r="4"/>
+          <circle class="node-neon" cx="70" cy="120" r="4"/>
+        </svg>
+      </div>
+      <div class="signal-bar">
+        <div class="signal-item">
+          <div class="signal-name">DATA_BUS</div>
+          <div class="signal-value">0x05</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-name">ADDR_BUS</div>
+          <div class="signal-value">0x10</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-name">ALU_OP</div>
+          <div class="signal-value low">PASS</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-name">WR_EN</div>
+          <div class="signal-value low">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State Panel -->
+    <div class="panel">
+      <div class="panel-header">// STATE</div>
+      <div class="panel-content">
+        <div class="state-section">
+          <div class="section-title">REGISTERS</div>
+          <div class="register-list">
+            <div class="register-row">
+              <span class="reg-name">PC</span>
+              <span class="reg-hex">0x04</span>
+              <span class="reg-dec">(4)</span>
+            </div>
+            <div class="register-row changed">
+              <span class="reg-name">ACC</span>
+              <span class="reg-hex">0x0F</span>
+              <span class="reg-dec">(15)</span>
+            </div>
+            <div class="register-row">
+              <span class="reg-name">Z</span>
+              <span class="reg-hex">0x00</span>
+              <span class="reg-dec">(0)</span>
+            </div>
+            <div class="register-row changed">
+              <span class="reg-name">C</span>
+              <span class="reg-hex">0x01</span>
+              <span class="reg-dec">(1)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="state-section">
+          <div class="section-title">MEMORY</div>
+          <div class="memory-table">
+            <div class="mem-row">
+              <span class="mem-addr">$10:</span>
+              <div class="mem-cells">
+                <span class="mem-cell">05</span>
+                <span class="mem-cell">0A</span>
+                <span class="mem-cell changed">0F</span>
+                <span class="mem-cell">00</span>
+              </div>
+            </div>
+            <div class="mem-row">
+              <span class="mem-addr">$14:</span>
+              <div class="mem-cells">
+                <span class="mem-cell">00</span>
+                <span class="mem-cell">00</span>
+                <span class="mem-cell">00</span>
+                <span class="mem-cell">00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item success">
+      <span class="status-icon">●</span>
+      <span>READY</span>
+      <span class="status-value">12B</span>
+    </div>
+    <div class="status-item">
+      <span>PC:</span>
+      <span class="status-value">0x04</span>
+    </div>
+    <div class="status-item">
+      <span>CYCLE:</span>
+      <span class="status-value">4</span>
+    </div>
+    <div style="flex:1"></div>
+    <div class="status-item">
+      <span>LN:4 COL:1</span>
+    </div>
+  </div>
+</body>
+</html>

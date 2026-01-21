@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Archaeology - Story + Lab Flip Views</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Shared */
+      --text-primary: #e4e4e4;
+      --text-secondary: #b0b0b0;
+      --text-muted: #6a6a8a;
+
+      /* Story colors */
+      --story-bg-deep: #0a0a12;
+      --story-bg: #12121a;
+      --story-bg-card: #1e1e2a;
+      --story-border: rgba(212, 165, 116, 0.15);
+      --persona-gold: #d4a574;
+      --persona-warm: #c9956e;
+      --persona-copper: #b87333;
+
+      /* Lab colors (B6) */
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-elevated: #1f2847;
+      --bg-hover: #243b5a;
+      --accent: #00b4d8;
+      --accent-hover: #00c9f2;
+      --signal-high: #00ff88;
+      --signal-low: #3a3a4a;
+      --error: #ff6b6b;
+      --warning: #ffc107;
+      --success: #51cf66;
+      --border: rgba(255,255,255,0.08);
+      --border-bright: rgba(255,255,255,0.15);
+      --selection: rgba(0, 180, 216, 0.25);
+      --gate-and: #4ecdc4;
+      --gate-or: #ff6b6b;
+      --gate-xor: #c44dff;
+      --gate-mux: #6bcb77;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--story-bg-deep);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* =====================
+       VIEW SWITCHING
+       ===================== */
+    .view {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .view.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =====================
+       STORY VIEW
+       ===================== */
+    .story-view {
+      background: var(--story-bg-deep);
+      padding-top: 48px;
+    }
+
+    /* Story Top Nav */
+    .story-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: var(--story-bg);
+      border-bottom: 1px solid var(--story-border);
+      padding: 0 24px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .app-logo {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--persona-gold);
+    }
+
+    .view-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 3px;
+    }
+
+    .toggle-btn {
+      padding: 6px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toggle-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .toggle-btn.active {
+      background: var(--persona-gold);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .toggle-btn.lab-active {
+      background: var(--accent);
+    }
+
+    .progress-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid var(--text-muted);
+    }
+
+    .dot.current {
+      border-color: var(--persona-gold);
+      box-shadow: 0 0 10px rgba(212, 165, 116, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 6px rgba(212, 165, 116, 0.4); }
+      50% { box-shadow: 0 0 14px rgba(212, 165, 116, 0.7); }
+    }
+
+    .era-badge {
+      padding: 5px 14px;
+      border-radius: 4px;
+      font-family: Georgia, serif;
+      font-size: 13px;
+      background: rgba(212, 165, 116, 0.15);
+      border: 1px solid var(--story-border);
+      color: var(--persona-gold);
+    }
+
+    .nav-spacer { flex: 1; }
+
+    .nav-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      padding: 6px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+    }
+
+    /* Story Content */
+    .story-container {
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 48px 32px 120px;
+    }
+
+    /* Character Cards */
+    .character-card {
+      display: flex;
+      gap: 20px;
+      background: linear-gradient(135deg, var(--story-bg-card), var(--story-bg));
+      border: 1px solid var(--story-border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+
+    .character-photo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--persona-warm), var(--persona-copper));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      flex-shrink: 0;
+      border: 3px solid var(--persona-gold);
+      box-shadow: 0 4px 20px rgba(212, 165, 116, 0.3);
+    }
+
+    .character-info {
+      flex: 1;
+    }
+
+    .character-name {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 22px;
+      color: var(--persona-gold);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .character-title {
+      font-size: 13px;
+      color: var(--persona-warm);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .character-bio {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .character-stats {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--story-border);
+    }
+
+    .stat-item {
+      font-size: 12px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      margin-right: 6px;
+    }
+
+    .stat-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Your Role Panel (floating) */
+    .your-role-panel {
+      position: fixed;
+      left: 24px;
+      top: 120px;
+      width: 220px;
+      background: var(--story-bg-card);
+      border: 1px solid var(--story-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .role-header {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 16px;
+    }
+
+    .role-photo {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3a5a8a, #2a4a7a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 12px;
+      border: 2px solid var(--persona-gold);
+    }
+
+    .role-name {
+      text-align: center;
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 18px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .role-position {
+      text-align: center;
+      font-size: 12px;
+      color: var(--persona-gold);
+      margin-bottom: 16px;
+    }
+
+    .role-details {
+      border-top: 1px solid var(--story-border);
+      padding-top: 12px;
+    }
+
+    .role-detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 12px;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    .detail-value {
+      color: var(--text-primary);
+    }
+
+    .role-discoveries {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--story-border);
+    }
+
+    .discoveries-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .discovery-tag {
+      display: inline-block;
+      background: rgba(212, 165, 116, 0.15);
+      border: 1px solid var(--story-border);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      color: var(--persona-gold);
+      margin: 3px 3px 3px 0;
+    }
+
+    @media (max-width: 1200px) {
+      .your-role-panel {
+        display: none;
+      }
+    }
+
+    .chapter-header {
+      text-align: center;
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--story-border);
+    }
+
+    .chapter-era {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 12px;
+    }
+
+    .chapter-title {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 44px;
+      font-weight: 600;
+      color: var(--persona-gold);
+      margin-bottom: 10px;
+      text-shadow: 0 0 40px rgba(212, 165, 116, 0.3);
+    }
+
+    .chapter-subtitle {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 20px;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .scene-setting {
+      background: linear-gradient(135deg, var(--story-bg-card), var(--story-bg));
+      border: 1px solid var(--story-border);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .scene-setting::before {
+      content: "Setting";
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: var(--story-bg-deep);
+      padding: 0 10px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+    }
+
+    .scene-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 17px;
+      line-height: 1.7;
+      color: #c0c0c8;
+      font-style: italic;
+    }
+
+    .narrative {
+      margin-bottom: 32px;
+    }
+
+    .narrative p {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.8;
+      color: #d0d0d8;
+      margin-bottom: 20px;
+    }
+
+    .narrative .emphasis {
+      color: var(--persona-gold);
+      font-weight: 600;
+    }
+
+    .dialogue-block {
+      background: rgba(184, 115, 51, 0.08);
+      border-left: 3px solid var(--persona-copper);
+      padding: 16px 20px;
+      margin: 24px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .dialogue-speaker {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--persona-copper);
+      margin-bottom: 8px;
+    }
+
+    .dialogue-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    .thought-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--text-secondary);
+      padding-left: 20px;
+      border-left: 2px solid var(--story-border);
+      margin: 24px 0;
+    }
+
+    .technical-note {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(0, 180, 216, 0.2);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 28px 0;
+    }
+
+    .technical-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .technical-content {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    .technical-content code {
+      color: var(--accent);
+      background: rgba(0, 180, 216, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    /* Choices */
+    .choices-section {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--story-border);
+    }
+
+    .choices-prompt {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .choices-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 8px;
+    }
+
+    .choices-question {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 26px;
+      color: var(--text-primary);
+    }
+
+    .choices-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .choice-card {
+      background: var(--story-bg-card);
+      border: 2px solid var(--story-border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .choice-card:hover {
+      border-color: var(--persona-gold);
+      background: rgba(212, 165, 116, 0.08);
+      transform: translateX(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .choice-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--story-bg);
+      border: 1px solid var(--story-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .choice-content { flex: 1; }
+
+    .choice-title {
+      font-size: 17px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .choice-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .choice-arrow {
+      color: var(--text-muted);
+      font-size: 20px;
+      opacity: 0;
+      transition: all 0.25s;
+    }
+
+    .choice-card:hover .choice-arrow {
+      opacity: 1;
+      color: var(--persona-gold);
+    }
+
+    /* Story footer actions */
+    .story-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--story-border);
+    }
+
+    .story-btn {
+      padding: 14px 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .story-btn.secondary {
+      background: transparent;
+      border: 1px solid var(--story-border);
+      color: var(--text-secondary);
+    }
+
+    .story-btn.secondary:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .story-btn.lab {
+      background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .story-btn.lab:hover {
+      background: var(--accent);
+      color: #000;
+      box-shadow: 0 0 25px rgba(0, 180, 216, 0.4);
+    }
+
+    .story-btn.primary {
+      background: var(--persona-gold);
+      border: none;
+      color: #000;
+      font-weight: 600;
+    }
+
+    .story-btn.primary:hover {
+      background: var(--persona-warm);
+      box-shadow: 0 0 25px rgba(212, 165, 116, 0.4);
+    }
+
+    /* =====================
+       LAB VIEW (B6 Style)
+       ===================== */
+    .lab-view {
+      background: var(--bg-primary);
+      height: 100vh;
+    }
+
+    /* Lab Menu bar */
+    .menubar {
+      background: var(--bg-secondary);
+      padding: 0 12px;
+      display: flex;
+      height: 32px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-item {
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .menu-item:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .menu-spacer { flex: 1; }
+
+    .menu-title {
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .menu-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      padding: 2px;
+      margin-right: 16px;
+    }
+
+    .menu-toggle-btn {
+      padding: 4px 12px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 11px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .menu-toggle-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .menu-toggle-btn.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .menu-toggle-btn.story-active {
+      background: var(--persona-gold);
+    }
+
+    /* Lab Toolbar */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-bright);
+      margin: 0 8px;
+    }
+
+    .btn {
+      padding: 5px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text-primary);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-icon {
+      width: 28px;
+      padding: 5px;
+      justify-content: center;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .speed-value {
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+    }
+
+    /* Main layout */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Activity bar */
+    .activity-bar {
+      width: 48px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .activity-icon {
+      width: 48px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .activity-icon:hover {
+      color: var(--text-primary);
+    }
+
+    .activity-icon.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(0, 180, 216, 0.1);
+    }
+
+    .activity-icon.story-link {
+      color: var(--persona-gold);
+      border-left-color: var(--persona-gold);
+      background: rgba(212, 165, 116, 0.1);
+    }
+
+    .activity-icon.story-link:hover {
+      background: rgba(212, 165, 116, 0.2);
+    }
+
+    .activity-spacer { flex: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow: auto;
+      padding: 8px;
+    }
+
+    /* Collapsible sections */
+    .section {
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+    }
+
+    .section-header:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .section-header.challenge {
+      background: rgba(212, 165, 116, 0.1);
+      border: 1px solid rgba(212, 165, 116, 0.25);
+      color: var(--persona-gold);
+    }
+
+    .section-icon {
+      font-size: 8px;
+    }
+
+    .section-content {
+      padding: 6px 0;
+    }
+
+    /* Challenge objectives */
+    .objective-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px 6px 24px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .objective-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .obj-check {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--text-muted);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      flex-shrink: 0;
+    }
+
+    .obj-check.done {
+      background: var(--success);
+      border-color: var(--success);
+      color: #000;
+    }
+
+    .obj-text {
+      color: var(--text-secondary);
+    }
+
+    .obj-text.done {
+      color: var(--success);
+      text-decoration: line-through;
+    }
+
+    /* State displays */
+    .state-table {
+      width: 100%;
+      font-size: 12px;
+    }
+
+    .state-row {
+      display: flex;
+      padding: 5px 10px 5px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .state-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .state-name {
+      flex: 1;
+      color: var(--text-secondary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .state-hex {
+      width: 50px;
+      color: var(--text-primary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .state-dec {
+      width: 40px;
+      color: var(--text-muted);
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+    }
+
+    .state-row.changed .state-hex {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    .state-row.changed::after {
+      content: "◀";
+      color: var(--signal-high);
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* Instruction info */
+    .inst-info {
+      background: var(--bg-primary);
+      border-radius: 6px;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    .inst-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .inst-row:last-child {
+      border-bottom: none;
+    }
+
+    .inst-label {
+      color: var(--text-muted);
+    }
+
+    .inst-value {
+      color: var(--accent);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    /* Editor area */
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Tab bar for editors */
+    .editor-tabs {
+      background: var(--bg-tertiary);
+      display: flex;
+      height: 36px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--bg-primary);
+    }
+
+    .tab-icon {
+      font-size: 14px;
+    }
+
+    .tab-close {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 14px;
+      opacity: 0;
+      margin-left: 4px;
+    }
+
+    .tab:hover .tab-close {
+      opacity: 0.6;
+    }
+
+    .tab-close:hover {
+      opacity: 1 !important;
+      background: var(--bg-elevated);
+    }
+
+    /* Split editors */
+    .editors-split {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .editor-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    .editor-panel:last-child {
+      border-right: none;
+    }
+
+    .editor-panel-tabs {
+      background: var(--bg-secondary);
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .panel-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .panel-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .editor-content {
+      flex: 1;
+      overflow: auto;
+      background: var(--bg-primary);
+    }
+
+    /* Code editor */
+    .code-editor {
+      font-family: 'Source Code Pro', 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 22px;
+      padding: 8px 0;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 0 12px;
+      min-height: 22px;
+    }
+
+    .code-line:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-line.active {
+      background: var(--selection);
+    }
+
+    .line-gutter {
+      width: 50px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .line-bp {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .line-bp:hover {
+      background: rgba(255, 107, 107, 0.3);
+    }
+
+    .line-bp.active {
+      background: var(--error);
+    }
+
+    .line-num {
+      flex: 1;
+      text-align: right;
+      color: var(--text-muted);
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .code-line.active .line-num {
+      color: var(--accent);
+    }
+
+    .line-content {
+      flex: 1;
+    }
+
+    .comment { color: #5a7a6a; font-style: italic; }
+    .keyword { color: #ff79c6; }
+    .number { color: var(--signal-high); }
+    .directive { color: var(--accent); }
+    .label { color: #f1fa8c; }
+
+    /* Circuit view */
+    .circuit-toolbar {
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .circuit-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .circuit-breadcrumb .current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .circuit-breadcrumb .sep {
+      color: var(--text-muted);
+    }
+
+    .circuit-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .circuit-btn {
+      padding: 4px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .circuit-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .circuit-btn.active {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .circuit-canvas {
+      flex: 1;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .circuit-canvas::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gate {
+      stroke-width: 2;
+    }
+
+    .gate.and { fill: rgba(78, 205, 196, 0.15); stroke: var(--gate-and); }
+    .gate.or { fill: rgba(255, 107, 107, 0.15); stroke: var(--gate-or); }
+    .gate.xor { fill: rgba(196, 77, 255, 0.15); stroke: var(--gate-xor); }
+    .gate.mux { fill: rgba(107, 203, 119, 0.15); stroke: var(--gate-mux); }
+
+    .gate.active {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    .gate-label {
+      font-size: 10px;
+      fill: var(--text-secondary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .gate-id {
+      font-size: 8px;
+      fill: var(--text-muted);
+    }
+
+    .wire {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire.high {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 3px var(--signal-high));
+    }
+
+    .junction {
+      fill: var(--signal-high);
+    }
+
+    /* Signal panel */
+    .signal-panel {
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      font-size: 11px;
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .signal-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .signal-name {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .signal-value {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    .signal-value.low {
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* Bottom panel */
+    .bottom-panel {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+    }
+
+    .bottom-tabs {
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bottom-tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .bottom-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .bottom-tab.active {
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--accent);
+    }
+
+    .bottom-tab .badge {
+      background: var(--error);
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+    }
+
+    .bottom-content {
+      height: 120px;
+      padding: 10px 14px;
+      overflow: auto;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+    }
+
+    .output-line {
+      padding: 2px 0;
+      color: var(--text-secondary);
+    }
+
+    .output-line.success {
+      color: var(--success);
+    }
+
+    .output-line.discovery {
+      color: var(--persona-gold);
+    }
+
+    .output-line .timestamp {
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    /* Status bar */
+    .statusbar {
+      background: var(--accent);
+      padding: 0 12px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: #fff;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-spacer { flex: 1; }
+
+    .status-item.clickable {
+      cursor: pointer;
+      padding: 2px 6px;
+      margin: -2px -6px;
+      border-radius: 3px;
+    }
+
+    .status-item.clickable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .status-era {
+      background: rgba(0,0,0,0.2);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: Georgia, serif;
+    }
+
+    .design-label {
+      position: fixed;
+      bottom: 36px;
+      right: 16px;
+      background: var(--persona-gold);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 1001;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B10: Flip Between Story & Lab (B6)</div>
+
+  <!-- ==================== STORY VIEW ==================== -->
+  <div class="view story-view active" id="storyView">
+    <!-- Story Nav -->
+    <nav class="story-nav">
+      <div class="app-logo">Digital Archaeology</div>
+
+      <div class="view-toggle">
+        <button class="toggle-btn active">📜 Story</button>
+        <button class="toggle-btn" onclick="showLab()">⚡ Lab</button>
+      </div>
+
+      <div class="progress-section">
+        <span class="progress-label">Act</span>
+        <div class="progress-dots">
+          <div class="dot current"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+
+      <div class="era-badge">1971 — Dawn of the Microprocessor</div>
+
+      <div class="nav-spacer"></div>
+
+      <div class="nav-actions">
+        <button class="nav-btn">📜 Journal</button>
+        <button class="nav-btn">💾 Save</button>
+      </div>
+    </nav>
+
+    <!-- Your Role Panel (floating left) -->
+    <div class="your-role-panel">
+      <div class="role-header">You Are</div>
+      <div class="role-photo">👤</div>
+      <div class="role-name">Junior Engineer</div>
+      <div class="role-position">Fairchild Semiconductor</div>
+      <div class="role-details">
+        <div class="role-detail-row">
+          <span class="detail-label">Era</span>
+          <span class="detail-value">1971</span>
+        </div>
+        <div class="role-detail-row">
+          <span class="detail-label">Location</span>
+          <span class="detail-value">Mountain View, CA</span>
+        </div>
+        <div class="role-detail-row">
+          <span class="detail-label">Experience</span>
+          <span class="detail-value">3 weeks</span>
+        </div>
+        <div class="role-detail-row">
+          <span class="detail-label">Specialty</span>
+          <span class="detail-value">Logic Design</span>
+        </div>
+      </div>
+      <div class="role-discoveries">
+        <div class="discoveries-title">Discoveries Made</div>
+        <span class="discovery-tag">AND Gate</span>
+        <span class="discovery-tag">Half Adder</span>
+        <span class="discovery-tag">Full Adder</span>
+      </div>
+    </div>
+
+    <!-- Story Content -->
+    <div class="story-container">
+      <header class="chapter-header">
+        <div class="chapter-era">Act I — 1971</div>
+        <h1 class="chapter-title">The Humbling Beginning</h1>
+        <p class="chapter-subtitle">In which you discover that computation begins with the simplest of gates</p>
+      </header>
+
+      <div class="scene-setting">
+        <p class="scene-text">
+          A fluorescent-lit laboratory at Fairchild Semiconductor, Mountain View, California.
+          Oscilloscopes hum. The smell of solder hangs in the air. On your bench: a breadboard,
+          a handful of 7400-series TTL chips, and a dream of building something that can think.
+        </p>
+      </div>
+
+      <div class="narrative">
+        <p>
+          You've spent three weeks on this project now. Three weeks of late nights, of tracing
+          signals with a logic probe, of the peculiar satisfaction that comes from watching
+          electrons dance through silicon.
+        </p>
+
+        <p>
+          Your supervisor, <span class="emphasis">Dr. Chen</span>, stops by your workstation.
+          She examines your latest creation—a ripple-carry adder built from discrete gates.
+        </p>
+
+        <!-- Character Introduction Card -->
+        <div class="character-card">
+          <div class="character-photo">👩‍🔬</div>
+          <div class="character-info">
+            <div class="character-name">Dr. Sarah Chen</div>
+            <div class="character-title">Senior Design Engineer</div>
+            <div class="character-bio">
+              One of the few women in semiconductor design, Dr. Chen earned her PhD from MIT in 1965.
+              She's known for her work on the 74181 ALU chip and has a reputation for pushing
+              junior engineers to discover solutions themselves rather than handing them answers.
+            </div>
+            <div class="character-stats">
+              <div class="stat-item">
+                <span class="stat-label">Expertise:</span>
+                <span class="stat-value">Digital Logic, ALU Design</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Years at Fairchild:</span>
+                <span class="stat-value">6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialogue-block">
+          <div class="dialogue-speaker">Dr. Sarah Chen — Senior Design Engineer</div>
+          <div class="dialogue-text">
+            "Four bits. That's a good start. But you're going to hit a wall soon.
+            What happens when you need to add two 8-bit numbers? Or 16?"
+          </div>
+        </div>
+
+        <p>
+          You look at your adder. Four full adders chained together. It works—beautifully,
+          even—but she's right. The carry has to ripple through each stage.
+          <span class="emphasis">Four gates of delay becomes eight, becomes sixteen...</span>
+        </p>
+
+        <p class="thought-text">
+          There has to be a better way. What if you could predict the carry somehow,
+          instead of waiting for it to ripple through?
+        </p>
+      </div>
+
+      <div class="technical-note">
+        <div class="technical-label">
+          <span>📐</span> Technical Note
+        </div>
+        <div class="technical-content">
+          Your current adder has a <code>propagation delay</code> of O(n), where n is the number
+          of bits. Each carry must wait for the previous stage. For a 4-bit adder with 10ns gates,
+          that's 40ns worst-case.
+        </div>
+      </div>
+
+      <div class="narrative">
+        <p>
+          Dr. Chen leaves you with a knowing smile. She's seen this moment before—the moment
+          when a young engineer realizes that the elegant solution isn't always the fast one.
+        </p>
+      </div>
+
+      <section class="choices-section">
+        <div class="choices-prompt">
+          <div class="choices-label">What will you do?</div>
+          <h2 class="choices-question">How do you approach the carry problem?</h2>
+        </div>
+
+        <div class="choices-grid">
+          <div class="choice-card">
+            <div class="choice-icon">🔧</div>
+            <div class="choice-content">
+              <div class="choice-title">Stick with Ripple-Carry</div>
+              <div class="choice-desc">Continue with the working design. It's slower, but reliable.</div>
+            </div>
+            <span class="choice-arrow">→</span>
+          </div>
+
+          <div class="choice-card" onclick="showLab()">
+            <div class="choice-icon">💡</div>
+            <div class="choice-content">
+              <div class="choice-title">Investigate Carry Look-Ahead</div>
+              <div class="choice-desc">There must be a way to predict carries in parallel. Time to experiment.</div>
+            </div>
+            <span class="choice-arrow">→</span>
+          </div>
+
+          <div class="choice-card">
+            <div class="choice-icon">🗣️</div>
+            <div class="choice-content">
+              <div class="choice-title">Ask Dr. Chen for Guidance</div>
+              <div class="choice-desc">She clearly knows something. Ask for a more direct hint.</div>
+            </div>
+            <span class="choice-arrow">→</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="story-actions">
+        <button class="story-btn secondary">
+          <span>←</span> Previous Scene
+        </button>
+        <button class="story-btn lab" onclick="showLab()">
+          <span>⚡</span> Enter the Lab
+        </button>
+        <button class="story-btn primary">
+          Continue <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LAB VIEW (B6 Style) ==================== -->
+  <div class="view lab-view" id="labView">
+    <!-- Menu Bar -->
+    <div class="menubar">
+      <div class="menu-toggle">
+        <button class="menu-toggle-btn story-active" onclick="showStory()">📜 Story</button>
+        <button class="menu-toggle-btn active">⚡ Lab</button>
+      </div>
+      <div class="menu-item">File</div>
+      <div class="menu-item">Edit</div>
+      <div class="menu-item">View</div>
+      <div class="menu-item">Debug</div>
+      <div class="menu-item">Help</div>
+      <div class="menu-spacer"></div>
+      <div class="menu-title">Digital Archaeology</div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="btn primary">⚡ Assemble</button>
+      </div>
+      <div class="toolbar-divider"></div>
+      <div class="toolbar-group">
+        <button class="btn">▶ Run</button>
+        <button class="btn btn-icon">⏸</button>
+        <button class="btn btn-icon">⏹</button>
+      </div>
+      <div class="toolbar-divider"></div>
+      <div class="toolbar-group">
+        <button class="btn">⏭ Step</button>
+        <button class="btn">⏮ Back</button>
+      </div>
+      <div class="speed-control">
+        <span>Speed:</span>
+        <input type="range" style="width: 80px; accent-color: var(--accent);">
+        <span class="speed-value">10 Hz</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Activity Bar -->
+      <div class="activity-bar">
+        <div class="activity-icon story-link" title="Return to Story" onclick="showStory()">📜</div>
+        <div class="activity-icon active" title="Explorer">📁</div>
+        <div class="activity-icon" title="Search">🔍</div>
+        <div class="activity-icon" title="Debug">🐛</div>
+        <div class="activity-icon" title="Circuit">⚡</div>
+        <div class="activity-spacer"></div>
+        <div class="activity-icon" title="Settings">⚙</div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">CPU State</div>
+        <div class="sidebar-content">
+          <!-- Challenge Objectives -->
+          <div class="section">
+            <div class="section-header challenge">
+              <span class="section-icon">▼</span>
+              <span>💡 Challenge: Carry Look-Ahead</span>
+            </div>
+            <div class="section-content">
+              <div class="objective-item">
+                <div class="obj-check done">✓</div>
+                <span class="obj-text done">Implement Generate (G) logic</span>
+              </div>
+              <div class="objective-item">
+                <div class="obj-check done">✓</div>
+                <span class="obj-text done">Implement Propagate (P) logic</span>
+              </div>
+              <div class="objective-item">
+                <div class="obj-check"></div>
+                <span class="obj-text">Build carry look-ahead unit</span>
+              </div>
+              <div class="objective-item">
+                <div class="obj-check"></div>
+                <span class="obj-text">Connect to sum generators</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Registers Section -->
+          <div class="section">
+            <div class="section-header">
+              <span class="section-icon">▼</span>
+              <span>Registers</span>
+            </div>
+            <div class="section-content">
+              <div class="state-table">
+                <div class="state-row">
+                  <span class="state-name">PC</span>
+                  <span class="state-hex">0x04</span>
+                  <span class="state-dec">(4)</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">ACC</span>
+                  <span class="state-hex">0x0F</span>
+                  <span class="state-dec">(15)</span>
+                </div>
+                <div class="state-row">
+                  <span class="state-name">Z</span>
+                  <span class="state-hex">0x00</span>
+                  <span class="state-dec">(0)</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">C</span>
+                  <span class="state-hex">0x01</span>
+                  <span class="state-dec">(1)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Memory Section -->
+          <div class="section">
+            <div class="section-header">
+              <span class="section-icon">▼</span>
+              <span>Memory (0x10)</span>
+            </div>
+            <div class="section-content">
+              <div class="state-table">
+                <div class="state-row">
+                  <span class="state-name">0x10</span>
+                  <span class="state-hex">0x05</span>
+                  <span class="state-dec">(5)</span>
+                </div>
+                <div class="state-row">
+                  <span class="state-name">0x11</span>
+                  <span class="state-hex">0x0A</span>
+                  <span class="state-dec">(10)</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">0x12</span>
+                  <span class="state-hex">0x0F</span>
+                  <span class="state-dec">(15)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Instruction -->
+          <div class="section">
+            <div class="section-header">
+              <span class="section-icon">▼</span>
+              <span>Current Instruction</span>
+            </div>
+            <div class="section-content">
+              <div class="inst-info">
+                <div class="inst-row">
+                  <span class="inst-label">Mnemonic</span>
+                  <span class="inst-value">LDA</span>
+                </div>
+                <div class="inst-row">
+                  <span class="inst-label">Type</span>
+                  <span class="inst-value">DATA_MOVEMENT</span>
+                </div>
+                <div class="inst-row">
+                  <span class="inst-label">Opcode</span>
+                  <span class="inst-value">0x1</span>
+                </div>
+                <div class="inst-row">
+                  <span class="inst-label">Operand</span>
+                  <span class="inst-value">ADDRESS (8-bit)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor Area -->
+      <div class="editor-area">
+        <!-- Top tabs -->
+        <div class="editor-tabs">
+          <div class="tab active">
+            <span class="tab-icon">📄</span>
+            <span>cla_adder.asm</span>
+            <span class="tab-close">×</span>
+          </div>
+          <div class="tab">
+            <span class="tab-icon">⚡</span>
+            <span>Circuit View</span>
+            <span class="tab-close">×</span>
+          </div>
+          <div class="tab">
+            <span class="tab-icon">📊</span>
+            <span>Memory Map</span>
+            <span class="tab-close">×</span>
+          </div>
+        </div>
+
+        <!-- Split editors -->
+        <div class="editors-split">
+          <!-- Code Editor -->
+          <div class="editor-panel">
+            <div class="editor-panel-tabs">
+              <div class="panel-tab active">Source</div>
+              <div class="panel-tab">Disassembly</div>
+              <div class="panel-tab">Hex</div>
+            </div>
+            <div class="editor-content">
+              <div class="code-editor">
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">1</span></div>
+                  <div class="line-content"><span class="comment">; Carry Look-Ahead Adder Test</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">2</span></div>
+                  <div class="line-content"><span class="comment">; Testing parallel carry generation</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">3</span></div>
+                  <div class="line-content"></div>
+                </div>
+                <div class="code-line active">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">4</span></div>
+                  <div class="line-content"><span class="keyword">LDA</span> <span class="number">0x10</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">5</span></div>
+                  <div class="line-content"><span class="keyword">ADD</span> <span class="number">0x11</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">6</span></div>
+                  <div class="line-content"><span class="keyword">STA</span> <span class="number">0x12</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp active"></span><span class="line-num">7</span></div>
+                  <div class="line-content"><span class="keyword">HLT</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">8</span></div>
+                  <div class="line-content"></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">9</span></div>
+                  <div class="line-content"><span class="directive">.org</span> <span class="number">0x10</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">10</span></div>
+                  <div class="line-content"><span class="directive">.byte</span> <span class="number">0x05</span></div>
+                </div>
+                <div class="code-line">
+                  <div class="line-gutter"><span class="line-bp"></span><span class="line-num">11</span></div>
+                  <div class="line-content"><span class="directive">.byte</span> <span class="number">0x0A</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Circuit View -->
+          <div class="editor-panel">
+            <div class="editor-panel-tabs">
+              <div class="panel-tab active">Schematic</div>
+              <div class="panel-tab">Timing</div>
+              <div class="panel-tab">HDL</div>
+            </div>
+            <div class="circuit-toolbar">
+              <div class="circuit-breadcrumb">
+                CPU <span class="sep">›</span> <span class="current">ALU</span> <span class="sep">›</span> CLA Unit
+              </div>
+              <div class="circuit-controls">
+                <button class="circuit-btn">Fit</button>
+                <button class="circuit-btn active">100%</button>
+                <button class="circuit-btn">1:1</button>
+              </div>
+            </div>
+            <div class="circuit-canvas">
+              <svg class="circuit-svg" viewBox="0 0 400 220">
+                <!-- Wires -->
+                <path class="wire high" d="M 50,60 L 100,60"/>
+                <path class="wire high" d="M 50,100 L 100,100"/>
+                <path class="wire high" d="M 160,80 L 200,80"/>
+                <path class="wire" d="M 200,60 L 200,80 L 240,80"/>
+                <path class="wire high" d="M 240,110 L 240,140 L 280,140"/>
+                <path class="wire" d="M 340,140 L 370,140"/>
+
+                <!-- AND Gate -->
+                <g transform="translate(100, 45)" style="color: var(--gate-and)">
+                  <rect class="gate and active" x="0" y="0" width="60" height="50" rx="4"/>
+                  <text class="gate-label" x="18" y="30">AND</text>
+                  <text class="gate-id" x="22" y="62">G17</text>
+                </g>
+
+                <!-- OR Gate -->
+                <g transform="translate(240, 65)" style="color: var(--gate-or)">
+                  <rect class="gate or" x="0" y="0" width="60" height="50" rx="4"/>
+                  <text class="gate-label" x="22" y="30">OR</text>
+                  <text class="gate-id" x="22" y="62">G23</text>
+                </g>
+
+                <!-- MUX -->
+                <g transform="translate(280, 115)" style="color: var(--gate-mux)">
+                  <rect class="gate mux" x="0" y="0" width="60" height="50" rx="4"/>
+                  <text class="gate-label" x="18" y="30">MUX</text>
+                  <text class="gate-id" x="22" y="62">G45</text>
+                </g>
+
+                <!-- Junction points -->
+                <circle class="junction" cx="160" cy="80" r="4"/>
+                <circle class="junction" cx="50" cy="60" r="3"/>
+                <circle class="junction" cx="50" cy="100" r="3"/>
+              </svg>
+            </div>
+            <div class="signal-panel">
+              <div class="signal-item">
+                <span class="signal-name">data_bus</span>
+                <span class="signal-value">0x05</span>
+              </div>
+              <div class="signal-item">
+                <span class="signal-name">addr_bus</span>
+                <span class="signal-value">0x10</span>
+              </div>
+              <div class="signal-item">
+                <span class="signal-name">alu_op</span>
+                <span class="signal-value low">PASS</span>
+              </div>
+              <div class="signal-item">
+                <span class="signal-name">write_en</span>
+                <span class="signal-value low">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Panel -->
+        <div class="bottom-panel">
+          <div class="bottom-tabs">
+            <div class="bottom-tab active">Output</div>
+            <div class="bottom-tab">Problems <span class="badge">0</span></div>
+            <div class="bottom-tab">Debug Console</div>
+            <div class="bottom-tab">Terminal</div>
+          </div>
+          <div class="bottom-content">
+            <div class="output-line success">
+              <span class="timestamp">[10:42:15]</span>
+              Assembly successful: 12 bytes generated
+            </div>
+            <div class="output-line">
+              <span class="timestamp">[10:42:15]</span>
+              Code segment: 0x00-0x07 (8 bytes)
+            </div>
+            <div class="output-line discovery">
+              <span class="timestamp">[10:42:16]</span>
+              💡 Discovery: G = A AND B — generates carry when both inputs are 1
+            </div>
+            <div class="output-line">
+              <span class="timestamp">[10:42:16]</span>
+              Step: PC=0x04, executing LDA 0x10
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="statusbar">
+      <div class="status-item status-era">1971 — Micro4</div>
+      <div class="status-item">✓ Assembled: 12B</div>
+      <div class="status-item">PC: 0x04</div>
+      <div class="status-item">Cycle: 4</div>
+      <div class="status-item">💡 2/4 Objectives</div>
+      <div class="status-spacer"></div>
+      <div class="status-item clickable">Ln 4, Col 1</div>
+      <div class="status-item clickable">UTF-8</div>
+      <div class="status-item clickable">Micro4 Assembly</div>
+    </div>
+  </div>
+
+  <script>
+    function showStory() {
+      document.getElementById('storyView').classList.add('active');
+      document.getElementById('labView').classList.remove('active');
+    }
+
+    function showLab() {
+      document.getElementById('labView').classList.add('active');
+      document.getElementById('storyView').classList.remove('active');
+    }
+  </script>
+</body>
+</html>

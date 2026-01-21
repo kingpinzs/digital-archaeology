@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option C: Retro Technical - Digital Archaeology</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #0f0f0f;
+      --bg-tertiary: #141414;
+      --phosphor: #33ff33;
+      --phosphor-dim: #1a8a1a;
+      --amber: #ffb000;
+      --amber-dim: #805800;
+      --cyan: #00ffff;
+      --cyan-dim: #007777;
+      --text-primary: #33ff33;
+      --text-dim: #1a6a1a;
+      --border: #33ff33;
+      --scanline: rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+      font-family: 'Share Tech Mono', 'VT323', monospace;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* CRT scanline effect */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        var(--scanline) 2px,
+        var(--scanline) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Subtle CRT curvature */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* Header with vintage feel */
+    .header {
+      background: var(--bg-secondary);
+      padding: 8px 16px;
+      border-bottom: 2px solid var(--phosphor);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-shadow: 0 0 10px var(--phosphor);
+    }
+
+    .logo {
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      letter-spacing: 4px;
+    }
+
+    .logo span {
+      color: var(--amber);
+      text-shadow: 0 0 10px var(--amber);
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+    }
+
+    .control-btn {
+      background: var(--bg-tertiary);
+      border: 2px solid var(--phosphor);
+      color: var(--phosphor);
+      padding: 8px 16px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      text-shadow: 0 0 5px var(--phosphor);
+      box-shadow: 0 0 5px var(--phosphor-dim);
+      transition: all 0.1s;
+    }
+
+    .control-btn:hover {
+      background: var(--phosphor-dim);
+      box-shadow: 0 0 15px var(--phosphor);
+    }
+
+    .control-btn.active {
+      background: var(--phosphor);
+      color: #000;
+      text-shadow: none;
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .indicator.on { background: var(--phosphor); color: var(--phosphor); }
+    .indicator.off { background: var(--text-dim); color: var(--text-dim); }
+    .indicator.amber { background: var(--amber); color: var(--amber); }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr 240px;
+      border: 2px solid var(--phosphor);
+      margin: 8px;
+      box-shadow: 0 0 20px var(--phosphor-dim), inset 0 0 50px rgba(51, 255, 51, 0.03);
+    }
+
+    .panel {
+      border-right: 2px solid var(--phosphor);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--phosphor-dim);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* Code editor - terminal style */
+    .code-area {
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .code-line {
+      display: flex;
+    }
+
+    .code-line.active {
+      background: rgba(51, 255, 51, 0.1);
+      box-shadow: inset 3px 0 0 var(--phosphor);
+    }
+
+    .line-num {
+      width: 32px;
+      color: var(--text-dim);
+      text-align: right;
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .code-line.active .line-num {
+      color: var(--phosphor);
+    }
+
+    .prompt {
+      color: var(--amber);
+      margin-right: 8px;
+    }
+
+    .comment { color: var(--cyan-dim); }
+    .instruction { color: var(--phosphor); }
+    .operand { color: var(--amber); }
+    .directive { color: var(--cyan); text-shadow: 0 0 5px var(--cyan); }
+
+    /* Circuit - oscilloscope style */
+    .circuit-display {
+      position: relative;
+      flex: 1;
+      background:
+        radial-gradient(ellipse at center, #0a1a0a 0%, #050a05 100%);
+    }
+
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(var(--phosphor-dim) 1px, transparent 1px),
+        linear-gradient(90deg, var(--phosphor-dim) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.2;
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gate-retro {
+      fill: none;
+      stroke: var(--phosphor);
+      stroke-width: 2;
+      filter: drop-shadow(0 0 4px var(--phosphor));
+    }
+
+    .gate-retro.active {
+      stroke: var(--amber);
+      filter: drop-shadow(0 0 8px var(--amber));
+    }
+
+    .wire-retro {
+      stroke: var(--phosphor-dim);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire-retro.high {
+      stroke: var(--phosphor);
+      filter: drop-shadow(0 0 6px var(--phosphor));
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { filter: drop-shadow(0 0 4px var(--phosphor)); }
+      to { filter: drop-shadow(0 0 10px var(--phosphor)); }
+    }
+
+    .node {
+      fill: var(--phosphor);
+      filter: drop-shadow(0 0 6px var(--phosphor));
+    }
+
+    .gate-text {
+      fill: var(--phosphor);
+      font-size: 11px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    /* State display - vintage readout */
+    .readout-section {
+      margin-bottom: 16px;
+    }
+
+    .readout-header {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed var(--phosphor-dim);
+    }
+
+    .register-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+
+    .reg-name {
+      color: var(--cyan);
+    }
+
+    .reg-value {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .reg-value.changed {
+      color: var(--amber);
+      text-shadow: 0 0 10px var(--amber);
+      animation: blink 0.3s ease-in-out 3;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.5; }
+    }
+
+    /* Memory display - hex dump style */
+    .memory-grid {
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .mem-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mem-addr {
+      color: var(--cyan);
+      width: 40px;
+    }
+
+    .mem-value {
+      width: 24px;
+      text-align: center;
+    }
+
+    .mem-value.changed {
+      color: var(--amber);
+      text-shadow: 0 0 8px var(--amber);
+    }
+
+    /* Status bar - teletype style */
+    .status-bar {
+      background: var(--bg-secondary);
+      border-top: 2px solid var(--phosphor);
+      padding: 8px 16px;
+      display: flex;
+      gap: 32px;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-label {
+      color: var(--text-dim);
+    }
+
+    .status-value {
+      color: var(--phosphor);
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+    }
+
+    /* Design label */
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--amber);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 0;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 1001;
+      font-family: -apple-system, sans-serif;
+    }
+
+    /* Blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--phosphor);
+      animation: cursor-blink 1s step-end infinite;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    @keyframes cursor-blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">OPTION C: Retro Technical</div>
+
+  <div class="header">
+    <div class="logo">▄▀ <span>DIGITAL</span> ARCHAEOLOGY ▀▄</div>
+    <div class="controls">
+      <button class="control-btn"><span class="indicator on"></span>RUN</button>
+      <button class="control-btn"><span class="indicator off"></span>STEP</button>
+      <button class="control-btn"><span class="indicator amber"></span>HALT</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Code Panel -->
+    <div class="panel">
+      <div class="panel-header">► PROGRAM LISTING</div>
+      <div class="panel-content">
+        <div class="code-area">
+          <div class="code-line"><span class="line-num">01</span><span class="comment">; MICRO4 DEMO</span></div>
+          <div class="code-line"><span class="line-num">02</span><span class="comment">; ADD TWO NUMBERS</span></div>
+          <div class="code-line"><span class="line-num">03</span></div>
+          <div class="code-line active"><span class="line-num">04</span><span class="prompt">►</span><span class="instruction">LDA</span> <span class="operand">$10</span></div>
+          <div class="code-line"><span class="line-num">05</span><span class="instruction">ADD</span> <span class="operand">$11</span></div>
+          <div class="code-line"><span class="line-num">06</span><span class="instruction">STA</span> <span class="operand">$12</span></div>
+          <div class="code-line"><span class="line-num">07</span><span class="instruction">HLT</span></div>
+          <div class="code-line"><span class="line-num">08</span></div>
+          <div class="code-line"><span class="line-num">09</span><span class="directive">.ORG</span> <span class="operand">$10</span></div>
+          <div class="code-line"><span class="line-num">10</span><span class="directive">.BYTE</span> <span class="operand">$05</span></div>
+          <div class="code-line"><span class="line-num">11</span><span class="directive">.BYTE</span> <span class="operand">$0A</span></div>
+          <div class="code-line"><span class="line-num">12</span></div>
+          <div class="code-line"><span class="line-num">__</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Circuit Panel -->
+    <div class="panel">
+      <div class="panel-header">► LOGIC ANALYZER</div>
+      <div class="circuit-display">
+        <div class="grid-overlay"></div>
+        <svg class="circuit-svg" viewBox="0 0 400 280">
+          <!-- Wires -->
+          <path class="wire-retro high" d="M 60,80 L 120,80"/>
+          <path class="wire-retro high" d="M 60,120 L 120,120"/>
+          <path class="wire-retro high" d="M 180,100 L 220,100"/>
+          <path class="wire-retro" d="M 220,80 L 220,100 L 260,100"/>
+          <path class="wire-retro high" d="M 260,130 L 260,160 L 300,160"/>
+          <path class="wire-retro" d="M 360,160 L 390,160"/>
+
+          <!-- AND Gate -->
+          <g transform="translate(120, 70)">
+            <path class="gate-retro active" d="M 0,0 L 35,0 Q 60,25 35,50 L 0,50 Z"/>
+            <text class="gate-text" x="12" y="30">AND</text>
+          </g>
+
+          <!-- OR Gate -->
+          <g transform="translate(260, 90)">
+            <path class="gate-retro" d="M 0,0 Q 12,0 30,12 Q 50,25 30,38 Q 12,50 0,50 Q 12,25 0,0"/>
+            <text class="gate-text" x="10" y="30">OR</text>
+          </g>
+
+          <!-- XOR Gate -->
+          <g transform="translate(300, 135)">
+            <path class="gate-retro" d="M 5,0 Q 17,0 35,12 Q 55,25 35,38 Q 17,50 5,50 Q 17,25 5,0"/>
+            <path class="gate-retro" d="M 0,0 Q 12,25 0,50"/>
+            <text class="gate-text" x="15" y="30">XOR</text>
+          </g>
+
+          <!-- Signal nodes -->
+          <circle class="node" cx="180" cy="100" r="4"/>
+          <circle class="node" cx="60" cy="80" r="3"/>
+          <circle class="node" cx="60" cy="120" r="3"/>
+
+          <!-- Labels -->
+          <text x="40" y="78" class="gate-text" style="font-size:9px">IN_A</text>
+          <text x="40" y="118" class="gate-text" style="font-size:9px">IN_B</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- State Panel -->
+    <div class="panel">
+      <div class="panel-header">► SYSTEM STATUS</div>
+      <div class="panel-content">
+        <div class="readout-section">
+          <div class="readout-header">─── REGISTERS ───</div>
+          <div class="register-row">
+            <span class="reg-name">PC</span>
+            <span class="reg-value">$04</span>
+          </div>
+          <div class="register-row">
+            <span class="reg-name">A</span>
+            <span class="reg-value changed">$0F</span>
+          </div>
+          <div class="register-row">
+            <span class="reg-name">Z</span>
+            <span class="reg-value">0</span>
+          </div>
+        </div>
+
+        <div class="readout-section">
+          <div class="readout-header">─── FLAGS ───</div>
+          <div class="register-row">
+            <span class="reg-name">ZERO</span>
+            <span class="reg-value">CLR</span>
+          </div>
+          <div class="register-row">
+            <span class="reg-name">CARRY</span>
+            <span class="reg-value changed">SET</span>
+          </div>
+        </div>
+
+        <div class="readout-section">
+          <div class="readout-header">─── MEMORY ───</div>
+          <div class="memory-grid">
+            <div class="mem-row">
+              <span class="mem-addr">$10:</span>
+              <span class="mem-value">05</span>
+            </div>
+            <div class="mem-row">
+              <span class="mem-addr">$11:</span>
+              <span class="mem-value">0A</span>
+            </div>
+            <div class="mem-row">
+              <span class="mem-addr">$12:</span>
+              <span class="mem-value changed">0F</span>
+            </div>
+            <div class="mem-row">
+              <span class="mem-addr">$13:</span>
+              <span class="mem-value">00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item">
+      <span class="status-label">STATUS:</span>
+      <span class="status-value">READY</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">PC=</span>
+      <span class="status-value">$04</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">CYCLE:</span>
+      <span class="status-value">0004</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">░░░░░░░░░░░░░░░░░░░░</span>
+    </div>
+  </div>
+</body>
+</html>

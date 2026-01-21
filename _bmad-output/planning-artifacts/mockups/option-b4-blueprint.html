@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B4: Blueprint - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a1628;
+      --bg-secondary: #0d1e36;
+      --bg-tertiary: #132844;
+      --bg-elevated: #1a3356;
+      --text-primary: #e8f4ff;
+      --text-secondary: #8cb4d8;
+      --text-muted: #4a7298;
+      --line-color: #2d5a8a;
+      --accent: #4da6ff;
+      --accent-bright: #80c4ff;
+      --signal-high: #00ff88;
+      --signal-low: #2d5a8a;
+      --error: #ff6b6b;
+      --warning: #ffd93d;
+      --border: #2d5a8a;
+    }
+
+    body {
+      font-family: 'Courier New', 'Consolas', monospace;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+    }
+
+    /* Blueprint grid overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(var(--line-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-color) 1px, transparent 1px);
+      background-size: 50px 50px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header - technical drawing title block */
+    .title-block {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      margin: 8px;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title-main {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .title-text {
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: var(--accent-bright);
+    }
+
+    .title-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    .title-info {
+      display: flex;
+      gap: 24px;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+
+    .info-box {
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+    }
+
+    /* Toolbar - schematic style */
+    .toolbar {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-top: none;
+      margin: 0 8px;
+      padding: 8px 16px;
+      display: flex;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tool-group {
+      display: flex;
+      gap: 4px;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+    }
+
+    .tool-group:last-child {
+      border-right: none;
+    }
+
+    .tool-btn {
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .tool-btn:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tool-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg-primary);
+      font-weight: bold;
+    }
+
+    .tool-btn.active {
+      background: var(--bg-elevated);
+      border-color: var(--signal-high);
+      color: var(--signal-high);
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 280px;
+      gap: 0;
+      margin: 0 8px 8px 8px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel {
+      background: var(--bg-secondary);
+      border-right: 2px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-bottom: 2px solid var(--border);
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* Code - blueprint style */
+    .code-area {
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 2px 8px;
+      border-left: 2px solid transparent;
+    }
+
+    .code-line.active {
+      background: rgba(77, 166, 255, 0.1);
+      border-left-color: var(--accent);
+    }
+
+    .line-num {
+      width: 32px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 16px;
+      border-right: 1px solid var(--border);
+      margin-right: 12px;
+    }
+
+    .code-line.active .line-num {
+      color: var(--accent);
+    }
+
+    .comment { color: var(--text-muted); }
+    .instruction { color: var(--accent-bright); font-weight: bold; }
+    .operand { color: var(--signal-high); }
+    .directive { color: var(--warning); }
+
+    /* Instruction info panel */
+    .inst-info {
+      padding: 12px;
+      background: var(--bg-primary);
+      border-top: 2px solid var(--border);
+    }
+
+    .info-table {
+      width: 100%;
+      font-size: 10px;
+      border-collapse: collapse;
+    }
+
+    .info-table td {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+    }
+
+    .info-table .label {
+      color: var(--text-muted);
+      width: 80px;
+      background: var(--bg-tertiary);
+    }
+
+    .info-table .value {
+      color: var(--accent);
+    }
+
+    /* Circuit - schematic style */
+    .schematic-header {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+    }
+
+    .schematic-path {
+      color: var(--text-muted);
+    }
+
+    .schematic-path .current {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .schematic-wrap {
+      flex: 1;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    /* Schematic grid */
+    .schematic-wrap::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(var(--line-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line-color) 1px, transparent 1px);
+      background-size: 20px 20px;
+      opacity: 0.3;
+    }
+
+    .schematic-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Schematic gates - IEEE style */
+    .gate-schem {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2;
+    }
+
+    .gate-schem.active {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 4px var(--signal-high));
+    }
+
+    .gate-label {
+      fill: var(--text-secondary);
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .gate-ref {
+      fill: var(--text-muted);
+      font-size: 8px;
+    }
+
+    .wire-schem {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire-schem.high {
+      stroke: var(--signal-high);
+    }
+
+    .junction {
+      fill: var(--signal-high);
+    }
+
+    .pin-label {
+      fill: var(--text-muted);
+      font-size: 8px;
+    }
+
+    /* Signal table */
+    .signal-table-wrap {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-top: 2px solid var(--border);
+    }
+
+    .signal-table {
+      width: 100%;
+      font-size: 10px;
+      border-collapse: collapse;
+    }
+
+    .signal-table th {
+      text-align: left;
+      padding: 4px 8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-weight: normal;
+    }
+
+    .signal-table td {
+      padding: 4px 8px;
+    }
+
+    .signal-table .sig-name {
+      color: var(--text-secondary);
+    }
+
+    .signal-table .sig-value {
+      color: var(--signal-high);
+      font-weight: bold;
+    }
+
+    .signal-table .sig-value.low {
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* State panel - technical readout */
+    .state-section {
+      margin-bottom: 12px;
+    }
+
+    .section-header {
+      padding: 6px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .register-table {
+      width: 100%;
+      font-size: 11px;
+      border-collapse: collapse;
+    }
+
+    .register-table th {
+      text-align: left;
+      padding: 4px 8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-weight: normal;
+      font-size: 9px;
+    }
+
+    .register-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--line-color);
+    }
+
+    .register-table .reg-name {
+      color: var(--accent);
+    }
+
+    .register-table .changed {
+      color: var(--signal-high);
+      font-weight: bold;
+    }
+
+    .register-table .changed::after {
+      content: " ◄";
+      color: var(--signal-high);
+      font-size: 8px;
+    }
+
+    /* Memory hex dump */
+    .memory-dump {
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .dump-row {
+      display: flex;
+    }
+
+    .dump-addr {
+      width: 50px;
+      color: var(--accent);
+    }
+
+    .dump-hex {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dump-byte {
+      width: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .dump-byte.changed {
+      color: var(--signal-high);
+      font-weight: bold;
+    }
+
+    .dump-ascii {
+      margin-left: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Status bar - drawing info */
+    .drawing-info {
+      background: var(--bg-tertiary);
+      border-top: 2px solid var(--border);
+      padding: 6px 16px;
+      display: flex;
+      gap: 24px;
+      font-size: 10px;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 8px;
+    }
+
+    .info-item .label {
+      color: var(--text-muted);
+    }
+
+    .info-item .value {
+      color: var(--accent);
+    }
+
+    .info-item.ok .value {
+      color: var(--signal-high);
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: var(--bg-primary);
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 100;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B4: BLUEPRINT</div>
+
+  <div class="title-block">
+    <div class="title-main">
+      <span class="title-text">DIGITAL ARCHAEOLOGY</span>
+      <span class="title-sub">MICRO4 CPU DEVELOPMENT ENVIRONMENT</span>
+    </div>
+    <div class="title-info">
+      <div class="info-box"><span class="info-label">REV:</span> 1.0</div>
+      <div class="info-box"><span class="info-label">SHEET:</span> 1/1</div>
+      <div class="info-box"><span class="info-label">DATE:</span> 2026-01-20</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <button class="tool-btn primary">ASSEMBLE</button>
+    </div>
+    <div class="tool-group">
+      <button class="tool-btn">RUN</button>
+      <button class="tool-btn">PAUSE</button>
+      <button class="tool-btn">RESET</button>
+    </div>
+    <div class="tool-group">
+      <button class="tool-btn active">STEP</button>
+      <button class="tool-btn">BACK</button>
+    </div>
+    <div class="tool-group">
+      <button class="tool-btn">10 HZ</button>
+    </div>
+    <div style="flex:1"></div>
+    <div class="tool-group">
+      <button class="tool-btn">HELP</button>
+      <button class="tool-btn">CONFIG</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Code Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>SOURCE LISTING</span>
+        <span>MAIN.ASM</span>
+      </div>
+      <div class="panel-content">
+        <div class="code-area">
+          <div class="code-line"><span class="line-num">01</span><span class="comment">; MICRO4 DEMO</span></div>
+          <div class="code-line"><span class="line-num">02</span><span class="comment">; ADD TWO NUMBERS</span></div>
+          <div class="code-line"><span class="line-num">03</span></div>
+          <div class="code-line active"><span class="line-num">04</span><span class="instruction">LDA</span>  <span class="operand">0x10</span></div>
+          <div class="code-line"><span class="line-num">05</span><span class="instruction">ADD</span>  <span class="operand">0x11</span></div>
+          <div class="code-line"><span class="line-num">06</span><span class="instruction">STA</span>  <span class="operand">0x12</span></div>
+          <div class="code-line"><span class="line-num">07</span><span class="instruction">HLT</span></div>
+          <div class="code-line"><span class="line-num">08</span></div>
+          <div class="code-line"><span class="line-num">09</span><span class="directive">.ORG</span> <span class="operand">0x10</span></div>
+          <div class="code-line"><span class="line-num">10</span><span class="directive">.BYTE</span> <span class="operand">0x05</span></div>
+          <div class="code-line"><span class="line-num">11</span><span class="directive">.BYTE</span> <span class="operand">0x0A</span></div>
+        </div>
+      </div>
+      <div class="inst-info">
+        <table class="info-table">
+          <tr><td class="label">MNEMONIC</td><td class="value">LDA</td></tr>
+          <tr><td class="label">TYPE</td><td class="value">DATA_MOVEMENT</td></tr>
+          <tr><td class="label">OPCODE</td><td class="value">0x1</td></tr>
+          <tr><td class="label">OPERAND</td><td class="value">ADDRESS (8-BIT)</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Schematic Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>SCHEMATIC</span>
+        <span>ALU DETAIL</span>
+      </div>
+      <div class="schematic-header">
+        <div class="schematic-path">CPU / <span class="current">ALU</span> / ADDER</div>
+        <div>SCALE: 1:1</div>
+      </div>
+      <div class="schematic-wrap">
+        <svg class="schematic-svg" viewBox="0 0 450 250">
+          <!-- Reference designators and wires -->
+          <path class="wire-schem high" d="M 60,70 L 120,70"/>
+          <path class="wire-schem high" d="M 60,110 L 120,110"/>
+          <path class="wire-schem high" d="M 180,90 L 230,90"/>
+          <path class="wire-schem" d="M 230,70 L 230,90 L 270,90"/>
+          <path class="wire-schem high" d="M 270,120 L 270,150 L 320,150"/>
+          <path class="wire-schem" d="M 380,150 L 410,150"/>
+
+          <!-- Pin labels -->
+          <text class="pin-label" x="45" y="68">A</text>
+          <text class="pin-label" x="45" y="108">B</text>
+          <text class="pin-label" x="415" y="148">Y</text>
+
+          <!-- AND Gate - IEEE symbol -->
+          <g transform="translate(120, 55)">
+            <path class="gate-schem active" d="M 0,0 L 35,0 L 35,35 Q 60,35 60,17.5 Q 60,0 35,0 M 0,35 L 35,35"/>
+            <text class="gate-label" x="15" y="50">&amp;</text>
+            <text class="gate-ref" x="15" y="62">U1</text>
+          </g>
+
+          <!-- OR Gate -->
+          <g transform="translate(270, 75)">
+            <path class="gate-schem" d="M 0,0 Q 20,0 35,15 L 60,15 Q 55,0 35,0 M 0,30 Q 20,30 35,15 M 0,0 Q 10,15 0,30"/>
+            <text class="gate-label" x="18" y="45">≥1</text>
+            <text class="gate-ref" x="18" y="57">U2</text>
+          </g>
+
+          <!-- MUX -->
+          <g transform="translate(320, 130)">
+            <path class="gate-schem" d="M 0,0 L 60,10 L 60,30 L 0,40 Z"/>
+            <text class="gate-label" x="18" y="24">MUX</text>
+            <text class="gate-ref" x="18" y="55">U3</text>
+          </g>
+
+          <!-- Junction dots -->
+          <circle class="junction" cx="180" cy="90" r="4"/>
+          <circle class="junction" cx="60" cy="70" r="3"/>
+          <circle class="junction" cx="60" cy="110" r="3"/>
+        </svg>
+      </div>
+      <div class="signal-table-wrap">
+        <table class="signal-table">
+          <thead>
+            <tr><th>SIGNAL</th><th>VALUE</th><th>SIGNAL</th><th>VALUE</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sig-name">DATA_BUS</td>
+              <td class="sig-value">0x05</td>
+              <td class="sig-name">ADDR_BUS</td>
+              <td class="sig-value">0x10</td>
+            </tr>
+            <tr>
+              <td class="sig-name">ALU_OP</td>
+              <td class="sig-value low">PASS</td>
+              <td class="sig-name">WR_EN</td>
+              <td class="sig-value low">0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- State Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>SYSTEM STATE</span>
+      </div>
+      <div class="panel-content">
+        <div class="state-section">
+          <div class="section-header">REGISTER FILE</div>
+          <table class="register-table">
+            <thead>
+              <tr><th>REG</th><th>HEX</th><th>DEC</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="reg-name">PC</td><td>0x04</td><td>4</td></tr>
+              <tr><td class="reg-name">ACC</td><td class="changed">0x0F</td><td>15</td></tr>
+              <tr><td class="reg-name">Z</td><td>0x00</td><td>0</td></tr>
+              <tr><td class="reg-name">C</td><td class="changed">0x01</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="state-section">
+          <div class="section-header">MEMORY DUMP</div>
+          <div class="memory-dump">
+            <div class="dump-row">
+              <span class="dump-addr">0010:</span>
+              <div class="dump-hex">
+                <span class="dump-byte">05</span>
+                <span class="dump-byte">0A</span>
+                <span class="dump-byte changed">0F</span>
+                <span class="dump-byte">00</span>
+              </div>
+              <span class="dump-ascii">|....|</span>
+            </div>
+            <div class="dump-row">
+              <span class="dump-addr">0014:</span>
+              <div class="dump-hex">
+                <span class="dump-byte">00</span>
+                <span class="dump-byte">00</span>
+                <span class="dump-byte">00</span>
+                <span class="dump-byte">00</span>
+              </div>
+              <span class="dump-ascii">|....|</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawing-info">
+    <div class="info-item ok">
+      <span class="label">STATUS:</span>
+      <span class="value">ASSEMBLED OK</span>
+    </div>
+    <div class="info-item">
+      <span class="label">SIZE:</span>
+      <span class="value">12 BYTES</span>
+    </div>
+    <div class="info-item">
+      <span class="label">PC:</span>
+      <span class="value">0x04</span>
+    </div>
+    <div class="info-item">
+      <span class="label">CYCLE:</span>
+      <span class="value">4</span>
+    </div>
+    <div style="flex:1"></div>
+    <div class="info-item">
+      <span class="label">CURSOR:</span>
+      <span class="value">LN:4 COL:1</span>
+    </div>
+  </div>
+</body>
+</html>

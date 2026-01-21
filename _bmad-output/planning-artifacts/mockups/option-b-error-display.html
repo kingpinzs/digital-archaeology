@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B: Error Display - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-elevated: #1f2847;
+      --bg-error: #2d1f1f;
+      --text-primary: #e4e4e4;
+      --text-secondary: #b0b0b0;
+      --text-muted: #6a6a8a;
+      --accent: #00b4d8;
+      --signal-high: #00ff88;
+      --error: #ff6b6b;
+      --error-bg: rgba(255, 107, 107, 0.1);
+      --warning: #ffc107;
+      --success: #51cf66;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    .menu-bar {
+      background: var(--bg-secondary);
+      padding: 4px 12px;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .menu-item {
+      padding: 6px 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* Code with errors */
+    .code-area {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .code-line.error {
+      background: var(--error-bg);
+      border-left: 3px solid var(--error);
+      margin-left: -3px;
+    }
+
+    .gutter {
+      width: 30px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 12px;
+    }
+
+    .code-line.error .gutter {
+      color: var(--error);
+    }
+
+    .error-squiggle {
+      text-decoration: wavy underline var(--error);
+      text-underline-offset: 3px;
+    }
+
+    .comment { color: #5a6a7a; }
+    .instruction { color: #e4e4e4; }
+    .operand { color: var(--signal-high); }
+    .directive { color: var(--accent); }
+
+    /* Error Panel */
+    .error-panel {
+      background: var(--bg-error);
+      border: 1px solid var(--error);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .error-header {
+      background: var(--error);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .error-count {
+      background: rgba(0,0,0,0.2);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .error-body {
+      padding: 16px;
+    }
+
+    .error-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .error-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .error-item-header {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .error-item-content {
+      padding: 12px;
+    }
+
+    .error-meta {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .meta-label {
+      color: var(--text-muted);
+    }
+
+    .meta-value {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .meta-value.type {
+      color: var(--error);
+      font-weight: 600;
+    }
+
+    .meta-value.category {
+      color: var(--accent);
+    }
+
+    /* Code snippet in error */
+    .error-code-snippet {
+      background: var(--bg-primary);
+      border-radius: 4px;
+      padding: 12px;
+      margin: 12px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      border-left: 3px solid var(--error);
+    }
+
+    .snippet-line {
+      display: flex;
+      padding: 2px 0;
+      color: var(--text-muted);
+    }
+
+    .snippet-line.error-line {
+      color: var(--text-primary);
+      background: rgba(255, 107, 107, 0.1);
+      margin: 0 -12px;
+      padding: 2px 12px;
+    }
+
+    .snippet-num {
+      width: 30px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 12px;
+    }
+
+    .snippet-line.error-line .snippet-num {
+      color: var(--error);
+    }
+
+    .error-pointer {
+      color: var(--error);
+      margin-left: 42px;
+      font-size: 11px;
+    }
+
+    /* Suggestion box */
+    .suggestion-box {
+      background: rgba(0, 180, 216, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .suggestion-header {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .suggestion-text {
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .suggestion-category {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Action buttons */
+    .error-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .action-btn.primary {
+      background: var(--success);
+      color: #000;
+      border-color: var(--success);
+      font-weight: 600;
+    }
+
+    .action-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    /* Circuit path info */
+    .circuit-info {
+      background: var(--bg-primary);
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+
+    .circuit-info-header {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .circuit-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--signal-high);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .path-arrow {
+      color: var(--text-muted);
+    }
+
+    .signal-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .signal-name {
+      color: var(--text-muted);
+    }
+
+    .signal-value {
+      color: var(--error);
+    }
+
+    .status-bar {
+      background: var(--bg-tertiary);
+      padding: 6px 12px;
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-item {
+      display: flex;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .status-item .value {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-item.error .value {
+      color: var(--error);
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--error);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">OPTION B: Error Display</div>
+
+  <div class="menu-bar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Debug</div>
+    <div class="menu-item">Help</div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="btn primary">⚡ Assemble</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="btn disabled">▶ Run</button>
+      <button class="btn disabled">⏭ Step</button>
+      <button class="btn disabled">⏹ Reset</button>
+    </div>
+    <div style="flex:1"></div>
+  </div>
+
+  <div class="main">
+    <!-- Code Panel with errors -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Code</span>
+        <span style="color: var(--error)">2 errors</span>
+      </div>
+      <div class="panel-content">
+        <div class="code-area">
+          <div class="code-line"><span class="gutter">1</span><span class="comment">; Micro4 Demo</span></div>
+          <div class="code-line"><span class="gutter">2</span><span class="comment">; Add two numbers</span></div>
+          <div class="code-line"><span class="gutter">3</span></div>
+          <div class="code-line error">
+            <span class="gutter">4</span>
+            <span><span class="error-squiggle">LODA</span> <span class="operand">0x10</span></span>
+          </div>
+          <div class="code-line"><span class="gutter">5</span><span class="instruction">ADD</span> <span class="operand">0x11</span></div>
+          <div class="code-line"><span class="gutter">6</span><span class="instruction">STA</span> <span class="operand">0x12</span></div>
+          <div class="code-line error">
+            <span class="gutter">7</span>
+            <span><span class="instruction">STA</span> <span class="error-squiggle">0xGG</span></span>
+          </div>
+          <div class="code-line"><span class="gutter">8</span><span class="instruction">HLT</span></div>
+          <div class="code-line"><span class="gutter">9</span></div>
+          <div class="code-line"><span class="gutter">10</span><span class="directive">.org</span> <span class="operand">0x10</span></div>
+          <div class="code-line"><span class="gutter">11</span><span class="directive">.byte</span> <span class="operand">0x05</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Panel -->
+    <div class="panel" style="border-right: none; min-width: 400px;">
+      <div class="panel-header">
+        <span>Problems</span>
+      </div>
+      <div class="panel-content" style="padding: 0;">
+        <div class="error-panel">
+          <div class="error-header">
+            <span>✗ ASSEMBLY FAILED</span>
+            <span class="error-count">2 errors</span>
+          </div>
+
+          <div class="error-body">
+            <!-- Error 1 -->
+            <div class="error-item">
+              <div class="error-item-header">ERROR 1 of 2</div>
+              <div class="error-item-content">
+                <div class="error-meta">
+                  <span class="meta-label">Type:</span>
+                  <span class="meta-value type">SYNTAX_ERROR</span>
+
+                  <span class="meta-label">Subtype:</span>
+                  <span class="meta-value">Unknown Instruction</span>
+
+                  <span class="meta-label">Location:</span>
+                  <span class="meta-value">Line 4, Column 1</span>
+
+                  <span class="meta-label">Token:</span>
+                  <span class="meta-value">'LODA'</span>
+                </div>
+
+                <div class="error-code-snippet">
+                  <div class="snippet-line"><span class="snippet-num">2</span>; Add two numbers</div>
+                  <div class="snippet-line"><span class="snippet-num">3</span></div>
+                  <div class="snippet-line error-line"><span class="snippet-num">► 4</span>LODA 0x10</div>
+                  <div class="error-pointer">^^^^ unknown instruction</div>
+                  <div class="snippet-line"><span class="snippet-num">5</span>ADD 0x11</div>
+                </div>
+
+                <div class="suggestion-box">
+                  <div class="suggestion-header">Suggestion</div>
+                  <div class="suggestion-text">Did you mean <strong>'LDA'</strong>? (Load Accumulator)</div>
+                  <div class="suggestion-category">Category: DATA_MOVEMENT instructions: LDA, STA</div>
+                </div>
+
+                <div class="error-actions">
+                  <button class="action-btn primary">Apply Fix: LDA</button>
+                  <button class="action-btn">Ignore</button>
+                  <button class="action-btn">Show All DATA_MOVEMENT</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error 2 -->
+            <div class="error-item">
+              <div class="error-item-header">ERROR 2 of 2</div>
+              <div class="error-item-content">
+                <div class="error-meta">
+                  <span class="meta-label">Type:</span>
+                  <span class="meta-value type">VALUE_ERROR</span>
+
+                  <span class="meta-label">Subtype:</span>
+                  <span class="meta-value">Invalid Hex Literal</span>
+
+                  <span class="meta-label">Location:</span>
+                  <span class="meta-value">Line 7, Column 5</span>
+
+                  <span class="meta-label">Token:</span>
+                  <span class="meta-value">'0xGG'</span>
+                </div>
+
+                <div class="error-code-snippet">
+                  <div class="snippet-line"><span class="snippet-num">6</span>STA 0x12</div>
+                  <div class="snippet-line error-line"><span class="snippet-num">► 7</span>STA 0xGG</div>
+                  <div class="error-pointer">    ^^^^ invalid hex digit 'G'</div>
+                  <div class="snippet-line"><span class="snippet-num">8</span>HLT</div>
+                </div>
+
+                <div class="error-meta" style="margin-top: 12px; margin-bottom: 0;">
+                  <span class="meta-label">Expected:</span>
+                  <span class="meta-value">Hex value 0x00-0xFF</span>
+
+                  <span class="meta-label">Valid digits:</span>
+                  <span class="meta-value">0-9, A-F</span>
+
+                  <span class="meta-label">Operand type:</span>
+                  <span class="meta-value category">ADDRESS (8-bit memory location)</span>
+                </div>
+
+                <div class="error-actions">
+                  <button class="action-btn primary">Edit Value</button>
+                  <button class="action-btn">Show Memory Map</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item error">
+      <span>✗</span>
+      <span>Assembly failed:</span>
+      <span class="value">2 errors</span>
+    </div>
+    <div class="status-item">
+      <span>Lines:</span>
+      <span class="value">11</span>
+    </div>
+    <div style="flex:1"></div>
+    <div class="status-item">
+      <span>Ln 4, Col 1</span>
+    </div>
+  </div>
+</body>
+</html>

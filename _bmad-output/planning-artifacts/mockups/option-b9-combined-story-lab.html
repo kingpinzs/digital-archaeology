@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story + Lab Combined - Digital Archaeology</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@400;500&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Lab colors */
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-elevated: #1f2847;
+      --bg-hover: #243b5a;
+      --text-primary: #e4e4e4;
+      --text-secondary: #b0b0b0;
+      --text-muted: #6a6a8a;
+      --accent: #00b4d8;
+      --accent-hover: #00c9f2;
+      --signal-high: #00ff88;
+      --signal-low: #3a3a4a;
+      --error: #ff6b6b;
+      --warning: #ffc107;
+      --success: #51cf66;
+      --border: rgba(255,255,255,0.08);
+      --border-bright: rgba(255,255,255,0.15);
+      --selection: rgba(0, 180, 216, 0.25);
+      --gate-and: #4ecdc4;
+      --gate-or: #ff6b6b;
+      --gate-xor: #c44dff;
+      --gate-mux: #6bcb77;
+      /* Story/Persona colors */
+      --persona-gold: #d4a574;
+      --persona-warm: #c9956e;
+      --persona-bg: rgba(212, 165, 116, 0.08);
+      --persona-border: rgba(212, 165, 116, 0.25);
+      --story-bg: #12121a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      overflow: hidden;
+    }
+
+    /* ========== TOP BAR ========== */
+    .top-bar {
+      background: linear-gradient(90deg, var(--story-bg), var(--bg-secondary));
+      border-bottom: 1px solid var(--persona-border);
+      padding: 0 16px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--persona-gold);
+      letter-spacing: 1px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .mode-btn {
+      padding: 6px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .mode-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    .mode-btn.active {
+      background: var(--persona-gold);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .mode-btn.active.lab-mode {
+      background: var(--accent);
+    }
+
+    .journey-progress {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 24px;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .progress-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      border: 2px solid var(--text-muted);
+    }
+
+    .progress-dot.current {
+      border-color: var(--persona-gold);
+      box-shadow: 0 0 8px rgba(212, 165, 116, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 6px rgba(212, 165, 116, 0.4); }
+      50% { box-shadow: 0 0 12px rgba(212, 165, 116, 0.6); }
+    }
+
+    .era-badge {
+      background: var(--persona-bg);
+      border: 1px solid var(--persona-border);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: Georgia, serif;
+      color: var(--persona-gold);
+      font-size: 13px;
+    }
+
+    .top-spacer { flex: 1; }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .top-btn {
+      padding: 6px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 11px;
+      transition: all 0.15s;
+    }
+
+    .top-btn:hover {
+      border-color: var(--border-bright);
+      color: var(--text-primary);
+    }
+
+    /* ========== MAIN LAYOUT ========== */
+    .main-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ========== STORY PANEL (Left) ========== */
+    .story-panel {
+      width: 380px;
+      background: var(--story-bg);
+      border-right: 1px solid var(--persona-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .story-header {
+      padding: 16px 20px;
+      background: linear-gradient(180deg, rgba(212, 165, 116, 0.1), transparent);
+      border-bottom: 1px solid var(--persona-border);
+    }
+
+    .chapter-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 6px;
+    }
+
+    .chapter-title {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 22px;
+      color: var(--persona-gold);
+      font-weight: 600;
+    }
+
+    .story-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .story-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #c8c8d0;
+      margin-bottom: 16px;
+    }
+
+    .story-text .emphasis {
+      color: var(--persona-gold);
+      font-weight: 600;
+    }
+
+    .dialogue-block {
+      background: rgba(184, 115, 51, 0.1);
+      border-left: 3px solid var(--persona-warm);
+      padding: 12px 16px;
+      margin: 16px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .dialogue-speaker {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 6px;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .dialogue-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+
+    .thought-text {
+      font-family: 'Crimson Text', Georgia, serif;
+      font-style: italic;
+      color: var(--text-secondary);
+      padding-left: 16px;
+      border-left: 2px solid var(--persona-border);
+      margin: 16px 0;
+      font-size: 15px;
+    }
+
+    /* Challenge card */
+    .challenge-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+
+    .challenge-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .challenge-icon {
+      font-size: 20px;
+    }
+
+    .challenge-label {
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .challenge-title {
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .challenge-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .challenge-objectives {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .objective-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 12px;
+    }
+
+    .objective-check {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--text-muted);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .objective-check.complete {
+      background: var(--success);
+      border-color: var(--success);
+      color: #000;
+    }
+
+    .objective-text {
+      color: var(--text-secondary);
+    }
+
+    .objective-text.complete {
+      color: var(--success);
+      text-decoration: line-through;
+    }
+
+    /* Story choices */
+    .story-choices {
+      padding: 16px 20px;
+      background: rgba(212, 165, 116, 0.05);
+      border-top: 1px solid var(--persona-border);
+    }
+
+    .choices-label {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--persona-warm);
+      margin-bottom: 12px;
+    }
+
+    .choice-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: var(--bg-secondary);
+      border: 1px solid var(--persona-border);
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .choice-btn:hover {
+      border-color: var(--persona-gold);
+      background: var(--bg-hover);
+      transform: translateX(4px);
+    }
+
+    .choice-title {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .choice-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ========== LAB PANEL (Right) ========== */
+    .lab-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Lab toolbar */
+    .lab-toolbar {
+      background: var(--bg-secondary);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-bright);
+      margin: 0 8px;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text-primary);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-icon {
+      width: 28px;
+      padding: 6px;
+      justify-content: center;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .speed-value {
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+    }
+
+    /* Lab workspace */
+    .lab-workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Lab sidebar */
+    .lab-sidebar {
+      width: 240px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow: auto;
+      padding: 8px;
+    }
+
+    .section {
+      margin-bottom: 4px;
+    }
+
+    .section-header {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+    }
+
+    .section-header:hover {
+      background: var(--bg-hover);
+    }
+
+    .section-icon {
+      font-size: 8px;
+    }
+
+    .section-content {
+      padding: 6px 0;
+    }
+
+    .state-row {
+      display: flex;
+      padding: 5px 10px 5px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .state-row:hover {
+      background: var(--bg-hover);
+    }
+
+    .state-name {
+      flex: 1;
+      color: var(--text-secondary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .state-hex {
+      width: 50px;
+      color: var(--text-primary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .state-row.changed .state-hex {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    /* Editor area */
+    .editor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-tabs {
+      background: var(--bg-tertiary);
+      display: flex;
+      height: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .tab:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    .tab.active {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--bg-primary);
+    }
+
+    .editors-split {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    .editor-pane:last-child {
+      border-right: none;
+    }
+
+    .pane-tabs {
+      background: var(--bg-secondary);
+      display: flex;
+      height: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pane-tab {
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .pane-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .pane-tab.active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent);
+    }
+
+    .editor-content {
+      flex: 1;
+      overflow: auto;
+      background: var(--bg-primary);
+    }
+
+    /* Code editor */
+    .code-editor {
+      font-family: 'Source Code Pro', 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 22px;
+      padding: 8px 0;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 0 12px;
+      min-height: 22px;
+    }
+
+    .code-line:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-line.active {
+      background: var(--selection);
+    }
+
+    .line-num {
+      width: 40px;
+      text-align: right;
+      color: var(--text-muted);
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .line-content {
+      flex: 1;
+    }
+
+    .comment { color: #5a7a6a; font-style: italic; }
+    .keyword { color: #ff79c6; }
+    .number { color: var(--signal-high); }
+    .directive { color: var(--accent); }
+
+    /* Circuit view */
+    .circuit-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .circuit-header {
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .circuit-breadcrumb {
+      color: var(--text-muted);
+    }
+
+    .circuit-breadcrumb .current {
+      color: var(--text-primary);
+    }
+
+    .circuit-canvas {
+      flex: 1;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .circuit-canvas::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .gate { stroke-width: 2; }
+    .gate.and { fill: rgba(78, 205, 196, 0.15); stroke: var(--gate-and); }
+    .gate.or { fill: rgba(255, 107, 107, 0.15); stroke: var(--gate-or); }
+    .gate.xor { fill: rgba(196, 77, 255, 0.15); stroke: var(--gate-xor); }
+
+    .gate.active {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+
+    .gate-label {
+      font-size: 10px;
+      fill: var(--text-secondary);
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .wire {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire.high {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 3px var(--signal-high));
+    }
+
+    .junction {
+      fill: var(--signal-high);
+    }
+
+    .signal-bar {
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      font-size: 11px;
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .signal-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .signal-name {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .signal-value {
+      color: var(--signal-high);
+      font-weight: 600;
+    }
+
+    .signal-value.low {
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* Bottom output */
+    .output-panel {
+      height: 100px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .output-tabs {
+      display: flex;
+      height: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .output-tab {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .output-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .output-tab.active {
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--accent);
+    }
+
+    .output-tab .badge {
+      background: var(--error);
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+    }
+
+    .output-content {
+      flex: 1;
+      padding: 8px 14px;
+      overflow: auto;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+    }
+
+    .output-line {
+      padding: 2px 0;
+      color: var(--text-secondary);
+    }
+
+    .output-line.success {
+      color: var(--success);
+    }
+
+    .output-line.discovery {
+      color: var(--persona-gold);
+    }
+
+    .output-line .timestamp {
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--accent);
+      padding: 0 12px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: #fff;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-spacer { flex: 1; }
+
+    .status-era {
+      background: rgba(0,0,0,0.2);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: Georgia, serif;
+    }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--persona-gold);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+
+    /* Resize handle */
+    .resize-handle {
+      width: 4px;
+      background: var(--persona-border);
+      cursor: col-resize;
+      transition: background 0.2s;
+    }
+
+    .resize-handle:hover {
+      background: var(--persona-gold);
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B9: Story + Lab Combined</div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="app-title">Digital Archaeology</div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active">Story</button>
+      <button class="mode-btn active lab-mode">Lab</button>
+    </div>
+
+    <div class="journey-progress">
+      <span class="progress-label">Act</span>
+      <div class="progress-dots">
+        <div class="progress-dot current"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+    </div>
+
+    <div class="era-badge">1971 — Dawn of the Microprocessor</div>
+
+    <div class="top-spacer"></div>
+
+    <div class="top-actions">
+      <button class="top-btn">📜 Journal</button>
+      <button class="top-btn">💾 Save</button>
+      <button class="top-btn">⚙ Settings</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Story Panel (Left) -->
+    <div class="story-panel">
+      <div class="story-header">
+        <div class="chapter-label">Act I — Chapter 3</div>
+        <div class="chapter-title">The Carry Problem</div>
+      </div>
+
+      <div class="story-content">
+        <p class="story-text">
+          Your supervisor, <span class="emphasis">Dr. Chen</span>, examines your ripple-carry adder.
+          Four full adders chained together—elegant, but slow.
+        </p>
+
+        <div class="dialogue-block">
+          <div class="dialogue-speaker">Dr. Sarah Chen</div>
+          <div class="dialogue-text">
+            "Four bits. Good start. But what happens when you need 16 bits? The carry has to ripple through each stage..."
+          </div>
+        </div>
+
+        <p class="thought-text">
+          There has to be a better way. What if I could predict the carry instead of waiting for it?
+        </p>
+
+        <!-- Current Challenge -->
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <span class="challenge-icon">⚡</span>
+            <span class="challenge-label">Current Challenge</span>
+          </div>
+          <div class="challenge-title">Build a 4-bit Carry Look-Ahead Adder</div>
+          <div class="challenge-desc">
+            Create an adder that generates all carry bits in parallel, reducing propagation delay from O(n) to O(1).
+          </div>
+          <div class="challenge-objectives">
+            <div class="objective-item">
+              <div class="objective-check complete">✓</div>
+              <span class="objective-text complete">Implement Generate (G) logic</span>
+            </div>
+            <div class="objective-item">
+              <div class="objective-check complete">✓</div>
+              <span class="objective-text complete">Implement Propagate (P) logic</span>
+            </div>
+            <div class="objective-item">
+              <div class="objective-check"></div>
+              <span class="objective-text">Build carry look-ahead unit</span>
+            </div>
+            <div class="objective-item">
+              <div class="objective-check"></div>
+              <span class="objective-text">Connect to sum generators</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="story-text">
+          The lab bench awaits. Your breadboard is ready. The 7400-series chips sit in neat rows.
+          Time to see if you can outsmart the ripple.
+        </p>
+      </div>
+
+      <!-- Story Choices -->
+      <div class="story-choices">
+        <div class="choices-label">What's your approach?</div>
+
+        <button class="choice-btn">
+          <div class="choice-title">💡 Work through the math first</div>
+          <div class="choice-desc">Derive the carry equations on paper before building</div>
+        </button>
+
+        <button class="choice-btn">
+          <div class="choice-title">🔧 Build incrementally in the lab</div>
+          <div class="choice-desc">Start wiring and see what patterns emerge</div>
+        </button>
+
+        <button class="choice-btn">
+          <div class="choice-title">📚 Research existing solutions</div>
+          <div class="choice-desc">Check the literature for prior approaches</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resize Handle -->
+    <div class="resize-handle"></div>
+
+    <!-- Lab Panel (Right) -->
+    <div class="lab-panel">
+      <!-- Lab Toolbar -->
+      <div class="lab-toolbar">
+        <div class="toolbar-group">
+          <button class="btn primary">⚡ Assemble</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="btn">▶ Run</button>
+          <button class="btn btn-icon">⏸</button>
+          <button class="btn btn-icon">⏹</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="btn">⏭ Step</button>
+          <button class="btn">⏮ Back</button>
+        </div>
+        <div class="speed-control">
+          <span>Speed:</span>
+          <input type="range" style="width: 60px; accent-color: var(--accent);">
+          <span class="speed-value">10 Hz</span>
+        </div>
+      </div>
+
+      <!-- Lab Workspace -->
+      <div class="lab-workspace">
+        <!-- Lab Sidebar -->
+        <div class="lab-sidebar">
+          <div class="sidebar-header">CPU State</div>
+          <div class="sidebar-content">
+            <div class="section">
+              <div class="section-header">
+                <span class="section-icon">▼</span>
+                <span>Registers</span>
+              </div>
+              <div class="section-content">
+                <div class="state-row">
+                  <span class="state-name">PC</span>
+                  <span class="state-hex">0x04</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">ACC</span>
+                  <span class="state-hex">0x0F</span>
+                </div>
+                <div class="state-row">
+                  <span class="state-name">Z</span>
+                  <span class="state-hex">0x00</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">C</span>
+                  <span class="state-hex">0x01</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-header">
+                <span class="section-icon">▼</span>
+                <span>Memory</span>
+              </div>
+              <div class="section-content">
+                <div class="state-row">
+                  <span class="state-name">0x10</span>
+                  <span class="state-hex">0x05</span>
+                </div>
+                <div class="state-row">
+                  <span class="state-name">0x11</span>
+                  <span class="state-hex">0x0A</span>
+                </div>
+                <div class="state-row changed">
+                  <span class="state-name">0x12</span>
+                  <span class="state-hex">0x0F</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor Area -->
+        <div class="editor-area">
+          <div class="editor-tabs">
+            <div class="tab active">📄 cla_adder.asm</div>
+            <div class="tab">⚡ Circuit</div>
+            <div class="tab">📊 Memory</div>
+          </div>
+
+          <div class="editors-split">
+            <!-- Code Editor -->
+            <div class="editor-pane">
+              <div class="pane-tabs">
+                <div class="pane-tab active">Source</div>
+                <div class="pane-tab">Hex</div>
+              </div>
+              <div class="editor-content">
+                <div class="code-editor">
+                  <div class="code-line">
+                    <span class="line-num">1</span>
+                    <span class="line-content"><span class="comment">; Carry Look-Ahead Adder Test</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">2</span>
+                    <span class="line-content"><span class="comment">; Testing parallel carry generation</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">3</span>
+                    <span class="line-content"></span>
+                  </div>
+                  <div class="code-line active">
+                    <span class="line-num">4</span>
+                    <span class="line-content"><span class="keyword">LDA</span> <span class="number">0x10</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">5</span>
+                    <span class="line-content"><span class="keyword">ADD</span> <span class="number">0x11</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">6</span>
+                    <span class="line-content"><span class="keyword">STA</span> <span class="number">0x12</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">7</span>
+                    <span class="line-content"><span class="keyword">HLT</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">8</span>
+                    <span class="line-content"></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">9</span>
+                    <span class="line-content"><span class="directive">.org</span> <span class="number">0x10</span></span>
+                  </div>
+                  <div class="code-line">
+                    <span class="line-num">10</span>
+                    <span class="line-content"><span class="directive">.byte</span> <span class="number">0x05</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Circuit View -->
+            <div class="editor-pane">
+              <div class="pane-tabs">
+                <div class="pane-tab active">Schematic</div>
+                <div class="pane-tab">HDL</div>
+              </div>
+              <div class="circuit-view">
+                <div class="circuit-header">
+                  <div class="circuit-breadcrumb">
+                    CPU › ALU › <span class="current">CLA Unit</span>
+                  </div>
+                </div>
+                <div class="circuit-canvas">
+                  <svg class="circuit-svg" viewBox="0 0 300 180">
+                    <path class="wire high" d="M 30,40 L 70,40"/>
+                    <path class="wire high" d="M 30,70 L 70,70"/>
+                    <path class="wire high" d="M 130,55 L 160,55"/>
+                    <path class="wire" d="M 160,40 L 160,55 L 190,55"/>
+                    <path class="wire high" d="M 190,85 L 190,110 L 220,110"/>
+                    <path class="wire" d="M 270,110 L 290,110"/>
+
+                    <g transform="translate(70, 30)">
+                      <rect class="gate and active" x="0" y="0" width="60" height="40" rx="4"/>
+                      <text class="gate-label" x="20" y="25">AND</text>
+                    </g>
+
+                    <g transform="translate(190, 40)">
+                      <rect class="gate or" x="0" y="0" width="60" height="40" rx="4"/>
+                      <text class="gate-label" x="22" y="25">OR</text>
+                    </g>
+
+                    <g transform="translate(220, 90)">
+                      <rect class="gate xor" x="0" y="0" width="50" height="40" rx="4"/>
+                      <text class="gate-label" x="15" y="25">XOR</text>
+                    </g>
+
+                    <circle class="junction" cx="130" cy="55" r="4"/>
+                  </svg>
+                </div>
+                <div class="signal-bar">
+                  <div class="signal-item">
+                    <span class="signal-name">G[3:0]</span>
+                    <span class="signal-value">0x5</span>
+                  </div>
+                  <div class="signal-item">
+                    <span class="signal-name">P[3:0]</span>
+                    <span class="signal-value">0xA</span>
+                  </div>
+                  <div class="signal-item">
+                    <span class="signal-name">C[3:0]</span>
+                    <span class="signal-value">0x6</span>
+                  </div>
+                  <div class="signal-item">
+                    <span class="signal-name">SUM</span>
+                    <span class="signal-value">0x0F</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Output Panel -->
+          <div class="output-panel">
+            <div class="output-tabs">
+              <div class="output-tab active">Output</div>
+              <div class="output-tab">Problems <span class="badge">0</span></div>
+              <div class="output-tab">Console</div>
+            </div>
+            <div class="output-content">
+              <div class="output-line success">
+                <span class="timestamp">[10:42:15]</span>
+                Assembly successful: 12 bytes
+              </div>
+              <div class="output-line discovery">
+                <span class="timestamp">[10:42:16]</span>
+                💡 Discovery: Generate G = A AND B — true when both inputs are 1
+              </div>
+              <div class="output-line">
+                <span class="timestamp">[10:42:16]</span>
+                Step: PC=0x04, executing LDA 0x10
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-era">1971 — Micro4</span>
+    <div class="status-item">✓ Assembled</div>
+    <div class="status-item">PC: 0x04</div>
+    <div class="status-item">Cycle: 4</div>
+    <div class="status-spacer"></div>
+    <div class="status-item">💡 2/4 Objectives</div>
+    <div class="status-item">Ln 4, Col 1</div>
+  </div>
+</body>
+</html>

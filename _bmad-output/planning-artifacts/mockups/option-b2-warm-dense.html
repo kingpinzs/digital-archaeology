@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option B2: Warm Dense - Digital Archaeology</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #1c1917;
+      --bg-secondary: #292524;
+      --bg-tertiary: #3f3a36;
+      --bg-elevated: #44403c;
+      --text-primary: #fafaf9;
+      --text-secondary: #d6d3d1;
+      --text-muted: #78716c;
+      --accent: #f59e0b;
+      --accent-dim: #92400e;
+      --signal-high: #22c55e;
+      --signal-low: #374151;
+      --error: #ef4444;
+      --success: #22c55e;
+      --info: #3b82f6;
+      --border: rgba(255,255,255,0.1);
+      --gate-and: #06b6d4;
+      --gate-or: #f43f5e;
+      --gate-xor: #a855f7;
+      --gate-mux: #22c55e;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+    }
+
+    /* Tabbed menu bar */
+    .menu-bar {
+      background: var(--bg-secondary);
+      padding: 0 12px;
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--border);
+      height: 36px;
+    }
+
+    .menu-item {
+      padding: 0 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+
+    .menu-item:hover {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .menu-item.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .menu-spacer { flex: 1; }
+
+    /* Icon toolbar */
+    .toolbar {
+      background: var(--bg-secondary);
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      font-size: 16px;
+      justify-content: center;
+      border-radius: 6px;
+    }
+
+    .speed-display {
+      background: var(--bg-tertiary);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* Main with bottom panel */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr 260px;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 10px 14px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .panel-tab {
+      padding: 4px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .panel-tab.active {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow: auto;
+      padding: 8px;
+    }
+
+    /* Code editor - warm syntax */
+    .code-area {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .code-line {
+      display: flex;
+      padding: 1px 8px;
+      border-radius: 4px;
+    }
+
+    .code-line:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .code-line.active {
+      background: rgba(245, 158, 11, 0.15);
+      border-left: 3px solid var(--accent);
+      margin-left: -3px;
+    }
+
+    .gutter {
+      width: 30px;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 12px;
+      user-select: none;
+    }
+
+    .code-line.active .gutter {
+      color: var(--accent);
+    }
+
+    .comment { color: #6b7280; font-style: italic; }
+    .instruction { color: #f472b6; }
+    .operand { color: #34d399; }
+    .directive { color: #60a5fa; }
+    .label { color: #fbbf24; }
+
+    /* Code metadata bar */
+    .code-info-bar {
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 24px;
+      font-size: 11px;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 6px;
+    }
+
+    .info-label { color: var(--text-muted); }
+    .info-value { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+    .info-value.highlight { color: var(--accent); }
+
+    /* Circuit panel - warmer */
+    .circuit-toolbar {
+      padding: 6px 12px;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .breadcrumb span {
+      color: var(--text-primary);
+    }
+
+    .breadcrumb-sep {
+      color: var(--text-muted);
+    }
+
+    .view-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .view-btn {
+      padding: 4px 8px;
+      background: var(--bg-tertiary);
+      border: none;
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .view-btn:hover, .view-btn.active {
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+    }
+
+    .circuit-canvas-wrap {
+      flex: 1;
+      position: relative;
+      background: var(--bg-primary);
+    }
+
+    .circuit-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .gate {
+      stroke-width: 2;
+      rx: 4;
+    }
+
+    .gate.and { fill: rgba(6, 182, 212, 0.15); stroke: var(--gate-and); }
+    .gate.or { fill: rgba(244, 63, 94, 0.15); stroke: var(--gate-or); }
+    .gate.xor { fill: rgba(168, 85, 247, 0.15); stroke: var(--gate-xor); }
+    .gate.mux { fill: rgba(34, 197, 94, 0.15); stroke: var(--gate-mux); }
+
+    .gate-label {
+      font-size: 10px;
+      fill: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .gate-id {
+      font-size: 8px;
+      fill: var(--text-muted);
+    }
+
+    .wire {
+      stroke: var(--signal-low);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .wire.high {
+      stroke: var(--signal-high);
+      filter: drop-shadow(0 0 4px var(--signal-high));
+    }
+
+    /* Signal panel at bottom of circuit */
+    .signal-panel {
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .signal-item {
+      display: flex;
+      gap: 8px;
+    }
+
+    .signal-name { color: var(--text-muted); }
+    .signal-value { color: var(--signal-high); }
+    .signal-value.low { color: var(--text-muted); }
+
+    /* State panel with cards */
+    .state-card {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 8px 12px;
+      background: var(--bg-elevated);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .card-header:hover {
+      color: var(--text-primary);
+    }
+
+    .card-content {
+      padding: 8px;
+    }
+
+    .register-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .register-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .reg-name { color: var(--text-muted); }
+    .reg-value { color: var(--text-primary); }
+    .reg-value.changed {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Memory as hex grid */
+    .memory-grid {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .mem-row {
+      display: flex;
+      padding: 2px 0;
+    }
+
+    .mem-addr {
+      color: var(--info);
+      width: 40px;
+    }
+
+    .mem-values {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mem-val {
+      width: 20px;
+      text-align: center;
+    }
+
+    .mem-val.changed {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Bottom info bar */
+    .bottom-bar {
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border);
+      padding: 6px 16px;
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+    }
+
+    .bar-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .bar-value {
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .bar-item.success .bar-icon { color: var(--success); }
+    .bar-spacer { flex: 1; }
+
+    .design-label {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="design-label">B2: Warm Dense</div>
+
+  <div class="menu-bar">
+    <div class="menu-item active">Editor</div>
+    <div class="menu-item">Circuit</div>
+    <div class="menu-item">Memory</div>
+    <div class="menu-item">Debug</div>
+    <div class="menu-spacer"></div>
+    <div class="menu-item">Help</div>
+    <div class="menu-item">⚙</div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn primary">⚡ Assemble</button>
+    <div class="toolbar-divider"></div>
+    <button class="btn-icon btn">▶</button>
+    <button class="btn-icon btn">⏸</button>
+    <button class="btn-icon btn">⏹</button>
+    <div class="toolbar-divider"></div>
+    <button class="btn">⏭ Step</button>
+    <button class="btn">⏮ Back</button>
+    <div class="toolbar-divider"></div>
+    <div class="speed-display">10 Hz</div>
+    <input type="range" style="width: 80px; accent-color: var(--accent);">
+    <div style="flex:1"></div>
+    <button class="btn-icon btn">?</button>
+  </div>
+
+  <div class="main">
+    <div class="main-content">
+      <!-- Code Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>Source</span>
+          <div class="panel-tabs">
+            <button class="panel-tab active">main.asm</button>
+            <button class="panel-tab">+</button>
+          </div>
+        </div>
+        <div class="panel-content">
+          <div class="code-area">
+            <div class="code-line"><span class="gutter">1</span><span class="comment">; Micro4 Demo Program</span></div>
+            <div class="code-line"><span class="gutter">2</span><span class="comment">; Adds two numbers</span></div>
+            <div class="code-line"><span class="gutter">3</span></div>
+            <div class="code-line active"><span class="gutter">4</span><span class="instruction">LDA</span> <span class="operand">0x10</span></div>
+            <div class="code-line"><span class="gutter">5</span><span class="instruction">ADD</span> <span class="operand">0x11</span></div>
+            <div class="code-line"><span class="gutter">6</span><span class="instruction">STA</span> <span class="operand">0x12</span></div>
+            <div class="code-line"><span class="gutter">7</span><span class="instruction">HLT</span></div>
+            <div class="code-line"><span class="gutter">8</span></div>
+            <div class="code-line"><span class="gutter">9</span><span class="directive">.org</span> <span class="operand">0x10</span></div>
+            <div class="code-line"><span class="gutter">10</span><span class="directive">.byte</span> <span class="operand">0x05</span></div>
+            <div class="code-line"><span class="gutter">11</span><span class="directive">.byte</span> <span class="operand">0x0A</span></div>
+          </div>
+        </div>
+        <div class="code-info-bar">
+          <div class="info-item">
+            <span class="info-label">Inst:</span>
+            <span class="info-value highlight">LDA</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Type:</span>
+            <span class="info-value">DATA_MOVE</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Op:</span>
+            <span class="info-value">0x1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Circuit Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>Circuit</span>
+        </div>
+        <div class="circuit-toolbar">
+          <div class="breadcrumb">
+            CPU <span class="breadcrumb-sep">›</span> <span>ALU</span> <span class="breadcrumb-sep">›</span> <span>Adder</span>
+          </div>
+          <div class="view-controls">
+            <button class="view-btn">Fit</button>
+            <button class="view-btn active">100%</button>
+            <button class="view-btn">1:1</button>
+          </div>
+        </div>
+        <div class="circuit-canvas-wrap">
+          <svg class="circuit-svg" viewBox="0 0 500 280">
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+
+            <!-- Wires -->
+            <path class="wire high" d="M 80,90 L 140,90"/>
+            <path class="wire high" d="M 80,130 L 140,130"/>
+            <path class="wire high" d="M 200,110 L 250,110"/>
+            <path class="wire" d="M 250,90 L 250,110 L 300,110"/>
+            <path class="wire high" d="M 300,140 L 300,170 L 350,170"/>
+            <path class="wire" d="M 410,170 L 450,170"/>
+
+            <!-- AND Gate -->
+            <g transform="translate(140, 75)">
+              <rect class="gate and" x="0" y="0" width="60" height="50" rx="6"/>
+              <text class="gate-label" x="18" y="30">AND</text>
+              <text class="gate-id" x="22" y="65">G17</text>
+            </g>
+
+            <!-- OR Gate -->
+            <g transform="translate(300, 95)">
+              <rect class="gate or" x="0" y="0" width="60" height="50" rx="6"/>
+              <text class="gate-label" x="22" y="30">OR</text>
+              <text class="gate-id" x="22" y="65">G23</text>
+            </g>
+
+            <!-- MUX -->
+            <g transform="translate(350, 145)">
+              <rect class="gate mux" x="0" y="0" width="60" height="50" rx="6"/>
+              <text class="gate-label" x="18" y="30">MUX</text>
+              <text class="gate-id" x="22" y="65">G45</text>
+            </g>
+
+            <!-- Signal dots -->
+            <circle cx="200" cy="110" r="5" fill="#22c55e" filter="url(#glow)"/>
+            <circle cx="80" cy="90" r="4" fill="#22c55e" filter="url(#glow)"/>
+            <circle cx="80" cy="130" r="4" fill="#22c55e" filter="url(#glow)"/>
+          </svg>
+        </div>
+        <div class="signal-panel">
+          <div class="signal-item">
+            <span class="signal-name">data_bus:</span>
+            <span class="signal-value">0x05</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">addr_bus:</span>
+            <span class="signal-value">0x10</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">alu_op:</span>
+            <span class="signal-value low">PASS</span>
+          </div>
+          <div class="signal-item">
+            <span class="signal-name">wr_en:</span>
+            <span class="signal-value low">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- State Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>State</span>
+        </div>
+        <div class="panel-content">
+          <div class="state-card">
+            <div class="card-header">
+              <span>▼ Registers</span>
+            </div>
+            <div class="card-content">
+              <div class="register-grid">
+                <div class="register-item">
+                  <span class="reg-name">PC</span>
+                  <span class="reg-value">0x04</span>
+                </div>
+                <div class="register-item">
+                  <span class="reg-name">ACC</span>
+                  <span class="reg-value changed">0x0F</span>
+                </div>
+                <div class="register-item">
+                  <span class="reg-name">Z</span>
+                  <span class="reg-value">0</span>
+                </div>
+                <div class="register-item">
+                  <span class="reg-name">C</span>
+                  <span class="reg-value changed">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="state-card">
+            <div class="card-header">
+              <span>▼ Memory</span>
+              <span style="font-weight: normal">0x10</span>
+            </div>
+            <div class="card-content">
+              <div class="memory-grid">
+                <div class="mem-row">
+                  <span class="mem-addr">$10:</span>
+                  <div class="mem-values">
+                    <span class="mem-val">05</span>
+                    <span class="mem-val">0A</span>
+                    <span class="mem-val changed">0F</span>
+                    <span class="mem-val">00</span>
+                  </div>
+                </div>
+                <div class="mem-row">
+                  <span class="mem-addr">$14:</span>
+                  <div class="mem-values">
+                    <span class="mem-val">00</span>
+                    <span class="mem-val">00</span>
+                    <span class="mem-val">00</span>
+                    <span class="mem-val">00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bar-item success">
+        <span class="bar-icon">✓</span>
+        <span>Assembled</span>
+        <span class="bar-value">12B</span>
+      </div>
+      <div class="bar-item">
+        <span>PC:</span>
+        <span class="bar-value">0x04</span>
+      </div>
+      <div class="bar-item">
+        <span>Cycle:</span>
+        <span class="bar-value">4</span>
+      </div>
+      <div class="bar-item">
+        <span>Inst:</span>
+        <span class="bar-value">LDA (DATA_MOVE)</span>
+      </div>
+      <div class="bar-spacer"></div>
+      <div class="bar-item">
+        <span>Ln 4, Col 1</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -56,12 +56,12 @@ workflow_status:
     name: "Planning"
     workflows:
       - id: "prd"
-        status: "required"
+        status: "_bmad-output/planning-artifacts/prd.md"
         agent: "pm"
         command: "/bmad:bmm:workflows:prd"
         output: "Product Requirements Document"
       - id: "create-ux-design"
-        status: "required"
+        status: "_bmad-output/planning-artifacts/ux-design-specification.md"
         agent: "ux-designer"
         command: "/bmad:bmm:workflows:create-ux-design"
         note: "UX design for visualizer and educational interfaces"
@@ -71,7 +71,7 @@ workflow_status:
     name: "Solutioning"
     workflows:
       - id: "create-architecture"
-        status: "required"
+        status: "_bmad-output/planning-artifacts/architecture.md"
         agent: "architect"
         command: "/bmad:bmm:workflows:create-architecture"
         output: "System architecture document"

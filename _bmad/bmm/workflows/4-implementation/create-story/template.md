@@ -27,6 +27,21 @@ so that {{benefit}}.
 - Source tree components to touch
 - Testing standards summary
 
+### Accessibility Checklist
+
+<!-- Check all items that apply to this story. Mark N/A if not applicable. -->
+
+- [ ] **Keyboard Navigation** - All interactive elements accessible via keyboard (Tab, Enter, Escape, Arrow keys)
+- [ ] **ARIA Attributes** - Proper roles, labels, and states for screen readers
+  - [ ] `aria-label` or `aria-labelledby` for buttons/controls without visible text
+  - [ ] `aria-expanded`, `aria-pressed`, `aria-checked` for stateful controls
+  - [ ] `aria-live` regions for dynamic content updates
+  - [ ] `role="dialog"` and `aria-modal="true"` for modal dialogs
+- [ ] **Focus Management** - Focus moves logically, trapped in modals, restored on close
+- [ ] **Color Contrast** - WCAG AA minimum (4.5:1 for text, 3:1 for large text/UI)
+- [ ] **XSS Prevention** - Use `escapeHtml()` for any user-provided content in innerHTML
+- [ ] **Screen Reader Announcements** - Important state changes announced to assistive tech
+
 ### Project Structure Notes
 
 - Alignment with unified project structure (paths, modules, naming)

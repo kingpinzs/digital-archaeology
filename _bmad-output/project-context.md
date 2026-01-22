@@ -75,6 +75,39 @@ _Critical rules and patterns for implementing code in Digital Archaeology. Focus
 - **UI errors** - Transform technical errors before display
 - **Always include context** sufficient for debugging
 
+### XSS Prevention Rules
+
+- **ALWAYS escape user content** - Any string that could contain user input must be escaped before setting as HTML
+- **Use `escapeHtml()` helper** - Standard pattern for escaping HTML special characters
+- **Safe methods** - `textContent` is inherently safe; prefer it for simple text
+- **Dangerous methods** - Setting HTML with template literals requires escaping
+
+**The `escapeHtml()` Pattern:**
+```typescript
+/**
+ * Escape HTML special characters to prevent XSS attacks.
+ * Use this for ANY user-provided or external content rendered as HTML.
+ */
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;  // Browser handles encoding
+  return div.outerHTML.slice(5, -6);  // Extract encoded content
+}
+
+// Usage: Always escape user-provided strings before HTML rendering
+// Safe: element.textContent = userInput;  // No escaping needed
+```
+
+**When to Use:**
+| Source | Escape Required? |
+|--------|-----------------|
+| User input (text fields, URL params) | YES |
+| External API responses | YES |
+| Assembler error messages | YES |
+| Instruction text display | YES |
+| Hardcoded UI strings | NO |
+| Number values (toString) | NO |
+
 ### Testing Rules
 
 - **Co-locate tests** with source files as `*.test.ts`

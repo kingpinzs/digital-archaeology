@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated WASM files (rebuilt from source via wasm-build/build.sh)
+public/wasm/*.wasm
+public/wasm/*.js

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Emscripten build configuration reference for Micro4 assembler WASM compilation. Actual build flags are in build.sh.",
+  "compiler": {
+    "optimization": "-O2",
+    "description": "Optimization level 2 balances size and speed"
+  },
+  "module": {
+    "MODULARIZE": true,
+    "EXPORT_ES6": true,
+    "description": "ES6 module output for Vite/modern bundler compatibility"
+  },
+  "environment": {
+    "ENVIRONMENT": "worker",
+    "description": "Target Web Worker environment (no DOM APIs)"
+  },
+  "memory": {
+    "ALLOW_MEMORY_GROWTH": true,
+    "INITIAL_MEMORY": "1MB",
+    "STACK_SIZE": "64KB",
+    "description": "Dynamic memory with reasonable initial allocation"
+  },
+  "exports": {
+    "functions": [
+      "_assemble_source",
+      "_get_output",
+      "_get_output_size",
+      "_get_error",
+      "_get_error_line",
+      "_malloc",
+      "_free"
+    ],
+    "runtimeMethods": [
+      "ccall",
+      "cwrap",
+      "UTF8ToString",
+      "stringToUTF8",
+      "lengthBytesUTF8"
+    ],
+    "description": "Minimal API surface for assembler functionality"
+  },
+  "sourceFiles": {
+    "main": "../../src/micro4/assembler.c",
+    "bindings": "./assembler-bindings.c",
+    "includes": ["../../src/micro4"]
+  },
+  "output": {
+    "directory": "../public/wasm",
+    "jsFile": "micro4-asm.js",
+    "wasmFile": "micro4-asm.wasm",
+    "expectedWasmSize": "<100KB"
+  },
+  "prerequisites": {
+    "emscripten": {
+      "install": "https://emscripten.org/docs/getting_started/downloads.html",
+      "commands": [
+        "git clone https://github.com/emscripten-core/emsdk.git",
+        "./emsdk install latest",
+        "./emsdk activate latest",
+        "source ./emsdk_env.sh"
+      ]
+    }
+  }
+}

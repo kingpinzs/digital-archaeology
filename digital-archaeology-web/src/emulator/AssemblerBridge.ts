@@ -10,6 +10,8 @@ import type {
   AssemblerEvent,
   AssembleCommand,
   AssemblerError,
+  AssemblerErrorType,
+  CodeSnippet,
 } from './types';
 
 /**
@@ -18,6 +20,101 @@ import type {
  * Can be overridden per-call via the timeoutMs parameter.
  */
 const DEFAULT_TIMEOUT_MS = 10000;
+
+/**
+ * Detect error type from error message patterns.
+ * Based on C assembler error message formats.
+ */
+function detectErrorType(message: string): AssemblerErrorType {
+  const lowerMessage = message.toLowerCase();
+
+  // SYNTAX_ERROR patterns: unknown instruction, undefined label, invalid syntax
+  if (
+    lowerMessage.includes('unknown instruction') ||
+    lowerMessage.includes('undefined label') ||
+    lowerMessage.includes('invalid instruction') ||
+    lowerMessage.includes('syntax error') ||
+    lowerMessage.includes('unexpected')
+  ) {
+    return 'SYNTAX_ERROR';
+  }
+
+  // CONSTRAINT_ERROR patterns: range exceeded, overflow
+  if (
+    lowerMessage.includes('exceeds') ||
+    lowerMessage.includes('range') ||
+    lowerMessage.includes('overflow') ||
+    lowerMessage.includes('too large') ||
+    lowerMessage.includes('too small')
+  ) {
+    return 'CONSTRAINT_ERROR';
+  }
+
+  // VALUE_ERROR patterns: invalid address, invalid value, invalid operand
+  if (
+    lowerMessage.includes('invalid address') ||
+    lowerMessage.includes('invalid value') ||
+    lowerMessage.includes('invalid operand') ||
+    lowerMessage.includes('invalid number')
+  ) {
+    return 'VALUE_ERROR';
+  }
+
+  // Default to SYNTAX_ERROR for unrecognized patterns
+  return 'SYNTAX_ERROR';
+}
+
+/**
+ * Generate code snippet from source code around the error line.
+ * @param source - The full source code
+ * @param lineNumber - 1-based line number where the error occurred
+ * @returns CodeSnippet with context
+ */
+function generateCodeSnippet(source: string, lineNumber: number): CodeSnippet {
+  const lines = source.split('\n');
+  const lineIndex = lineNumber - 1; // Convert to 0-based
+
+  // Get the error line (or empty string if out of range)
+  const errorLine = lines[lineIndex] ?? '';
+
+  // Get context before (up to 1 line)
+  const contextBefore: string[] = [];
+  if (lineIndex > 0) {
+    contextBefore.push(lines[lineIndex - 1]);
+  }
+
+  // Get context after (up to 1 line)
+  const contextAfter: string[] = [];
+  if (lineIndex < lines.length - 1) {
+    contextAfter.push(lines[lineIndex + 1]);
+  }
+
+  return {
+    line: errorLine,
+    lineNumber,
+    contextBefore,
+    contextAfter,
+  };
+}
+
+/**
+ * Determine if an error is auto-fixable.
+ * Only SYNTAX_ERROR with suggestions are auto-fixable.
+ * VALUE_ERROR and CONSTRAINT_ERROR require user judgment.
+ */
+function isFixable(
+  type: AssemblerErrorType,
+  suggestion: string | undefined
+): boolean {
+  // Must have a suggestion to be fixable
+  if (!suggestion) {
+    return false;
+  }
+
+  // Only SYNTAX_ERROR is auto-fixable (e.g., typos in instruction names)
+  // VALUE_ERROR and CONSTRAINT_ERROR require user judgment about correct values
+  return type === 'SYNTAX_ERROR';
+}
 
 /**
  * Timeout for worker initialization in milliseconds.
@@ -164,9 +261,22 @@ export class AssemblerBridge {
           });
         } else if (data.type === 'ASSEMBLE_ERROR') {
           cleanup();
+
+          // Detect error type from message patterns
+          const errorType = detectErrorType(data.payload.message);
+
+          // Generate code snippet from source
+          const codeSnippet = generateCodeSnippet(source, data.payload.line);
+
+          // Determine if error is auto-fixable
+          const fixable = isFixable(errorType, data.payload.suggestion);
+
           const error: AssemblerError = {
             line: data.payload.line,
             message: data.payload.message,
+            type: errorType,
+            codeSnippet,
+            fixable,
           };
           if (data.payload.column !== undefined) {
             error.column = data.payload.column;

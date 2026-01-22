@@ -173,6 +173,29 @@ export interface AssembleResult {
 }
 
 /**
+ * Error type classification for assembly errors.
+ * Used for visual categorization and error-specific handling.
+ */
+export type AssemblerErrorType =
+  | 'SYNTAX_ERROR'
+  | 'VALUE_ERROR'
+  | 'CONSTRAINT_ERROR';
+
+/**
+ * Code snippet context for displaying errors with surrounding code.
+ */
+export interface CodeSnippet {
+  /** The actual error line content */
+  line: string;
+  /** The line number (1-based) */
+  lineNumber: number;
+  /** Lines before the error (for context) */
+  contextBefore?: string[];
+  /** Lines after the error (for context) */
+  contextAfter?: string[];
+}
+
+/**
  * Assembly error details.
  */
 export interface AssemblerError {
@@ -184,6 +207,12 @@ export interface AssemblerError {
   message: string;
   /** Suggested fix, if available */
   suggestion?: string;
+  /** Error type classification for visual categorization */
+  type?: AssemblerErrorType;
+  /** Code snippet with context for display */
+  codeSnippet?: CodeSnippet;
+  /** Whether this error can be auto-fixed */
+  fixable?: boolean;
 }
 
 /**

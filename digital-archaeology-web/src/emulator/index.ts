@@ -11,6 +11,8 @@ export type {
   AssemblerModuleFactory,
   AssembleResult,
   AssemblerError,
+  AssemblerErrorType,
+  CodeSnippet,
   AssembleCommand,
   AssembleSuccessEvent,
   AssembleErrorEvent,

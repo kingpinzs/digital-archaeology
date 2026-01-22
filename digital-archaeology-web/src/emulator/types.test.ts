@@ -4,6 +4,8 @@ import type {
   AssemblerModuleFactory,
   AssembleResult,
   AssemblerError,
+  AssemblerErrorType,
+  CodeSnippet,
   AssembleCommand,
   AssembleSuccessEvent,
   AssembleErrorEvent,
@@ -66,6 +68,168 @@ describe('Emulator Types', () => {
 
       expect(error.column).toBeUndefined();
       expect(error.suggestion).toBeUndefined();
+    });
+
+    it('should support optional type field for error classification', () => {
+      const syntaxError: AssemblerError = {
+        line: 1,
+        message: 'Unknown instruction: FOO',
+        type: 'SYNTAX_ERROR',
+      };
+
+      const valueError: AssemblerError = {
+        line: 2,
+        message: 'Invalid address 999',
+        type: 'VALUE_ERROR',
+      };
+
+      const constraintError: AssemblerError = {
+        line: 3,
+        message: 'Value exceeds nibble range',
+        type: 'CONSTRAINT_ERROR',
+      };
+
+      expect(syntaxError.type).toBe('SYNTAX_ERROR');
+      expect(valueError.type).toBe('VALUE_ERROR');
+      expect(constraintError.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('should support optional codeSnippet field for context display', () => {
+      const error: AssemblerError = {
+        line: 3,
+        message: 'Unknown instruction: INVALID',
+        codeSnippet: {
+          line: 'INVALID 0x10',
+          lineNumber: 3,
+          contextBefore: ['LDA 0x05', 'ADD 0x06'],
+          contextAfter: ['HLT'],
+        },
+      };
+
+      expect(error.codeSnippet).toBeDefined();
+      expect(error.codeSnippet?.line).toBe('INVALID 0x10');
+      expect(error.codeSnippet?.lineNumber).toBe(3);
+      expect(error.codeSnippet?.contextBefore).toHaveLength(2);
+      expect(error.codeSnippet?.contextAfter).toHaveLength(1);
+    });
+
+    it('should support codeSnippet with minimal context', () => {
+      const error: AssemblerError = {
+        line: 1,
+        message: 'Syntax error',
+        codeSnippet: {
+          line: 'BADCODE',
+          lineNumber: 1,
+        },
+      };
+
+      expect(error.codeSnippet?.line).toBe('BADCODE');
+      expect(error.codeSnippet?.contextBefore).toBeUndefined();
+      expect(error.codeSnippet?.contextAfter).toBeUndefined();
+    });
+
+    it('should support optional fixable field for auto-fix capability', () => {
+      const fixableError: AssemblerError = {
+        line: 1,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        fixable: true,
+      };
+
+      const nonFixableError: AssemblerError = {
+        line: 2,
+        message: 'Invalid address',
+        fixable: false,
+      };
+
+      expect(fixableError.fixable).toBe(true);
+      expect(nonFixableError.fixable).toBe(false);
+    });
+
+    it('should support all rich error fields together', () => {
+      const richError: AssemblerError = {
+        line: 5,
+        column: 10,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        type: 'SYNTAX_ERROR',
+        codeSnippet: {
+          line: '    LDAA 0x10',
+          lineNumber: 5,
+          contextBefore: ['    LDA 0x05'],
+          contextAfter: ['    HLT'],
+        },
+        fixable: true,
+      };
+
+      expect(richError.type).toBe('SYNTAX_ERROR');
+      expect(richError.codeSnippet?.line).toBe('    LDAA 0x10');
+      expect(richError.suggestion).toBe('LDA');
+      expect(richError.fixable).toBe(true);
+    });
+  });
+
+  describe('AssemblerErrorType', () => {
+    it('should define three valid error types', () => {
+      const types: AssemblerErrorType[] = [
+        'SYNTAX_ERROR',
+        'VALUE_ERROR',
+        'CONSTRAINT_ERROR',
+      ];
+
+      expect(types).toHaveLength(3);
+      expect(types).toContain('SYNTAX_ERROR');
+      expect(types).toContain('VALUE_ERROR');
+      expect(types).toContain('CONSTRAINT_ERROR');
+    });
+
+    it('should be usable as error.type value', () => {
+      const errorType: AssemblerErrorType = 'SYNTAX_ERROR';
+      const error: AssemblerError = {
+        line: 1,
+        message: 'Test',
+        type: errorType,
+      };
+
+      expect(error.type).toBe('SYNTAX_ERROR');
+    });
+  });
+
+  describe('CodeSnippet', () => {
+    it('should define minimal code snippet with required fields', () => {
+      const snippet: CodeSnippet = {
+        line: 'LDA 0x10',
+        lineNumber: 1,
+      };
+
+      expect(snippet.line).toBe('LDA 0x10');
+      expect(snippet.lineNumber).toBe(1);
+      expect(snippet.contextBefore).toBeUndefined();
+      expect(snippet.contextAfter).toBeUndefined();
+    });
+
+    it('should define full code snippet with context', () => {
+      const snippet: CodeSnippet = {
+        line: 'BAD_INSTRUCTION',
+        lineNumber: 3,
+        contextBefore: ['LDA 0x05', 'ADD 0x06'],
+        contextAfter: ['HLT', 'END'],
+      };
+
+      expect(snippet.contextBefore).toEqual(['LDA 0x05', 'ADD 0x06']);
+      expect(snippet.contextAfter).toEqual(['HLT', 'END']);
+    });
+
+    it('should handle empty context arrays', () => {
+      const snippet: CodeSnippet = {
+        line: 'LDA 0x10',
+        lineNumber: 1,
+        contextBefore: [],
+        contextAfter: [],
+      };
+
+      expect(snippet.contextBefore).toHaveLength(0);
+      expect(snippet.contextAfter).toHaveLength(0);
     });
   });
 

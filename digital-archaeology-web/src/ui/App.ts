@@ -13,7 +13,7 @@ import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { AssemblerBridge } from '@emulator/index';
-import type { AssembleResult } from '@emulator/index';
+import type { AssembleResult, AssemblerError } from '@emulator/index';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -375,6 +375,7 @@ export class App {
 
     this.errorPanel = new ErrorPanel({
       onErrorClick: (error) => this.handleErrorClick(error),
+      onFix: (error) => this.applyFix(error),
     });
     this.errorPanel.mount(errorContainer);
   }
@@ -387,6 +388,33 @@ export class App {
    */
   private handleErrorClick(error: { line: number; column?: number }): void {
     this.editor?.revealLine(error.line, error.column ?? 1);
+  }
+
+  /**
+   * Apply auto-fix for an error by replacing the error line with the suggestion.
+   * Triggers re-assembly after applying the fix.
+   * @param error - The assembler error with a suggestion
+   * @returns void
+   */
+  private applyFix(error: AssemblerError): void {
+    if (!error.suggestion || !this.editor) return;
+
+    const source = this.editor.getValue() ?? '';
+    const lines = source.split('\n');
+
+    // Replace the error line with the suggestion (line is 1-based)
+    const lineIndex = error.line - 1;
+    if (lineIndex >= 0 && lineIndex < lines.length) {
+      lines[lineIndex] = error.suggestion;
+      const fixedSource = lines.join('\n');
+      this.editor.setValue(fixedSource);
+
+      // Visual feedback: reveal and briefly highlight the fixed line
+      this.editor.revealLine(error.line, 1);
+
+      // Trigger re-assembly with the fixed code
+      this.handleAssemble();
+    }
   }
 
   /**

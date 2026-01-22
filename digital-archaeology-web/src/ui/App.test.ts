@@ -109,11 +109,29 @@ vi.mock('monaco-editor', () => ({
 
 // Mock AssemblerBridge - must be properly hoisted to work as constructor
 const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
+  // Type for assembly error (matches AssemblerError from emulator)
+  type AssemblerErrorType = 'SYNTAX_ERROR' | 'VALUE_ERROR' | 'CONSTRAINT_ERROR';
+  type CodeSnippet = {
+    line: string;
+    lineNumber: number;
+    contextBefore?: string[];
+    contextAfter?: string[];
+  };
+  type AssemblerError = {
+    line: number;
+    column?: number;
+    message: string;
+    suggestion?: string;
+    type?: AssemblerErrorType;
+    codeSnippet?: CodeSnippet;
+    fixable?: boolean;
+  };
+
   // Type for assembly result (matches AssembleResult from emulator)
   type AssemblyResult = {
     success: boolean;
     binary: Uint8Array | null;
-    error: { line: number; column?: number; message: string } | null;
+    error: AssemblerError | null;
   };
 
   // Mutable state for test manipulation
@@ -1865,6 +1883,252 @@ describe('App', () => {
         errorItem.click();
 
         expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({ lineNumber: 5, column: 10 });
+      });
+    });
+
+    describe('auto-fix functionality (Story 3.5)', () => {
+      it('should replace error line with suggestion when Fix button is clicked', async () => {
+        const originalCode = 'LDA 0x05\nLDAA 0x10\nHLT';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 2,
+            message: 'Unknown instruction: LDAA',
+            suggestion: 'LDA 0x10',
+            fixable: true,
+            type: 'SYNTAX_ERROR',
+            codeSnippet: {
+              line: 'LDAA 0x10',
+              lineNumber: 2,
+              contextBefore: ['LDA 0x05'],
+              contextAfter: ['HLT'],
+            },
+          },
+        });
+
+        // Trigger content change to enable Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Trigger assembly to show errors
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+          expect(fixBtn).not.toBeNull();
+        });
+
+        mockEditorInstance.setValue.mockClear();
+
+        // Click Fix button
+        const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+        fixBtn.click();
+
+        // Editor should have been updated with fixed code
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('LDA 0x05\nLDA 0x10\nHLT');
+      });
+
+      it('should trigger re-assembly after applying fix', async () => {
+        const originalCode = 'INVALID';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 1,
+            message: 'Unknown instruction: INVALID',
+            suggestion: 'LDA',
+            fixable: true,
+          },
+        });
+
+        // Trigger content change to enable Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // First assembly
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+          expect(fixBtn).not.toBeNull();
+        });
+
+        // Now set a successful result for the re-assembly after fix
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([1, 2, 3]),
+          error: null,
+        });
+
+        // Click Fix button
+        const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+        fixBtn.click();
+
+        // Wait for re-assembly to complete
+        await vi.waitFor(() => {
+          // Check that errors were cleared (success path)
+          const errorPanel = container.querySelector('.da-error-panel');
+          expect(errorPanel?.classList.contains('da-error-panel--hidden')).toBe(true);
+        });
+      });
+
+      it('should handle fix on first line correctly', async () => {
+        const originalCode = 'BADOP\nHLT';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 1,
+            message: 'Unknown instruction: BADOP',
+            suggestion: 'NOP',
+            fixable: true,
+          },
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+          expect(fixBtn).not.toBeNull();
+        });
+
+        mockEditorInstance.setValue.mockClear();
+
+        const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+        fixBtn.click();
+
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('NOP\nHLT');
+      });
+
+      it('should handle fix on last line correctly', async () => {
+        const originalCode = 'LDA 0x05\nBADOP';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 2,
+            message: 'Unknown instruction: BADOP',
+            suggestion: 'HLT',
+            fixable: true,
+          },
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+          expect(fixBtn).not.toBeNull();
+        });
+
+        mockEditorInstance.setValue.mockClear();
+
+        const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+        fixBtn.click();
+
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('LDA 0x05\nHLT');
+      });
+
+      it('should not apply fix if suggestion is undefined', async () => {
+        const originalCode = 'INVALID';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 1,
+            message: 'Unknown instruction',
+            // No suggestion - fixable should be false
+            fixable: false,
+          },
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorItem = container.querySelector('.da-error-panel-item') as HTMLElement;
+          expect(errorItem).not.toBeNull();
+        });
+
+        // No Fix button should appear
+        const fixBtn = container.querySelector('.da-error-fix-btn');
+        expect(fixBtn).toBeNull();
+      });
+
+      it('should reveal the fixed line for visual feedback', async () => {
+        const originalCode = 'LDA 0x05\nLDAA 0x10\nHLT';
+        mockEditorInstance._setContent(originalCode);
+        mockEditorInstance.getValue.mockReturnValue(originalCode);
+
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: {
+            line: 2,
+            message: 'Unknown instruction: LDAA',
+            suggestion: 'LDA 0x10',
+            fixable: true,
+          },
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+          expect(fixBtn).not.toBeNull();
+        });
+
+        mockEditorInstance.setPosition.mockClear();
+        mockEditorInstance.revealLineInCenter.mockClear();
+        mockEditorInstance.focus.mockClear();
+
+        // Click Fix button
+        const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+        fixBtn.click();
+
+        // Editor.revealLine should be called, which internally calls setPosition, revealLineInCenter, focus
+        // This verifies visual feedback is shown for the fixed line
+        expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({ lineNumber: 2, column: 1 });
+        expect(mockEditorInstance.revealLineInCenter).toHaveBeenCalledWith(2);
+        expect(mockEditorInstance.focus).toHaveBeenCalled();
       });
     });
   });

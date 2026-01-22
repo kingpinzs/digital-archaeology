@@ -18,6 +18,8 @@ export interface ErrorClickInfo {
 export interface ErrorPanelOptions {
   /** Callback when an error item is clicked */
   onErrorClick?: (error: ErrorClickInfo) => void;
+  /** Callback when the Fix button is clicked for an auto-fixable error */
+  onFix?: (error: AssemblerError) => void;
 }
 
 /**
@@ -140,7 +142,18 @@ export class ErrorPanel {
 
     // Create bound handlers that can be removed later
     this.boundClickHandler = (e: Event) => {
-      const item = (e.target as HTMLElement).closest('.da-error-panel-item');
+      const target = e.target as HTMLElement;
+
+      // Check if Fix button was clicked
+      const fixBtn = target.closest('.da-error-fix-btn');
+      if (fixBtn) {
+        e.stopPropagation(); // Prevent item click handler from firing
+        this.handleFixButtonClick(fixBtn as HTMLElement);
+        return;
+      }
+
+      // Otherwise handle item click
+      const item = target.closest('.da-error-panel-item');
       if (item) {
         this.handleItemClickFromElement(item as HTMLElement);
       }
@@ -149,7 +162,19 @@ export class ErrorPanel {
     this.boundKeydownHandler = (e: KeyboardEvent) => {
       // Support both Enter and Space for WCAG 2.1 accessibility
       if (e.key === 'Enter' || e.key === ' ') {
-        const item = (e.target as HTMLElement).closest('.da-error-panel-item');
+        const target = e.target as HTMLElement;
+
+        // Check if Fix button has focus
+        const fixBtn = target.closest('.da-error-fix-btn');
+        if (fixBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handleFixButtonClick(fixBtn as HTMLElement);
+          return;
+        }
+
+        // Otherwise handle item keydown
+        const item = target.closest('.da-error-panel-item');
         if (item) {
           e.preventDefault(); // Prevent Space from scrolling
           this.handleItemClickFromElement(item as HTMLElement);
@@ -196,6 +221,24 @@ export class ErrorPanel {
   }
 
   /**
+   * Handle Fix button click.
+   * Finds the corresponding error and calls onFix callback with full error object.
+   * @param fixBtn - The Fix button element that was clicked
+   */
+  private handleFixButtonClick(fixBtn: HTMLElement): void {
+    if (!this.options.onFix) return;
+
+    const errorIndex = parseInt(fixBtn.getAttribute('data-error-index') ?? '-1', 10);
+    if (errorIndex < 0 || errorIndex >= this.errors.length) return;
+
+    // Use error index for reliable identification (handles multiple errors on same line)
+    const error = this.errors[errorIndex];
+    if (error) {
+      this.options.onFix(error);
+    }
+  }
+
+  /**
    * Update the UI based on current errors.
    */
   private updateUI(): void {
@@ -217,9 +260,10 @@ export class ErrorPanel {
       this.listElement.removeChild(this.listElement.firstChild);
     }
 
-    // Render error items
-    for (const error of this.errors) {
-      const item = this.createErrorItem(error);
+    // Render error items with index for unique identification
+    for (let index = 0; index < this.errors.length; index++) {
+      const error = this.errors[index];
+      const item = this.createErrorItem(error, index);
       this.listElement.appendChild(item);
     }
   }
@@ -227,15 +271,29 @@ export class ErrorPanel {
   /**
    * Create a single error item element.
    * @param error - The error to render
+   * @param index - The index of this error in the errors array (for unique identification)
    */
-  private createErrorItem(error: AssemblerError): HTMLElement {
+  private createErrorItem(error: AssemblerError, index: number): HTMLElement {
     const item = document.createElement('div');
     item.className = 'da-error-panel-item';
     item.setAttribute('role', 'listitem');
     item.setAttribute('tabindex', '0');
     item.setAttribute('data-line', String(error.line));
+    item.setAttribute('data-error-index', String(index));
     if (error.column !== undefined) {
       item.setAttribute('data-column', String(error.column));
+    }
+
+    // Set aria-label for accessibility - announce if fixable
+    const ariaLabel = error.fixable
+      ? `Error on line ${error.line}: ${error.message} - fixable`
+      : `Error on line ${error.line}: ${error.message}`;
+    item.setAttribute('aria-label', ariaLabel);
+
+    // Error type badge (if type is provided)
+    if (error.type) {
+      const badge = this.createTypeBadge(error.type);
+      item.appendChild(badge);
     }
 
     // Location text
@@ -254,9 +312,159 @@ export class ErrorPanel {
     message.textContent = error.message;
     item.appendChild(message);
 
+    // Code snippet (if provided)
+    if (error.codeSnippet) {
+      const snippet = this.createCodeSnippet(error.codeSnippet);
+      item.appendChild(snippet);
+    }
+
+    // Suggestion (if provided)
+    if (error.suggestion) {
+      const suggestion = this.createSuggestion(error.suggestion);
+      item.appendChild(suggestion);
+    }
+
+    // Fix button (if fixable)
+    if (error.fixable === true) {
+      const fixBtn = this.createFixButton(error, index);
+      item.appendChild(fixBtn);
+    }
+
     // Note: Click and keyboard handlers use event delegation on the list element
     // This avoids per-item listeners and potential memory leaks
 
     return item;
+  }
+
+  /**
+   * Create an error type badge element.
+   * @param type - The error type
+   */
+  private createTypeBadge(
+    type: 'SYNTAX_ERROR' | 'VALUE_ERROR' | 'CONSTRAINT_ERROR'
+  ): HTMLElement {
+    const badge = document.createElement('span');
+    badge.className = 'da-error-type-badge';
+
+    // Map type to display text and CSS modifier
+    const typeMap: Record<
+      string,
+      { text: string; modifier: string }
+    > = {
+      SYNTAX_ERROR: { text: 'SYNTAX', modifier: 'syntax' },
+      VALUE_ERROR: { text: 'VALUE', modifier: 'value' },
+      CONSTRAINT_ERROR: { text: 'CONSTRAINT', modifier: 'constraint' },
+    };
+
+    const typeInfo = typeMap[type];
+    badge.textContent = typeInfo.text;
+    badge.classList.add(`da-error-type-badge--${typeInfo.modifier}`);
+
+    return badge;
+  }
+
+  /**
+   * Create a code snippet element with context.
+   * @param snippet - The code snippet data
+   */
+  private createCodeSnippet(snippet: {
+    line: string;
+    lineNumber: number;
+    contextBefore?: string[];
+    contextAfter?: string[];
+  }): HTMLElement {
+    const container = document.createElement('pre');
+    container.className = 'da-error-snippet';
+    container.setAttribute('aria-label', `Code snippet showing error on line ${snippet.lineNumber}`);
+
+    // Context before
+    if (snippet.contextBefore) {
+      snippet.contextBefore.forEach((line, index) => {
+        const lineNum = snippet.lineNumber - snippet.contextBefore!.length + index;
+        const lineEl = this.createSnippetLine(lineNum, line, false);
+        container.appendChild(lineEl);
+      });
+    }
+
+    // Error line (highlighted)
+    const errorLine = this.createSnippetLine(snippet.lineNumber, snippet.line, true);
+    container.appendChild(errorLine);
+
+    // Context after
+    if (snippet.contextAfter) {
+      snippet.contextAfter.forEach((line, index) => {
+        const lineNum = snippet.lineNumber + index + 1;
+        const lineEl = this.createSnippetLine(lineNum, line, false);
+        container.appendChild(lineEl);
+      });
+    }
+
+    return container;
+  }
+
+  /**
+   * Create a single line in the code snippet.
+   * @param lineNumber - The line number to display
+   * @param content - The line content
+   * @param isError - Whether this is the error line (highlighted)
+   */
+  private createSnippetLine(
+    lineNumber: number,
+    content: string,
+    isError: boolean
+  ): HTMLElement {
+    const line = document.createElement('div');
+    line.className = isError
+      ? 'da-error-snippet-line da-error-snippet-line--error'
+      : 'da-error-snippet-line';
+
+    const lineNum = document.createElement('span');
+    lineNum.className = 'da-error-snippet-linenum';
+    lineNum.textContent = String(lineNumber);
+    line.appendChild(lineNum);
+
+    const code = document.createElement('code');
+    code.className = 'da-error-snippet-code';
+    code.textContent = content;
+    line.appendChild(code);
+
+    return line;
+  }
+
+  /**
+   * Create a suggestion element.
+   * @param suggestion - The suggestion text
+   */
+  private createSuggestion(suggestion: string): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'da-error-suggestion';
+
+    const prefix = document.createElement('span');
+    prefix.textContent = 'Did you mean: ';
+    el.appendChild(prefix);
+
+    const suggestionText = document.createElement('code');
+    suggestionText.textContent = suggestion;
+    el.appendChild(suggestionText);
+
+    return el;
+  }
+
+  /**
+   * Create a Fix button for auto-fixable errors.
+   * @param error - The error with suggestion
+   */
+  private createFixButton(error: AssemblerError, index: number): HTMLElement {
+    const btn = document.createElement('button');
+    btn.className = 'da-error-fix-btn';
+    btn.textContent = 'Fix';
+    btn.type = 'button';
+    btn.setAttribute('data-line', String(error.line));
+    btn.setAttribute('data-error-index', String(index));
+    btn.setAttribute('aria-label', `Fix error on line ${error.line}: replace with ${error.suggestion}`);
+    if (error.suggestion) {
+      btn.setAttribute('data-suggestion', error.suggestion);
+    }
+    return btn;
   }
 }

@@ -419,4 +419,437 @@ describe('ErrorPanel', () => {
       expect(onErrorClick).toHaveBeenCalledWith({ line: 3 });
     });
   });
+
+  describe('rich error display', () => {
+    it('should render error type badge for SYNTAX_ERROR', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Unknown instruction',
+        type: 'SYNTAX_ERROR',
+      }]);
+
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toBe('SYNTAX');
+      expect(badge?.classList.contains('da-error-type-badge--syntax')).toBe(true);
+    });
+
+    it('should render error type badge for VALUE_ERROR', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Invalid address',
+        type: 'VALUE_ERROR',
+      }]);
+
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge?.textContent).toBe('VALUE');
+      expect(badge?.classList.contains('da-error-type-badge--value')).toBe(true);
+    });
+
+    it('should render error type badge for CONSTRAINT_ERROR', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Value exceeds range',
+        type: 'CONSTRAINT_ERROR',
+      }]);
+
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge?.textContent).toBe('CONSTRAINT');
+      expect(badge?.classList.contains('da-error-type-badge--constraint')).toBe(true);
+    });
+
+    it('should not render badge when type is not provided', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error without type',
+      }]);
+
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge).toBeNull();
+    });
+
+    it('should render code snippet with context', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction',
+        codeSnippet: {
+          line: 'INVALID 0x10',
+          lineNumber: 3,
+          contextBefore: ['LDA 0x05'],
+          contextAfter: ['HLT'],
+        },
+      }]);
+
+      const snippet = container.querySelector('.da-error-snippet');
+      expect(snippet).not.toBeNull();
+      expect(snippet?.textContent).toContain('INVALID 0x10');
+    });
+
+    it('should render code snippet as pre element for semantic correctness', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction',
+        codeSnippet: {
+          line: 'INVALID 0x10',
+          lineNumber: 3,
+        },
+      }]);
+
+      const snippet = container.querySelector('.da-error-snippet');
+      expect(snippet?.tagName.toLowerCase()).toBe('pre');
+      expect(snippet?.getAttribute('aria-label')).toContain('Code snippet showing error on line 3');
+    });
+
+    it('should render code snippet with line numbers', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction',
+        codeSnippet: {
+          line: 'INVALID 0x10',
+          lineNumber: 3,
+          contextBefore: ['LDA 0x05'],
+          contextAfter: ['HLT'],
+        },
+      }]);
+
+      const errorLine = container.querySelector('.da-error-snippet-line--error');
+      expect(errorLine).not.toBeNull();
+      expect(errorLine?.textContent).toContain('3');
+      expect(errorLine?.textContent).toContain('INVALID 0x10');
+    });
+
+    it('should highlight the error line in code snippet', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction',
+        codeSnippet: {
+          line: 'INVALID 0x10',
+          lineNumber: 3,
+          contextBefore: ['LDA 0x05'],
+          contextAfter: ['HLT'],
+        },
+      }]);
+
+      const errorLine = container.querySelector('.da-error-snippet-line--error');
+      expect(errorLine).not.toBeNull();
+    });
+
+    it('should render suggestion text when provided', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+      }]);
+
+      const suggestion = container.querySelector('.da-error-suggestion');
+      expect(suggestion).not.toBeNull();
+      expect(suggestion?.textContent).toContain('Did you mean');
+      expect(suggestion?.textContent).toContain('LDA');
+    });
+
+    it('should not render suggestion when not provided', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error without suggestion',
+      }]);
+
+      const suggestion = container.querySelector('.da-error-suggestion');
+      expect(suggestion).toBeNull();
+    });
+
+    it('should render Fix button when fixable is true', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn).not.toBeNull();
+      expect(fixBtn?.textContent).toBe('Fix');
+    });
+
+    it('should not render Fix button when fixable is false', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error',
+        fixable: false,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn).toBeNull();
+    });
+
+    it('should not render Fix button when fixable is not provided', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error without fixable field',
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn).toBeNull();
+    });
+
+    it('should announce fixable errors for screen readers', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Unknown instruction',
+        suggestion: 'LDA',
+        fixable: true,
+      }]);
+
+      const item = container.querySelector('.da-error-panel-item');
+      expect(item?.getAttribute('aria-label')).toContain('fixable');
+    });
+  });
+
+  describe('auto-fix functionality', () => {
+    it('should call onFix callback when Fix button is clicked', () => {
+      const onFix = vi.fn();
+      errorPanel = new ErrorPanel({ onFix });
+      errorPanel.mount(container);
+
+      const error: AssemblerError = {
+        line: 3,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        fixable: true,
+      };
+      errorPanel.setErrors([error]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+      fixBtn?.click();
+
+      expect(onFix).toHaveBeenCalledWith(error);
+    });
+
+    it('should not call onErrorClick when Fix button is clicked', () => {
+      const onFix = vi.fn();
+      const onErrorClick = vi.fn();
+      errorPanel = new ErrorPanel({ onFix, onErrorClick });
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+      fixBtn?.click();
+
+      expect(onFix).toHaveBeenCalled();
+      expect(onErrorClick).not.toHaveBeenCalled();
+    });
+
+    it('should have data-line attribute on Fix button', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 5,
+        message: 'Error',
+        suggestion: 'FIX',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn?.getAttribute('data-line')).toBe('5');
+    });
+
+    it('should have data-suggestion attribute on Fix button', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error',
+        suggestion: 'LDA',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn?.getAttribute('data-suggestion')).toBe('LDA');
+    });
+
+    it('should have accessible aria-label on Fix button', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA 0x10',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn');
+      expect(fixBtn?.getAttribute('aria-label')).toBe('Fix error on line 3: replace with LDA 0x10');
+    });
+
+    it('should call onFix with full error object including codeSnippet', () => {
+      const onFix = vi.fn();
+      errorPanel = new ErrorPanel({ onFix });
+      errorPanel.mount(container);
+
+      const error: AssemblerError = {
+        line: 3,
+        message: 'Unknown instruction: LDAA',
+        suggestion: 'LDA',
+        fixable: true,
+        type: 'SYNTAX_ERROR',
+        codeSnippet: {
+          line: 'LDAA 0x10',
+          lineNumber: 3,
+          contextBefore: ['LDA 0x05'],
+          contextAfter: ['HLT'],
+        },
+      };
+      errorPanel.setErrors([error]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+      fixBtn?.click();
+
+      expect(onFix).toHaveBeenCalledWith(error);
+    });
+
+    it('should trigger onFix via Enter key on Fix button', () => {
+      const onFix = vi.fn();
+      errorPanel = new ErrorPanel({ onFix });
+      errorPanel.mount(container);
+
+      const error: AssemblerError = {
+        line: 3,
+        message: 'Unknown instruction',
+        suggestion: 'LDA',
+        fixable: true,
+      };
+      errorPanel.setErrors([error]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+      fixBtn?.dispatchEvent(event);
+
+      expect(onFix).toHaveBeenCalledWith(error);
+    });
+
+    it('should not call onFix when callback is not provided', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Error',
+        suggestion: 'FIX',
+        fixable: true,
+      }]);
+
+      const fixBtn = container.querySelector('.da-error-fix-btn') as HTMLElement;
+
+      // Should not throw when clicking without callback
+      expect(() => fixBtn?.click()).not.toThrow();
+    });
+
+    it('should work with multiple errors - clicking correct Fix button', () => {
+      const onFix = vi.fn();
+      errorPanel = new ErrorPanel({ onFix });
+      errorPanel.mount(container);
+
+      const errors: AssemblerError[] = [
+        { line: 1, message: 'Error 1', suggestion: 'FIX1', fixable: true },
+        { line: 3, message: 'Error 2', suggestion: 'FIX2', fixable: true },
+        { line: 5, message: 'Error 3', suggestion: 'FIX3', fixable: true },
+      ];
+      errorPanel.setErrors(errors);
+
+      const fixBtns = container.querySelectorAll('.da-error-fix-btn');
+      expect(fixBtns.length).toBe(3);
+
+      // Click the second Fix button
+      (fixBtns[1] as HTMLElement).click();
+
+      expect(onFix).toHaveBeenCalledWith(errors[1]);
+    });
+
+    it('should correctly identify error when multiple errors on same line', () => {
+      const onFix = vi.fn();
+      errorPanel = new ErrorPanel({ onFix });
+      errorPanel.mount(container);
+
+      // Two errors on the same line (e.g., syntax error and constraint error)
+      const errors: AssemblerError[] = [
+        { line: 3, message: 'Error 1 on line 3', suggestion: 'FIX_FIRST', fixable: true },
+        { line: 3, message: 'Error 2 on line 3', suggestion: 'FIX_SECOND', fixable: true },
+      ];
+      errorPanel.setErrors(errors);
+
+      const fixBtns = container.querySelectorAll('.da-error-fix-btn');
+      expect(fixBtns.length).toBe(2);
+
+      // Click the SECOND Fix button (both have same line number)
+      (fixBtns[1] as HTMLElement).click();
+
+      // Should correctly identify the second error, not the first
+      expect(onFix).toHaveBeenCalledWith(errors[1]);
+      expect(onFix).not.toHaveBeenCalledWith(errors[0]);
+    });
+
+    it('should have data-error-index attribute on Fix button', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([
+        { line: 1, message: 'First', suggestion: 'A', fixable: true },
+        { line: 2, message: 'Second', suggestion: 'B', fixable: true },
+      ]);
+
+      const fixBtns = container.querySelectorAll('.da-error-fix-btn');
+      expect(fixBtns[0]?.getAttribute('data-error-index')).toBe('0');
+      expect(fixBtns[1]?.getAttribute('data-error-index')).toBe('1');
+    });
+  });
 });

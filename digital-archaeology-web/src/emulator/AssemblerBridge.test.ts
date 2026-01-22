@@ -270,10 +270,12 @@ describe('AssemblerBridge', () => {
 
       expect(result.success).toBe(false);
       expect(result.binary).toBeNull();
-      expect(result.error).toEqual({
-        line: 1,
-        message: 'Unknown instruction: INVALID',
-      });
+      expect(result.error?.line).toBe(1);
+      expect(result.error?.message).toBe('Unknown instruction: INVALID');
+      // Rich error fields are now always present
+      expect(result.error?.type).toBe('SYNTAX_ERROR');
+      expect(result.error?.codeSnippet).toBeDefined();
+      expect(result.error?.fixable).toBe(false);
     });
 
     it('includes optional error fields when present', async () => {
@@ -359,6 +361,204 @@ describe('AssemblerBridge', () => {
       mockWorker.simulateError('Worker crashed');
 
       await expect(assemblePromise).rejects.toThrow('Worker error during assembly');
+    });
+  });
+
+  describe('rich error parsing', () => {
+    it('detects SYNTAX_ERROR from unknown instruction message', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('INVALID 0x10');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: "Unknown instruction 'INVALID'",
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.type).toBe('SYNTAX_ERROR');
+    });
+
+    it('detects VALUE_ERROR from invalid address message', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('LDA 999');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: 'Invalid address 999',
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.type).toBe('VALUE_ERROR');
+    });
+
+    it('detects CONSTRAINT_ERROR from value range message', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('DB 256');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: 'Value 256 exceeds nibble range',
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('generates code snippet with context from source', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const source = 'LDA 0x05\nADD 0x06\nINVALID 0x10\nHLT';
+      const assemblePromise = bridge.assemble(source);
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 3,
+          message: "Unknown instruction 'INVALID'",
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.codeSnippet).toBeDefined();
+      expect(result.error?.codeSnippet?.line).toBe('INVALID 0x10');
+      expect(result.error?.codeSnippet?.lineNumber).toBe(3);
+      expect(result.error?.codeSnippet?.contextBefore).toContain('ADD 0x06');
+      expect(result.error?.codeSnippet?.contextAfter).toContain('HLT');
+    });
+
+    it('generates code snippet for first line without contextBefore', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const source = 'INVALID 0x10\nLDA 0x05';
+      const assemblePromise = bridge.assemble(source);
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: "Unknown instruction 'INVALID'",
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.codeSnippet?.contextBefore).toHaveLength(0);
+      expect(result.error?.codeSnippet?.contextAfter).toContain('LDA 0x05');
+    });
+
+    it('detects fixable errors when suggestion is present', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('LDAA 0x10');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: "Unknown instruction 'LDAA'",
+          suggestion: 'LDA',
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.suggestion).toBe('LDA');
+      expect(result.error?.fixable).toBe(true);
+    });
+
+    it('marks error as non-fixable when no suggestion', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('INVALID 0x10');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: "Unknown instruction 'INVALID'",
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      expect(result.error?.suggestion).toBeUndefined();
+      expect(result.error?.fixable).toBe(false);
+    });
+
+    it('marks VALUE_ERROR as non-fixable even with suggestion', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({
+        type: 'WORKER_READY',
+      } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      const assemblePromise = bridge.assemble('LDA 999');
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: {
+          line: 1,
+          message: 'Invalid address 999',
+          suggestion: 'Use a value between 0 and 255',
+        },
+      } satisfies AssembleErrorEvent);
+
+      const result = await assemblePromise;
+
+      // VALUE_ERROR is not auto-fixable because the fix requires user judgment
+      expect(result.error?.fixable).toBe(false);
     });
   });
 

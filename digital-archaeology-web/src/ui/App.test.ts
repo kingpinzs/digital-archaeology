@@ -1,5 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// Mock Monaco editor for App tests
+const { mockEditorInstance } = vi.hoisted(() => {
+  const mockEditorInstance = {
+    dispose: vi.fn(),
+    getValue: vi.fn(() => ''),
+    setValue: vi.fn(),
+    getModel: vi.fn(() => null),
+    focus: vi.fn(),
+    layout: vi.fn(),
+  };
+
+  return { mockEditorInstance };
+});
+
+vi.mock('monaco-editor', () => ({
+  editor: {
+    create: vi.fn(() => mockEditorInstance),
+    defineTheme: vi.fn(),
+  },
+}));
+
 import { App } from './App';
+import { resetThemeRegistration } from '@editor/index';
 import { PANEL_CONSTRAINTS } from './PanelResizer';
 
 describe('App', () => {
@@ -11,6 +34,8 @@ describe('App', () => {
     container.id = 'app';
     document.body.appendChild(container);
     app = new App();
+    // Reset global theme state for each test
+    resetThemeRegistration();
   });
 
   afterEach(() => {
@@ -736,6 +761,122 @@ describe('App', () => {
       const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
       expect(codePanelItem.textContent).not.toContain('✓');
       expect(codePanelItem.getAttribute('aria-checked')).toBe('false');
+    });
+  });
+
+  describe('editor integration', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      app.mount(container);
+    });
+
+    it('should initialize Editor in code panel', () => {
+      const editor = app.getEditor();
+      expect(editor).not.toBeNull();
+    });
+
+    it('should return null for getEditor() before mount', () => {
+      const newApp = new App();
+      expect(newApp.getEditor()).toBeNull();
+      newApp.destroy();
+    });
+
+    it('should mount Editor instance', () => {
+      const editor = app.getEditor();
+      expect(editor?.isMounted()).toBe(true);
+    });
+
+    it('should clean up editor on destroy', () => {
+      expect(app.getEditor()).not.toBeNull();
+      expect(mockEditorInstance.dispose).not.toHaveBeenCalled();
+
+      app.destroy();
+
+      expect(app.getEditor()).toBeNull();
+      expect(mockEditorInstance.dispose).toHaveBeenCalled();
+    });
+
+    it('should not leak editor on multiple mounts', () => {
+      // Clear dispose mock before testing
+      mockEditorInstance.dispose.mockClear();
+
+      app.mount(container);
+      expect(mockEditorInstance.dispose).toHaveBeenCalledTimes(1);
+
+      app.mount(container);
+      expect(mockEditorInstance.dispose).toHaveBeenCalledTimes(2);
+
+      // Only one editor should exist
+      const editor = app.getEditor();
+      expect(editor).not.toBeNull();
+    });
+
+    it('should refresh editor layout when code panel becomes visible', async () => {
+      // Hide code panel
+      app.setPanelVisibility('code', false);
+      mockEditorInstance.layout.mockClear();
+
+      // Show code panel
+      app.setPanelVisibility('code', true);
+
+      // Wait for requestAnimationFrame
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      expect(mockEditorInstance.layout).toHaveBeenCalled();
+    });
+
+    it('should refresh editor layout on resetLayout', async () => {
+      app.setPanelVisibility('code', false);
+      mockEditorInstance.layout.mockClear();
+
+      app.resetLayout();
+
+      // Wait for requestAnimationFrame
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      expect(mockEditorInstance.layout).toHaveBeenCalled();
+    });
+
+    it('should not refresh layout when non-code panel visibility changes', async () => {
+      mockEditorInstance.layout.mockClear();
+
+      app.setPanelVisibility('state', false);
+      app.setPanelVisibility('state', true);
+
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      // layout should not be called for state panel visibility changes
+      expect(mockEditorInstance.layout).not.toHaveBeenCalled();
+    });
+
+    it('should persist editor across panel visibility toggle', () => {
+      const editorBefore = app.getEditor();
+
+      // Hide and show code panel
+      app.setPanelVisibility('code', false);
+      app.setPanelVisibility('code', true);
+
+      const editorAfter = app.getEditor();
+
+      // Same editor instance should persist
+      expect(editorAfter).toBe(editorBefore);
+    });
+
+    it('should always initialize editor when mounted to valid container', () => {
+      // App.render() creates its own complete DOM structure,
+      // so editor should always be initialized after mount
+      const newContainer = document.createElement('div');
+      document.body.appendChild(newContainer);
+
+      const newApp = new App();
+      newApp.mount(newContainer);
+
+      // Editor should always be initialized since App creates its own structure
+      expect(newApp.getEditor()).not.toBeNull();
+      expect(newApp.getEditor()?.isMounted()).toBe(true);
+
+      newApp.destroy();
+      document.body.removeChild(newContainer);
     });
   });
 });

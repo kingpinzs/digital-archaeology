@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitest/config';
+import { createAliases } from './vite.aliases';
 
 export default defineConfig({
+  resolve: {
+    alias: createAliases(__dirname),
+  },
   test: {
     // Test file patterns - co-located with source files
     include: ['src/**/*.test.ts', 'tests/unit/**/*.test.ts'],

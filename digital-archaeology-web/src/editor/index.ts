@@ -1,5 +1,5 @@
 // Barrel export for editor module
 // Monaco wrapper, syntax highlighting, assembly language
-// Exports will be added as components are created
 
-export {};
+export { Editor, resetThemeRegistration } from './Editor';
+export type { EditorOptions } from './Editor';

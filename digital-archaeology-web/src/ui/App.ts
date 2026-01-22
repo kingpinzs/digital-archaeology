@@ -9,6 +9,7 @@ import type { MenuBarCallbacks } from './MenuBar';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
+import { Editor } from '@editor/index';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -47,6 +48,9 @@ export class App {
   private circuitPanelHeader: PanelHeader | null = null;
   private statePanelHeader: PanelHeader | null = null;
 
+  // Code editor (Monaco)
+  private editor: Editor | null = null;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -69,6 +73,7 @@ export class App {
     this.destroyMenuBar();
     this.destroyStatusBar();
     this.destroyPanelHeaders();
+    this.destroyEditor();
 
     this.container = container;
     this.isMounted = true;
@@ -78,6 +83,7 @@ export class App {
     this.initializePanelHeaders();
     this.initializeStatusBar();
     this.initializeResizers();
+    this.initializeEditor();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -305,6 +311,39 @@ export class App {
   }
 
   /**
+   * Initialize the Monaco editor in the code panel.
+   * @returns void
+   */
+  private initializeEditor(): void {
+    if (!this.container) return;
+
+    const codePanelContent = this.container.querySelector('.da-code-panel .da-panel-content');
+    if (!codePanelContent) return;
+
+    this.editor = new Editor();
+    this.editor.mount(codePanelContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the Monaco editor.
+   * @returns void
+   */
+  private destroyEditor(): void {
+    if (this.editor) {
+      this.editor.destroy();
+      this.editor = null;
+    }
+  }
+
+  /**
+   * Get the editor instance.
+   * @returns The editor instance or null if not initialized
+   */
+  getEditor(): Editor | null {
+    return this.editor;
+  }
+
+  /**
    * Set the visibility of a specific panel.
    * @param panelId - The panel to show/hide
    * @param visible - Whether the panel should be visible
@@ -313,6 +352,15 @@ export class App {
     this.panelVisibility[panelId] = visible;
     this.updatePanelVisibility();
     this.menuBar?.setPanelStates(this.panelVisibility);
+
+    // Refresh editor layout when code panel becomes visible
+    // Monaco needs a layout refresh after visibility change
+    if (panelId === 'code' && visible && this.editor) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        this.editor?.layout();
+      });
+    }
   }
 
   /**
@@ -345,6 +393,13 @@ export class App {
     this.codePanelWidth = PANEL_CONSTRAINTS.CODE_DEFAULT;
     this.statePanelWidth = PANEL_CONSTRAINTS.STATE_DEFAULT;
     this.updateGridColumns();
+
+    // Refresh editor layout after layout reset
+    if (this.editor) {
+      requestAnimationFrame(() => {
+        this.editor?.layout();
+      });
+    }
   }
 
   /**
@@ -623,6 +678,9 @@ export class App {
 
     // Destroy status bar
     this.destroyStatusBar();
+
+    // Destroy editor
+    this.destroyEditor();
 
     // Destroy resizers
     this.destroyResizers();

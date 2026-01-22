@@ -512,6 +512,65 @@ describe('MenuBar', () => {
       expect(state1).not.toBe(state2);
       expect(state1).toEqual(state2);
     });
+
+    it('should have default panel states all visible', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const state = menuBar.getState();
+      expect(state.panelStates.code).toBe(true);
+      expect(state.panelStates.circuit).toBe(true);
+      expect(state.panelStates.state).toBe(true);
+    });
+
+    it('should update panel states via setPanelStates()', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      menuBar.setPanelStates({ code: false, circuit: true, state: false });
+
+      const state = menuBar.getState();
+      expect(state.panelStates.code).toBe(false);
+      expect(state.panelStates.circuit).toBe(true);
+      expect(state.panelStates.state).toBe(false);
+    });
+
+    it('should return copy of panelStates, not reference', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const state1 = menuBar.getState();
+      const state2 = menuBar.getState();
+
+      expect(state1.panelStates).not.toBe(state2.panelStates);
+      expect(state1.panelStates).toEqual(state2.panelStates);
+    });
+
+    it('should show checkmark for visible panels in View menu', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
+      expect(codePanelItem.textContent).toContain('✓');
+      expect(codePanelItem.getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('should not show checkmark for hidden panels in View menu', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      menuBar.setPanelStates({ code: false, circuit: true, state: true });
+
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
+      expect(codePanelItem.textContent).not.toContain('✓');
+      expect(codePanelItem.getAttribute('aria-checked')).toBe('false');
+    });
   });
 
   describe('Keyboard Navigation', () => {

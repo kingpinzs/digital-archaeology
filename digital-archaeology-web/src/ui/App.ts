@@ -7,6 +7,17 @@ import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
 import { StatusBar } from './StatusBar';
+import { PanelHeader } from './PanelHeader';
+import type { PanelId } from './PanelHeader';
+
+/**
+ * Panel visibility state.
+ */
+export interface PanelVisibility {
+  code: boolean;
+  circuit: boolean;
+  state: boolean;
+}
 
 /**
  * Root application component that renders the main 3-panel layout.
@@ -25,6 +36,18 @@ export class App {
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
   private boundWindowResize: () => void;
 
+  // Panel headers
+  private codePanelHeader: PanelHeader | null = null;
+  private circuitPanelHeader: PanelHeader | null = null;
+  private statePanelHeader: PanelHeader | null = null;
+
+  // Panel visibility state
+  private panelVisibility: PanelVisibility = {
+    code: true,
+    circuit: true,
+    state: true,
+  };
+
   constructor() {
     this.boundWindowResize = this.handleWindowResize.bind(this);
   }
@@ -39,15 +62,18 @@ export class App {
     this.destroyToolbar();
     this.destroyMenuBar();
     this.destroyStatusBar();
+    this.destroyPanelHeaders();
 
     this.container = container;
     this.isMounted = true;
     this.render();
     this.initializeMenuBar();
     this.initializeToolbar();
+    this.initializePanelHeaders();
     this.initializeStatusBar();
     this.initializeResizers();
     this.updateGridColumns();
+    this.updatePanelVisibility();
 
     // Add window resize listener
     window.addEventListener('resize', this.boundWindowResize);
@@ -68,8 +94,8 @@ export class App {
         </header>
 
         <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
-          <div class="da-panel-header">
-            <span class="da-panel-title">CODE</span>
+          <div class="da-panel-header-container">
+            <!-- PanelHeader component will be mounted here -->
           </div>
           <div class="da-panel-content">
             <!-- Content: Epic 2 - Assembly Code Editor -->
@@ -77,8 +103,8 @@ export class App {
         </aside>
 
         <main class="da-circuit-panel" aria-label="Circuit Visualizer Panel">
-          <div class="da-panel-header">
-            <span class="da-panel-title">CIRCUIT</span>
+          <div class="da-panel-header-container">
+            <!-- PanelHeader component will be mounted here -->
           </div>
           <div class="da-panel-content">
             <!-- Content: Epic 6 - Circuit Visualization -->
@@ -86,8 +112,8 @@ export class App {
         </main>
 
         <aside class="da-panel da-state-panel" aria-label="CPU State Panel">
-          <div class="da-panel-header">
-            <span class="da-panel-title">STATE</span>
+          <div class="da-panel-header-container">
+            <!-- PanelHeader component will be mounted here -->
           </div>
           <div class="da-panel-content">
             <!-- Content: Epic 5 - Debugging & State Inspection -->
@@ -132,11 +158,11 @@ export class App {
       onEditCut: () => { /* Epic 2: Code Editor */ },
       onEditCopy: () => { /* Epic 2: Code Editor */ },
       onEditPaste: () => { /* Epic 2: Code Editor */ },
-      // View menu
-      onViewCodePanel: () => { /* Epic 1: Layout */ },
-      onViewCircuitPanel: () => { /* Epic 1: Layout */ },
-      onViewStatePanel: () => { /* Epic 1: Layout */ },
-      onViewResetLayout: () => { /* Epic 1: Layout */ },
+      // View menu - panel visibility toggles
+      onViewCodePanel: () => this.togglePanel('code'),
+      onViewCircuitPanel: () => this.togglePanel('circuit'),
+      onViewStatePanel: () => this.togglePanel('state'),
+      onViewResetLayout: () => this.resetLayout(),
       // Debug menu
       onDebugAssemble: () => { /* Epic 3: Code Assembly */ },
       onDebugRun: () => { /* Epic 4: Program Execution */ },
@@ -204,6 +230,191 @@ export class App {
    */
   getStatusBar(): StatusBar | null {
     return this.statusBar;
+  }
+
+  /**
+   * Initialize panel header components for all panels.
+   * @returns void
+   */
+  private initializePanelHeaders(): void {
+    if (!this.container) return;
+
+    const codePanelHeaderContainer = this.container.querySelector('.da-code-panel .da-panel-header-container');
+    const circuitPanelHeaderContainer = this.container.querySelector('.da-circuit-panel .da-panel-header-container');
+    const statePanelHeaderContainer = this.container.querySelector('.da-state-panel .da-panel-header-container');
+
+    if (codePanelHeaderContainer) {
+      this.codePanelHeader = new PanelHeader({
+        title: 'CODE',
+        panelId: 'code',
+        onClose: () => this.setPanelVisibility('code', false),
+      });
+      this.codePanelHeader.mount(codePanelHeaderContainer as HTMLElement);
+    }
+
+    if (circuitPanelHeaderContainer) {
+      this.circuitPanelHeader = new PanelHeader({
+        title: 'CIRCUIT',
+        panelId: 'circuit',
+        onClose: () => this.setPanelVisibility('circuit', false),
+      });
+      this.circuitPanelHeader.mount(circuitPanelHeaderContainer as HTMLElement);
+    }
+
+    if (statePanelHeaderContainer) {
+      this.statePanelHeader = new PanelHeader({
+        title: 'STATE',
+        panelId: 'state',
+        onClose: () => this.setPanelVisibility('state', false),
+      });
+      this.statePanelHeader.mount(statePanelHeaderContainer as HTMLElement);
+    }
+  }
+
+  /**
+   * Destroy all panel header components.
+   * @returns void
+   */
+  private destroyPanelHeaders(): void {
+    if (this.codePanelHeader) {
+      this.codePanelHeader.destroy();
+      this.codePanelHeader = null;
+    }
+    if (this.circuitPanelHeader) {
+      this.circuitPanelHeader.destroy();
+      this.circuitPanelHeader = null;
+    }
+    if (this.statePanelHeader) {
+      this.statePanelHeader.destroy();
+      this.statePanelHeader = null;
+    }
+  }
+
+  /**
+   * Set the visibility of a specific panel.
+   * @param panelId - The panel to show/hide
+   * @param visible - Whether the panel should be visible
+   */
+  setPanelVisibility(panelId: PanelId, visible: boolean): void {
+    this.panelVisibility[panelId] = visible;
+    this.updatePanelVisibility();
+    this.menuBar?.setPanelStates(this.panelVisibility);
+  }
+
+  /**
+   * Toggle the visibility of a specific panel.
+   * @param panelId - The panel to toggle
+   */
+  togglePanel(panelId: PanelId): void {
+    this.setPanelVisibility(panelId, !this.panelVisibility[panelId]);
+  }
+
+  /**
+   * Get current panel visibility state.
+   * @returns Copy of panel visibility state
+   */
+  getPanelVisibility(): PanelVisibility {
+    return { ...this.panelVisibility };
+  }
+
+  /**
+   * Reset layout to default state (all panels visible, default widths).
+   * @returns void
+   */
+  resetLayout(): void {
+    // Show all panels
+    this.panelVisibility = { code: true, circuit: true, state: true };
+    this.updatePanelVisibility();
+    this.menuBar?.setPanelStates(this.panelVisibility);
+
+    // Reset panel widths to defaults
+    this.codePanelWidth = PANEL_CONSTRAINTS.CODE_DEFAULT;
+    this.statePanelWidth = PANEL_CONSTRAINTS.STATE_DEFAULT;
+    this.updateGridColumns();
+  }
+
+  /**
+   * Update DOM to reflect panel visibility state.
+   * @returns void
+   */
+  private updatePanelVisibility(): void {
+    if (!this.container) return;
+
+    const layout = this.container.querySelector('.da-app-layout');
+    const codePanel = this.container.querySelector('.da-code-panel');
+    const circuitPanel = this.container.querySelector('.da-circuit-panel');
+    const statePanel = this.container.querySelector('.da-state-panel');
+
+    if (!layout) return;
+
+    // Update layout classes for grid adjustment
+    layout.classList.toggle('da-app-layout--code-hidden', !this.panelVisibility.code);
+    layout.classList.toggle('da-app-layout--circuit-hidden', !this.panelVisibility.circuit);
+    layout.classList.toggle('da-app-layout--state-hidden', !this.panelVisibility.state);
+
+    // Update panel visibility classes
+    codePanel?.classList.toggle('da-panel--hidden', !this.panelVisibility.code);
+    circuitPanel?.classList.toggle('da-panel--hidden', !this.panelVisibility.circuit);
+    statePanel?.classList.toggle('da-panel--hidden', !this.panelVisibility.state);
+
+    // Announce visibility change for screen readers
+    this.announceVisibilityChange();
+  }
+
+  /**
+   * Announce panel visibility changes for screen readers.
+   * Uses a visually hidden live region for announcements.
+   * @returns void
+   */
+  private announceVisibilityChange(): void {
+    if (!this.container) return;
+
+    // Create or find the announcement element
+    let announcer = this.container.querySelector('.da-sr-announcer') as HTMLElement;
+    if (!announcer) {
+      announcer = document.createElement('div');
+      announcer.className = 'da-sr-announcer';
+      announcer.setAttribute('aria-live', 'polite');
+      announcer.setAttribute('aria-atomic', 'true');
+      // Visually hidden but accessible to screen readers
+      announcer.style.cssText = 'position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;';
+      this.container.appendChild(announcer);
+    }
+
+    // Build announcement message
+    const hiddenPanels: string[] = [];
+    const visiblePanels: string[] = [];
+
+    if (this.panelVisibility.code) {
+      visiblePanels.push('Code');
+    } else {
+      hiddenPanels.push('Code');
+    }
+    if (this.panelVisibility.circuit) {
+      visiblePanels.push('Circuit');
+    } else {
+      hiddenPanels.push('Circuit');
+    }
+    if (this.panelVisibility.state) {
+      visiblePanels.push('State');
+    } else {
+      hiddenPanels.push('State');
+    }
+
+    let message = '';
+    if (hiddenPanels.length > 0) {
+      message = `${hiddenPanels.join(', ')} panel${hiddenPanels.length > 1 ? 's' : ''} hidden.`;
+    }
+    if (visiblePanels.length === 3) {
+      message = 'All panels visible.';
+    }
+
+    // Clear and set to trigger announcement
+    announcer.textContent = '';
+    // Use setTimeout to ensure the change is detected by screen readers
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
   }
 
   /**
@@ -401,6 +612,9 @@ export class App {
     // Destroy toolbar
     this.destroyToolbar();
 
+    // Destroy panel headers
+    this.destroyPanelHeaders();
+
     // Destroy status bar
     this.destroyStatusBar();
 
@@ -416,6 +630,9 @@ export class App {
     // Reset panel widths to defaults
     this.codePanelWidth = PANEL_CONSTRAINTS.CODE_DEFAULT;
     this.statePanelWidth = PANEL_CONSTRAINTS.STATE_DEFAULT;
+
+    // Reset panel visibility to defaults
+    this.panelVisibility = { code: true, circuit: true, state: true };
 
     // Clear CSS custom properties
     document.documentElement.style.removeProperty('--da-code-panel-width');

@@ -7,6 +7,15 @@
 export type AppMode = 'story' | 'lab';
 
 /**
+ * Panel visibility states for View menu.
+ */
+export interface PanelStates {
+  code: boolean;
+  circuit: boolean;
+  state: boolean;
+}
+
+/**
  * Menu bar state configuration.
  */
 export interface MenuBarState {
@@ -14,6 +23,8 @@ export interface MenuBarState {
   currentMode: AppMode;
   /** Currently open menu (null if none) */
   openMenu: string | null;
+  /** Panel visibility states for View menu checkmarks */
+  panelStates: PanelStates;
 }
 
 /**
@@ -146,6 +157,7 @@ export class MenuBar {
     this.state = {
       currentMode: 'lab',
       openMenu: null,
+      panelStates: { code: true, circuit: true, state: true },
     };
   }
 
@@ -175,7 +187,15 @@ export class MenuBar {
    * @returns Current state object
    */
   getState(): MenuBarState {
-    return { ...this.state };
+    return { ...this.state, panelStates: { ...this.state.panelStates } };
+  }
+
+  /**
+   * Set panel visibility states for View menu checkmarks.
+   * @param states - Panel visibility states
+   */
+  setPanelStates(states: PanelStates): void {
+    this.state.panelStates = { ...states };
   }
 
   /**
@@ -579,12 +599,33 @@ export class MenuBar {
           menuItem.classList.add('da-menu-item--disabled');
           menuItem.setAttribute('aria-disabled', 'true');
         }
-        menuItem.setAttribute('role', 'menuitem');
+        menuItem.setAttribute('role', 'menuitemcheckbox');
         menuItem.setAttribute('data-action', item.id);
         menuItem.setAttribute('tabindex', '-1');
 
+        // Add checkmark for View menu panel items
+        let checkmark = '';
+        let isChecked = false;
+        if (menuId === 'view') {
+          if (item.id === 'codePanel') {
+            isChecked = this.state.panelStates.code;
+          } else if (item.id === 'circuitPanel') {
+            isChecked = this.state.panelStates.circuit;
+          } else if (item.id === 'statePanel') {
+            isChecked = this.state.panelStates.state;
+          }
+          if (item.id === 'codePanel' || item.id === 'circuitPanel' || item.id === 'statePanel') {
+            checkmark = isChecked ? '✓ ' : '    ';
+            menuItem.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+          } else {
+            menuItem.setAttribute('role', 'menuitem');
+          }
+        } else {
+          menuItem.setAttribute('role', 'menuitem');
+        }
+
         menuItem.innerHTML = `
-          <span class="da-menu-item-label">${item.label}</span>
+          <span class="da-menu-item-label">${checkmark}${item.label}</span>
           ${item.shortcut ? `<span class="da-menu-shortcut">${item.shortcut}</span>` : ''}
         `;
 

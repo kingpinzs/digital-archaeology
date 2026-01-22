@@ -18,8 +18,12 @@ export type { ToolbarState, ToolbarCallbacks } from './Toolbar';
 
 // MenuBar exports
 export { MenuBar } from './MenuBar';
-export type { AppMode, MenuBarState, MenuBarCallbacks } from './MenuBar';
+export type { AppMode, MenuBarState, MenuBarCallbacks, PanelStates } from './MenuBar';
 
 // StatusBar exports
 export { StatusBar } from './StatusBar';
 export type { AssemblyStatus, CursorPosition, StatusBarState } from './StatusBar';
+
+// PanelHeader exports
+export { PanelHeader } from './PanelHeader';
+export type { PanelId, PanelHeaderOptions } from './PanelHeader';

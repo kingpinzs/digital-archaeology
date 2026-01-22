@@ -475,4 +475,267 @@ describe('App', () => {
       expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
     });
   });
+
+  describe('panel header integration', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should render panel headers with close buttons', () => {
+      const closeButtons = container.querySelectorAll('.da-panel-close-btn');
+      expect(closeButtons.length).toBe(3); // code, circuit, state
+    });
+
+    it('should render code panel header with correct title', () => {
+      const codePanel = container.querySelector('.da-code-panel');
+      const title = codePanel?.querySelector('.da-panel-title');
+      expect(title?.textContent).toBe('CODE');
+    });
+
+    it('should render circuit panel header with correct title', () => {
+      const circuitPanel = container.querySelector('.da-circuit-panel');
+      const title = circuitPanel?.querySelector('.da-panel-title');
+      expect(title?.textContent).toBe('CIRCUIT');
+    });
+
+    it('should render state panel header with correct title', () => {
+      const statePanel = container.querySelector('.da-state-panel');
+      const title = statePanel?.querySelector('.da-panel-title');
+      expect(title?.textContent).toBe('STATE');
+    });
+
+    it('should not leak panel headers on multiple mounts', () => {
+      app.mount(container);
+      app.mount(container);
+      app.mount(container);
+
+      const closeButtons = container.querySelectorAll('.da-panel-close-btn');
+      expect(closeButtons.length).toBe(3);
+    });
+  });
+
+  describe('panel visibility', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should have all panels visible by default', () => {
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(true);
+      expect(visibility.circuit).toBe(true);
+      expect(visibility.state).toBe(true);
+    });
+
+    it('should hide code panel when close button clicked', () => {
+      const codePanel = container.querySelector('.da-code-panel');
+      const closeBtn = codePanel?.querySelector('.da-panel-close-btn') as HTMLButtonElement;
+
+      closeBtn.click();
+
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(false);
+      expect(codePanel?.classList.contains('da-panel--hidden')).toBe(true);
+    });
+
+    it('should hide circuit panel when close button clicked', () => {
+      const circuitPanel = container.querySelector('.da-circuit-panel');
+      const closeBtn = circuitPanel?.querySelector('.da-panel-close-btn') as HTMLButtonElement;
+
+      closeBtn.click();
+
+      const visibility = app.getPanelVisibility();
+      expect(visibility.circuit).toBe(false);
+      expect(circuitPanel?.classList.contains('da-panel--hidden')).toBe(true);
+    });
+
+    it('should hide state panel when close button clicked', () => {
+      const statePanel = container.querySelector('.da-state-panel');
+      const closeBtn = statePanel?.querySelector('.da-panel-close-btn') as HTMLButtonElement;
+
+      closeBtn.click();
+
+      const visibility = app.getPanelVisibility();
+      expect(visibility.state).toBe(false);
+      expect(statePanel?.classList.contains('da-panel--hidden')).toBe(true);
+    });
+
+    it('should add layout class when code panel hidden', () => {
+      app.setPanelVisibility('code', false);
+
+      const layout = container.querySelector('.da-app-layout');
+      expect(layout?.classList.contains('da-app-layout--code-hidden')).toBe(true);
+    });
+
+    it('should add layout class when state panel hidden', () => {
+      app.setPanelVisibility('state', false);
+
+      const layout = container.querySelector('.da-app-layout');
+      expect(layout?.classList.contains('da-app-layout--state-hidden')).toBe(true);
+    });
+
+    it('should toggle panel visibility', () => {
+      app.togglePanel('code');
+      expect(app.getPanelVisibility().code).toBe(false);
+
+      app.togglePanel('code');
+      expect(app.getPanelVisibility().code).toBe(true);
+    });
+
+    it('should restore panel when setPanelVisibility called with true', () => {
+      app.setPanelVisibility('code', false);
+      expect(app.getPanelVisibility().code).toBe(false);
+
+      app.setPanelVisibility('code', true);
+      expect(app.getPanelVisibility().code).toBe(true);
+
+      const codePanel = container.querySelector('.da-code-panel');
+      expect(codePanel?.classList.contains('da-panel--hidden')).toBe(false);
+    });
+
+    it('should reset layout to show all panels and default widths', () => {
+      app.setPanelVisibility('code', false);
+      app.setPanelVisibility('state', false);
+
+      app.resetLayout();
+
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(true);
+      expect(visibility.circuit).toBe(true);
+      expect(visibility.state).toBe(true);
+    });
+
+    it('should hide multiple panels independently', () => {
+      app.setPanelVisibility('code', false);
+      app.setPanelVisibility('state', false);
+
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(false);
+      expect(visibility.circuit).toBe(true);
+      expect(visibility.state).toBe(false);
+
+      const layout = container.querySelector('.da-app-layout');
+      expect(layout?.classList.contains('da-app-layout--code-hidden')).toBe(true);
+      expect(layout?.classList.contains('da-app-layout--state-hidden')).toBe(true);
+    });
+
+    it('should reset visibility state on destroy', () => {
+      app.setPanelVisibility('code', false);
+      app.destroy();
+
+      // Re-mount and check visibility is reset
+      app.mount(container);
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(true);
+    });
+
+    it('should add layout class when circuit panel hidden', () => {
+      app.setPanelVisibility('circuit', false);
+
+      const layout = container.querySelector('.da-app-layout');
+      expect(layout?.classList.contains('da-app-layout--circuit-hidden')).toBe(true);
+    });
+
+    it('should sync panel states to MenuBar when visibility changes', () => {
+      const menuBar = app.getMenuBar();
+      expect(menuBar).not.toBeNull();
+
+      app.setPanelVisibility('code', false);
+
+      const menuBarState = menuBar?.getState();
+      expect(menuBarState?.panelStates.code).toBe(false);
+      expect(menuBarState?.panelStates.circuit).toBe(true);
+      expect(menuBarState?.panelStates.state).toBe(true);
+    });
+
+    it('should sync panel states to MenuBar on resetLayout', () => {
+      const menuBar = app.getMenuBar();
+
+      app.setPanelVisibility('code', false);
+      app.setPanelVisibility('state', false);
+      app.resetLayout();
+
+      const menuBarState = menuBar?.getState();
+      expect(menuBarState?.panelStates.code).toBe(true);
+      expect(menuBarState?.panelStates.circuit).toBe(true);
+      expect(menuBarState?.panelStates.state).toBe(true);
+    });
+  });
+
+  describe('View menu integration', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should toggle code panel when View menu Code Panel clicked', () => {
+      // Open View menu
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      // Click Code Panel item
+      const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
+      codePanelItem.click();
+
+      // Code panel should now be hidden
+      expect(app.getPanelVisibility().code).toBe(false);
+    });
+
+    it('should toggle circuit panel when View menu Circuit Panel clicked', () => {
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const circuitPanelItem = container.querySelector('[data-action="circuitPanel"]') as HTMLButtonElement;
+      circuitPanelItem.click();
+
+      expect(app.getPanelVisibility().circuit).toBe(false);
+    });
+
+    it('should toggle state panel when View menu State Panel clicked', () => {
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const statePanelItem = container.querySelector('[data-action="statePanel"]') as HTMLButtonElement;
+      statePanelItem.click();
+
+      expect(app.getPanelVisibility().state).toBe(false);
+    });
+
+    it('should reset layout when View menu Reset Layout clicked', () => {
+      // First hide some panels
+      app.setPanelVisibility('code', false);
+      app.setPanelVisibility('state', false);
+
+      // Open View menu and click Reset Layout
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const resetLayoutItem = container.querySelector('[data-action="resetLayout"]') as HTMLButtonElement;
+      resetLayoutItem.click();
+
+      // All panels should be visible
+      const visibility = app.getPanelVisibility();
+      expect(visibility.code).toBe(true);
+      expect(visibility.circuit).toBe(true);
+      expect(visibility.state).toBe(true);
+    });
+
+    it('should show checkmark in View menu for visible panels', () => {
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
+      expect(codePanelItem.textContent).toContain('✓');
+      expect(codePanelItem.getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('should not show checkmark in View menu for hidden panels', () => {
+      app.setPanelVisibility('code', false);
+
+      const viewTrigger = container.querySelector('[data-menu="view"]') as HTMLButtonElement;
+      viewTrigger.click();
+
+      const codePanelItem = container.querySelector('[data-action="codePanel"]') as HTMLButtonElement;
+      expect(codePanelItem.textContent).not.toContain('✓');
+      expect(codePanelItem.getAttribute('aria-checked')).toBe('false');
+    });
+  });
 });

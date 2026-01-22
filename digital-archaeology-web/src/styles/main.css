@@ -224,6 +224,73 @@
   color: var(--da-text-secondary);
 }
 
+.da-panel-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--da-text-secondary);
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.da-panel-close-btn:hover {
+  color: var(--da-accent);
+  background-color: var(--da-bg-tertiary);
+}
+
+.da-panel-close-btn:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+.da-panel-close-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.da-panel-close-btn:focus-visible {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+/* Hidden panel state */
+.da-panel--hidden {
+  display: none;
+}
+
+/* Layout adjustments for hidden panels */
+.da-app-layout--code-hidden {
+  grid-template-columns: 0 1fr var(--da-state-panel-width);
+}
+
+.da-app-layout--code-hidden .da-code-panel {
+  display: none;
+}
+
+.da-app-layout--state-hidden {
+  grid-template-columns: var(--da-code-panel-width) 1fr 0;
+}
+
+.da-app-layout--state-hidden .da-state-panel {
+  display: none;
+}
+
+.da-app-layout--circuit-hidden .da-circuit-panel {
+  display: none;
+}
+
+.da-app-layout--code-hidden.da-app-layout--state-hidden {
+  grid-template-columns: 0 1fr 0;
+}
+
 .da-panel-content {
   flex: 1;
   overflow: auto;

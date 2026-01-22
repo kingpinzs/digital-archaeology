@@ -51,7 +51,7 @@ development_status:
   1-7-create-toolbar-component: done
   1-8-create-menu-bar-component: done
   1-9-create-status-bar-component: done
-  1-10-create-panel-header-components: backlog
+  1-10-create-panel-header-components: review
   epic-1-retrospective: optional
 
   # Epic 2: Assembly Code Editor

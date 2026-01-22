@@ -1,17 +1,30 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Monaco editor for App tests
-const { mockEditorInstance } = vi.hoisted(() => {
+const { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDisposable } = vi.hoisted(() => {
+  const mockModel = {
+    undo: vi.fn(),
+    redo: vi.fn(),
+  };
+
+  // Track cursor position listeners for testing
+  const cursorPositionListeners: Array<(e: { position: { lineNumber: number; column: number } }) => void> = [];
+  const mockCursorDisposable = { dispose: vi.fn() };
+
   const mockEditorInstance = {
     dispose: vi.fn(),
     getValue: vi.fn(() => ''),
     setValue: vi.fn(),
-    getModel: vi.fn(() => null),
+    getModel: vi.fn(() => mockModel),
     focus: vi.fn(),
     layout: vi.fn(),
+    onDidChangeCursorPosition: vi.fn((callback: (e: { position: { lineNumber: number; column: number } }) => void) => {
+      cursorPositionListeners.push(callback);
+      return mockCursorDisposable;
+    }),
   };
 
-  return { mockEditorInstance };
+  return { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDisposable };
 });
 
 vi.mock('monaco-editor', () => ({
@@ -35,6 +48,7 @@ describe('App', () => {
   let app: App;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     container = document.createElement('div');
     container.id = 'app';
     document.body.appendChild(container);
@@ -47,6 +61,34 @@ describe('App', () => {
   afterEach(() => {
     app.destroy();
     document.body.removeChild(container);
+  });
+
+  describe('edit menu actions', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should invoke editor undo and refocus when Undo menu item is clicked', () => {
+      const editTrigger = container.querySelector('[data-menu="edit"]') as HTMLButtonElement;
+      editTrigger.click();
+
+      const undoItem = container.querySelector('[data-action="undo"]') as HTMLButtonElement;
+      undoItem.click();
+
+      expect(mockModel.undo).toHaveBeenCalledTimes(1);
+      expect(mockEditorInstance.focus).toHaveBeenCalled();
+    });
+
+    it('should invoke editor redo and refocus when Redo menu item is clicked', () => {
+      const editTrigger = container.querySelector('[data-menu="edit"]') as HTMLButtonElement;
+      editTrigger.click();
+
+      const redoItem = container.querySelector('[data-action="redo"]') as HTMLButtonElement;
+      redoItem.click();
+
+      expect(mockModel.redo).toHaveBeenCalledTimes(1);
+      expect(mockEditorInstance.focus).toHaveBeenCalled();
+    });
   });
 
   describe('mount', () => {
@@ -883,6 +925,81 @@ describe('App', () => {
 
       newApp.destroy();
       document.body.removeChild(newContainer);
+    });
+  });
+
+  describe('cursor position to status bar wiring (Story 2.5)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      cursorPositionListeners.length = 0; // Clear listeners array
+      app.mount(container);
+    });
+
+    it('should subscribe to editor cursor position changes', () => {
+      expect(mockEditorInstance.onDidChangeCursorPosition).toHaveBeenCalled();
+    });
+
+    it('should update status bar when cursor position changes', () => {
+      // Simulate cursor position change
+      if (cursorPositionListeners.length > 0) {
+        cursorPositionListeners[0]({ position: { lineNumber: 5, column: 10 } });
+      }
+
+      const cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toContain('Ln 5');
+      expect(cursorSection?.textContent).toContain('Col 10');
+    });
+
+    it('should display cursor position in "Ln X, Col Y" format', () => {
+      if (cursorPositionListeners.length > 0) {
+        cursorPositionListeners[0]({ position: { lineNumber: 1, column: 1 } });
+      }
+
+      const cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toBe('Ln 1, Col 1');
+    });
+
+    it('should update status bar with each cursor movement', () => {
+      const cursorSection = container.querySelector('[data-section="cursor"]');
+
+      // First movement
+      if (cursorPositionListeners.length > 0) {
+        cursorPositionListeners[0]({ position: { lineNumber: 1, column: 1 } });
+      }
+      expect(cursorSection?.textContent).toBe('Ln 1, Col 1');
+
+      // Second movement
+      if (cursorPositionListeners.length > 0) {
+        cursorPositionListeners[0]({ position: { lineNumber: 10, column: 25 } });
+      }
+      expect(cursorSection?.textContent).toBe('Ln 10, Col 25');
+    });
+
+    it('should show placeholder when cursor position is null initially', () => {
+      // Create a fresh app to test initial state before any cursor events
+      const testContainer = document.createElement('div');
+      document.body.appendChild(testContainer);
+      const testApp = new App();
+
+      // Clear listeners before mounting
+      cursorPositionListeners.length = 0;
+      testApp.mount(testContainer);
+
+      // StatusBar should show placeholder before any cursor events
+      const statusBar = testApp.getStatusBar();
+      const state = statusBar?.getState();
+      expect(state?.cursorPosition).toBeNull();
+
+      testApp.destroy();
+      document.body.removeChild(testContainer);
+    });
+
+    it('should clean up cursor listener when app is destroyed', () => {
+      expect(mockCursorDisposable.dispose).not.toHaveBeenCalled();
+
+      app.destroy();
+
+      expect(mockCursorDisposable.dispose).toHaveBeenCalled();
     });
   });
 });

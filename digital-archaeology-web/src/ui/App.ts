@@ -173,8 +173,8 @@ export class App {
       onFileExport: () => { /* Epic 9: File Operations */ },
       onFileImport: () => { /* Epic 9: File Operations */ },
       // Edit menu
-      onEditUndo: () => { /* Epic 2: Code Editor */ },
-      onEditRedo: () => { /* Epic 2: Code Editor */ },
+      onEditUndo: () => this.handleUndo(),
+      onEditRedo: () => this.handleRedo(),
       onEditCut: () => { /* Epic 2: Code Editor */ },
       onEditCopy: () => { /* Epic 2: Code Editor */ },
       onEditPaste: () => { /* Epic 2: Code Editor */ },
@@ -312,6 +312,7 @@ export class App {
 
   /**
    * Initialize the Monaco editor in the code panel.
+   * Wires cursor position events to update the status bar.
    * @returns void
    */
   private initializeEditor(): void {
@@ -320,8 +321,32 @@ export class App {
     const codePanelContent = this.container.querySelector('.da-code-panel .da-panel-content');
     if (!codePanelContent) return;
 
-    this.editor = new Editor();
+    this.editor = new Editor({
+      onCursorPositionChange: (position) => {
+        this.statusBar?.updateState({
+          cursorPosition: { line: position.line, column: position.column },
+        });
+      },
+    });
     this.editor.mount(codePanelContent as HTMLElement);
+  }
+
+  /**
+   * Perform an undo on the current editor model if available.
+   */
+  private handleUndo(): void {
+    const model = this.editor?.getModel();
+    model?.undo();
+    this.editor?.focus();
+  }
+
+  /**
+   * Perform a redo on the current editor model if available.
+   */
+  private handleRedo(): void {
+    const model = this.editor?.getModel();
+    model?.redo();
+    this.editor?.focus();
   }
 
   /**

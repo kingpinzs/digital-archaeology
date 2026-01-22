@@ -1,17 +1,53 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Monaco editor using vi.hoisted for proper hoisting
-const { mockEditorInstance, mockMonaco } = vi.hoisted(() => {
-  // Define mock model type to avoid casting issues
-  type MockModel = { uri: string } | null;
+const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionListeners, mockCursorDisposable } = vi.hoisted(() => {
+  // Simple in-memory history to simulate Monaco undo/redo stack behavior
+  let history: string[] = [''];
+  let pointer = 0;
+
+  // Store cursor position change listeners for testing
+  const cursorPositionListeners: Array<(e: { position: { lineNumber: number; column: number } }) => void> = [];
+
+  const resetHistory = () => {
+    history = [''];
+    pointer = 0;
+    cursorPositionListeners.length = 0;
+  };
+
+  const mockCursorDisposable = {
+    dispose: vi.fn(),
+  };
+
+  const mockModel = {
+    uri: 'test-uri',
+    undo: vi.fn(() => {
+      if (pointer > 0) {
+        pointer -= 1;
+      }
+    }),
+    redo: vi.fn(() => {
+      if (pointer < history.length - 1) {
+        pointer += 1;
+      }
+    }),
+  };
 
   const mockEditorInstance = {
     dispose: vi.fn(),
-    getValue: vi.fn(() => ''),
-    setValue: vi.fn(),
-    getModel: vi.fn((): MockModel => null),
+    getValue: vi.fn(() => history[pointer]),
+    setValue: vi.fn((value: string) => {
+      history = history.slice(0, pointer + 1);
+      history.push(value);
+      pointer = history.length - 1;
+    }),
+    getModel: vi.fn(() => mockModel),
     focus: vi.fn(),
     layout: vi.fn(),
+    onDidChangeCursorPosition: vi.fn((callback: (e: { position: { lineNumber: number; column: number } }) => void) => {
+      cursorPositionListeners.push(callback);
+      return mockCursorDisposable;
+    }),
   };
 
   const mockMonaco = {
@@ -26,7 +62,7 @@ const { mockEditorInstance, mockMonaco } = vi.hoisted(() => {
     },
   };
 
-  return { mockEditorInstance, mockMonaco };
+  return { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionListeners, mockCursorDisposable };
 });
 
 vi.mock('monaco-editor', () => mockMonaco);
@@ -41,6 +77,7 @@ describe('Editor', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     vi.clearAllMocks();
+    resetHistory();
     // Reset global theme and language state for each test
     resetThemeRegistration();
     resetLanguageRegistration();
@@ -209,15 +246,170 @@ describe('Editor', () => {
     });
 
     it('should return Monaco model', () => {
-      const mockModel = { uri: 'test-uri' };
-      mockEditorInstance.getModel.mockReturnValueOnce(mockModel);
-
       const editor = new Editor();
       editor.mount(container);
 
       expect(editor.getModel()).toBe(mockModel);
 
       editor.destroy();
+    });
+  });
+
+  describe('undo/redo functionality (Story 2.4)', () => {
+    describe('model API', () => {
+      it('should expose undo method on model', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const model = editor.getModel();
+        expect(typeof model?.undo).toBe('function');
+
+        editor.destroy();
+      });
+
+      it('should expose redo method on model', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const model = editor.getModel();
+        expect(typeof model?.redo).toBe('function');
+
+        editor.destroy();
+      });
+    });
+
+    describe('undo operations', () => {
+      it('should revert setValue changes when undo is called', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        editor.setValue('first');
+        editor.setValue('second');
+
+        const model = editor.getModel();
+        model?.undo();
+
+        expect(mockModel.undo).toHaveBeenCalledTimes(1);
+        expect(editor.getValue()).toBe('first');
+
+        editor.destroy();
+      });
+
+      it('should support multiple sequential undo calls and clamp at the initial value', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        editor.setValue('first');
+        editor.setValue('second');
+        editor.setValue('third');
+
+        const model = editor.getModel();
+        model?.undo();
+        expect(editor.getValue()).toBe('second');
+
+        model?.undo();
+        expect(editor.getValue()).toBe('first');
+
+        model?.undo();
+        expect(editor.getValue()).toBe('');
+
+        expect(mockModel.undo).toHaveBeenCalledTimes(3);
+
+        editor.destroy();
+      });
+    });
+
+    describe('redo operations', () => {
+      it('should restore undone changes when redo is called', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        editor.setValue('first');
+        editor.setValue('second');
+
+        const model = editor.getModel();
+        model?.undo();
+        expect(editor.getValue()).toBe('first');
+
+        model?.redo();
+        expect(mockModel.redo).toHaveBeenCalledTimes(1);
+        expect(editor.getValue()).toBe('second');
+
+        editor.destroy();
+      });
+
+      it('should support multiple sequential redo calls after multiple undos', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        editor.setValue('first');
+        editor.setValue('second');
+        editor.setValue('third');
+
+        const model = editor.getModel();
+        model?.undo(); // second
+        model?.undo(); // first
+        expect(editor.getValue()).toBe('first');
+
+        model?.redo(); // second
+        expect(editor.getValue()).toBe('second');
+        model?.redo(); // third
+        expect(editor.getValue()).toBe('third');
+
+        expect(mockModel.redo).toHaveBeenCalledTimes(2);
+
+        editor.destroy();
+      });
+
+      it('should clear redo stack when new content is set after undo', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        editor.setValue('first');
+        editor.setValue('second');
+
+        const model = editor.getModel();
+        model?.undo(); // back to 'first'
+        expect(editor.getValue()).toBe('first');
+
+        // New edit should clear redo stack
+        editor.setValue('new-branch');
+        expect(editor.getValue()).toBe('new-branch');
+
+        // Redo should have no effect (redo stack cleared by new edit)
+        model?.redo();
+        expect(editor.getValue()).toBe('new-branch'); // Still 'new-branch', not 'second'
+
+        editor.destroy();
+      });
+    });
+
+    describe('keyboard shortcuts (Monaco defaults)', () => {
+      // Note: Monaco Editor handles keyboard shortcuts internally:
+      // - Ctrl+Z / Cmd+Z: Undo
+      // - Ctrl+Y / Cmd+Y: Redo
+      // - Ctrl+Shift+Z / Cmd+Shift+Z: Redo (alternative)
+      //
+      // These bindings are Monaco's default behavior and are enabled automatically.
+      // Integration tests verify menu actions route to model.undo()/redo().
+      // The keyboard shortcuts themselves are Monaco's responsibility and are
+      // well-tested by the Monaco team. We test the API exposure and menu wiring.
+
+      it('should have Monaco handle Ctrl+Z/Ctrl+Y/Ctrl+Shift+Z by default (no override needed)', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        // Verify editor is mounted and model is accessible
+        // Monaco's default keybindings are active when editor is mounted
+        expect(editor.isMounted()).toBe(true);
+        expect(editor.getModel()).not.toBeNull();
+
+        // The actual keyboard shortcuts are handled by Monaco internally
+        // This test documents that we rely on Monaco's default behavior
+        // and don't override or disable these shortcuts
+
+        editor.destroy();
+      });
     });
   });
 
@@ -599,6 +791,65 @@ describe('Editor', () => {
       // WCAG AAA requires 7:1 for normal text
       expect(lineNumContrast).toBeGreaterThanOrEqual(4.5); // AA pass
       expect(activeLineNumContrast).toBeGreaterThanOrEqual(7); // AAA pass
+
+      editor.destroy();
+    });
+  });
+
+  describe('cursor position callback (Story 2.5)', () => {
+    it('should call onCursorPositionChange callback when cursor moves', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onCursorPositionChange: callback });
+      editor.mount(container);
+
+      // Simulate cursor position change
+      cursorPositionListeners[0]?.({ position: { lineNumber: 5, column: 10 } });
+
+      expect(callback).toHaveBeenCalledWith({ line: 5, column: 10 });
+
+      editor.destroy();
+    });
+
+    it('should receive correct line and column values from Monaco', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onCursorPositionChange: callback });
+      editor.mount(container);
+
+      // Test with different positions
+      cursorPositionListeners[0]?.({ position: { lineNumber: 1, column: 1 } });
+      expect(callback).toHaveBeenCalledWith({ line: 1, column: 1 });
+
+      cursorPositionListeners[0]?.({ position: { lineNumber: 42, column: 77 } });
+      expect(callback).toHaveBeenCalledWith({ line: 42, column: 77 });
+
+      editor.destroy();
+    });
+
+    it('should subscribe to Monaco onDidChangeCursorPosition event', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onCursorPositionChange: callback });
+      editor.mount(container);
+
+      expect(mockEditorInstance.onDidChangeCursorPosition).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should dispose cursor position listener when editor is destroyed', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onCursorPositionChange: callback });
+      editor.mount(container);
+
+      editor.destroy();
+
+      expect(mockCursorDisposable.dispose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not subscribe to cursor events if callback not provided', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockEditorInstance.onDidChangeCursorPosition).not.toHaveBeenCalled();
 
       editor.destroy();
     });

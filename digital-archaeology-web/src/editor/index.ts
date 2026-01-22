@@ -2,7 +2,7 @@
 // Monaco wrapper, syntax highlighting, assembly language
 
 export { Editor, resetThemeRegistration } from './Editor';
-export type { EditorOptions } from './Editor';
+export type { EditorOptions, CursorPosition } from './Editor';
 export {
   registerMicro4Language,
   resetLanguageRegistration,

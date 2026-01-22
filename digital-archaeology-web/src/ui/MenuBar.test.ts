@@ -415,6 +415,19 @@ describe('MenuBar', () => {
       expect(mockCallbacks.onEditUndo).toHaveBeenCalled();
     });
 
+    it('should fire onEditRedo when Redo menu item is clicked (Story 2.4)', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const editTrigger = container.querySelector('[data-menu="edit"]') as HTMLButtonElement;
+      editTrigger.click();
+
+      const redoItem = container.querySelector('[data-action="redo"]') as HTMLButtonElement;
+      redoItem.click();
+
+      expect(mockCallbacks.onEditRedo).toHaveBeenCalled();
+    });
+
     it('should fire onViewResetLayout when Reset Layout menu item is clicked', () => {
       const menuBar = new MenuBar(mockCallbacks);
       menuBar.mount(container);

@@ -41,7 +41,7 @@ describe('StatusBar', () => {
       statusBar.mount(container);
 
       const separators = container.querySelectorAll('.da-statusbar-separator');
-      expect(separators.length).toBe(4); // 5 sections = 4 separators
+      expect(separators.length).toBe(5); // 6 sections = 5 separators
 
       statusBar.destroy();
     });
@@ -539,6 +539,87 @@ describe('StatusBar', () => {
       const statusBar = new StatusBar();
       statusBar.destroy();
       // Should not throw
+    });
+  });
+
+  describe('cursor position (Story 2.5)', () => {
+    it('should render cursor section', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      expect(container.querySelector('[data-section="cursor"]')).not.toBeNull();
+
+      statusBar.destroy();
+    });
+
+    it('should display "Ln 1, Col 1" format when cursor position is set', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ cursorPosition: { line: 1, column: 1 } });
+
+      const cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toContain('Ln 1, Col 1');
+
+      statusBar.destroy();
+    });
+
+    it('should display "--" when cursorPosition is null', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toContain('--');
+
+      statusBar.destroy();
+    });
+
+    it('should update cursor position in real-time', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ cursorPosition: { line: 5, column: 10 } });
+      let cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toContain('Ln 5, Col 10');
+
+      statusBar.updateState({ cursorPosition: { line: 42, column: 77 } });
+      cursorSection = container.querySelector('[data-section="cursor"]');
+      expect(cursorSection?.textContent).toContain('Ln 42, Col 77');
+
+      statusBar.destroy();
+    });
+
+    it('should use monospace font class for cursor value', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ cursorPosition: { line: 1, column: 1 } });
+
+      const cursorValue = container.querySelector('[data-section="cursor"] .da-statusbar-value');
+      expect(cursorValue?.classList.contains('da-statusbar-value')).toBe(true);
+
+      statusBar.destroy();
+    });
+
+    it('should have aria-label on cursor section', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const section = container.querySelector('[data-section="cursor"]');
+      expect(section?.getAttribute('aria-label')).toBe('Cursor position');
+
+      statusBar.destroy();
+    });
+
+    it('should add separator before cursor section', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      // There should now be 5 separators (6 sections = 5 separators)
+      const separators = container.querySelectorAll('.da-statusbar-separator');
+      expect(separators.length).toBe(5);
+
+      statusBar.destroy();
     });
   });
 

@@ -1,20 +1,15 @@
 // src/ui/StatusBar.ts
 // Status bar component showing assembly status, PC, instruction, cycle count, and speed
 
+import type { CursorPosition } from '@editor/index';
+
+// Re-export CursorPosition for consumers who import from StatusBar
+export type { CursorPosition };
+
 /**
  * Assembly status type for the status bar.
  */
 export type AssemblyStatus = 'none' | 'assembling' | 'success' | 'error';
-
-/**
- * Cursor position for editor integration.
- * @remarks This field is included in StatusBarState for Story 2.5 (Display Cursor Position in Status Bar).
- * The UI section for cursor position will be added in that story.
- */
-export interface CursorPosition {
-  line: number;
-  column: number;
-}
 
 /**
  * State interface for the StatusBar component.
@@ -54,6 +49,7 @@ export class StatusBar {
   private instructionSection: HTMLElement | null = null;
   private cycleSection: HTMLElement | null = null;
   private speedSection: HTMLElement | null = null;
+  private cursorSection: HTMLElement | null = null;
 
   constructor() {
     this.state = {
@@ -110,6 +106,7 @@ export class StatusBar {
     this.instructionSection = null;
     this.cycleSection = null;
     this.speedSection = null;
+    this.cursorSection = null;
   }
 
   /**
@@ -151,6 +148,13 @@ export class StatusBar {
     const speedSection = this.createSection('speed', 'Execution speed');
     statusBar.appendChild(speedSection);
 
+    // Separator
+    statusBar.appendChild(this.createSeparator());
+
+    // Cursor position section
+    const cursorSection = this.createSection('cursor', 'Cursor position');
+    statusBar.appendChild(cursorSection);
+
     return statusBar;
   }
 
@@ -187,6 +191,7 @@ export class StatusBar {
     this.instructionSection = this.element.querySelector('[data-section="instruction"]');
     this.cycleSection = this.element.querySelector('[data-section="cycle"]');
     this.speedSection = this.element.querySelector('[data-section="speed"]');
+    this.cursorSection = this.element.querySelector('[data-section="cursor"]');
   }
 
   /**
@@ -198,6 +203,7 @@ export class StatusBar {
     this.updateInstructionSection();
     this.updateCycleSection();
     this.updateSpeedSection();
+    this.updateCursorSection();
   }
 
   /**
@@ -290,5 +296,31 @@ export class StatusBar {
     } else {
       this.speedSection.innerHTML = `<span class="da-statusbar-label">Speed:</span> <span class="da-statusbar-value">${speed}Hz</span>`;
     }
+  }
+
+  /**
+   * Update the cursor position section.
+   * Uses safe DOM construction with numeric values from Monaco cursor position.
+   */
+  private updateCursorSection(): void {
+    if (!this.cursorSection) return;
+
+    const { cursorPosition } = this.state;
+
+    // Clear existing content
+    this.cursorSection.textContent = '';
+
+    // Create value span
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'da-statusbar-value';
+
+    if (cursorPosition === null) {
+      valueSpan.textContent = '--';
+    } else {
+      // Safe: line and column are numbers from Monaco cursor position API
+      valueSpan.textContent = `Ln ${cursorPosition.line}, Col ${cursorPosition.column}`;
+    }
+
+    this.cursorSection.appendChild(valueSpan);
   }
 }

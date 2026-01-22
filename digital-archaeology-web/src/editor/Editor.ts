@@ -5,6 +5,14 @@ import * as monaco from 'monaco-editor';
 import { registerMicro4Language, micro4LanguageId } from './micro4-language';
 
 /**
+ * Cursor position information.
+ */
+export interface CursorPosition {
+  line: number;
+  column: number;
+}
+
+/**
  * Configuration options for the Editor component.
  */
 export interface EditorOptions {
@@ -12,6 +20,8 @@ export interface EditorOptions {
   initialValue?: string;
   /** Whether the editor is read-only */
   readOnly?: boolean;
+  /** Callback when cursor position changes */
+  onCursorPositionChange?: (position: CursorPosition) => void;
 }
 
 /**
@@ -62,6 +72,7 @@ export class Editor {
   private container: HTMLElement | null = null;
   private editor: monaco.editor.IStandaloneCodeEditor | null = null;
   private options: EditorOptions;
+  private cursorPositionDisposable: monaco.IDisposable | null = null;
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -165,6 +176,23 @@ export class Editor {
         horizontalScrollbarSize: 10,
       },
     });
+
+    // Subscribe to cursor position changes if callback provided
+    this.setupCursorPositionListener();
+  }
+
+  /**
+   * Set up the cursor position change listener.
+   */
+  private setupCursorPositionListener(): void {
+    if (!this.editor || !this.options.onCursorPositionChange) return;
+
+    this.cursorPositionDisposable = this.editor.onDidChangeCursorPosition((e) => {
+      this.options.onCursorPositionChange!({
+        line: e.position.lineNumber,
+        column: e.position.column,
+      });
+    });
   }
 
   /**
@@ -226,6 +254,10 @@ export class Editor {
    * Destroy the editor and clean up resources.
    */
   destroy(): void {
+    if (this.cursorPositionDisposable) {
+      this.cursorPositionDisposable.dispose();
+      this.cursorPositionDisposable = null;
+    }
     if (this.editor) {
       this.editor.dispose();
       this.editor = null;

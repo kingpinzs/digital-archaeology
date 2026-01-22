@@ -59,8 +59,8 @@ development_status:
   2-1-integrate-monaco-editor: done
   2-2-implement-micro4-syntax-highlighting: done
   2-3-display-line-numbers: done
-  2-4-enable-undo-redo-functionality: backlog
-  2-5-display-cursor-position-in-status-bar: backlog
+  2-4-enable-undo-redo-functionality: done
+  2-5-display-cursor-position-in-status-bar: done
   2-6-implement-editor-keyboard-shortcuts: backlog
   epic-2-retrospective: optional
 

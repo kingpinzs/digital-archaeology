@@ -19,3 +19,7 @@ export type { ToolbarState, ToolbarCallbacks } from './Toolbar';
 // MenuBar exports
 export { MenuBar } from './MenuBar';
 export type { AppMode, MenuBarState, MenuBarCallbacks } from './MenuBar';
+
+// StatusBar exports
+export { StatusBar } from './StatusBar';
+export type { AssemblyStatus, CursorPosition, StatusBarState } from './StatusBar';

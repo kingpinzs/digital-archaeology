@@ -277,9 +277,53 @@
   padding: 0 12px;
 }
 
-.da-statusbar-text {
+.da-statusbar-content {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+
+.da-statusbar-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.da-statusbar-separator {
+  color: var(--da-border);
+  font-size: 11px;
+  user-select: none;
+}
+
+.da-statusbar-label {
   font-size: 11px;
   color: var(--da-text-secondary);
+}
+
+.da-statusbar-value {
+  font-size: 11px;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  color: var(--da-text-primary);
+}
+
+/* Assembly status variants */
+.da-statusbar-status--none {
+  color: var(--da-text-secondary);
+}
+
+.da-statusbar-status--assembling {
+  color: var(--da-warning);
+}
+
+.da-statusbar-status--success {
+  color: var(--da-success);
+}
+
+.da-statusbar-status--error {
+  color: var(--da-error);
 }
 
 /* =============================================================================

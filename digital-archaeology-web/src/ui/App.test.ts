@@ -107,9 +107,9 @@ describe('App', () => {
       expect(statePanelTitle?.textContent).toBe('STATE');
     });
 
-    it('should have status bar text showing Ready', () => {
-      const statusText = container.querySelector('.da-statusbar-text');
-      expect(statusText?.textContent).toBe('Ready');
+    it('should have status bar showing Ready in assembly section', () => {
+      const assemblySection = container.querySelector('[data-section="assembly"]');
+      expect(assemblySection?.textContent).toContain('Ready');
     });
 
     it('should create panel content areas', () => {
@@ -389,6 +389,62 @@ describe('App', () => {
       expect(viewMenu).not.toBeNull();
       expect(debugMenu).not.toBeNull();
       expect(helpMenu).not.toBeNull();
+    });
+  });
+
+  describe('statusbar integration', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should provide access to statusbar via getStatusBar()', () => {
+      const statusBar = app.getStatusBar();
+      expect(statusBar).not.toBeNull();
+    });
+
+    it('should return null for getStatusBar() before mount', () => {
+      const newApp = new App();
+      expect(newApp.getStatusBar()).toBeNull();
+      newApp.destroy();
+    });
+
+    it('should clean up statusbar on destroy', () => {
+      expect(app.getStatusBar()).not.toBeNull();
+      app.destroy();
+      expect(app.getStatusBar()).toBeNull();
+    });
+
+    it('should render statusbar content inside footer', () => {
+      const statusBarContent = container.querySelector('.da-statusbar .da-statusbar-content');
+      expect(statusBarContent).not.toBeNull();
+    });
+
+    it('should render all status bar sections', () => {
+      const assemblySection = container.querySelector('[data-section="assembly"]');
+      const pcSection = container.querySelector('[data-section="pc"]');
+      const instructionSection = container.querySelector('[data-section="instruction"]');
+      const cycleSection = container.querySelector('[data-section="cycle"]');
+      const speedSection = container.querySelector('[data-section="speed"]');
+
+      expect(assemblySection).not.toBeNull();
+      expect(pcSection).not.toBeNull();
+      expect(instructionSection).not.toBeNull();
+      expect(cycleSection).not.toBeNull();
+      expect(speedSection).not.toBeNull();
+    });
+
+    it('should not leak statusbar components on multiple mounts', () => {
+      app.mount(container);
+      app.mount(container);
+      app.mount(container);
+
+      const statusBarContents = container.querySelectorAll('.da-statusbar-content');
+      expect(statusBarContents.length).toBe(1);
+    });
+
+    it('should show Ready as initial assembly status', () => {
+      const assemblySection = container.querySelector('[data-section="assembly"]');
+      expect(assemblySection?.textContent).toContain('Ready');
     });
   });
 

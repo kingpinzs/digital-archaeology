@@ -50,7 +50,7 @@ development_status:
   1-6-implement-resizable-panel-system: done
   1-7-create-toolbar-component: done
   1-8-create-menu-bar-component: done
-  1-9-create-status-bar-component: backlog
+  1-9-create-status-bar-component: done
   1-10-create-panel-header-components: backlog
   epic-1-retrospective: optional
 

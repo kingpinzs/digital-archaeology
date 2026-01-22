@@ -6,6 +6,7 @@ import { Toolbar } from './Toolbar';
 import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
+import { StatusBar } from './StatusBar';
 
 /**
  * Root application component that renders the main 3-panel layout.
@@ -19,6 +20,7 @@ export class App {
   private stateResizer: PanelResizer | null = null;
   private toolbar: Toolbar | null = null;
   private menuBar: MenuBar | null = null;
+  private statusBar: StatusBar | null = null;
   private codePanelWidth: number = PANEL_CONSTRAINTS.CODE_DEFAULT;
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
   private boundWindowResize: () => void;
@@ -36,12 +38,14 @@ export class App {
     this.destroyResizers();
     this.destroyToolbar();
     this.destroyMenuBar();
+    this.destroyStatusBar();
 
     this.container = container;
     this.isMounted = true;
     this.render();
     this.initializeMenuBar();
     this.initializeToolbar();
+    this.initializeStatusBar();
     this.initializeResizers();
     this.updateGridColumns();
 
@@ -90,8 +94,8 @@ export class App {
           </div>
         </aside>
 
-        <footer class="da-statusbar" role="status" aria-live="polite">
-          <span class="da-statusbar-text">Ready</span>
+        <footer class="da-statusbar" role="status" aria-live="polite" aria-label="Application status bar">
+          <!-- StatusBar component will be mounted here -->
         </footer>
       </div>
     `;
@@ -167,6 +171,39 @@ export class App {
    */
   getMenuBar(): MenuBar | null {
     return this.menuBar;
+  }
+
+  /**
+   * Initialize the status bar component.
+   * @returns void
+   */
+  private initializeStatusBar(): void {
+    if (!this.container) return;
+
+    const statusBarContainer = this.container.querySelector('.da-statusbar');
+    if (!statusBarContainer) return;
+
+    this.statusBar = new StatusBar();
+    this.statusBar.mount(statusBarContainer as HTMLElement);
+  }
+
+  /**
+   * Destroy the status bar component.
+   * @returns void
+   */
+  private destroyStatusBar(): void {
+    if (this.statusBar) {
+      this.statusBar.destroy();
+      this.statusBar = null;
+    }
+  }
+
+  /**
+   * Get the status bar instance for state updates.
+   * @returns The status bar instance or null if not initialized
+   */
+  getStatusBar(): StatusBar | null {
+    return this.statusBar;
   }
 
   /**
@@ -363,6 +400,9 @@ export class App {
 
     // Destroy toolbar
     this.destroyToolbar();
+
+    // Destroy status bar
+    this.destroyStatusBar();
 
     // Destroy resizers
     this.destroyResizers();

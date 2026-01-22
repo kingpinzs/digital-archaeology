@@ -1479,5 +1479,78 @@ describe('App', () => {
         });
       });
     });
+
+    describe('debounce protection', () => {
+      it('should prevent rapid triggering of assembly', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Make assembly take some time
+        let resolveAssembly: (value: { success: boolean; binary: Uint8Array; error: null }) => void;
+        mockAssemblerBridge.assemble.mockImplementation(() => new Promise(resolve => {
+          resolveAssembly = resolve;
+        }));
+
+        // Trigger assembly multiple times rapidly via the keyboard shortcut action
+        // (since button will be disabled after first click)
+        const assembleAction = addedActions.find(a => a.id === 'assemble');
+        expect(assembleAction).toBeDefined();
+
+        // Call the action multiple times rapidly
+        assembleAction!.run();
+        assembleAction!.run();
+        assembleAction!.run();
+
+        // Assembly should only be called once due to debounce
+        expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(1);
+
+        // Resolve the assembly
+        resolveAssembly!({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('2 bytes');
+        });
+      });
+
+      it('should allow assembly after previous one completes', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+
+        // First assembly
+        assembleBtn.click();
+        await vi.waitFor(() => {
+          expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(1);
+        });
+
+        // Wait for assembly to complete
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('2 bytes');
+        });
+
+        // Second assembly should work
+        assembleBtn.click();
+        await vi.waitFor(() => {
+          expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(2);
+        });
+      });
+    });
   });
 });

@@ -234,8 +234,15 @@ describe('keyboardShortcuts constants', () => {
         expect(shortcut).toHaveProperty('category');
         expect(typeof shortcut.keys).toBe('string');
         expect(typeof shortcut.description).toBe('string');
-        expect(['editing', 'search']).toContain(shortcut.category);
+        expect(['editing', 'search', 'assembly']).toContain(shortcut.category);
       }
+    });
+
+    it('should include Ctrl+Enter assemble shortcut (Story 3.3)', () => {
+      const assemble = KEYBOARD_SHORTCUTS.find((s) => s.keys === 'Ctrl+Enter');
+      expect(assemble).toBeDefined();
+      expect(assemble?.description).toContain('Assemble');
+      expect(assemble?.category).toBe('assembly');
     });
 
     it('should include Ctrl+A select all', () => {
@@ -277,12 +284,16 @@ describe('keyboardShortcuts constants', () => {
     it('should have label for search category', () => {
       expect(CATEGORY_LABELS.search).toBe('Search');
     });
+
+    it('should have label for assembly category (Story 3.3)', () => {
+      expect(CATEGORY_LABELS.assembly).toBe('Assembly');
+    });
   });
 
   describe('getActiveCategories', () => {
-    it('should return at least 2 categories', () => {
+    it('should return at least 3 categories', () => {
       const categories = getActiveCategories();
-      expect(categories.length).toBeGreaterThanOrEqual(2);
+      expect(categories.length).toBeGreaterThanOrEqual(3);
     });
 
     it('should include editing category', () => {
@@ -293,6 +304,11 @@ describe('keyboardShortcuts constants', () => {
     it('should include search category', () => {
       const categories = getActiveCategories();
       expect(categories).toContain('search');
+    });
+
+    it('should include assembly category (Story 3.3)', () => {
+      const categories = getActiveCategories();
+      expect(categories).toContain('assembly');
     });
   });
 });

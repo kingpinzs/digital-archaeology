@@ -10,7 +10,7 @@ export interface KeyboardShortcut {
   /** Human-readable description of what the shortcut does */
   description: string;
   /** Category for grouping in the shortcuts dialog */
-  category: 'editing' | 'search';
+  category: 'editing' | 'search' | 'assembly';
 }
 
 /**
@@ -35,6 +35,9 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
   { keys: 'F3', description: 'Find next', category: 'search' },
   { keys: 'Shift+F3', description: 'Find previous', category: 'search' },
   { keys: 'Escape', description: 'Close find widget', category: 'search' },
+
+  // Assembly shortcuts
+  { keys: 'Ctrl+Enter', description: 'Assemble code', category: 'assembly' },
 ];
 
 /**
@@ -43,6 +46,7 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
 export const CATEGORY_LABELS: Record<KeyboardShortcut['category'], string> = {
   editing: 'Editing',
   search: 'Search',
+  assembly: 'Assembly',
 };
 
 /**

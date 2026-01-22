@@ -63,6 +63,9 @@ export class App {
   // Last assembly result for use by execution controls (Epic 4)
   private lastAssembleResult: AssembleResult | null = null;
 
+  // Flag to prevent rapid assembly triggering (debounce guard)
+  private isAssembling: boolean = false;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -380,6 +383,7 @@ export class App {
       this.assemblerBridge = null;
     }
     this.lastAssembleResult = null;
+    this.isAssembling = false;
   }
 
   /**
@@ -403,8 +407,14 @@ export class App {
   /**
    * Handle assembly of the current editor content.
    * Updates status bar during operation and enables execution buttons on success.
+   * Includes debounce protection against rapid triggering.
    */
   private async handleAssemble(): Promise<void> {
+    // Debounce guard - prevent rapid triggering from keyboard shortcut
+    if (this.isAssembling) {
+      return;
+    }
+
     if (!this.assemblerBridge?.isReady) {
       this.statusBar?.updateState({
         assemblyStatus: 'error',
@@ -421,6 +431,9 @@ export class App {
       });
       return;
     }
+
+    // Set assembling flag to prevent rapid triggering
+    this.isAssembling = true;
 
     // Update status and disable Assemble button during operation
     this.statusBar?.updateState({
@@ -463,6 +476,9 @@ export class App {
         assemblyMessage: errorMsg,
       });
       this.toolbar?.updateState({ canAssemble: true });
+    } finally {
+      // Always clear the assembling flag
+      this.isAssembling = false;
     }
 
     // Return focus to editor

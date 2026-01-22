@@ -27,3 +27,15 @@ export type { AssemblyStatus, CursorPosition, StatusBarState } from './StatusBar
 // PanelHeader exports
 export { PanelHeader } from './PanelHeader';
 export type { PanelId, PanelHeaderOptions } from './PanelHeader';
+
+// KeyboardShortcutsDialog exports
+export { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+
+// Keyboard shortcuts data exports
+export {
+  KEYBOARD_SHORTCUTS,
+  CATEGORY_LABELS,
+  getShortcutsByCategory,
+  getActiveCategories,
+} from './keyboardShortcuts';
+export type { KeyboardShortcut } from './keyboardShortcuts';

@@ -61,7 +61,7 @@ development_status:
   2-3-display-line-numbers: done
   2-4-enable-undo-redo-functionality: done
   2-5-display-cursor-position-in-status-bar: done
-  2-6-implement-editor-keyboard-shortcuts: backlog
+  2-6-implement-editor-keyboard-shortcuts: review
   epic-2-retrospective: optional
 
   # Epic 3: Code Assembly & Error Handling

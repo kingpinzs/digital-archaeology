@@ -1002,4 +1002,99 @@ describe('App', () => {
       expect(mockCursorDisposable.dispose).toHaveBeenCalled();
     });
   });
+
+  describe('keyboard shortcuts dialog (Story 2.6)', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      // Clean up any dialogs that might be left in the DOM
+      document.querySelectorAll('.da-shortcuts-backdrop').forEach((el) => el.remove());
+    });
+
+    it('should show keyboard shortcuts dialog when Help > Keyboard Shortcuts is clicked', () => {
+      // Open Help menu
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+
+      // Click Keyboard Shortcuts item
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      // Dialog should be visible
+      const dialog = document.querySelector('.da-shortcuts-dialog');
+      expect(dialog).not.toBeNull();
+    });
+
+    it('should display dialog title', () => {
+      // Open Help menu and click Keyboard Shortcuts
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      const title = document.querySelector('#da-shortcuts-title');
+      expect(title?.textContent).toBe('Keyboard Shortcuts');
+    });
+
+    it('should close dialog when Escape key is pressed', () => {
+      // Open dialog
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      // Press Escape
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      document.dispatchEvent(event);
+
+      // Dialog should be gone
+      const dialog = document.querySelector('.da-shortcuts-dialog');
+      expect(dialog).toBeNull();
+    });
+
+    it('should close dialog when close button is clicked', () => {
+      // Open dialog
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      // Click close button
+      const closeBtn = document.querySelector('.da-shortcuts-close') as HTMLButtonElement;
+      closeBtn.click();
+
+      // Dialog should be gone
+      const dialog = document.querySelector('.da-shortcuts-dialog');
+      expect(dialog).toBeNull();
+    });
+
+    it('should return KeyboardShortcutsDialog instance after showing', () => {
+      // Open dialog
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      const dialog = app.getKeyboardShortcutsDialog();
+      expect(dialog).not.toBeNull();
+      expect(dialog?.isVisible()).toBe(true);
+    });
+
+    it('should clean up dialog when app is destroyed', () => {
+      // Open dialog
+      const helpTrigger = container.querySelector('[data-menu="help"]') as HTMLButtonElement;
+      helpTrigger.click();
+      const shortcutsItem = container.querySelector('[data-action="shortcuts"]') as HTMLButtonElement;
+      shortcutsItem.click();
+
+      // Destroy app
+      app.destroy();
+
+      // Dialog should be removed
+      const dialog = document.querySelector('.da-shortcuts-dialog');
+      expect(dialog).toBeNull();
+    });
+  });
 });

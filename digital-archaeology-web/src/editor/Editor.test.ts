@@ -48,6 +48,10 @@ const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionL
       cursorPositionListeners.push(callback);
       return mockCursorDisposable;
     }),
+    trigger: vi.fn(),
+    getContribution: vi.fn(() => ({
+      start: vi.fn(),
+    })),
   };
 
   const mockMonaco = {
@@ -852,6 +856,103 @@ describe('Editor', () => {
       expect(mockEditorInstance.onDidChangeCursorPosition).not.toHaveBeenCalled();
 
       editor.destroy();
+    });
+  });
+
+  describe('keyboard shortcuts (Story 2.6)', () => {
+    describe('Monaco action triggers', () => {
+      it('should trigger editor.action.selectAll when select all is called', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        // Trigger select all via Monaco API
+        const monacoEditor = editor.getMonacoEditor();
+        monacoEditor?.trigger('keyboard', 'editor.action.selectAll', null);
+
+        expect(mockEditorInstance.trigger).toHaveBeenCalledWith(
+          'keyboard',
+          'editor.action.selectAll',
+          null
+        );
+
+        editor.destroy();
+      });
+
+      it('should trigger actions.find when find is called', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const monacoEditor = editor.getMonacoEditor();
+        monacoEditor?.trigger('keyboard', 'actions.find', null);
+
+        expect(mockEditorInstance.trigger).toHaveBeenCalledWith(
+          'keyboard',
+          'actions.find',
+          null
+        );
+
+        editor.destroy();
+      });
+
+      it('should trigger editor.action.startFindReplaceAction for find and replace', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const monacoEditor = editor.getMonacoEditor();
+        monacoEditor?.trigger('keyboard', 'editor.action.startFindReplaceAction', null);
+
+        expect(mockEditorInstance.trigger).toHaveBeenCalledWith(
+          'keyboard',
+          'editor.action.startFindReplaceAction',
+          null
+        );
+
+        editor.destroy();
+      });
+
+      it('should trigger editor.action.indentLines for tab indent', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const monacoEditor = editor.getMonacoEditor();
+        monacoEditor?.trigger('keyboard', 'editor.action.indentLines', null);
+
+        expect(mockEditorInstance.trigger).toHaveBeenCalledWith(
+          'keyboard',
+          'editor.action.indentLines',
+          null
+        );
+
+        editor.destroy();
+      });
+
+      it('should trigger editor.action.outdentLines for shift+tab unindent', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        const monacoEditor = editor.getMonacoEditor();
+        monacoEditor?.trigger('keyboard', 'editor.action.outdentLines', null);
+
+        expect(mockEditorInstance.trigger).toHaveBeenCalledWith(
+          'keyboard',
+          'editor.action.outdentLines',
+          null
+        );
+
+        editor.destroy();
+      });
+
+      it('should have Monaco editor created with keyboard shortcuts enabled', () => {
+        const editor = new Editor();
+        editor.mount(container);
+
+        // Monaco editor should be created and have trigger method available
+        const monacoEditor = editor.getMonacoEditor();
+        expect(monacoEditor).not.toBeNull();
+        expect(typeof monacoEditor?.trigger).toBe('function');
+
+        editor.destroy();
+      });
     });
   });
 

@@ -10,6 +10,7 @@ import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { Editor } from '@editor/index';
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -50,6 +51,9 @@ export class App {
 
   // Code editor (Monaco)
   private editor: Editor | null = null;
+
+  // Keyboard shortcuts dialog
+  private keyboardShortcutsDialog: KeyboardShortcutsDialog | null = null;
 
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
@@ -191,7 +195,7 @@ export class App {
       onDebugStep: () => { /* Epic 5: Debugging */ },
       onDebugToggleBreakpoint: () => { /* Epic 5: Debugging */ },
       // Help menu
-      onHelpKeyboardShortcuts: () => { /* Epic 20: Educational Content */ },
+      onHelpKeyboardShortcuts: () => this.showKeyboardShortcuts(),
       onHelpDocumentation: () => { /* Epic 20: Educational Content */ },
       onHelpAbout: () => { /* Epic 20: Educational Content */ },
     };
@@ -366,6 +370,35 @@ export class App {
    */
   getEditor(): Editor | null {
     return this.editor;
+  }
+
+  /**
+   * Show the keyboard shortcuts dialog.
+   */
+  private showKeyboardShortcuts(): void {
+    if (!this.keyboardShortcutsDialog) {
+      this.keyboardShortcutsDialog = new KeyboardShortcutsDialog();
+    }
+    this.keyboardShortcutsDialog.show();
+  }
+
+  /**
+   * Destroy the keyboard shortcuts dialog.
+   * @returns void
+   */
+  private destroyKeyboardShortcutsDialog(): void {
+    if (this.keyboardShortcutsDialog) {
+      this.keyboardShortcutsDialog.destroy();
+      this.keyboardShortcutsDialog = null;
+    }
+  }
+
+  /**
+   * Get the keyboard shortcuts dialog instance.
+   * @returns The keyboard shortcuts dialog instance or null if not initialized
+   */
+  getKeyboardShortcutsDialog(): KeyboardShortcutsDialog | null {
+    return this.keyboardShortcutsDialog;
   }
 
   /**
@@ -706,6 +739,9 @@ export class App {
 
     // Destroy editor
     this.destroyEditor();
+
+    // Destroy keyboard shortcuts dialog
+    this.destroyKeyboardShortcutsDialog();
 
     // Destroy resizers
     this.destroyResizers();

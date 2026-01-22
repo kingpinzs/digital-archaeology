@@ -803,3 +803,140 @@ body.da-resizing * {
 .da-menubar-spacer {
   flex: 1;
 }
+
+/* =============================================================================
+   Keyboard Shortcuts Dialog (Story 2.6)
+   ============================================================================= */
+
+/* Backdrop overlay */
+.da-shortcuts-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Dialog container */
+.da-shortcuts-dialog {
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+/* Dialog header */
+.da-shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--da-border);
+  background: var(--da-bg-primary);
+  border-radius: 8px 8px 0 0;
+}
+
+.da-shortcuts-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--da-text-primary);
+}
+
+.da-shortcuts-close {
+  background: transparent;
+  border: none;
+  color: var(--da-text-secondary);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.da-shortcuts-close:hover {
+  color: var(--da-text-primary);
+  background: var(--da-bg-tertiary);
+}
+
+/* Dialog content */
+.da-shortcuts-content {
+  padding: 16px 20px;
+}
+
+/* Category section */
+.da-shortcuts-section {
+  margin-bottom: 20px;
+}
+
+.da-shortcuts-section:last-child {
+  margin-bottom: 0;
+}
+
+.da-shortcuts-section-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--da-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Shortcuts list */
+.da-shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Individual shortcut row */
+.da-shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-shortcuts-row:last-child {
+  border-bottom: none;
+}
+
+.da-shortcuts-description {
+  color: var(--da-text-primary);
+  font-size: 14px;
+}
+
+.da-shortcuts-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Individual key badge */
+.da-shortcuts-key {
+  display: inline-block;
+  padding: 4px 8px;
+  background: var(--da-bg-primary);
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Liberation Mono', monospace;
+  font-size: 12px;
+  color: var(--da-text-primary);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* Plus sign between keys */
+.da-shortcuts-plus {
+  color: var(--da-text-secondary);
+  font-size: 12px;
+}

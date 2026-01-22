@@ -39,3 +39,7 @@ export {
   getActiveCategories,
 } from './keyboardShortcuts';
 export type { KeyboardShortcut } from './keyboardShortcuts';
+
+// ErrorPanel exports
+export { ErrorPanel } from './ErrorPanel';
+export type { ErrorPanelOptions, ErrorClickInfo } from './ErrorPanel';

@@ -940,3 +940,95 @@ body.da-resizing * {
   color: var(--da-text-secondary);
   font-size: 12px;
 }
+
+/* =============================================================================
+   Error Panel Component (Story 3.4)
+   Displays assembly errors with clickable items for jump-to-line functionality
+   ============================================================================= */
+
+/* Error Panel Container */
+.da-error-panel {
+  background: var(--da-bg-secondary);
+  border-top: 1px solid var(--da-error);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.da-error-panel--hidden {
+  display: none;
+}
+
+.da-error-panel-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 68, 68, 0.1);
+  border-bottom: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.da-error-panel-title {
+  color: var(--da-error);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.da-error-panel-count {
+  color: var(--da-text-secondary);
+  font-size: 12px;
+}
+
+.da-error-panel-list {
+  /* Container for error items */
+}
+
+.da-error-panel-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.15s ease;
+}
+
+.da-error-panel-item:last-child {
+  border-bottom: none;
+}
+
+.da-error-panel-item:hover {
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.da-error-panel-item:focus {
+  background: rgba(255, 68, 68, 0.15);
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+.da-error-panel-location {
+  color: var(--da-error);
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Liberation Mono', monospace;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.da-error-panel-message {
+  color: var(--da-text-primary);
+  font-size: 13px;
+}
+
+/* Monaco Error Decorations */
+.da-error-line {
+  background: rgba(255, 68, 68, 0.15) !important;
+}
+
+/*
+ * Error glyph marker in Monaco gutter.
+ * Note: CSS data URLs cannot use CSS variables, so the fill color is hardcoded.
+ * Using #ff4444 which matches --da-error in dark and lab themes.
+ * The visual difference with retro theme (#ff5555) is minimal and acceptable.
+ */
+.da-error-glyph {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23ff4444'/%3E%3Ctext x='8' y='11' text-anchor='middle' fill='white' font-size='10' font-weight='bold'%3E!%3C/text%3E%3C/svg%3E") center center no-repeat;
+  background-size: 14px;
+}

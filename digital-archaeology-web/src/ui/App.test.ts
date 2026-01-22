@@ -8,7 +8,22 @@ const {
   contentChangeListeners,
   addedActions,
   mockCursorDisposable,
+  MockRange,
 } = vi.hoisted(() => {
+  // Mock Range class for Monaco decorations - must be inside hoisted block
+  class MockRange {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    constructor(startLine: number, startCol: number, endLine: number, endCol: number) {
+      this.startLineNumber = startLine;
+      this.startColumn = startCol;
+      this.endLineNumber = endLine;
+      this.endColumn = endCol;
+    }
+  }
+
   const mockModel = {
     undo: vi.fn(),
     redo: vi.fn(),
@@ -49,6 +64,10 @@ const {
       addedActions.push(action);
       return { dispose: vi.fn() };
     }),
+    // Error decoration methods (Story 3.4)
+    deltaDecorations: vi.fn(() => ['decoration-id']),
+    setPosition: vi.fn(),
+    revealLineInCenter: vi.fn(),
     // Helper to reset content for tests
     _setContent: (content: string) => {
       editorContent = content;
@@ -65,6 +84,7 @@ const {
     contentChangeListeners,
     addedActions,
     mockCursorDisposable,
+    MockRange,
   };
 });
 
@@ -84,15 +104,16 @@ vi.mock('monaco-editor', () => ({
   KeyCode: {
     Enter: 3,
   },
+  Range: MockRange,
 }));
 
 // Mock AssemblerBridge - must be properly hoisted to work as constructor
 const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
-  // Type for assembly result
+  // Type for assembly result (matches AssembleResult from emulator)
   type AssemblyResult = {
     success: boolean;
     binary: Uint8Array | null;
-    error: { line: number; message: string } | null;
+    error: { line: number; column?: number; message: string } | null;
   };
 
   // Mutable state for test manipulation
@@ -1550,6 +1571,300 @@ describe('App', () => {
         await vi.waitFor(() => {
           expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(2);
         });
+      });
+    });
+  });
+
+  describe('error panel integration (Story 3.4)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('ErrorPanel initialization', () => {
+      it('should initialize ErrorPanel when app mounts', () => {
+        const errorPanel = app.getErrorPanel();
+        expect(errorPanel).not.toBeNull();
+      });
+
+      it('should return null for getErrorPanel() before mount', () => {
+        const newApp = new App();
+        expect(newApp.getErrorPanel()).toBeNull();
+        newApp.destroy();
+      });
+
+      it('should mount ErrorPanel inside code panel', () => {
+        const errorPanelEl = container.querySelector('.da-code-panel .da-error-panel');
+        expect(errorPanelEl).not.toBeNull();
+      });
+
+      it('should hide ErrorPanel initially (no errors)', () => {
+        const errorPanelEl = container.querySelector('.da-error-panel');
+        expect(errorPanelEl?.classList.contains('da-error-panel--hidden')).toBe(true);
+      });
+
+      it('should clean up ErrorPanel on destroy', () => {
+        expect(app.getErrorPanel()).not.toBeNull();
+        app.destroy();
+        expect(app.getErrorPanel()).toBeNull();
+      });
+
+      it('should not leak error panels on multiple mounts', () => {
+        app.mount(container);
+        app.mount(container);
+        app.mount(container);
+
+        const errorPanels = container.querySelectorAll('.da-error-panel');
+        expect(errorPanels.length).toBe(1);
+      });
+    });
+
+    describe('ErrorPanel displays assembly errors', () => {
+      it('should show ErrorPanel with errors on assembly failure', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction: INVALID' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorPanelEl = container.querySelector('.da-error-panel');
+          expect(errorPanelEl?.classList.contains('da-error-panel--hidden')).toBe(false);
+        });
+      });
+
+      it('should display error message in ErrorPanel', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction: INVALID' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const messageEl = container.querySelector('.da-error-panel-message');
+          expect(messageEl?.textContent).toBe('Unknown instruction: INVALID');
+        });
+      });
+
+      it('should display error line number in ErrorPanel', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 5, message: 'Syntax error' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const locationEl = container.querySelector('.da-error-panel-location');
+          expect(locationEl?.textContent).toContain('Line 5');
+        });
+      });
+
+      it('should clear ErrorPanel on successful assembly', async () => {
+        // First, trigger a failure
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Error' },
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorPanelEl = container.querySelector('.da-error-panel');
+          expect(errorPanelEl?.classList.contains('da-error-panel--hidden')).toBe(false);
+        });
+
+        // Now trigger success
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorPanelEl = container.querySelector('.da-error-panel');
+          expect(errorPanelEl?.classList.contains('da-error-panel--hidden')).toBe(true);
+        });
+      });
+    });
+
+    describe('editor decorations on assembly errors', () => {
+      it('should set error decorations on assembly failure', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 3, message: 'Error on line 3' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        mockEditorInstance.deltaDecorations.mockClear();
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        expect(assembleBtn.disabled).toBe(false); // Verify button is enabled
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          // deltaDecorations is called twice: once to clear (empty array), once to set (with decorations)
+          expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledTimes(2);
+          // Second call should have decorations (first call is clearErrorDecorations with empty array)
+          const calls = mockEditorInstance.deltaDecorations.mock.calls;
+          const setCall = calls[1] as unknown as [string[], unknown[]];
+          expect(setCall[1].length).toBeGreaterThan(0);
+        });
+      });
+
+      it('should clear error decorations on successful assembly', async () => {
+        // First failure to set decorations
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Error' },
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEditorInstance.deltaDecorations).toHaveBeenCalled();
+        });
+
+        mockEditorInstance.deltaDecorations.mockClear();
+
+        // Now success should clear decorations
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEditorInstance.deltaDecorations).toHaveBeenCalled();
+          const calls = mockEditorInstance.deltaDecorations.mock.calls;
+          const call = calls[0] as unknown as [string[], unknown[]];
+          // Second argument should be empty array (clearing decorations)
+          expect(call[1]).toEqual([]);
+        });
+      });
+    });
+
+    describe('click-to-jump from ErrorPanel to editor', () => {
+      it('should reveal error line in editor when error item clicked', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 7, message: 'Error on line 7' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorItem = container.querySelector('.da-error-panel-item') as HTMLElement;
+          expect(errorItem).not.toBeNull();
+        });
+
+        mockEditorInstance.setPosition.mockClear();
+        mockEditorInstance.revealLineInCenter.mockClear();
+        mockEditorInstance.focus.mockClear();
+
+        // Click on the error item
+        const errorItem = container.querySelector('.da-error-panel-item') as HTMLElement;
+        errorItem.click();
+
+        // Editor should reveal line 7
+        expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({ lineNumber: 7, column: 1 });
+        expect(mockEditorInstance.revealLineInCenter).toHaveBeenCalledWith(7);
+        expect(mockEditorInstance.focus).toHaveBeenCalled();
+      });
+
+      it('should use column when provided in error', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 5, column: 10, message: 'Error at column 10' },
+        });
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const errorItem = container.querySelector('.da-error-panel-item') as HTMLElement;
+          expect(errorItem).not.toBeNull();
+        });
+
+        mockEditorInstance.setPosition.mockClear();
+
+        const errorItem = container.querySelector('.da-error-panel-item') as HTMLElement;
+        errorItem.click();
+
+        expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({ lineNumber: 5, column: 10 });
       });
     });
   });

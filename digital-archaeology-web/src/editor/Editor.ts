@@ -3,6 +3,7 @@
 
 import * as monaco from 'monaco-editor';
 import { registerMicro4Language, micro4LanguageId } from './micro4-language';
+import type { AssemblerError } from '@emulator/index';
 
 /**
  * Cursor position information.
@@ -79,6 +80,7 @@ export class Editor {
   private cursorPositionDisposable: monaco.IDisposable | null = null;
   private contentChangeDisposable: monaco.IDisposable | null = null;
   private assembleActionDisposable: monaco.IDisposable | null = null;
+  private errorDecorationIds: string[] = [];
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -166,7 +168,7 @@ export class Editor {
       renderValidationDecorations: 'on',
       // Remove extra chrome
       folding: false,
-      glyphMargin: false,
+      glyphMargin: true, // Enable glyph margin for error markers
       lineDecorationsWidth: 0,
       lineNumbersMinChars: 3,
       overviewRulerBorder: false,
@@ -287,6 +289,62 @@ export class Editor {
    */
   layout(): void {
     this.editor?.layout();
+  }
+
+  /**
+   * Set error decorations on the editor.
+   * Adds red line highlighting and gutter markers for assembly errors.
+   * @param errors - Array of assembler errors to display
+   */
+  setErrorDecorations(errors: AssemblerError[]): void {
+    if (!this.editor) return;
+
+    const decorations: monaco.editor.IModelDeltaDecoration[] = errors.map(error => ({
+      range: new monaco.Range(error.line, 1, error.line, 1),
+      options: {
+        isWholeLine: true,
+        className: 'da-error-line',
+        glyphMarginClassName: 'da-error-glyph',
+        glyphMarginHoverMessage: { value: error.message },
+        hoverMessage: { value: `**Error:** ${error.message}` },
+      },
+    }));
+
+    // Replace existing decorations with new ones
+    this.errorDecorationIds = this.editor.deltaDecorations(
+      this.errorDecorationIds,
+      decorations
+    );
+  }
+
+  /**
+   * Clear all error decorations from the editor.
+   */
+  clearErrorDecorations(): void {
+    if (!this.editor) return;
+
+    this.errorDecorationIds = this.editor.deltaDecorations(
+      this.errorDecorationIds,
+      []
+    );
+  }
+
+  /**
+   * Reveal a specific line in the editor and set cursor position.
+   * @param line - Line number to reveal (1-based)
+   * @param column - Column number to set cursor (1-based, defaults to 1)
+   */
+  revealLine(line: number, column: number = 1): void {
+    if (!this.editor) return;
+
+    // Set cursor position
+    this.editor.setPosition({ lineNumber: line, column });
+
+    // Center the line in the viewport
+    this.editor.revealLineInCenter(line);
+
+    // Focus the editor
+    this.editor.focus();
   }
 
   /**

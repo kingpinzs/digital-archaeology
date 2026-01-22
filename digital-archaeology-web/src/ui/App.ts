@@ -11,6 +11,7 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { ErrorPanel } from './ErrorPanel';
 import { AssemblerBridge } from '@emulator/index';
 import type { AssembleResult } from '@emulator/index';
 
@@ -56,6 +57,9 @@ export class App {
 
   // Keyboard shortcuts dialog
   private keyboardShortcutsDialog: KeyboardShortcutsDialog | null = null;
+
+  // Error panel for displaying assembly errors
+  private errorPanel: ErrorPanel | null = null;
 
   // Assembler bridge for WASM worker communication
   private assemblerBridge: AssemblerBridge | null = null;
@@ -329,7 +333,7 @@ export class App {
   /**
    * Initialize the Monaco editor in the code panel.
    * Wires cursor position events to update the status bar.
-   * Also initializes the AssemblerBridge for code assembly.
+   * Also initializes the AssemblerBridge for code assembly and ErrorPanel.
    * @returns void
    */
   private initializeEditor(): void {
@@ -351,8 +355,57 @@ export class App {
     });
     this.editor.mount(codePanelContent as HTMLElement);
 
+    // Initialize ErrorPanel for assembly errors (Story 3.4)
+    this.initializeErrorPanel(codePanelContent as HTMLElement);
+
     // Initialize AssemblerBridge for code assembly
     this.initializeAssemblerBridge();
+  }
+
+  /**
+   * Initialize the ErrorPanel below the editor.
+   * @param codePanelContent - The code panel content container
+   * @returns void
+   */
+  private initializeErrorPanel(codePanelContent: HTMLElement): void {
+    // Create container for error panel
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'da-error-panel-container';
+    codePanelContent.appendChild(errorContainer);
+
+    this.errorPanel = new ErrorPanel({
+      onErrorClick: (error) => this.handleErrorClick(error),
+    });
+    this.errorPanel.mount(errorContainer);
+  }
+
+  /**
+   * Handle click on an error in the ErrorPanel.
+   * Jumps to the error location in the editor.
+   * @param error - The error click info with line and optional column
+   * @returns void
+   */
+  private handleErrorClick(error: { line: number; column?: number }): void {
+    this.editor?.revealLine(error.line, error.column ?? 1);
+  }
+
+  /**
+   * Destroy the ErrorPanel.
+   * @returns void
+   */
+  private destroyErrorPanel(): void {
+    if (this.errorPanel) {
+      this.errorPanel.destroy();
+      this.errorPanel = null;
+    }
+  }
+
+  /**
+   * Get the ErrorPanel instance for testing.
+   * @returns The ErrorPanel instance or null if not initialized
+   */
+  getErrorPanel(): ErrorPanel | null {
+    return this.errorPanel;
   }
 
   /**
@@ -408,6 +461,7 @@ export class App {
    * Handle assembly of the current editor content.
    * Updates status bar during operation and enables execution buttons on success.
    * Includes debounce protection against rapid triggering.
+   * Also updates ErrorPanel and editor decorations for assembly errors (Story 3.4).
    */
   private async handleAssemble(): Promise<void> {
     // Debounce guard - prevent rapid triggering from keyboard shortcut
@@ -442,6 +496,10 @@ export class App {
     });
     this.toolbar?.updateState({ canAssemble: false });
 
+    // Clear previous errors before assembly
+    this.errorPanel?.clearErrors();
+    this.editor?.clearErrorDecorations();
+
     try {
       const result = await this.assemblerBridge.assemble(source);
       this.lastAssembleResult = result;
@@ -460,13 +518,20 @@ export class App {
           canReset: true,
         });
       } else {
-        // Display error message (basic - Story 3.4 handles rich errors)
+        // Display error message in status bar
         const errorMsg = result.error?.message ?? 'Assembly failed';
         this.statusBar?.updateState({
           assemblyStatus: 'error',
           assemblyMessage: errorMsg,
         });
         this.toolbar?.updateState({ canAssemble: true });
+
+        // Display detailed errors in ErrorPanel and editor decorations (Story 3.4)
+        if (result.error) {
+          const errors = [result.error];
+          this.errorPanel?.setErrors(errors);
+          this.editor?.setErrorDecorations(errors);
+        }
       }
     } catch (error) {
       // Handle unexpected errors (worker crash, timeout, etc.)
@@ -883,6 +948,9 @@ export class App {
 
     // Destroy assembler bridge
     this.destroyAssemblerBridge();
+
+    // Destroy error panel
+    this.destroyErrorPanel();
 
     // Destroy keyboard shortcuts dialog
     this.destroyKeyboardShortcutsDialog();

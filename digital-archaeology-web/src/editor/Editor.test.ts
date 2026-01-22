@@ -89,7 +89,25 @@ const {
     getContribution: vi.fn(() => ({
       start: vi.fn(),
     })),
+    // Error decoration methods (Story 3.4)
+    deltaDecorations: vi.fn(() => ['decoration-id']),
+    setPosition: vi.fn(),
+    revealLineInCenter: vi.fn(),
   };
+
+  // Mock Range class for decorations
+  class MockRange {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    constructor(startLine: number, startCol: number, endLine: number, endCol: number) {
+      this.startLineNumber = startLine;
+      this.startColumn = startCol;
+      this.endLineNumber = endLine;
+      this.endColumn = endCol;
+    }
+  }
 
   const mockMonaco = {
     editor: {
@@ -107,6 +125,7 @@ const {
     KeyCode: {
       Enter: 3,
     },
+    Range: MockRange,
   };
 
   return {
@@ -1229,6 +1248,168 @@ describe('Editor', () => {
       expect(mockEditorInstance.addAction).not.toHaveBeenCalled();
 
       editor.destroy();
+    });
+  });
+
+  describe('error decorations (Story 3.4)', () => {
+    it('should add error decorations via deltaDecorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.setErrorDecorations([
+        { line: 3, message: 'Unknown instruction' },
+      ]);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should create decorations with error styling classes', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.setErrorDecorations([
+        { line: 5, message: 'Invalid address' },
+      ]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { range: unknown; options: { isWholeLine: boolean; className: string; glyphMarginClassName: string; hoverMessage: { value: string } } }[]];
+      const decorations = call[1];
+      expect(decorations.length).toBe(1);
+      expect(decorations[0].options.isWholeLine).toBe(true);
+      expect(decorations[0].options.className).toBe('da-error-line');
+      expect(decorations[0].options.glyphMarginClassName).toBe('da-error-glyph');
+
+      editor.destroy();
+    });
+
+    it('should include hover message with error text', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.setErrorDecorations([
+        { line: 2, message: 'Syntax error' },
+      ]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { range: unknown; options: { hoverMessage: { value: string } } }[]];
+      const decorations = call[1];
+      expect(decorations[0].options.hoverMessage.value).toContain('Syntax error');
+
+      editor.destroy();
+    });
+
+    it('should clear previous decorations when setting new ones', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      // First call
+      editor.setErrorDecorations([{ line: 1, message: 'Error 1' }]);
+      const firstCallIds = ['decoration-1'];
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(firstCallIds);
+
+      // Second call should pass previous IDs
+      editor.setErrorDecorations([{ line: 2, message: 'Error 2' }]);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledTimes(2);
+
+      editor.destroy();
+    });
+
+    it('should clear all decorations via clearErrorDecorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.setErrorDecorations([{ line: 1, message: 'Error' }]);
+      editor.clearErrorDecorations();
+
+      // Last call should pass empty array for new decorations
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const lastCall = calls[calls.length - 1] as unknown as [string[], unknown[]];
+      expect(lastCall[1]).toEqual([]);
+
+      editor.destroy();
+    });
+
+    it('should not throw when clearing decorations without editor', () => {
+      const editor = new Editor();
+      expect(() => editor.clearErrorDecorations()).not.toThrow();
+    });
+
+    it('should create decorations with correct range for each error', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.setErrorDecorations([
+        { line: 10, message: 'Error on line 10' },
+      ]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { range: { startLineNumber: number; endLineNumber: number } }[]];
+      const decorations = call[1];
+      // Check the range has correct line number
+      expect(decorations[0].range.startLineNumber).toBe(10);
+      expect(decorations[0].range.endLineNumber).toBe(10);
+
+      editor.destroy();
+    });
+  });
+
+  describe('revealLine (Story 3.4)', () => {
+    it('should set cursor position to specified line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.revealLine(5, 10);
+
+      expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({
+        lineNumber: 5,
+        column: 10,
+      });
+
+      editor.destroy();
+    });
+
+    it('should default column to 1 when not provided', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.revealLine(7);
+
+      expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({
+        lineNumber: 7,
+        column: 1,
+      });
+
+      editor.destroy();
+    });
+
+    it('should reveal line in center of viewport', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.revealLine(15);
+
+      expect(mockEditorInstance.revealLineInCenter).toHaveBeenCalledWith(15);
+
+      editor.destroy();
+    });
+
+    it('should focus editor after revealing line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      editor.revealLine(5);
+
+      expect(mockEditorInstance.focus).toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.revealLine(5)).not.toThrow();
     });
   });
 });

@@ -227,12 +227,12 @@ this.editor?.onDidChangeModelContent(() => {
 
 ### Accessibility Checklist
 
-- [ ] **Keyboard Navigation** - Ctrl+Enter accessible from editor
-- [ ] **ARIA Attributes** - Assemble button already has `aria-label="Assemble code"`
-- [ ] **Focus Management** - Focus returns to editor after assembly
-- [ ] **Color Contrast** - Status bar success/error colors already WCAG compliant
-- [ ] **XSS Prevention** - Assembly message goes through `escapeHtml()` in StatusBar
-- [ ] **Screen Reader Announcements** - Status bar has `aria-live="polite"`
+- [x] **Keyboard Navigation** - Ctrl+Enter accessible from editor (via Monaco addAction)
+- [x] **ARIA Attributes** - Assemble button already has `aria-label="Assemble code"`
+- [x] **Focus Management** - Focus returns to editor after assembly
+- [x] **Color Contrast** - Status bar success/error colors already WCAG compliant
+- [x] **XSS Prevention** - Assembly message goes through `escapeHtml()` in StatusBar
+- [x] **Screen Reader Announcements** - Status bar has `aria-live="polite"`
 
 ### Project Structure Notes
 
@@ -354,9 +354,11 @@ N/A
 ### File List
 
 **Modified:**
-- `src/ui/App.ts` - Added AssemblerBridge integration, handleAssemble() method, onContentChange callback wiring
+- `src/ui/App.ts` - Added AssemblerBridge integration, handleAssemble() method, onContentChange callback wiring, debounce protection
 - `src/editor/Editor.ts` - Added onContentChange callback, onAssemble callback, Ctrl+Enter keyboard action
 - `src/editor/Editor.test.ts` - Added tests for content change callback and assemble keyboard shortcut
-- `src/ui/App.test.ts` - Added comprehensive assembly integration test suite
+- `src/ui/App.test.ts` - Added comprehensive assembly integration test suite including debounce tests
+- `src/ui/keyboardShortcuts.ts` - Added 'assembly' category with Ctrl+Enter shortcut for Help dialog discoverability
+- `src/ui/KeyboardShortcutsDialog.test.ts` - Added tests for assembly category and Ctrl+Enter shortcut
 
 **No New Files Created** - This story wires existing components together as specified.

@@ -241,7 +241,7 @@ describe('keyboardShortcuts constants', () => {
     it('should include Ctrl+Enter assemble shortcut (Story 3.3)', () => {
       const assemble = KEYBOARD_SHORTCUTS.find((s) => s.keys === 'Ctrl+Enter');
       expect(assemble).toBeDefined();
-      expect(assemble?.description).toContain('Assemble');
+      expect(assemble?.description).toBe('Assemble code');
       expect(assemble?.category).toBe('assembly');
     });
 

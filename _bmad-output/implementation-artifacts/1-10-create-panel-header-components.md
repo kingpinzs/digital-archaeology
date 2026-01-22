@@ -1,6 +1,6 @@
 # Story 1.10: Create Panel Header Components
 
-Status: review
+Status: done
 
 ---
 

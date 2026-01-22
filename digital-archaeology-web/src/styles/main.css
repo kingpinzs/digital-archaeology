@@ -239,12 +239,13 @@
   line-height: 1;
   cursor: pointer;
   border-radius: 2px;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
 }
 
 .da-panel-close-btn:hover {
   color: var(--da-accent);
   background-color: var(--da-bg-tertiary);
+  transform: scale(1.1);
 }
 
 .da-panel-close-btn:focus {

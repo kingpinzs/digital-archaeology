@@ -11,6 +11,12 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 
 /**
+ * Delay in milliseconds before announcing visibility changes to screen readers.
+ * This delay ensures the DOM change is detected by assistive technology.
+ */
+const SCREEN_READER_ANNOUNCE_DELAY_MS = 100;
+
+/**
  * Panel visibility state.
  */
 export interface PanelVisibility {
@@ -123,6 +129,14 @@ export class App {
         <footer class="da-statusbar" role="status" aria-live="polite" aria-label="Application status bar">
           <!-- StatusBar component will be mounted here -->
         </footer>
+
+        <!-- Screen reader announcer for panel visibility changes -->
+        <div
+          class="da-sr-announcer"
+          aria-live="polite"
+          aria-atomic="true"
+          style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;"
+        ></div>
       </div>
     `;
   }
@@ -363,23 +377,15 @@ export class App {
 
   /**
    * Announce panel visibility changes for screen readers.
-   * Uses a visually hidden live region for announcements.
+   * Uses a visually hidden live region created during render.
    * @returns void
    */
   private announceVisibilityChange(): void {
     if (!this.container) return;
 
-    // Create or find the announcement element
-    let announcer = this.container.querySelector('.da-sr-announcer') as HTMLElement;
-    if (!announcer) {
-      announcer = document.createElement('div');
-      announcer.className = 'da-sr-announcer';
-      announcer.setAttribute('aria-live', 'polite');
-      announcer.setAttribute('aria-atomic', 'true');
-      // Visually hidden but accessible to screen readers
-      announcer.style.cssText = 'position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;';
-      this.container.appendChild(announcer);
-    }
+    // Find the announcement element created during render
+    const announcer = this.container.querySelector('.da-sr-announcer') as HTMLElement;
+    if (!announcer) return;
 
     // Build announcement message
     const hiddenPanels: string[] = [];
@@ -414,7 +420,7 @@ export class App {
     // Use setTimeout to ensure the change is detected by screen readers
     setTimeout(() => {
       announcer.textContent = message;
-    }, 100);
+    }, SCREEN_READER_ANNOUNCE_DELAY_MS);
   }
 
   /**

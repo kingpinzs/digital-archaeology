@@ -26,3 +26,6 @@ export {
   REQUIRED_WASM_EXPORTS,
   REQUIRED_RUNTIME_METHODS,
 } from './types';
+
+// Bridge exports
+export { AssemblerBridge } from './AssemblerBridge';

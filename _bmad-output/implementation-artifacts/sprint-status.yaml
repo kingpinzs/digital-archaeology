@@ -67,7 +67,7 @@ development_status:
   # Epic 3: Code Assembly & Error Handling
   epic-3: in-progress
   3-1-compile-assembler-to-wasm: done
-  3-2-create-assembler-web-worker: backlog
+  3-2-create-assembler-web-worker: done
   3-3-implement-assemble-button: backlog
   3-4-display-assembly-errors-with-line-numbers: backlog
   3-5-implement-rich-error-display: backlog

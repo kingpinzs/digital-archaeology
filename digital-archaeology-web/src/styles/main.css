@@ -46,6 +46,10 @@
   /* UI element colors */
   --da-border: #3a3a52;
   --da-panel-header: #202038;
+
+  /* Panel width variables (updated dynamically by JavaScript) */
+  --da-code-panel-width: 350px;
+  --da-state-panel-width: 280px;
 }
 
 /* =============================================================================
@@ -136,17 +140,20 @@
 /* =============================================================================
    Application Layout - CSS Grid Structure
    Story 1.5: Create Basic App Shell with 3-Panel Layout
+   Story 1.6: Implement Resizable Panel System
 
    Grid structure:
    - Toolbar: 48px fixed height, spans all columns
-   - Panels: Code (350px), Circuit (1fr), State (280px)
+   - Panels: Code (dynamic via --da-code-panel-width), Circuit (1fr), State (dynamic via --da-state-panel-width)
    - Status bar: 24px fixed height, spans all columns
+
+   Panel widths are controlled by CSS custom properties updated via JavaScript.
    ============================================================================= */
 
 .da-app-layout {
   display: grid;
   grid-template-rows: 48px 1fr 24px;
-  grid-template-columns: 350px 1fr 280px;
+  grid-template-columns: var(--da-code-panel-width) 1fr var(--da-state-panel-width);
   grid-template-areas:
     "toolbar toolbar toolbar"
     "code circuit state"
@@ -266,4 +273,61 @@
 .da-statusbar-text {
   font-size: 11px;
   color: var(--da-text-secondary);
+}
+
+/* =============================================================================
+   Panel Resizer Components
+   Story 1.6: Implement Resizable Panel System
+
+   Resize handles positioned over panel borders for drag-to-resize.
+   ============================================================================= */
+
+/* Make panels position relative for absolute positioned resizers */
+.da-code-panel,
+.da-state-panel {
+  position: relative;
+}
+
+/* Resize handle base styles */
+.da-resizer {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 10;
+  transition: background-color 0.15s ease;
+}
+
+/* Position resize handle on right edge of code panel */
+.da-resizer--right {
+  right: -3px;
+}
+
+/* Position resize handle on left edge of state panel */
+.da-resizer--left {
+  left: -3px;
+}
+
+/* Hover and active states */
+.da-resizer:hover,
+.da-resizer--active {
+  background-color: var(--da-accent);
+}
+
+/* Focus state for accessibility */
+.da-resizer:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+/* Body class during resize - prevents text selection and cursor flicker */
+body.da-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.da-resizing * {
+  cursor: col-resize !important;
 }

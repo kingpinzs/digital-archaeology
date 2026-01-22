@@ -7,3 +7,7 @@ export type { ThemeMode } from './theme';
 
 // Application shell exports
 export { App } from './App';
+
+// Panel resizer exports
+export { PanelResizer, PANEL_CONSTRAINTS } from './PanelResizer';
+export type { PanelResizerOptions } from './PanelResizer';

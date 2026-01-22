@@ -19,6 +19,11 @@ const { mockEditorInstance, mockMonaco } = vi.hoisted(() => {
       create: vi.fn(() => mockEditorInstance),
       defineTheme: vi.fn(),
     },
+    languages: {
+      register: vi.fn(),
+      setLanguageConfiguration: vi.fn(),
+      setMonarchTokensProvider: vi.fn(),
+    },
   };
 
   return { mockEditorInstance, mockMonaco };
@@ -27,6 +32,7 @@ const { mockEditorInstance, mockMonaco } = vi.hoisted(() => {
 vi.mock('monaco-editor', () => mockMonaco);
 
 import { Editor, resetThemeRegistration } from './Editor';
+import { resetLanguageRegistration, micro4LanguageId } from './micro4-language';
 
 describe('Editor', () => {
   let container: HTMLDivElement;
@@ -35,8 +41,9 @@ describe('Editor', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     vi.clearAllMocks();
-    // Reset global theme state for each test
+    // Reset global theme and language state for each test
     resetThemeRegistration();
+    resetLanguageRegistration();
   });
 
   afterEach(() => {
@@ -79,7 +86,11 @@ describe('Editor', () => {
         expect.objectContaining({
           base: 'vs-dark',
           inherit: true,
-          rules: [],
+          rules: expect.arrayContaining([
+            expect.objectContaining({ token: 'keyword.control' }),
+            expect.objectContaining({ token: 'keyword' }),
+            expect.objectContaining({ token: 'comment' }),
+          ]),
           colors: expect.objectContaining({
             'editor.background': '#252542',
             'editor.foreground': '#e0e0e0',
@@ -98,7 +109,7 @@ describe('Editor', () => {
         container,
         expect.objectContaining({
           value: '',
-          language: 'plaintext',
+          language: micro4LanguageId,
           theme: 'da-dark',
           automaticLayout: true,
           ariaLabel: 'Assembly Code Editor',
@@ -424,6 +435,177 @@ describe('Editor', () => {
           accessibilitySupport: 'auto',
         })
       );
+
+      editor.destroy();
+    });
+  });
+
+  describe('language registration', () => {
+    it('should register micro4 language before creating editor', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.languages.register).toHaveBeenCalledWith({
+        id: micro4LanguageId,
+      });
+
+      editor.destroy();
+    });
+
+    it('should register language configuration', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.languages.setLanguageConfiguration).toHaveBeenCalledWith(
+        micro4LanguageId,
+        expect.objectContaining({
+          comments: { lineComment: ';' },
+        })
+      );
+
+      editor.destroy();
+    });
+
+    it('should register monarch tokenizer', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.languages.setMonarchTokensProvider).toHaveBeenCalledWith(
+        micro4LanguageId,
+        expect.objectContaining({
+          ignoreCase: true,
+          tokenizer: expect.any(Object),
+        })
+      );
+
+      editor.destroy();
+    });
+
+    it('should only register language once globally', () => {
+      const editor1 = new Editor();
+      editor1.mount(container);
+
+      const container2 = document.createElement('div');
+      document.body.appendChild(container2);
+      const editor2 = new Editor();
+      editor2.mount(container2);
+
+      expect(mockMonaco.languages.register).toHaveBeenCalledTimes(1);
+
+      editor1.destroy();
+      editor2.destroy();
+      document.body.removeChild(container2);
+    });
+
+    it('should use micro4 language in editor', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.editor.create).toHaveBeenCalledWith(
+        container,
+        expect.objectContaining({
+          language: micro4LanguageId,
+        })
+      );
+
+      editor.destroy();
+    });
+  });
+
+  describe('syntax highlighting theme rules', () => {
+    it('should define theme with keyword.control token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const keywordControlRule = rules.find(
+        (r: { token: string }) => r.token === 'keyword.control'
+      );
+
+      expect(keywordControlRule).toBeDefined();
+      expect(keywordControlRule.foreground).toBe('ff79c6');
+
+      editor.destroy();
+    });
+
+    it('should define theme with keyword token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const keywordRule = rules.find(
+        (r: { token: string }) => r.token === 'keyword'
+      );
+
+      expect(keywordRule).toBeDefined();
+      expect(keywordRule.foreground).toBe('8be9fd');
+
+      editor.destroy();
+    });
+
+    it('should define theme with comment token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const commentRule = rules.find(
+        (r: { token: string }) => r.token === 'comment'
+      );
+
+      expect(commentRule).toBeDefined();
+      expect(commentRule.foreground).toBe('6272a4');
+      expect(commentRule.fontStyle).toBe('italic');
+
+      editor.destroy();
+    });
+
+    it('should define theme with label token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const labelRule = rules.find(
+        (r: { token: string }) => r.token === 'label'
+      );
+
+      expect(labelRule).toBeDefined();
+      expect(labelRule.foreground).toBe('50fa7b');
+
+      editor.destroy();
+    });
+
+    it('should define theme with number.hex token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const hexRule = rules.find(
+        (r: { token: string }) => r.token === 'number.hex'
+      );
+
+      expect(hexRule).toBeDefined();
+      expect(hexRule.foreground).toBe('ffb86c');
+
+      editor.destroy();
+    });
+
+    it('should define theme with directive token rule', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const rules = themeCall[1].rules;
+      const directiveRule = rules.find(
+        (r: { token: string }) => r.token === 'directive'
+      );
+
+      expect(directiveRule).toBeDefined();
+      expect(directiveRule.foreground).toBe('bd93f9');
 
       editor.destroy();
     });

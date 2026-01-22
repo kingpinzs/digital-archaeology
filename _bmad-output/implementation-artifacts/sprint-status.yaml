@@ -57,7 +57,7 @@ development_status:
   # Epic 2: Assembly Code Editor
   epic-2: in-progress
   2-1-integrate-monaco-editor: done
-  2-2-implement-micro4-syntax-highlighting: backlog
+  2-2-implement-micro4-syntax-highlighting: done
   2-3-display-line-numbers: backlog
   2-4-enable-undo-redo-functionality: backlog
   2-5-display-cursor-position-in-status-bar: backlog

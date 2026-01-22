@@ -2,6 +2,7 @@
 // Monaco Editor wrapper component for the code panel
 
 import * as monaco from 'monaco-editor';
+import { registerMicro4Language, micro4LanguageId } from './micro4-language';
 
 /**
  * Configuration options for the Editor component.
@@ -73,6 +74,7 @@ export class Editor {
   mount(container: HTMLElement): void {
     this.container = container;
     this.registerTheme();
+    registerMicro4Language();
     this.createEditor();
   }
 
@@ -86,7 +88,29 @@ export class Editor {
     monaco.editor.defineTheme('da-dark', {
       base: 'vs-dark',
       inherit: true,
-      rules: [],
+      rules: [
+        // Control flow (pink) - HLT, JMP, JZ
+        { token: 'keyword.control', foreground: 'ff79c6' },
+
+        // Memory operations (cyan) - LDA, STA, ADD, SUB, LDI
+        { token: 'keyword', foreground: '8be9fd' },
+
+        // Directives (purple) - ORG, DB
+        { token: 'directive', foreground: 'bd93f9' },
+
+        // Comments (muted gray-blue)
+        { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
+
+        // Labels (green) - START:, LOOP:
+        { token: 'label', foreground: '50fa7b' },
+
+        // Identifiers (white) - label references
+        { token: 'identifier', foreground: 'f8f8f2' },
+
+        // Numbers (orange)
+        { token: 'number', foreground: 'ffb86c' },
+        { token: 'number.hex', foreground: 'ffb86c' },
+      ],
       colors: { ...DA_DARK_THEME_COLORS },
     });
 
@@ -101,7 +125,7 @@ export class Editor {
 
     this.editor = monaco.editor.create(this.container, {
       value: this.options.initialValue ?? '',
-      language: 'plaintext', // Will be 'micro4' after Story 2.2
+      language: micro4LanguageId,
       theme: 'da-dark',
       automaticLayout: true, // Handle panel resize automatically
       minimap: { enabled: false }, // Disable minimap for panel space

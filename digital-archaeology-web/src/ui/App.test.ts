@@ -19,10 +19,15 @@ vi.mock('monaco-editor', () => ({
     create: vi.fn(() => mockEditorInstance),
     defineTheme: vi.fn(),
   },
+  languages: {
+    register: vi.fn(),
+    setLanguageConfiguration: vi.fn(),
+    setMonarchTokensProvider: vi.fn(),
+  },
 }));
 
 import { App } from './App';
-import { resetThemeRegistration } from '@editor/index';
+import { resetThemeRegistration, resetLanguageRegistration } from '@editor/index';
 import { PANEL_CONSTRAINTS } from './PanelResizer';
 
 describe('App', () => {
@@ -34,8 +39,9 @@ describe('App', () => {
     container.id = 'app';
     document.body.appendChild(container);
     app = new App();
-    // Reset global theme state for each test
+    // Reset global theme and language state for each test
     resetThemeRegistration();
+    resetLanguageRegistration();
   });
 
   afterEach(() => {

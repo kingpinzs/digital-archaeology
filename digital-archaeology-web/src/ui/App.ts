@@ -2,10 +2,14 @@
 // Root application component - renders the main 3-panel layout with resizable panels
 
 import { PanelResizer, PANEL_CONSTRAINTS } from './PanelResizer';
+import { Toolbar } from './Toolbar';
+import type { ToolbarCallbacks } from './Toolbar';
+import { MenuBar } from './MenuBar';
+import type { MenuBarCallbacks } from './MenuBar';
 
 /**
  * Root application component that renders the main 3-panel layout.
- * Creates toolbar, code panel, circuit panel, state panel, and status bar.
+ * Creates toolbar, menu bar, code panel, circuit panel, state panel, and status bar.
  * Panels are resizable via drag handles.
  */
 export class App {
@@ -13,6 +17,8 @@ export class App {
   private isMounted: boolean = false;
   private codeResizer: PanelResizer | null = null;
   private stateResizer: PanelResizer | null = null;
+  private toolbar: Toolbar | null = null;
+  private menuBar: MenuBar | null = null;
   private codePanelWidth: number = PANEL_CONSTRAINTS.CODE_DEFAULT;
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
   private boundWindowResize: () => void;
@@ -26,12 +32,16 @@ export class App {
    * Safe to call multiple times - will re-render if already mounted.
    */
   mount(container: HTMLElement): void {
-    // Clean up existing resizers before re-mounting to prevent memory leaks
+    // Clean up existing components before re-mounting to prevent memory leaks
     this.destroyResizers();
+    this.destroyToolbar();
+    this.destroyMenuBar();
 
     this.container = container;
     this.isMounted = true;
     this.render();
+    this.initializeMenuBar();
+    this.initializeToolbar();
     this.initializeResizers();
     this.updateGridColumns();
 
@@ -50,7 +60,7 @@ export class App {
     this.container.innerHTML = `
       <div class="da-app-layout">
         <header class="da-toolbar">
-          <span class="da-toolbar-text">Toolbar</span>
+          <!-- MenuBar and Toolbar components will be mounted here -->
         </header>
 
         <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
@@ -85,6 +95,124 @@ export class App {
         </footer>
       </div>
     `;
+  }
+
+  /**
+   * Initialize the menu bar component.
+   * @returns void
+   */
+  private initializeMenuBar(): void {
+    if (!this.container) return;
+
+    const toolbarContainer = this.container.querySelector('.da-toolbar');
+    if (!toolbarContainer) return;
+
+    // Create menubar container
+    const menuBarContainer = document.createElement('div');
+    menuBarContainer.className = 'da-menubar-wrapper';
+    toolbarContainer.appendChild(menuBarContainer);
+
+    // Placeholder callbacks - will be wired to actual functionality in later epics
+    const callbacks: MenuBarCallbacks = {
+      onModeChange: () => { /* Epic 8: Story Mode */ },
+      // File menu
+      onFileNew: () => { /* Epic 9: File Operations */ },
+      onFileOpen: () => { /* Epic 9: File Operations */ },
+      onFileSave: () => { /* Epic 9: File Operations */ },
+      onFileSaveAs: () => { /* Epic 9: File Operations */ },
+      onFileExport: () => { /* Epic 9: File Operations */ },
+      onFileImport: () => { /* Epic 9: File Operations */ },
+      // Edit menu
+      onEditUndo: () => { /* Epic 2: Code Editor */ },
+      onEditRedo: () => { /* Epic 2: Code Editor */ },
+      onEditCut: () => { /* Epic 2: Code Editor */ },
+      onEditCopy: () => { /* Epic 2: Code Editor */ },
+      onEditPaste: () => { /* Epic 2: Code Editor */ },
+      // View menu
+      onViewCodePanel: () => { /* Epic 1: Layout */ },
+      onViewCircuitPanel: () => { /* Epic 1: Layout */ },
+      onViewStatePanel: () => { /* Epic 1: Layout */ },
+      onViewResetLayout: () => { /* Epic 1: Layout */ },
+      // Debug menu
+      onDebugAssemble: () => { /* Epic 3: Code Assembly */ },
+      onDebugRun: () => { /* Epic 4: Program Execution */ },
+      onDebugPause: () => { /* Epic 4: Program Execution */ },
+      onDebugReset: () => { /* Epic 4: Program Execution */ },
+      onDebugStep: () => { /* Epic 5: Debugging */ },
+      onDebugToggleBreakpoint: () => { /* Epic 5: Debugging */ },
+      // Help menu
+      onHelpKeyboardShortcuts: () => { /* Epic 20: Educational Content */ },
+      onHelpDocumentation: () => { /* Epic 20: Educational Content */ },
+      onHelpAbout: () => { /* Epic 20: Educational Content */ },
+    };
+
+    this.menuBar = new MenuBar(callbacks);
+    this.menuBar.mount(menuBarContainer);
+  }
+
+  /**
+   * Destroy the menu bar component.
+   * @returns void
+   */
+  private destroyMenuBar(): void {
+    if (this.menuBar) {
+      this.menuBar.destroy();
+      this.menuBar = null;
+    }
+  }
+
+  /**
+   * Get the menu bar instance for state updates.
+   * @returns The menu bar instance or null if not initialized
+   */
+  getMenuBar(): MenuBar | null {
+    return this.menuBar;
+  }
+
+  /**
+   * Initialize the toolbar component.
+   * @returns void
+   */
+  private initializeToolbar(): void {
+    if (!this.container) return;
+
+    const toolbarContainer = this.container.querySelector('.da-toolbar');
+    if (!toolbarContainer) return;
+
+    // Placeholder callbacks - will be wired to actual functionality in later epics
+    const callbacks: ToolbarCallbacks = {
+      onFileClick: () => { /* Epic 9: File menu */ },
+      onAssembleClick: () => { /* Epic 3: Code Assembly */ },
+      onRunClick: () => { /* Epic 4: Program Execution */ },
+      onPauseClick: () => { /* Epic 4: Program Execution */ },
+      onResetClick: () => { /* Epic 4: Program Execution */ },
+      onStepClick: () => { /* Epic 5: Debugging */ },
+      onSpeedChange: () => { /* Epic 4: Speed Control */ },
+      onHelpClick: () => { /* Epic 20: Educational Content */ },
+      onSettingsClick: () => { /* Epic 9: Settings */ },
+    };
+
+    this.toolbar = new Toolbar(callbacks);
+    this.toolbar.mount(toolbarContainer as HTMLElement);
+  }
+
+  /**
+   * Destroy the toolbar component.
+   * @returns void
+   */
+  private destroyToolbar(): void {
+    if (this.toolbar) {
+      this.toolbar.destroy();
+      this.toolbar = null;
+    }
+  }
+
+  /**
+   * Get the toolbar instance for state updates.
+   * @returns The toolbar instance or null if not initialized
+   */
+  getToolbar(): Toolbar | null {
+    return this.toolbar;
   }
 
   /**
@@ -229,6 +357,12 @@ export class App {
   destroy(): void {
     // Remove window resize listener
     window.removeEventListener('resize', this.boundWindowResize);
+
+    // Destroy menu bar
+    this.destroyMenuBar();
+
+    // Destroy toolbar
+    this.destroyToolbar();
 
     // Destroy resizers
     this.destroyResizers();

@@ -72,10 +72,14 @@ describe('App', () => {
       expect(toolbar).not.toBeNull();
     });
 
-    it('should create toolbar text with correct class', () => {
-      const toolbarText = container.querySelector('.da-toolbar-text');
-      expect(toolbarText).not.toBeNull();
-      expect(toolbarText?.textContent).toBe('Toolbar');
+    it('should mount Toolbar component inside toolbar container', () => {
+      const toolbarContent = container.querySelector('.da-toolbar .da-toolbar-content');
+      expect(toolbarContent).not.toBeNull();
+    });
+
+    it('should have toolbar with role="toolbar"', () => {
+      const toolbarContent = container.querySelector('.da-toolbar-content');
+      expect(toolbarContent?.getAttribute('role')).toBe('toolbar');
     });
 
     it('should create three panels', () => {
@@ -289,6 +293,102 @@ describe('App', () => {
 
       expect(codeResizers.length).toBe(1);
       expect(stateResizers.length).toBe(1);
+    });
+  });
+
+  describe('toolbar integration', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should provide access to toolbar via getToolbar()', () => {
+      const toolbar = app.getToolbar();
+      expect(toolbar).not.toBeNull();
+    });
+
+    it('should return null for getToolbar() before mount', () => {
+      const newApp = new App();
+      expect(newApp.getToolbar()).toBeNull();
+      newApp.destroy();
+    });
+
+    it('should clean up toolbar on destroy', () => {
+      expect(app.getToolbar()).not.toBeNull();
+      app.destroy();
+      expect(app.getToolbar()).toBeNull();
+    });
+
+    it('should not leak toolbar components on multiple mounts', () => {
+      app.mount(container);
+      app.mount(container);
+      app.mount(container);
+
+      const toolbarContents = container.querySelectorAll('.da-toolbar-content');
+      expect(toolbarContents.length).toBe(1);
+    });
+  });
+
+  describe('menubar integration', () => {
+    beforeEach(() => {
+      app.mount(container);
+    });
+
+    it('should provide access to menubar via getMenuBar()', () => {
+      const menuBar = app.getMenuBar();
+      expect(menuBar).not.toBeNull();
+    });
+
+    it('should return null for getMenuBar() before mount', () => {
+      const newApp = new App();
+      expect(newApp.getMenuBar()).toBeNull();
+      newApp.destroy();
+    });
+
+    it('should clean up menubar on destroy', () => {
+      expect(app.getMenuBar()).not.toBeNull();
+      app.destroy();
+      expect(app.getMenuBar()).toBeNull();
+    });
+
+    it('should create menubar wrapper element', () => {
+      const menuBarWrapper = container.querySelector('.da-menubar-wrapper');
+      expect(menuBarWrapper).not.toBeNull();
+    });
+
+    it('should render menubar inside toolbar', () => {
+      const menuBar = container.querySelector('.da-toolbar .da-menubar');
+      expect(menuBar).not.toBeNull();
+    });
+
+    it('should not leak menubar components on multiple mounts', () => {
+      app.mount(container);
+      app.mount(container);
+      app.mount(container);
+
+      const menuBars = container.querySelectorAll('.da-menubar');
+      expect(menuBars.length).toBe(1);
+    });
+
+    it('should render Story/Lab toggle buttons', () => {
+      const storyBtn = container.querySelector('[data-mode="story"]');
+      const labBtn = container.querySelector('[data-mode="lab"]');
+
+      expect(storyBtn).not.toBeNull();
+      expect(labBtn).not.toBeNull();
+    });
+
+    it('should render all menu triggers', () => {
+      const fileMenu = container.querySelector('[data-menu="file"]');
+      const editMenu = container.querySelector('[data-menu="edit"]');
+      const viewMenu = container.querySelector('[data-menu="view"]');
+      const debugMenu = container.querySelector('[data-menu="debug"]');
+      const helpMenu = container.querySelector('[data-menu="help"]');
+
+      expect(fileMenu).not.toBeNull();
+      expect(editMenu).not.toBeNull();
+      expect(viewMenu).not.toBeNull();
+      expect(debugMenu).not.toBeNull();
+      expect(helpMenu).not.toBeNull();
     });
   });
 

@@ -11,3 +11,11 @@ export { App } from './App';
 // Panel resizer exports
 export { PanelResizer, PANEL_CONSTRAINTS } from './PanelResizer';
 export type { PanelResizerOptions } from './PanelResizer';
+
+// Toolbar exports
+export { Toolbar } from './Toolbar';
+export type { ToolbarState, ToolbarCallbacks } from './Toolbar';
+
+// MenuBar exports
+export { MenuBar } from './MenuBar';
+export type { AppMode, MenuBarState, MenuBarCallbacks } from './MenuBar';

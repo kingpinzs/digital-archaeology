@@ -174,11 +174,18 @@
   grid-area: toolbar;
   display: flex;
   align-items: center;
-  justify-content: center;
   height: 48px;
   background-color: var(--da-bg-secondary);
   border-bottom: 1px solid var(--da-border);
-  padding: 0 16px;
+  padding: 0 8px;
+  gap: 8px;
+}
+
+/* Wrapper for MenuBar inside toolbar */
+.da-menubar-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .da-toolbar-text {
@@ -330,4 +337,357 @@ body.da-resizing {
 
 body.da-resizing * {
   cursor: col-resize !important;
+}
+
+/* =============================================================================
+   Toolbar Button Components
+   Story 1.7: Create Toolbar Component
+
+   Toolbar contains: File dropdown, execution controls, speed slider, Help, Settings
+   ============================================================================= */
+
+/* Toolbar content container - holds all button groups */
+.da-toolbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  gap: 16px;
+}
+
+/* Button groups for organizing toolbar sections */
+.da-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.da-toolbar-group--left {
+  justify-content: flex-start;
+}
+
+.da-toolbar-group--center {
+  justify-content: center;
+  flex: 1;
+}
+
+.da-toolbar-group--right {
+  justify-content: flex-end;
+}
+
+/* Toolbar button base styles */
+.da-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--da-text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  gap: 6px;
+}
+
+.da-toolbar-btn:hover:not(:disabled) {
+  background-color: var(--da-bg-tertiary);
+}
+
+.da-toolbar-btn:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+.da-toolbar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Icon-only button variant (32x32) */
+.da-toolbar-btn--icon {
+  width: 32px;
+  padding: 0;
+}
+
+/* Primary action button variant */
+.da-toolbar-btn--primary {
+  background-color: var(--da-accent);
+  color: var(--da-bg-primary);
+  font-weight: 500;
+}
+
+.da-toolbar-btn--primary:hover:not(:disabled) {
+  background-color: var(--da-accent-hover);
+}
+
+/* Button icon and text styling */
+.da-toolbar-btn-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.da-toolbar-btn-text {
+  font-size: 13px;
+}
+
+.da-toolbar-btn-caret {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* Visual separator between button groups */
+.da-toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--da-border);
+  margin: 0 8px;
+}
+
+/* Speed control container */
+.da-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Speed slider styling */
+.da-speed-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--da-border);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.da-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--da-accent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.da-speed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.da-speed-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--da-accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.da-speed-slider::-moz-range-track {
+  background: var(--da-border);
+  border-radius: 2px;
+  height: 4px;
+}
+
+.da-speed-slider:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+/* Speed label */
+.da-speed-label {
+  font-size: 11px;
+  color: var(--da-text-secondary);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* =============================================================================
+   Menu Bar Components
+   Story 1.8: Create Menu Bar Component
+
+   Menu bar contains: Story/Lab toggle, File/Edit/View/Debug/Help menus
+   ============================================================================= */
+
+/* Menu bar container */
+.da-menubar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 8px;
+}
+
+/* Story/Lab toggle group */
+.da-menubar-toggle {
+  display: flex;
+  background: var(--da-bg-tertiary);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.da-menubar-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--da-text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.da-menubar-toggle-btn:hover:not(.da-menubar-toggle-btn--active) {
+  color: var(--da-text-primary);
+}
+
+.da-menubar-toggle-btn--active {
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+}
+
+.da-menubar-toggle-btn:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+.da-menubar-toggle-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.da-menubar-toggle-text {
+  font-weight: 500;
+}
+
+/* Menu triggers container */
+.da-menubar-menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Individual menu container (for dropdown positioning) */
+.da-menu-container {
+  position: relative;
+}
+
+/* Menu trigger buttons */
+.da-menu-trigger {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--da-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.da-menu-trigger:hover,
+.da-menu-trigger--open {
+  background: var(--da-bg-tertiary);
+}
+
+.da-menu-trigger:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+/* Dropdown menu */
+.da-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  padding: 4px 0;
+  animation: da-menu-dropdown-appear 0.15s ease-out;
+  will-change: transform, opacity;
+}
+
+@keyframes da-menu-dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Menu items */
+.da-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--da-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.da-menu-item:hover {
+  background: var(--da-bg-tertiary);
+}
+
+.da-menu-item:focus {
+  background: var(--da-bg-tertiary);
+  outline: none;
+}
+
+.da-menu-item--disabled {
+  color: var(--da-text-secondary);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.da-menu-item--disabled:hover {
+  background: transparent;
+}
+
+.da-menu-item-label {
+  flex: 1;
+}
+
+/* Menu separator */
+.da-menu-separator {
+  height: 1px;
+  background: var(--da-border);
+  margin: 4px 8px;
+}
+
+/* Keyboard shortcut hint */
+.da-menu-shortcut {
+  color: var(--da-text-secondary);
+  font-size: 12px;
+  margin-left: 24px;
+}
+
+/* Spacer to push settings to right */
+.da-menubar-spacer {
+  flex: 1;
 }

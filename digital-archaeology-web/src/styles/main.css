@@ -2,4 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS custom properties will be added in Story 1.4 (Implement CSS Theme System) */
+/* =============================================================================
+   Digital Archaeology - CSS Theme System
+   Story 1.4: Implement CSS Theme System
+
+   This file defines all CSS custom properties (variables) for the application.
+   Lab Mode and Story Mode themes are defined below.
+   ============================================================================= */
+
+/* =============================================================================
+   Base/Default Theme Variables (Lab Mode defaults)
+   These are the fallback values when no theme class is applied.
+   ============================================================================= */
+:root {
+  /* Background colors - cool blue-gray tints */
+  --da-bg-primary: #1a1a2e;
+  --da-bg-secondary: #252542;
+  --da-bg-tertiary: #2f2f52;
+
+  /* Text colors - high contrast light gray */
+  --da-text-primary: #e0e0e0;
+  --da-text-secondary: #a0a0b0;
+
+  /* Accent colors - cool cyan blue */
+  --da-accent: #00b4d8;
+  --da-accent-hover: #48cae4;
+
+  /* Signal colors (circuit visualization) - universal across themes */
+  --da-signal-high: #00ff88;
+  --da-signal-low: #3a3a3a;
+
+  /* Gate type colors (circuit visualization) - universal across themes */
+  --da-gate-and: #4ecdc4;
+  --da-gate-or: #ff6b6b;
+  --da-gate-xor: #ffe66d;
+  --da-gate-not: #c792ea;
+
+  /* Semantic colors */
+  --da-error: #ff4444;
+  --da-warning: #ffaa00;
+  --da-success: #00ff88;
+
+  /* UI element colors */
+  --da-border: #3a3a52;
+  --da-panel-header: #202038;
+}
+
+/* =============================================================================
+   Lab Mode Theme - Dense Professional
+
+   Purpose: Technical workspace with high information density
+   Visual: Cool blue accents on dark blue-gray background
+
+   Applied when <html> has class="lab-mode"
+   ============================================================================= */
+.lab-mode {
+  /* Background colors - cool blue-gray tints */
+  --da-bg-primary: #1a1a2e;
+  --da-bg-secondary: #252542;
+  --da-bg-tertiary: #2f2f52;
+
+  /* Text colors - high contrast light gray */
+  --da-text-primary: #e0e0e0;
+  --da-text-secondary: #a0a0b0;
+
+  /* Accent colors - cool cyan blue */
+  --da-accent: #00b4d8;
+  --da-accent-hover: #48cae4;
+
+  /* Signal colors (circuit visualization) - universal */
+  --da-signal-high: #00ff88;
+  --da-signal-low: #3a3a3a;
+
+  /* Gate type colors (circuit visualization) - universal */
+  --da-gate-and: #4ecdc4;
+  --da-gate-or: #ff6b6b;
+  --da-gate-xor: #ffe66d;
+  --da-gate-not: #c792ea;
+
+  /* Semantic colors */
+  --da-error: #ff4444;
+  --da-warning: #ffaa00;
+  --da-success: #00ff88;
+
+  /* UI element colors */
+  --da-border: #3a3a52;
+  --da-panel-header: #202038;
+}
+
+/* =============================================================================
+   Story Mode Theme - Warm Narrative
+
+   Purpose: Immersive storytelling with character focus
+   Visual: Warm gold/copper accents on dark warm-tinted background
+   Typography: Will use Crimson Text for headers (implemented later)
+
+   Applied when <html> has class="story-mode"
+   ============================================================================= */
+.story-mode {
+  /* Background colors - warm dark tints */
+  --da-bg-primary: #0a0a12;
+  --da-bg-secondary: #141420;
+  --da-bg-tertiary: #1e1e2a;
+
+  /* Text colors - warm white */
+  --da-text-primary: #f0e6d6;
+  --da-text-secondary: #b0a898;
+
+  /* Accent colors - warm gold/copper */
+  --da-accent: #d4a574;
+  --da-accent-hover: #e8c090;
+
+  /* Signal colors (circuit visualization) - universal (same as lab mode) */
+  --da-signal-high: #00ff88;
+  --da-signal-low: #3a3a3a;
+
+  /* Gate type colors (circuit visualization) - universal (same as lab mode) */
+  --da-gate-and: #4ecdc4;
+  --da-gate-or: #ff6b6b;
+  --da-gate-xor: #ffe66d;
+  --da-gate-not: #c792ea;
+
+  /* Semantic colors - slightly warmer variants */
+  --da-error: #ff5555;
+  --da-warning: #ffbb33;
+  --da-success: #44ff88;
+
+  /* UI element colors - warmer variants */
+  --da-border: #2a2a38;
+  --da-panel-header: #12121a;
+}

@@ -23,6 +23,8 @@ export default {
         'da-error': 'var(--da-error)',
         'da-warning': 'var(--da-warning)',
         'da-success': 'var(--da-success)',
+        'da-border': 'var(--da-border)',
+        'da-panel-header': 'var(--da-panel-header)',
       },
     },
   },

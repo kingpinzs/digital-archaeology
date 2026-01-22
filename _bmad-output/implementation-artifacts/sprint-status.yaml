@@ -55,14 +55,14 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: Assembly Code Editor
-  epic-2: in-progress
+  epic-2: done
   2-1-integrate-monaco-editor: done
   2-2-implement-micro4-syntax-highlighting: done
   2-3-display-line-numbers: done
   2-4-enable-undo-redo-functionality: done
   2-5-display-cursor-position-in-status-bar: done
-  2-6-implement-editor-keyboard-shortcuts: review
-  epic-2-retrospective: optional
+  2-6-implement-editor-keyboard-shortcuts: done
+  epic-2-retrospective: done
 
   # Epic 3: Code Assembly & Error Handling
   epic-3: backlog

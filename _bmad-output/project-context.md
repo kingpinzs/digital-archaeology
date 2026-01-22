@@ -115,12 +115,212 @@ function escapeHtml(text: string): string {
 - **Mock Worker** for emulator tests
 - **Mock Canvas context** for visualizer tests
 
+### Event Listener Cleanup Pattern
+
+**CRITICAL:** All event listeners must be removed in `destroy()` to prevent memory leaks.
+
+**The Bound Handler Pattern:**
+```typescript
+class MyComponent {
+  private element: HTMLElement | null = null;
+
+  // 1. Store bound handlers as class properties
+  private boundHandleClick: (e: MouseEvent) => void;
+  private boundHandleKeydown: (e: KeyboardEvent) => void;
+
+  constructor() {
+    // 2. Bind handlers in constructor (not in addEventListener)
+    this.boundHandleClick = this.handleClick.bind(this);
+    this.boundHandleKeydown = this.handleKeydown.bind(this);
+  }
+
+  mount(container: HTMLElement): void {
+    this.element = document.createElement('div');
+    // 3. Add listeners using bound references
+    this.element.addEventListener('click', this.boundHandleClick);
+    document.addEventListener('keydown', this.boundHandleKeydown);
+    container.appendChild(this.element);
+  }
+
+  destroy(): void {
+    // 4. Remove listeners using SAME bound references
+    this.element?.removeEventListener('click', this.boundHandleClick);
+    document.removeEventListener('keydown', this.boundHandleKeydown);
+    this.element?.remove();
+    this.element = null;
+  }
+
+  private handleClick(e: MouseEvent): void { /* ... */ }
+  private handleKeydown(e: KeyboardEvent): void { /* ... */ }
+}
+```
+
+**Key Rules:**
+| Rule | Why |
+|------|-----|
+| Bind in constructor | Same reference for add/remove |
+| Store as class property | Accessible in destroy() |
+| Remove document listeners | They persist beyond element removal |
+| Nullify element refs | Prevents stale references |
+
+**Common Mistakes:**
+```typescript
+// ❌ WRONG: Creates new function each time, can't be removed
+element.addEventListener('click', this.handleClick.bind(this));
+
+// ❌ WRONG: Arrow in addEventListener, no reference to remove
+element.addEventListener('click', (e) => this.handleClick(e));
+
+// ✅ CORRECT: Use pre-bound reference
+element.addEventListener('click', this.boundHandleClick);
+```
+
 ### CSS/Theming Rules
 
 - **Tailwind utilities first** - Custom classes only when insufficient
 - **Theme via root class** - `<html class="lab-mode">` or `story-mode`
 - **All colors as CSS variables** - Enables theme switching
 - **Animation classes** use `da-anim-` prefix
+
+### Keyboard Navigation Testing Guide
+
+**Test keyboard accessibility for all interactive components.**
+
+**Creating Keyboard Events:**
+```typescript
+// Basic key event
+const event = new KeyboardEvent('keydown', {
+  key: 'Enter',
+  bubbles: true,  // Required for event to propagate
+});
+element.dispatchEvent(event);
+
+// Key with modifiers
+const ctrlEvent = new KeyboardEvent('keydown', {
+  key: 'z',
+  ctrlKey: true,
+  bubbles: true,
+});
+```
+
+**Standard Keys to Test:**
+
+| Key | Common Use | Test Example |
+|-----|------------|--------------|
+| `Enter` | Activate button/link | `{ key: 'Enter', bubbles: true }` |
+| `Space` | Activate button, toggle | `{ key: ' ', bubbles: true }` |
+| `Escape` | Close modal/dropdown | `{ key: 'Escape', bubbles: true }` |
+| `ArrowRight` | Next item, increase value | `{ key: 'ArrowRight', bubbles: true }` |
+| `ArrowLeft` | Previous item, decrease value | `{ key: 'ArrowLeft', bubbles: true }` |
+| `ArrowDown` | Next in list, open dropdown | `{ key: 'ArrowDown', bubbles: true }` |
+| `ArrowUp` | Previous in list | `{ key: 'ArrowUp', bubbles: true }` |
+| `Home` | First item | `{ key: 'Home', bubbles: true }` |
+| `End` | Last item | `{ key: 'End', bubbles: true }` |
+| `Tab` | Focus next element | Browser handles this |
+
+**Test Pattern Example:**
+```typescript
+describe('keyboard navigation', () => {
+  it('should move focus right on ArrowRight', () => {
+    const buttons = container.querySelectorAll('button');
+    (buttons[0] as HTMLElement).focus();
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+    });
+    buttons[0].dispatchEvent(event);
+
+    expect(document.activeElement).toBe(buttons[1]);
+  });
+
+  it('should close on Escape', () => {
+    component.open();
+
+    const event = new KeyboardEvent('keydown', { key: 'Escape' });
+    document.dispatchEvent(event);
+
+    expect(component.isOpen()).toBe(false);
+  });
+
+  it('should wrap focus from last to first', () => {
+    const buttons = container.querySelectorAll('button');
+    const lastButton = buttons[buttons.length - 1] as HTMLElement;
+    lastButton.focus();
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+    });
+    lastButton.dispatchEvent(event);
+
+    expect(document.activeElement).toBe(buttons[0]);
+  });
+});
+```
+
+**Checklist for Keyboard Tests:**
+- [ ] Enter/Space activates focused element
+- [ ] Escape closes modals/dropdowns
+- [ ] Arrow keys navigate within component
+- [ ] Home/End jump to first/last
+- [ ] Focus wraps at boundaries (if applicable)
+- [ ] Focus is trapped in modals
+- [ ] Focus returns to trigger after close
+
+### Monaco Editor Bundle Optimization
+
+**Current Status:** Monaco adds ~5MB to bundle (1.1MB gzipped). Includes unused language workers.
+
+**Applied Optimizations:**
+```typescript
+// vite.config.ts
+monacoEditorPlugin({
+  languageWorkers: ['editorWorkerService'],  // Only base worker
+})
+```
+
+**Recommended Future Optimizations (when bundle size matters):**
+
+1. **Manual Chunks** - Split Monaco into separate lazy-loaded chunk:
+```typescript
+// vite.config.ts
+build: {
+  rollupOptions: {
+    output: {
+      manualChunks: {
+        monaco: ['monaco-editor'],
+      },
+    },
+  },
+}
+```
+
+2. **Exclude Unused Languages** - Monaco includes 80+ language definitions:
+```typescript
+// In your editor initialization
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+// Instead of: import * as monaco from 'monaco-editor';
+```
+
+3. **Lazy Load Editor** - Only load Monaco when editor panel is visible:
+```typescript
+const Editor = lazy(() => import('./Editor'));
+```
+
+4. **CDN Option** - Load Monaco from CDN for caching:
+```typescript
+// Use @monaco-editor/loader for CDN loading
+```
+
+**Bundle Size Targets:**
+| Stage | Target | Notes |
+|-------|--------|-------|
+| MVP | <2MB gzipped | Acceptable for development |
+| Production | <500KB gzipped | Requires aggressive optimization |
+| PWA | <200KB initial | Monaco lazy-loaded |
+
+**Current Priority:** LOW - Defer until performance requirements demand it.
 
 ## Anti-Patterns to Avoid
 

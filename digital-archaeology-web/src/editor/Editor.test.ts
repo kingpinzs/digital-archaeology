@@ -357,15 +357,7 @@ describe('Editor', () => {
       editor.destroy();
     });
 
-    it('should define theme with correct line number color', () => {
-      const editor = new Editor();
-      editor.mount(container);
-
-      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
-      expect(themeCall[1].colors['editorLineNumber.foreground']).toBe('#a0a0b0');
-
-      editor.destroy();
-    });
+    // Line number color tests moved to dedicated 'line numbers (Story 2.3)' describe block
   });
 
   describe('editor options', () => {
@@ -383,19 +375,7 @@ describe('Editor', () => {
       editor.destroy();
     });
 
-    it('should enable line numbers', () => {
-      const editor = new Editor();
-      editor.mount(container);
-
-      expect(mockMonaco.editor.create).toHaveBeenCalledWith(
-        container,
-        expect.objectContaining({
-          lineNumbers: 'on',
-        })
-      );
-
-      editor.destroy();
-    });
+    // Line number tests moved to dedicated 'line numbers (Story 2.3)' describe block
 
     it('should disable scroll beyond last line', () => {
       const editor = new Editor();
@@ -507,6 +487,118 @@ describe('Editor', () => {
           language: micro4LanguageId,
         })
       );
+
+      editor.destroy();
+    });
+  });
+
+  describe('line numbers (Story 2.3)', () => {
+    it('should enable line numbers in editor options', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.editor.create).toHaveBeenCalledWith(
+        container,
+        expect.objectContaining({
+          lineNumbers: 'on',
+        })
+      );
+
+      editor.destroy();
+    });
+
+    it('should set line number gutter width to minimum 3 characters', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockMonaco.editor.create).toHaveBeenCalledWith(
+        container,
+        expect.objectContaining({
+          lineNumbersMinChars: 3,
+        })
+      );
+
+      editor.destroy();
+    });
+
+    it('should define muted line number color for readability', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      expect(themeCall[1].colors['editorLineNumber.foreground']).toBe(
+        '#a0a0b0'
+      );
+
+      editor.destroy();
+    });
+
+    it('should define bright active line number color for current line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      expect(themeCall[1].colors['editorLineNumber.activeForeground']).toBe(
+        '#e0e0e0'
+      );
+
+      editor.destroy();
+    });
+
+    it('should define line highlight background for current line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      expect(themeCall[1].colors['editor.lineHighlightBackground']).toBe(
+        '#2f2f52'
+      );
+
+      editor.destroy();
+    });
+
+    it('should have WCAG AA compliant contrast for line numbers', () => {
+      // Helper to calculate relative luminance from hex color
+      const getLuminance = (hex: string): number => {
+        const rgb = hex
+          .replace('#', '')
+          .match(/.{2}/g)!
+          .map((c) => {
+            const sRGB = parseInt(c, 16) / 255;
+            return sRGB <= 0.03928
+              ? sRGB / 12.92
+              : Math.pow((sRGB + 0.055) / 1.055, 2.4);
+          });
+        return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+      };
+
+      // Helper to calculate contrast ratio between two colors
+      const getContrastRatio = (fg: string, bg: string): number => {
+        const l1 = getLuminance(fg);
+        const l2 = getLuminance(bg);
+        const lighter = Math.max(l1, l2);
+        const darker = Math.min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
+      };
+
+      const editor = new Editor();
+      editor.mount(container);
+
+      const themeCall = mockMonaco.editor.defineTheme.mock.calls[0];
+      const colors = themeCall[1].colors;
+
+      const bgColor = colors['editor.background'];
+      const lineNumColor = colors['editorLineNumber.foreground'];
+      const activeLineNumColor = colors['editorLineNumber.activeForeground'];
+
+      // Calculate actual contrast ratios
+      const lineNumContrast = getContrastRatio(lineNumColor, bgColor);
+      const activeLineNumContrast = getContrastRatio(activeLineNumColor, bgColor);
+
+      // WCAG AA requires 4.5:1 for normal text, 3:1 for large text
+      // WCAG AAA requires 7:1 for normal text
+      expect(lineNumContrast).toBeGreaterThanOrEqual(4.5); // AA pass
+      expect(activeLineNumContrast).toBeGreaterThanOrEqual(7); // AAA pass
 
       editor.destroy();
     });

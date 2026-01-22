@@ -132,3 +132,138 @@
   --da-border: #2a2a38;
   --da-panel-header: #12121a;
 }
+
+/* =============================================================================
+   Application Layout - CSS Grid Structure
+   Story 1.5: Create Basic App Shell with 3-Panel Layout
+
+   Grid structure:
+   - Toolbar: 48px fixed height, spans all columns
+   - Panels: Code (350px), Circuit (1fr), State (280px)
+   - Status bar: 24px fixed height, spans all columns
+   ============================================================================= */
+
+.da-app-layout {
+  display: grid;
+  grid-template-rows: 48px 1fr 24px;
+  grid-template-columns: 350px 1fr 280px;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "code circuit state"
+    "statusbar statusbar statusbar";
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--da-bg-primary);
+  color: var(--da-text-primary);
+}
+
+/* =============================================================================
+   Toolbar Component
+   48px fixed height, spans all columns
+   ============================================================================= */
+
+.da-toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  background-color: var(--da-bg-secondary);
+  border-bottom: 1px solid var(--da-border);
+  padding: 0 16px;
+}
+
+.da-toolbar-text {
+  font-size: 14px;
+  color: var(--da-text-secondary);
+}
+
+/* =============================================================================
+   Panel Components
+   Shared styling for code and state panels
+   ============================================================================= */
+
+.da-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--da-bg-secondary);
+  overflow: hidden;
+}
+
+.da-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 12px;
+  background-color: var(--da-panel-header);
+  border-bottom: 1px solid var(--da-border);
+  flex-shrink: 0;
+}
+
+.da-panel-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--da-text-secondary);
+}
+
+.da-panel-content {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+}
+
+/* Code Panel - Left */
+.da-code-panel {
+  grid-area: code;
+  border-right: 1px solid var(--da-border);
+}
+
+/* Circuit Panel - Center */
+.da-circuit-panel {
+  grid-area: circuit;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--da-bg-primary);
+  overflow: hidden;
+}
+
+.da-circuit-panel .da-panel-header {
+  background-color: var(--da-panel-header);
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-circuit-panel .da-panel-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* State Panel - Right */
+.da-state-panel {
+  grid-area: state;
+  border-left: 1px solid var(--da-border);
+}
+
+/* =============================================================================
+   Status Bar Component
+   24px fixed height, spans all columns
+   ============================================================================= */
+
+.da-statusbar {
+  grid-area: statusbar;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  background-color: var(--da-panel-header);
+  border-top: 1px solid var(--da-border);
+  padding: 0 12px;
+}
+
+.da-statusbar-text {
+  font-size: 11px;
+  color: var(--da-text-secondary);
+}

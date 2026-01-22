@@ -4,3 +4,6 @@
 // Theme system exports
 export { setTheme, getTheme, toggleTheme, initTheme } from './theme';
 export type { ThemeMode } from './theme';
+
+// Application shell exports
+export { App } from './App';

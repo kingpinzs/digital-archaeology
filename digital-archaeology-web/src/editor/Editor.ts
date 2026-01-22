@@ -22,6 +22,10 @@ export interface EditorOptions {
   readOnly?: boolean;
   /** Callback when cursor position changes */
   onCursorPositionChange?: (position: CursorPosition) => void;
+  /** Callback when editor content changes (passes true if content exists) */
+  onContentChange?: (hasContent: boolean) => void;
+  /** Callback when user triggers assemble action (Ctrl+Enter) */
+  onAssemble?: () => void;
 }
 
 /**
@@ -73,6 +77,8 @@ export class Editor {
   private editor: monaco.editor.IStandaloneCodeEditor | null = null;
   private options: EditorOptions;
   private cursorPositionDisposable: monaco.IDisposable | null = null;
+  private contentChangeDisposable: monaco.IDisposable | null = null;
+  private assembleActionDisposable: monaco.IDisposable | null = null;
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -179,6 +185,12 @@ export class Editor {
 
     // Subscribe to cursor position changes if callback provided
     this.setupCursorPositionListener();
+
+    // Subscribe to content changes if callback provided
+    this.setupContentChangeListener();
+
+    // Set up assemble keyboard shortcut if callback provided
+    this.setupAssembleAction();
   }
 
   /**
@@ -192,6 +204,41 @@ export class Editor {
         line: e.position.lineNumber,
         column: e.position.column,
       });
+    });
+  }
+
+  /**
+   * Set up the content change listener.
+   * Notifies when content becomes empty or non-empty.
+   */
+  private setupContentChangeListener(): void {
+    if (!this.editor || !this.options.onContentChange) return;
+
+    this.contentChangeDisposable = this.editor.onDidChangeModelContent(() => {
+      const hasContent = (this.editor?.getValue()?.length ?? 0) > 0;
+      this.options.onContentChange!(hasContent);
+    });
+
+    // Fire initial callback with current content state
+    const hasContent = (this.editor.getValue()?.length ?? 0) > 0;
+    this.options.onContentChange(hasContent);
+  }
+
+  /**
+   * Set up the assemble keyboard shortcut (Ctrl+Enter).
+   */
+  private setupAssembleAction(): void {
+    if (!this.editor || !this.options.onAssemble) return;
+
+    this.assembleActionDisposable = this.editor.addAction({
+      id: 'assemble',
+      label: 'Assemble Code',
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      ],
+      run: () => {
+        this.options.onAssemble!();
+      },
     });
   }
 
@@ -257,6 +304,14 @@ export class Editor {
     if (this.cursorPositionDisposable) {
       this.cursorPositionDisposable.dispose();
       this.cursorPositionDisposable = null;
+    }
+    if (this.contentChangeDisposable) {
+      this.contentChangeDisposable.dispose();
+      this.contentChangeDisposable = null;
+    }
+    if (this.assembleActionDisposable) {
+      this.assembleActionDisposable.dispose();
+      this.assembleActionDisposable = null;
     }
     if (this.editor) {
       this.editor.dispose();

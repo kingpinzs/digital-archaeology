@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Monaco editor for App tests
-const { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDisposable } = vi.hoisted(() => {
+const {
+  mockEditorInstance,
+  mockModel,
+  cursorPositionListeners,
+  contentChangeListeners,
+  addedActions,
+  mockCursorDisposable,
+} = vi.hoisted(() => {
   const mockModel = {
     undo: vi.fn(),
     redo: vi.fn(),
@@ -11,10 +18,22 @@ const { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDispos
   const cursorPositionListeners: Array<(e: { position: { lineNumber: number; column: number } }) => void> = [];
   const mockCursorDisposable = { dispose: vi.fn() };
 
+  // Track content change listeners for testing
+  const contentChangeListeners: Array<() => void> = [];
+
+  // Track added actions for testing
+  const addedActions: Array<{ id: string; label: string; keybindings: number[]; run: () => void }> = [];
+
+  // Track editor content
+  let editorContent = '';
+
   const mockEditorInstance = {
     dispose: vi.fn(),
-    getValue: vi.fn(() => ''),
-    setValue: vi.fn(),
+    getValue: vi.fn(() => editorContent),
+    setValue: vi.fn((value: string) => {
+      editorContent = value;
+      contentChangeListeners.forEach(cb => cb());
+    }),
     getModel: vi.fn(() => mockModel),
     focus: vi.fn(),
     layout: vi.fn(),
@@ -22,9 +41,31 @@ const { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDispos
       cursorPositionListeners.push(callback);
       return mockCursorDisposable;
     }),
+    onDidChangeModelContent: vi.fn((callback: () => void) => {
+      contentChangeListeners.push(callback);
+      return { dispose: vi.fn() };
+    }),
+    addAction: vi.fn((action: { id: string; label: string; keybindings: number[]; run: () => void }) => {
+      addedActions.push(action);
+      return { dispose: vi.fn() };
+    }),
+    // Helper to reset content for tests
+    _setContent: (content: string) => {
+      editorContent = content;
+    },
+    _resetContent: () => {
+      editorContent = '';
+    },
   };
 
-  return { mockEditorInstance, mockModel, cursorPositionListeners, mockCursorDisposable };
+  return {
+    mockEditorInstance,
+    mockModel,
+    cursorPositionListeners,
+    contentChangeListeners,
+    addedActions,
+    mockCursorDisposable,
+  };
 });
 
 vi.mock('monaco-editor', () => ({
@@ -37,6 +78,84 @@ vi.mock('monaco-editor', () => ({
     setLanguageConfiguration: vi.fn(),
     setMonarchTokensProvider: vi.fn(),
   },
+  KeyMod: {
+    CtrlCmd: 2048,
+  },
+  KeyCode: {
+    Enter: 3,
+  },
+}));
+
+// Mock AssemblerBridge - must be properly hoisted to work as constructor
+const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
+  // Type for assembly result
+  type AssemblyResult = {
+    success: boolean;
+    binary: Uint8Array | null;
+    error: { line: number; message: string } | null;
+  };
+
+  // Mutable state for test manipulation
+  const state: { isReady: boolean; assembleResult: AssemblyResult } = {
+    isReady: true,
+    assembleResult: {
+      success: true,
+      binary: new Uint8Array([0x01, 0x05, 0x0F]),
+      error: null,
+    },
+  };
+
+  // Mock methods
+  const initMock = vi.fn(() => Promise.resolve());
+  const assembleMock = vi.fn(() => Promise.resolve(state.assembleResult));
+  const terminateMock = vi.fn();
+
+  // Constructor function that will be used as the class
+  function MockAssemblerBridge() {
+    return {
+      init: initMock,
+      assemble: assembleMock,
+      terminate: terminateMock,
+      get isReady() {
+        return state.isReady;
+      },
+    };
+  }
+
+  // Helpers for test manipulation
+  const helpers = {
+    init: initMock,
+    assemble: assembleMock,
+    terminate: terminateMock,
+    get isReady() {
+      return state.isReady;
+    },
+    _setReady: (ready: boolean) => {
+      state.isReady = ready;
+    },
+    _setAssembleResult: (result: AssemblyResult) => {
+      state.assembleResult = result;
+      assembleMock.mockImplementation(() => Promise.resolve(result));
+    },
+    _reset: () => {
+      state.isReady = true;
+      state.assembleResult = {
+        success: true,
+        binary: new Uint8Array([0x01, 0x05, 0x0F]),
+        error: null,
+      };
+      initMock.mockClear();
+      assembleMock.mockClear();
+      terminateMock.mockClear();
+      assembleMock.mockImplementation(() => Promise.resolve(state.assembleResult));
+    },
+  };
+
+  return { MockAssemblerBridge, mockAssemblerBridge: helpers };
+});
+
+vi.mock('@emulator/index', () => ({
+  AssemblerBridge: MockAssemblerBridge,
 }));
 
 import { App } from './App';
@@ -1095,6 +1214,270 @@ describe('App', () => {
       // Dialog should be removed
       const dialog = document.querySelector('.da-shortcuts-dialog');
       expect(dialog).toBeNull();
+    });
+  });
+
+  describe('assembly integration (Story 3.3)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('AssemblerBridge initialization', () => {
+      it('should initialize AssemblerBridge when app mounts', () => {
+        expect(mockAssemblerBridge.init).toHaveBeenCalledTimes(1);
+      });
+
+      it('should terminate AssemblerBridge when app is destroyed', () => {
+        app.destroy();
+        expect(mockAssemblerBridge.terminate).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('Assemble button click', () => {
+      it('should trigger assembly when Assemble button is clicked', async () => {
+        // Set editor content and trigger content change to enable button
+        mockEditorInstance._setContent('LDA 5\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+
+        // Trigger content change listener to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Click Assemble button
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        expect(assembleBtn.disabled).toBe(false);
+        assembleBtn.click();
+
+        // Wait for async operations
+        await vi.waitFor(() => {
+          expect(mockAssemblerBridge.assemble).toHaveBeenCalledWith('LDA 5\nHLT');
+        });
+      });
+
+      it('should show assembling status during operation', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+
+        // Make assemble take some time
+        mockAssemblerBridge.assemble.mockImplementation(() => new Promise(resolve => {
+          setTimeout(() => resolve({
+            success: true,
+            binary: new Uint8Array([0x01, 0x05]),
+            error: null,
+          }), 10);
+        }));
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Check immediate status
+        const assemblySection = container.querySelector('[data-section="assembly"]');
+        expect(assemblySection?.textContent).toContain('Assembling');
+      });
+
+      it('should show success message with byte count after successful assembly', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('2 bytes');
+        });
+      });
+
+      it('should show error message on assembly failure', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction' },
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('Unknown instruction');
+        });
+      });
+    });
+
+    describe('Debug menu Assemble action', () => {
+      it('should trigger assembly when Debug > Assemble is clicked', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+
+        // Open Debug menu
+        const debugTrigger = container.querySelector('[data-menu="debug"]') as HTMLButtonElement;
+        debugTrigger.click();
+
+        // Click Assemble item (note: data-action is "assemble", not "debug-assemble")
+        const assembleItem = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleItem.click();
+
+        await vi.waitFor(() => {
+          expect(mockAssemblerBridge.assemble).toHaveBeenCalledWith('LDA 5');
+        });
+      });
+    });
+
+    describe('Ctrl+Enter keyboard shortcut', () => {
+      it('should register assemble action with editor', () => {
+        expect(addedActions.length).toBeGreaterThan(0);
+        const assembleAction = addedActions.find(a => a.id === 'assemble');
+        expect(assembleAction).toBeDefined();
+      });
+
+      it('should trigger assembly when Ctrl+Enter action is invoked', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+
+        // Find and invoke the assemble action
+        const assembleAction = addedActions.find(a => a.id === 'assemble');
+        assembleAction?.run();
+
+        await vi.waitFor(() => {
+          expect(mockAssemblerBridge.assemble).toHaveBeenCalledWith('LDA 5');
+        });
+      });
+    });
+
+    describe('Assemble button enabled state', () => {
+      it('should have content change listener registered', () => {
+        expect(contentChangeListeners.length).toBeGreaterThan(0);
+      });
+
+      it('should disable Assemble button when editor is empty', () => {
+        // Trigger content change with empty content
+        mockEditorInstance.getValue.mockReturnValue('');
+        contentChangeListeners[0]?.();
+
+        // Check toolbar state
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canAssemble).toBe(false);
+      });
+
+      it('should enable Assemble button when editor has content', () => {
+        // Trigger content change with content
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        contentChangeListeners[0]?.();
+
+        // Check toolbar state
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canAssemble).toBe(true);
+      });
+    });
+
+    describe('execution buttons state after assembly', () => {
+      it('should enable Run, Step, Reset buttons after successful assembly', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          expect(toolbar?.getState().canRun).toBe(true);
+          expect(toolbar?.getState().canStep).toBe(true);
+          expect(toolbar?.getState().canReset).toBe(true);
+        });
+      });
+
+      it('should not enable execution buttons after failed assembly', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Error' },
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          expect(toolbar?.getState().canRun).toBe(false);
+          expect(toolbar?.getState().canStep).toBe(false);
+          expect(toolbar?.getState().canReset).toBe(false);
+        });
+      });
+    });
+
+    describe('getLastAssembleResult', () => {
+      it('should return null before any assembly', () => {
+        expect(app.getLastAssembleResult()).toBeNull();
+      });
+
+      it('should return assembly result after successful assembly', async () => {
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x01, 0x05]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const result = app.getLastAssembleResult();
+          expect(result).not.toBeNull();
+          expect(result?.success).toBe(true);
+          expect(result?.binary?.length).toBe(2);
+        });
+      });
+    });
+
+    describe('error handling', () => {
+      it('should show error when assembler not ready', async () => {
+        mockAssemblerBridge._setReady(false);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('not ready');
+        });
+      });
+
+      it('should show error when editor content is empty', async () => {
+        mockEditorInstance.getValue.mockReturnValue('');
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('No code');
+        });
+      });
     });
   });
 });

@@ -1,7 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock Monaco editor using vi.hoisted for proper hoisting
-const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionListeners, mockCursorDisposable } = vi.hoisted(() => {
+const {
+  mockEditorInstance,
+  mockMonaco,
+  mockModel,
+  resetHistory,
+  cursorPositionListeners,
+  contentChangeListeners,
+  addedActions,
+  mockCursorDisposable,
+  mockContentChangeDisposable,
+  mockActionDisposable,
+} = vi.hoisted(() => {
   // Simple in-memory history to simulate Monaco undo/redo stack behavior
   let history: string[] = [''];
   let pointer = 0;
@@ -9,13 +20,29 @@ const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionL
   // Store cursor position change listeners for testing
   const cursorPositionListeners: Array<(e: { position: { lineNumber: number; column: number } }) => void> = [];
 
+  // Store content change listeners for testing
+  const contentChangeListeners: Array<() => void> = [];
+
+  // Store added actions for testing
+  const addedActions: Array<{ id: string; label: string; keybindings: number[]; run: () => void }> = [];
+
   const resetHistory = () => {
     history = [''];
     pointer = 0;
     cursorPositionListeners.length = 0;
+    contentChangeListeners.length = 0;
+    addedActions.length = 0;
   };
 
   const mockCursorDisposable = {
+    dispose: vi.fn(),
+  };
+
+  const mockContentChangeDisposable = {
+    dispose: vi.fn(),
+  };
+
+  const mockActionDisposable = {
     dispose: vi.fn(),
   };
 
@@ -40,6 +67,8 @@ const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionL
       history = history.slice(0, pointer + 1);
       history.push(value);
       pointer = history.length - 1;
+      // Trigger content change listeners
+      contentChangeListeners.forEach(cb => cb());
     }),
     getModel: vi.fn(() => mockModel),
     focus: vi.fn(),
@@ -47,6 +76,14 @@ const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionL
     onDidChangeCursorPosition: vi.fn((callback: (e: { position: { lineNumber: number; column: number } }) => void) => {
       cursorPositionListeners.push(callback);
       return mockCursorDisposable;
+    }),
+    onDidChangeModelContent: vi.fn((callback: () => void) => {
+      contentChangeListeners.push(callback);
+      return mockContentChangeDisposable;
+    }),
+    addAction: vi.fn((action: { id: string; label: string; keybindings: number[]; run: () => void }) => {
+      addedActions.push(action);
+      return mockActionDisposable;
     }),
     trigger: vi.fn(),
     getContribution: vi.fn(() => ({
@@ -64,9 +101,26 @@ const { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionL
       setLanguageConfiguration: vi.fn(),
       setMonarchTokensProvider: vi.fn(),
     },
+    KeyMod: {
+      CtrlCmd: 2048,
+    },
+    KeyCode: {
+      Enter: 3,
+    },
   };
 
-  return { mockEditorInstance, mockMonaco, mockModel, resetHistory, cursorPositionListeners, mockCursorDisposable };
+  return {
+    mockEditorInstance,
+    mockMonaco,
+    mockModel,
+    resetHistory,
+    cursorPositionListeners,
+    contentChangeListeners,
+    addedActions,
+    mockCursorDisposable,
+    mockContentChangeDisposable,
+    mockActionDisposable,
+  };
 });
 
 vi.mock('monaco-editor', () => mockMonaco);
@@ -1050,6 +1104,129 @@ describe('Editor', () => {
 
       expect(directiveRule).toBeDefined();
       expect(directiveRule.foreground).toBe('bd93f9');
+
+      editor.destroy();
+    });
+  });
+
+  describe('content change callback (Story 3.3)', () => {
+    it('should call onContentChange callback when content changes', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onContentChange: callback });
+      editor.mount(container);
+
+      // Clear the initial call from mount
+      callback.mockClear();
+
+      // Simulate content change
+      contentChangeListeners[0]?.();
+
+      expect(callback).toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should pass true when content has length > 0', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onContentChange: callback });
+      editor.mount(container);
+
+      // Clear the initial call
+      callback.mockClear();
+
+      // Set content first
+      editor.setValue('LDA 5');
+
+      expect(callback).toHaveBeenCalledWith(true);
+
+      editor.destroy();
+    });
+
+    it('should pass false when content is empty', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onContentChange: callback });
+      editor.mount(container);
+
+      // Initial call should be with false (empty content)
+      expect(callback).toHaveBeenCalledWith(false);
+
+      editor.destroy();
+    });
+
+    it('should subscribe to Monaco onDidChangeModelContent event', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onContentChange: callback });
+      editor.mount(container);
+
+      expect(mockEditorInstance.onDidChangeModelContent).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should dispose content change listener when editor is destroyed', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onContentChange: callback });
+      editor.mount(container);
+
+      editor.destroy();
+
+      expect(mockContentChangeDisposable.dispose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not subscribe to content change events if callback not provided', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockEditorInstance.onDidChangeModelContent).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+  });
+
+  describe('assemble keyboard shortcut (Story 3.3)', () => {
+    it('should register assemble action with Ctrl+Enter keybinding', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onAssemble: callback });
+      editor.mount(container);
+
+      expect(mockEditorInstance.addAction).toHaveBeenCalledTimes(1);
+      const action = addedActions[0];
+      expect(action.id).toBe('assemble');
+      expect(action.label).toBe('Assemble Code');
+      expect(action.keybindings).toContain(mockMonaco.KeyMod.CtrlCmd | mockMonaco.KeyCode.Enter);
+
+      editor.destroy();
+    });
+
+    it('should call onAssemble callback when action is triggered', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onAssemble: callback });
+      editor.mount(container);
+
+      // Trigger the action
+      const action = addedActions[0];
+      action.run();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should dispose assemble action when editor is destroyed', () => {
+      const callback = vi.fn();
+      const editor = new Editor({ onAssemble: callback });
+      editor.mount(container);
+
+      editor.destroy();
+
+      expect(mockActionDisposable.dispose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not register assemble action if callback not provided', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      expect(mockEditorInstance.addAction).not.toHaveBeenCalled();
 
       editor.destroy();
     });

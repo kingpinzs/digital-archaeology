@@ -11,6 +11,8 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { AssemblerBridge } from '@emulator/index';
+import type { AssembleResult } from '@emulator/index';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -55,6 +57,12 @@ export class App {
   // Keyboard shortcuts dialog
   private keyboardShortcutsDialog: KeyboardShortcutsDialog | null = null;
 
+  // Assembler bridge for WASM worker communication
+  private assemblerBridge: AssemblerBridge | null = null;
+
+  // Last assembly result for use by execution controls (Epic 4)
+  private lastAssembleResult: AssembleResult | null = null;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -78,6 +86,7 @@ export class App {
     this.destroyStatusBar();
     this.destroyPanelHeaders();
     this.destroyEditor();
+    this.destroyAssemblerBridge();
 
     this.container = container;
     this.isMounted = true;
@@ -188,7 +197,7 @@ export class App {
       onViewStatePanel: () => this.togglePanel('state'),
       onViewResetLayout: () => this.resetLayout(),
       // Debug menu
-      onDebugAssemble: () => { /* Epic 3: Code Assembly */ },
+      onDebugAssemble: () => this.handleAssemble(),
       onDebugRun: () => { /* Epic 4: Program Execution */ },
       onDebugPause: () => { /* Epic 4: Program Execution */ },
       onDebugReset: () => { /* Epic 4: Program Execution */ },
@@ -317,6 +326,7 @@ export class App {
   /**
    * Initialize the Monaco editor in the code panel.
    * Wires cursor position events to update the status bar.
+   * Also initializes the AssemblerBridge for code assembly.
    * @returns void
    */
   private initializeEditor(): void {
@@ -331,8 +341,45 @@ export class App {
           cursorPosition: { line: position.line, column: position.column },
         });
       },
+      onContentChange: (hasContent) => {
+        this.toolbar?.updateState({ canAssemble: hasContent });
+      },
+      onAssemble: () => this.handleAssemble(),
     });
     this.editor.mount(codePanelContent as HTMLElement);
+
+    // Initialize AssemblerBridge for code assembly
+    this.initializeAssemblerBridge();
+  }
+
+  /**
+   * Initialize the AssemblerBridge for WASM worker communication.
+   * Runs asynchronously to avoid blocking UI during WASM loading.
+   * @returns void
+   */
+  private initializeAssemblerBridge(): void {
+    this.assemblerBridge = new AssemblerBridge();
+
+    // Initialize asynchronously - don't block UI
+    this.assemblerBridge.init().catch((error) => {
+      console.error('Failed to initialize AssemblerBridge:', error);
+      this.statusBar?.updateState({
+        assemblyStatus: 'error',
+        assemblyMessage: 'Assembler initialization failed',
+      });
+    });
+  }
+
+  /**
+   * Destroy the AssemblerBridge and clean up resources.
+   * @returns void
+   */
+  private destroyAssemblerBridge(): void {
+    if (this.assemblerBridge) {
+      this.assemblerBridge.terminate();
+      this.assemblerBridge = null;
+    }
+    this.lastAssembleResult = null;
   }
 
   /**
@@ -354,6 +401,75 @@ export class App {
   }
 
   /**
+   * Handle assembly of the current editor content.
+   * Updates status bar during operation and enables execution buttons on success.
+   */
+  private async handleAssemble(): Promise<void> {
+    if (!this.assemblerBridge?.isReady) {
+      this.statusBar?.updateState({
+        assemblyStatus: 'error',
+        assemblyMessage: 'Assembler not ready',
+      });
+      return;
+    }
+
+    const source = this.editor?.getValue() ?? '';
+    if (!source.trim()) {
+      this.statusBar?.updateState({
+        assemblyStatus: 'error',
+        assemblyMessage: 'No code to assemble',
+      });
+      return;
+    }
+
+    // Update status and disable Assemble button during operation
+    this.statusBar?.updateState({
+      assemblyStatus: 'assembling',
+      assemblyMessage: null,
+    });
+    this.toolbar?.updateState({ canAssemble: false });
+
+    try {
+      const result = await this.assemblerBridge.assemble(source);
+      this.lastAssembleResult = result;
+
+      if (result.success) {
+        const byteCount = result.binary?.length ?? 0;
+        this.statusBar?.updateState({
+          assemblyStatus: 'success',
+          assemblyMessage: `${byteCount} bytes`,
+        });
+        // Enable execution buttons (Run, Step, Reset)
+        this.toolbar?.updateState({
+          canAssemble: true,
+          canRun: true,
+          canStep: true,
+          canReset: true,
+        });
+      } else {
+        // Display error message (basic - Story 3.4 handles rich errors)
+        const errorMsg = result.error?.message ?? 'Assembly failed';
+        this.statusBar?.updateState({
+          assemblyStatus: 'error',
+          assemblyMessage: errorMsg,
+        });
+        this.toolbar?.updateState({ canAssemble: true });
+      }
+    } catch (error) {
+      // Handle unexpected errors (worker crash, timeout, etc.)
+      const errorMsg = error instanceof Error ? error.message : 'Unexpected error';
+      this.statusBar?.updateState({
+        assemblyStatus: 'error',
+        assemblyMessage: errorMsg,
+      });
+      this.toolbar?.updateState({ canAssemble: true });
+    }
+
+    // Return focus to editor
+    this.editor?.focus();
+  }
+
+  /**
    * Destroy the Monaco editor.
    * @returns void
    */
@@ -370,6 +486,15 @@ export class App {
    */
   getEditor(): Editor | null {
     return this.editor;
+  }
+
+  /**
+   * Get the last assembly result.
+   * Used by execution controls (Epic 4) to load the binary into the emulator.
+   * @returns The last assembly result or null if no assembly has been performed
+   */
+  getLastAssembleResult(): AssembleResult | null {
+    return this.lastAssembleResult;
   }
 
   /**
@@ -549,7 +674,7 @@ export class App {
     // Placeholder callbacks - will be wired to actual functionality in later epics
     const callbacks: ToolbarCallbacks = {
       onFileClick: () => { /* Epic 9: File menu */ },
-      onAssembleClick: () => { /* Epic 3: Code Assembly */ },
+      onAssembleClick: () => this.handleAssemble(),
       onRunClick: () => { /* Epic 4: Program Execution */ },
       onPauseClick: () => { /* Epic 4: Program Execution */ },
       onResetClick: () => { /* Epic 4: Program Execution */ },
@@ -739,6 +864,9 @@ export class App {
 
     // Destroy editor
     this.destroyEditor();
+
+    // Destroy assembler bridge
+    this.destroyAssemblerBridge();
 
     // Destroy keyboard shortcuts dialog
     this.destroyKeyboardShortcutsDialog();

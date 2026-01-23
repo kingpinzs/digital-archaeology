@@ -17,6 +17,7 @@ export type AssemblyStatus = 'none' | 'assembling' | 'success' | 'error';
 export interface StatusBarState {
   assemblyStatus: AssemblyStatus;
   assemblyMessage: string | null;
+  loadStatus: string | null; // "Loaded: X bytes" or null (Story 4.4)
   pcValue: number | null;
   nextInstruction: string | null;
   cycleCount: number;
@@ -45,6 +46,7 @@ export class StatusBar {
 
   // Section element references for efficient updates
   private assemblySection: HTMLElement | null = null;
+  private loadSection: HTMLElement | null = null;
   private pcSection: HTMLElement | null = null;
   private instructionSection: HTMLElement | null = null;
   private cycleSection: HTMLElement | null = null;
@@ -55,6 +57,7 @@ export class StatusBar {
     this.state = {
       assemblyStatus: 'none',
       assemblyMessage: null,
+      loadStatus: null,
       pcValue: null,
       nextInstruction: null,
       cycleCount: 0,
@@ -102,6 +105,7 @@ export class StatusBar {
       this.element = null;
     }
     this.assemblySection = null;
+    this.loadSection = null;
     this.pcSection = null;
     this.instructionSection = null;
     this.cycleSection = null;
@@ -119,6 +123,13 @@ export class StatusBar {
     // Assembly status section
     const assemblySection = this.createSection('assembly', 'Assembly status');
     statusBar.appendChild(assemblySection);
+
+    // Separator
+    statusBar.appendChild(this.createSeparator());
+
+    // Load status section (Story 4.4)
+    const loadSection = this.createSection('load', 'Program load status');
+    statusBar.appendChild(loadSection);
 
     // Separator
     statusBar.appendChild(this.createSeparator());
@@ -187,6 +198,7 @@ export class StatusBar {
     if (!this.element) return;
 
     this.assemblySection = this.element.querySelector('[data-section="assembly"]');
+    this.loadSection = this.element.querySelector('[data-section="load"]');
     this.pcSection = this.element.querySelector('[data-section="pc"]');
     this.instructionSection = this.element.querySelector('[data-section="instruction"]');
     this.cycleSection = this.element.querySelector('[data-section="cycle"]');
@@ -199,6 +211,7 @@ export class StatusBar {
    */
   private updateUI(): void {
     this.updateAssemblySection();
+    this.updateLoadSection();
     this.updatePCSection();
     this.updateInstructionSection();
     this.updateCycleSection();
@@ -239,6 +252,22 @@ export class StatusBar {
     }
 
     this.assemblySection.innerHTML = `<span class="da-statusbar-value ${statusClass}">${text}</span>`;
+  }
+
+  /**
+   * Update the load status section (Story 4.4).
+   */
+  private updateLoadSection(): void {
+    if (!this.loadSection) return;
+
+    const { loadStatus } = this.state;
+    if (loadStatus === null) {
+      this.loadSection.innerHTML = '<span class="da-statusbar-value">--</span>';
+    } else {
+      // Escape loadStatus to prevent XSS attacks
+      const safeStatus = escapeHtml(loadStatus);
+      this.loadSection.innerHTML = `<span class="da-statusbar-value da-statusbar-status--success">${safeStatus}</span>`;
+    }
   }
 
   /**

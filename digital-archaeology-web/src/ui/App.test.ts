@@ -196,8 +196,107 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
   return { MockAssemblerBridge, mockAssemblerBridge: helpers };
 });
 
+// Mock EmulatorBridge for Story 4.4
+const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
+  // Mock CPUState shape
+  type CPUState = {
+    pc: number;
+    accumulator: number;
+    zeroFlag: boolean;
+    halted: boolean;
+    error: boolean;
+    errorMessage: string | null;
+    memory: Uint8Array;
+    ir: number;
+    mar: number;
+    mdr: number;
+    cycles: number;
+    instructions: number;
+  };
+
+  // Mutable state for test manipulation
+  const state: { isReady: boolean; cpuState: CPUState } = {
+    isReady: true,
+    cpuState: {
+      pc: 0,
+      accumulator: 0,
+      zeroFlag: false,
+      halted: false,
+      error: false,
+      errorMessage: null,
+      memory: new Uint8Array(256),
+      ir: 0,
+      mar: 0,
+      mdr: 0,
+      cycles: 0,
+      instructions: 0,
+    },
+  };
+
+  // Mock methods
+  const initMock = vi.fn(() => Promise.resolve());
+  const loadProgramMock = vi.fn(() => Promise.resolve(state.cpuState));
+  const terminateMock = vi.fn();
+
+  // Constructor function that will be used as the class
+  function MockEmulatorBridge() {
+    return {
+      init: initMock,
+      loadProgram: loadProgramMock,
+      terminate: terminateMock,
+      get isReady() {
+        return state.isReady;
+      },
+    };
+  }
+
+  // Helpers for test manipulation
+  const helpers = {
+    init: initMock,
+    loadProgram: loadProgramMock,
+    terminate: terminateMock,
+    get isReady() {
+      return state.isReady;
+    },
+    _setReady: (ready: boolean) => {
+      state.isReady = ready;
+    },
+    _setCpuState: (cpuState: CPUState) => {
+      state.cpuState = cpuState;
+      loadProgramMock.mockImplementation(() => Promise.resolve(cpuState));
+    },
+    _setLoadThrow: (error: Error) => {
+      loadProgramMock.mockImplementation(() => Promise.reject(error));
+    },
+    _reset: () => {
+      state.isReady = true;
+      state.cpuState = {
+        pc: 0,
+        accumulator: 0,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        memory: new Uint8Array(256),
+        ir: 0,
+        mar: 0,
+        mdr: 0,
+        cycles: 0,
+        instructions: 0,
+      };
+      initMock.mockClear();
+      loadProgramMock.mockClear();
+      terminateMock.mockClear();
+      loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
+    },
+  };
+
+  return { MockEmulatorBridge, mockEmulatorBridge: helpers };
+});
+
 vi.mock('@emulator/index', () => ({
   AssemblerBridge: MockAssemblerBridge,
+  EmulatorBridge: MockEmulatorBridge,
 }));
 
 import { App } from './App';
@@ -217,6 +316,8 @@ describe('App', () => {
     // Reset global theme and language state for each test
     resetThemeRegistration();
     resetLanguageRegistration();
+    // Reset mock state for EmulatorBridge (Story 4.4)
+    mockEmulatorBridge._reset();
   });
 
   afterEach(() => {
@@ -1263,6 +1364,7 @@ describe('App', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
       mockEditorInstance._resetContent();
       contentChangeListeners.length = 0;
       addedActions.length = 0;
@@ -1581,10 +1683,10 @@ describe('App', () => {
           expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(1);
         });
 
-        // Wait for assembly to complete
+        // Wait for assembly AND load to complete (Story 4.4 loads after assembly)
         await vi.waitFor(() => {
-          const assemblySection = container.querySelector('[data-section="assembly"]');
-          expect(assemblySection?.textContent).toContain('2 bytes');
+          const loadSection = container.querySelector('[data-section="load"]');
+          expect(loadSection?.textContent).toContain('Loaded');
         });
 
         // Second assembly should work
@@ -1600,6 +1702,7 @@ describe('App', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
       mockEditorInstance._resetContent();
       contentChangeListeners.length = 0;
       addedActions.length = 0;
@@ -2288,9 +2391,10 @@ describe('App', () => {
         const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
         assembleBtn.click();
 
+        // Wait for assembly AND load to complete (Story 4.4 loads after assembly)
         await vi.waitFor(() => {
-          const toggleBtn = container.querySelector('.da-binary-toggle');
-          expect(toggleBtn).not.toBeNull();
+          const loadSection = container.querySelector('[data-section="load"]');
+          expect(loadSection?.textContent).toContain('Loaded');
         });
 
         // Show the panel and verify data
@@ -2338,9 +2442,10 @@ describe('App', () => {
         const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
         assembleBtn.click();
 
+        // Wait for assembly AND load to complete (Story 4.4 loads after assembly)
         await vi.waitFor(() => {
-          const toggleBtn = container.querySelector('.da-binary-toggle');
-          expect(toggleBtn).not.toBeNull();
+          const loadSection = container.querySelector('[data-section="load"]');
+          expect(loadSection?.textContent).toContain('Loaded');
         });
 
         // Show the panel
@@ -2560,6 +2665,224 @@ describe('App', () => {
         const statusBar = app.getStatusBar();
         expect(statusBar?.getState().assemblyStatus).toBe('error');
         expect(statusBar?.getState().assemblyMessage).toBe('Worker crashed');
+      });
+    });
+  });
+
+  describe('program load integration (Story 4.4)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('EmulatorBridge initialization', () => {
+      it('should initialize EmulatorBridge when app mounts', () => {
+        expect(mockEmulatorBridge.init).toHaveBeenCalledTimes(1);
+      });
+
+      it('should terminate EmulatorBridge when app is destroyed', () => {
+        app.destroy();
+        expect(mockEmulatorBridge.terminate).toHaveBeenCalledTimes(1);
+      });
+
+      it('should re-initialize EmulatorBridge on re-mount', () => {
+        app.mount(container);
+        expect(mockEmulatorBridge.init).toHaveBeenCalledTimes(2);
+        expect(mockEmulatorBridge.terminate).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('auto-load on assembly success', () => {
+      it('should load program into emulator after successful assembly', async () => {
+        const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+        mockEditorInstance._setContent('LDA 5\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalledWith(binary);
+        });
+      });
+
+      it('should show load status in status bar after successful load', async () => {
+        const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+        mockEditorInstance._setContent('LDA 5\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const loadSection = container.querySelector('[data-section="load"]');
+          expect(loadSection?.textContent).toContain('Loaded: 3 bytes');
+        });
+      });
+
+      it('should update PC value in status bar after load', async () => {
+        const binary = new Uint8Array([0x01, 0x05]);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().pcValue).toBe(0);
+        });
+      });
+
+      it('should not load program when assembly fails', async () => {
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction' },
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const assemblySection = container.querySelector('[data-section="assembly"]');
+          expect(assemblySection?.textContent).toContain('Unknown instruction');
+        });
+
+        expect(mockEmulatorBridge.loadProgram).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('load error handling', () => {
+      it('should handle emulator load failure gracefully', async () => {
+        const binary = new Uint8Array([0x01, 0x05]);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+        mockEmulatorBridge._setLoadThrow(new Error('Load failed'));
+
+        // Spy on console.error
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            'Failed to load program into emulator:',
+            expect.any(Error)
+          );
+        });
+
+        consoleSpy.mockRestore();
+      });
+
+      it('should clear load status on emulator load failure', async () => {
+        const binary = new Uint8Array([0x01, 0x05]);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+        mockEmulatorBridge._setLoadThrow(new Error('Load failed'));
+
+        // Suppress console.error for this test
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().loadStatus).toBeNull();
+        });
+
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('load status invalidation on code change', () => {
+      it('should clear load status when code changes after successful load', async () => {
+        // First, assemble and load successfully
+        const binary = new Uint8Array([0x01, 0x05]);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for load to complete
+        await vi.waitFor(() => {
+          const loadSection = container.querySelector('[data-section="load"]');
+          expect(loadSection?.textContent).toContain('Loaded: 2 bytes');
+        });
+
+        // Now change the code
+        mockEditorInstance._setContent('LDA 10');
+        mockEditorInstance.getValue.mockReturnValue('LDA 10');
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Load status should be cleared
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().loadStatus).toBeNull();
+
+        // Verify DOM shows "--" for load status
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toBe('--');
       });
     });
   });

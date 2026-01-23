@@ -28,6 +28,7 @@ describe('StatusBar', () => {
       statusBar.mount(container);
 
       expect(container.querySelector('[data-section="assembly"]')).not.toBeNull();
+      expect(container.querySelector('[data-section="load"]')).not.toBeNull();
       expect(container.querySelector('[data-section="pc"]')).not.toBeNull();
       expect(container.querySelector('[data-section="instruction"]')).not.toBeNull();
       expect(container.querySelector('[data-section="cycle"]')).not.toBeNull();
@@ -41,7 +42,7 @@ describe('StatusBar', () => {
       statusBar.mount(container);
 
       const separators = container.querySelectorAll('.da-statusbar-separator');
-      expect(separators.length).toBe(5); // 6 sections = 5 separators
+      expect(separators.length).toBe(6); // 7 sections = 6 separators
 
       statusBar.destroy();
     });
@@ -94,6 +95,16 @@ describe('StatusBar', () => {
 
       const speedSection = container.querySelector('[data-section="speed"]');
       expect(speedSection?.textContent).toContain('--');
+
+      statusBar.destroy();
+    });
+
+    it('should show "--" for load status when null (Story 4.4)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.textContent).toBe('--');
 
       statusBar.destroy();
     });
@@ -212,6 +223,44 @@ describe('StatusBar', () => {
       statusBar.destroy();
     });
 
+    it('should update load status (Story 4.4)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ loadStatus: 'Loaded: 12 bytes' });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.textContent).toContain('Loaded: 12 bytes');
+
+      statusBar.destroy();
+    });
+
+    it('should show "--" for load status when set to null (Story 4.4)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ loadStatus: 'Loaded: 12 bytes' });
+      statusBar.updateState({ loadStatus: null });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.textContent).toBe('--');
+
+      statusBar.destroy();
+    });
+
+    it('should escape HTML in load status to prevent XSS (Story 4.4)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ loadStatus: '<script>alert("xss")</script>' });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.innerHTML).not.toContain('<script>');
+      expect(loadSection?.textContent).toContain('<script>');
+
+      statusBar.destroy();
+    });
+
     it('should preserve other state values on partial update', () => {
       const statusBar = new StatusBar();
       statusBar.mount(container);
@@ -285,6 +334,7 @@ describe('StatusBar', () => {
 
       expect(state.assemblyStatus).toBe('none');
       expect(state.assemblyMessage).toBeNull();
+      expect(state.loadStatus).toBeNull();
       expect(state.pcValue).toBeNull();
       expect(state.nextInstruction).toBeNull();
       expect(state.cycleCount).toBe(0);
@@ -615,9 +665,9 @@ describe('StatusBar', () => {
       const statusBar = new StatusBar();
       statusBar.mount(container);
 
-      // There should now be 5 separators (6 sections = 5 separators)
+      // There should now be 6 separators (7 sections = 6 separators)
       const separators = container.querySelectorAll('.da-statusbar-separator');
-      expect(separators.length).toBe(5);
+      expect(separators.length).toBe(6);
 
       statusBar.destroy();
     });

@@ -13,8 +13,8 @@ import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
-import { AssemblerBridge } from '@emulator/index';
-import type { AssembleResult, AssemblerError } from '@emulator/index';
+import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
+import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -73,6 +73,12 @@ export class App {
   // Assembler bridge for WASM worker communication
   private assemblerBridge: AssemblerBridge | null = null;
 
+  // Emulator bridge for WASM worker communication (Story 4.4)
+  private emulatorBridge: EmulatorBridge | null = null;
+
+  // Current CPU state from the emulator (Story 4.4)
+  private cpuState: CPUState | null = null;
+
   // Last assembly result for use by execution controls (Epic 4)
   private lastAssembleResult: AssembleResult | null = null;
 
@@ -106,6 +112,7 @@ export class App {
     this.destroyPanelHeaders();
     this.destroyEditor();
     this.destroyAssemblerBridge();
+    this.destroyEmulatorBridge();
 
     this.container = container;
     this.isMounted = true;
@@ -375,6 +382,9 @@ export class App {
           // Hide binary output since it's stale
           this.binaryOutputPanel?.setBinary(null);
           this.binaryToggleContainer?.classList.add('da-binary-toggle-container--hidden');
+          // Clear load status since program is stale (Story 4.4)
+          this.cpuState = null;
+          this.statusBar?.updateState({ loadStatus: null });
         }
       },
       onAssemble: () => this.handleAssemble(),
@@ -389,6 +399,9 @@ export class App {
 
     // Initialize AssemblerBridge for code assembly
     this.initializeAssemblerBridge();
+
+    // Initialize EmulatorBridge for program execution (Story 4.4)
+    this.initializeEmulatorBridge();
   }
 
   /**
@@ -572,6 +585,71 @@ export class App {
   }
 
   /**
+   * Initialize the EmulatorBridge for WASM worker communication.
+   * Runs asynchronously to avoid blocking UI during WASM loading.
+   * @returns void
+   */
+  private initializeEmulatorBridge(): void {
+    this.emulatorBridge = new EmulatorBridge();
+
+    // Initialize asynchronously - don't block UI
+    this.emulatorBridge.init().catch((error) => {
+      console.error('Failed to initialize EmulatorBridge:', error);
+      // Could show error in status bar here
+    });
+  }
+
+  /**
+   * Destroy the EmulatorBridge and clean up resources.
+   * @returns void
+   */
+  private destroyEmulatorBridge(): void {
+    if (this.emulatorBridge) {
+      this.emulatorBridge.terminate();
+      this.emulatorBridge = null;
+    }
+    this.cpuState = null;
+  }
+
+  /**
+   * Load a program into the emulator (Story 4.4).
+   * Resets CPU to initial state and loads the binary into memory.
+   * Updates status bar with load status.
+   * @param binary - The assembled program bytes (nibbles)
+   * @returns void
+   */
+  private async loadProgramIntoEmulator(binary: Uint8Array): Promise<void> {
+    // Check if emulator is ready
+    if (!this.emulatorBridge?.isReady) {
+      // Emulator not ready yet - try to wait for init
+      try {
+        await this.emulatorBridge?.init();
+      } catch {
+        console.error('EmulatorBridge not ready for program load');
+        this.statusBar?.updateState({ loadStatus: null });
+        return;
+      }
+    }
+
+    try {
+      // loadProgram resets CPU and copies binary to memory
+      this.cpuState = await this.emulatorBridge!.loadProgram(binary);
+
+      // Update status bar with load status
+      this.statusBar?.updateState({
+        loadStatus: `Loaded: ${binary.length} bytes`,
+        pcValue: this.cpuState.pc,
+        cycleCount: this.cpuState.cycles,
+      });
+    } catch (error) {
+      // Handle load errors
+      console.error('Failed to load program into emulator:', error);
+      this.cpuState = null;
+      this.statusBar?.updateState({ loadStatus: null });
+    }
+  }
+
+  /**
    * Perform an undo on the current editor model if available.
    */
   private handleUndo(): void {
@@ -655,6 +733,11 @@ export class App {
         // Show binary output toggle and set binary data (Story 3.6)
         this.binaryToggleContainer?.classList.remove('da-binary-toggle-container--hidden');
         this.binaryOutputPanel?.setBinary(result.binary);
+
+        // Auto-load into emulator (Story 4.4)
+        if (result.binary) {
+          await this.loadProgramIntoEmulator(result.binary);
+        }
       } else {
         // Mark assembly as invalid (Story 3.7)
         this.hasValidAssembly = false;
@@ -1101,6 +1184,9 @@ export class App {
 
     // Destroy assembler bridge
     this.destroyAssemblerBridge();
+
+    // Destroy emulator bridge (Story 4.4)
+    this.destroyEmulatorBridge();
 
     // Destroy error panel
     this.destroyErrorPanel();

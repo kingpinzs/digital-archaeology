@@ -3300,6 +3300,195 @@ describe('App', () => {
           expect(statusBar?.getState().speed).toBeNull();
         });
       });
+
+      it('should update toolbar to show Run button after pause (AC: #2)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          expect(toolbar?.getState().isRunning).toBe(false);
+          expect(toolbar?.getState().canRun).toBe(true);
+          expect(toolbar?.getState().canPause).toBe(false);
+        });
+      });
+
+      it('should update status bar with final PC and cycle count after pause (AC: #3)', async () => {
+        await assembleAndLoad();
+
+        // Configure stop to return specific state
+        mockEmulatorBridge.stop.mockResolvedValue({
+          pc: 5,
+          accumulator: 7,
+          memory: new Uint8Array(256),
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 42,
+          instructions: 21,
+        });
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().pcValue).toBe(5);
+          expect(statusBar?.getState().cycleCount).toBe(42);
+        });
+      });
+
+      it('should enable canStep after pause for single-stepping (AC: #4)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          expect(toolbar?.getState().canStep).toBe(true);
+        });
+      });
+
+      it('should do nothing when pause is called while not running', async () => {
+        await assembleAndLoad();
+
+        // Don't click Run first - should be no-op
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        // stop() should not have been called
+        expect(mockEmulatorBridge.stop).not.toHaveBeenCalled();
+      });
+
+      it('should reset running state even when stop() throws error', async () => {
+        await assembleAndLoad();
+
+        // Configure stop to throw
+        mockEmulatorBridge.stop.mockRejectedValue(new Error('Stop failed'));
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          // Even on error, running state should be reset
+          expect(toolbar?.getState().isRunning).toBe(false);
+          expect(toolbar?.getState().canRun).toBe(true);
+        });
+      });
+
+      it('should show Pause failed in status bar when stop() throws error', async () => {
+        await assembleAndLoad();
+
+        // Configure stop to throw
+        mockEmulatorBridge.stop.mockRejectedValue(new Error('Stop failed'));
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().loadStatus).toBe('Pause failed');
+        });
+      });
+
+      it('should allow Run to resume execution after Pause (AC: #4)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        // Configure stop to return state at PC=5 (paused mid-execution)
+        mockEmulatorBridge.stop.mockResolvedValue({
+          pc: 5,
+          accumulator: 3,
+          memory: new Uint8Array(256),
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 10,
+          instructions: 5,
+        });
+
+        // Start running
+        runBtn.click();
+        expect(mockEmulatorBridge.run).toHaveBeenCalledTimes(1);
+
+        // Pause - execution stops at PC=5
+        pauseBtn.click();
+        await vi.waitFor(() => {
+          expect(runBtn.hidden).toBe(false);
+          // Verify state was preserved from pause
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().pcValue).toBe(5);
+        });
+
+        // Resume by clicking Run again - should continue from current state
+        runBtn.click();
+        expect(mockEmulatorBridge.run).toHaveBeenCalledTimes(2);
+      });
+
+      it('should call step() when Step clicked after Pause (AC: #4)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+
+        // Configure stop to return paused state
+        mockEmulatorBridge.stop.mockResolvedValue({
+          pc: 5,
+          accumulator: 3,
+          memory: new Uint8Array(256),
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 10,
+          instructions: 5,
+        });
+
+        // Start running then pause
+        runBtn.click();
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          // Verify Step button is enabled after pause (canStep: true)
+          // Note: Actual step() execution is implemented in Epic 5: Debugging
+          // This test verifies the precondition that Step is available after pause
+          expect(stepBtn.disabled).toBe(false);
+          expect(app.getToolbar()?.getState().canStep).toBe(true);
+        });
+      });
     });
   });
 

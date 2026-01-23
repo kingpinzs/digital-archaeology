@@ -341,7 +341,7 @@ export class ErrorPanel {
    * @param type - The error type
    */
   private createTypeBadge(
-    type: 'SYNTAX_ERROR' | 'VALUE_ERROR' | 'CONSTRAINT_ERROR'
+    type: 'SYNTAX_ERROR' | 'VALUE_ERROR' | 'CONSTRAINT_ERROR' | 'RUNTIME_ERROR'
   ): HTMLElement {
     const badge = document.createElement('span');
     badge.className = 'da-error-type-badge';
@@ -354,6 +354,7 @@ export class ErrorPanel {
       SYNTAX_ERROR: { text: 'SYNTAX', modifier: 'syntax' },
       VALUE_ERROR: { text: 'VALUE', modifier: 'value' },
       CONSTRAINT_ERROR: { text: 'CONSTRAINT', modifier: 'constraint' },
+      RUNTIME_ERROR: { text: 'RUNTIME', modifier: 'runtime' },
     };
 
     const typeInfo = typeMap[type];

@@ -1107,6 +1107,12 @@ body.da-resizing * {
   border: 1px solid var(--da-constraint-badge-border);
 }
 
+.da-error-type-badge--runtime {
+  background: var(--da-runtime-badge-bg, #7c3aed);
+  color: var(--da-runtime-badge-text, #ffffff);
+  border: 1px solid var(--da-runtime-badge-border, #5b21b6);
+}
+
 /* Code Snippet Container */
 .da-error-snippet {
   width: 100%;

@@ -185,34 +185,34 @@ describe('Toolbar', () => {
       toolbar.destroy();
     });
 
-    it('should have speed slider with default value 50', () => {
+    it('should have speed slider with default value 60', () => {
       const toolbar = new Toolbar(mockCallbacks);
       toolbar.mount(container);
 
       const slider = container.querySelector('.da-speed-slider') as HTMLInputElement;
-      expect(slider.value).toBe('50');
+      expect(slider.value).toBe('60');
 
       toolbar.destroy();
     });
 
-    it('should have speed slider with range 1-100', () => {
+    it('should have speed slider with range 1-1000 Hz', () => {
       const toolbar = new Toolbar(mockCallbacks);
       toolbar.mount(container);
 
       const slider = container.querySelector('.da-speed-slider') as HTMLInputElement;
       expect(slider.min).toBe('1');
-      expect(slider.max).toBe('100');
+      expect(slider.max).toBe('1000');
 
       toolbar.destroy();
     });
 
-    it('should render speed label', () => {
+    it('should render speed label with Hz suffix', () => {
       const toolbar = new Toolbar(mockCallbacks);
       toolbar.mount(container);
 
       const label = container.querySelector('.da-speed-label');
       expect(label).not.toBeNull();
-      expect(label?.textContent).toContain('50');
+      expect(label?.textContent).toBe('60 Hz');
 
       toolbar.destroy();
     });
@@ -226,7 +226,7 @@ describe('Toolbar', () => {
       const state = toolbar.getState();
       expect(state.canAssemble).toBe(false);
       expect(state.canRun).toBe(false);
-      expect(state.speed).toBe(50);
+      expect(state.speed).toBe(60);
       expect(state.isRunning).toBe(false);
 
       toolbar.destroy();
@@ -343,7 +343,7 @@ describe('Toolbar', () => {
       const label = container.querySelector('.da-speed-label');
 
       expect(slider.value).toBe('75');
-      expect(label?.textContent).toContain('75');
+      expect(label?.textContent).toBe('75 Hz');
 
       toolbar.destroy();
     });
@@ -547,7 +547,7 @@ describe('Toolbar', () => {
       toolbar.mount(container);
 
       const slider = container.querySelector('.da-speed-slider');
-      expect(slider?.getAttribute('aria-label')).toBe('Execution speed');
+      expect(slider?.getAttribute('aria-label')).toBe('Execution speed (Hz)');
 
       toolbar.destroy();
     });
@@ -557,9 +557,9 @@ describe('Toolbar', () => {
       toolbar.mount(container);
 
       const slider = container.querySelector('.da-speed-slider');
-      expect(slider?.getAttribute('aria-valuenow')).toBe('50');
+      expect(slider?.getAttribute('aria-valuenow')).toBe('60');
       expect(slider?.getAttribute('aria-valuemin')).toBe('1');
-      expect(slider?.getAttribute('aria-valuemax')).toBe('100');
+      expect(slider?.getAttribute('aria-valuemax')).toBe('1000');
 
       toolbar.destroy();
     });

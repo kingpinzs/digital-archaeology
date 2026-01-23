@@ -179,7 +179,8 @@ export interface AssembleResult {
 export type AssemblerErrorType =
   | 'SYNTAX_ERROR'
   | 'VALUE_ERROR'
-  | 'CONSTRAINT_ERROR';
+  | 'CONSTRAINT_ERROR'
+  | 'RUNTIME_ERROR';
 
 /**
  * Code snippet context for displaying errors with surrounding code.

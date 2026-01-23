@@ -237,6 +237,26 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   const initMock = vi.fn(() => Promise.resolve());
   const loadProgramMock = vi.fn(() => Promise.resolve(state.cpuState));
   const terminateMock = vi.fn();
+  const runMock = vi.fn();
+  const stopMock = vi.fn(() => Promise.resolve(state.cpuState));
+
+  // Event callback storage for simulating events (Story 4.5)
+  let stateUpdateCallback: ((state: CPUState) => void) | null = null;
+  let haltedCallback: (() => void) | null = null;
+  let errorCallback: ((error: { message: string; address?: number }) => void) | null = null;
+
+  const onStateUpdateMock = vi.fn((cb: (state: CPUState) => void) => {
+    stateUpdateCallback = cb;
+    return () => { stateUpdateCallback = null; };
+  });
+  const onHaltedMock = vi.fn((cb: () => void) => {
+    haltedCallback = cb;
+    return () => { haltedCallback = null; };
+  });
+  const onErrorMock = vi.fn((cb: (error: { message: string; address?: number }) => void) => {
+    errorCallback = cb;
+    return () => { errorCallback = null; };
+  });
 
   // Constructor function that will be used as the class
   function MockEmulatorBridge() {
@@ -244,6 +264,11 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       init: initMock,
       loadProgram: loadProgramMock,
       terminate: terminateMock,
+      run: runMock,
+      stop: stopMock,
+      onStateUpdate: onStateUpdateMock,
+      onHalted: onHaltedMock,
+      onError: onErrorMock,
       get isReady() {
         return state.isReady;
       },
@@ -255,6 +280,11 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     init: initMock,
     loadProgram: loadProgramMock,
     terminate: terminateMock,
+    run: runMock,
+    stop: stopMock,
+    onStateUpdate: onStateUpdateMock,
+    onHalted: onHaltedMock,
+    onError: onErrorMock,
     get isReady() {
       return state.isReady;
     },
@@ -264,12 +294,23 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     _setCpuState: (cpuState: CPUState) => {
       state.cpuState = cpuState;
       loadProgramMock.mockImplementation(() => Promise.resolve(cpuState));
+      stopMock.mockImplementation(() => Promise.resolve(cpuState));
     },
     _setLoadThrow: (error: Error) => {
       loadProgramMock.mockImplementation(() => Promise.reject(error));
     },
     _setInitThrow: (error: Error) => {
       initMock.mockImplementation(() => Promise.reject(error));
+    },
+    // Story 4.5: Trigger event callbacks for testing
+    _triggerStateUpdate: (cpuState: CPUState) => {
+      if (stateUpdateCallback) stateUpdateCallback(cpuState);
+    },
+    _triggerHalted: () => {
+      if (haltedCallback) haltedCallback();
+    },
+    _triggerError: (error: { message: string; address?: number }) => {
+      if (errorCallback) errorCallback(error);
     },
     _reset: () => {
       state.isReady = true;
@@ -291,7 +332,16 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       initMock.mockImplementation(() => Promise.resolve());
       loadProgramMock.mockClear();
       terminateMock.mockClear();
+      runMock.mockClear();
+      stopMock.mockClear();
+      onStateUpdateMock.mockClear();
+      onHaltedMock.mockClear();
+      onErrorMock.mockClear();
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
+      stopMock.mockImplementation(() => Promise.resolve(state.cpuState));
+      stateUpdateCallback = null;
+      haltedCallback = null;
+      errorCallback = null;
     },
   };
 
@@ -2984,6 +3034,271 @@ describe('App', () => {
         // Verify DOM shows "--" for load status
         const loadSection = container.querySelector('[data-section="load"]');
         expect(loadSection?.textContent).toBe('--');
+      });
+    });
+  });
+
+  describe('program execution (Story 4.5)', () => {
+    beforeEach(() => {
+      app.mount(container);
+      mockEmulatorBridge._reset();
+    });
+
+    // Helper to assemble and load a program
+    const assembleAndLoad = async () => {
+      const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: binary,
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+      });
+    };
+
+    describe('Run button click handler', () => {
+      it('should call emulatorBridge.run() when Run button is clicked', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        expect(mockEmulatorBridge.run).toHaveBeenCalledWith(1); // 60Hz / 60 = 1
+      });
+
+      it('should not call run() if no valid assembly', () => {
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        expect(mockEmulatorBridge.run).not.toHaveBeenCalled();
+      });
+
+      it('should set up event subscriptions when run starts', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        expect(mockEmulatorBridge.onStateUpdate).toHaveBeenCalled();
+        expect(mockEmulatorBridge.onHalted).toHaveBeenCalled();
+        expect(mockEmulatorBridge.onError).toHaveBeenCalled();
+      });
+    });
+
+    describe('Run/Pause toggle visibility', () => {
+      it('should hide Run button and show Pause button when running', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        // Initially Run is visible, Pause is hidden
+        expect(runBtn.hidden).toBe(false);
+        expect(pauseBtn.hidden).toBe(true);
+
+        // Click Run
+        runBtn.click();
+
+        // Now Run should be hidden, Pause visible
+        expect(runBtn.hidden).toBe(true);
+        expect(pauseBtn.hidden).toBe(false);
+      });
+
+      it('should show Run button and hide Pause button when paused', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        // Start running
+        runBtn.click();
+
+        // Click Pause
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          expect(runBtn.hidden).toBe(false);
+          expect(pauseBtn.hidden).toBe(true);
+        });
+      });
+    });
+
+    describe('status bar updates during execution', () => {
+      it('should update status bar with PC and cycle count on state update', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Simulate state update from emulator
+        mockEmulatorBridge._triggerStateUpdate({
+          pc: 42,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 100,
+          instructions: 50,
+        });
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().pcValue).toBe(42);
+        expect(statusBar?.getState().cycleCount).toBe(100);
+      });
+
+      it('should show speed in status bar when running', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().speed).toBe(60); // Default speed
+      });
+    });
+
+    describe('execution termination (HLT)', () => {
+      it('should stop running and show Run button when CPU halts', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        runBtn.click();
+
+        // Simulate HLT
+        mockEmulatorBridge._triggerHalted();
+
+        expect(runBtn.hidden).toBe(false);
+        expect(pauseBtn.hidden).toBe(true);
+      });
+
+      it('should update status bar with Halted message', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerHalted();
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().loadStatus).toBe('Halted');
+        expect(statusBar?.getState().speed).toBeNull();
+      });
+    });
+
+    describe('execution error handling', () => {
+      it('should stop running and show Run button on error', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        runBtn.click();
+
+        // Simulate error
+        mockEmulatorBridge._triggerError({ message: 'Invalid instruction', address: 10 });
+
+        expect(runBtn.hidden).toBe(false);
+        expect(pauseBtn.hidden).toBe(true);
+      });
+
+      it('should update status bar with Error message', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerError({ message: 'Invalid instruction', address: 10 });
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().loadStatus).toBe('Error');
+        expect(statusBar?.getState().speed).toBeNull();
+      });
+    });
+
+    describe('speed control', () => {
+      it('should pass speed value to emulatorBridge.run()', async () => {
+        await assembleAndLoad();
+
+        // Change speed via slider
+        const slider = container.querySelector('.da-speed-slider') as HTMLInputElement;
+        slider.value = '100';
+        slider.dispatchEvent(new Event('input'));
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // 100Hz / 60 ≈ 1.67, rounded to 2
+        expect(mockEmulatorBridge.run).toHaveBeenCalledWith(2);
+      });
+    });
+
+    describe('button enable/disable states', () => {
+      it('should disable Run button when running', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+
+        // Run button should be enabled
+        expect(runBtn.disabled).toBe(false);
+
+        runBtn.click();
+
+        // Run button should be disabled (hidden actually, but canRun=false)
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canRun).toBe(false);
+      });
+
+      it('should disable Step button when running', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canStep).toBe(false);
+      });
+    });
+
+    describe('Pause button', () => {
+      it('should call emulatorBridge.stop() when Pause is clicked', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        expect(mockEmulatorBridge.stop).toHaveBeenCalled();
+      });
+
+      it('should clear speed from status bar when paused', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        pauseBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().speed).toBeNull();
+        });
       });
     });
   });

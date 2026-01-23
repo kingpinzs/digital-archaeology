@@ -88,6 +88,21 @@ export class App {
   // Flag indicating code has been successfully assembled and not modified since (Story 3.7)
   private hasValidAssembly: boolean = false;
 
+  // Flag indicating program is currently running (Story 4.5)
+  private isRunning: boolean = false;
+
+  // Current execution speed in Hz (Story 4.5)
+  private executionSpeed: number = 60;
+
+  // Unsubscribe functions for emulator event callbacks (Story 4.5)
+  private unsubscribeStateUpdate: (() => void) | null = null;
+  private unsubscribeHalted: (() => void) | null = null;
+  private unsubscribeError: (() => void) | null = null;
+
+  // Throttling for high-speed UI updates (Story 4.5)
+  private lastStateUpdateTime: number = 0;
+  private readonly STATE_UPDATE_THROTTLE_MS = 16; // ~60fps max UI updates
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -607,6 +622,10 @@ export class App {
    * @returns void
    */
   private destroyEmulatorBridge(): void {
+    // Clean up subscriptions first (Story 4.5)
+    this.cleanupEmulatorSubscriptions();
+    this.isRunning = false;
+
     if (this.emulatorBridge) {
       this.emulatorBridge.terminate();
       this.emulatorBridge = null;
@@ -660,6 +679,223 @@ export class App {
       // Issue #3 fix: Reset all emulator-related status bar fields
       this.statusBar?.updateState({ loadStatus: null, pcValue: null, cycleCount: 0 });
     }
+  }
+
+  /**
+   * Handle Run button click (Story 4.5).
+   * Starts continuous program execution at the configured speed.
+   * @returns void
+   */
+  private handleRun(): void {
+    // Guard: Can't run if no valid assembly or already running
+    if (!this.hasValidAssembly || this.isRunning) return;
+
+    // Guard: Can't run without emulator bridge
+    if (!this.emulatorBridge?.isReady) {
+      console.error('EmulatorBridge not ready for execution');
+      return;
+    }
+
+    // Set up event subscriptions before starting
+    this.setupEmulatorSubscriptions();
+
+    // Start execution - convert Hz to speed parameter
+    // speed = instructions per ~16ms tick = Hz / 60
+    const speed = Math.max(1, Math.round(this.executionSpeed / 60));
+    this.emulatorBridge.run(speed);
+
+    // Update running state
+    this.isRunning = true;
+
+    // Update UI to show Pause button and disable other controls
+    this.toolbar?.updateState({
+      isRunning: true,
+      canRun: false,
+      canPause: true,
+      canStep: false,
+    });
+
+    // Update status bar with speed
+    this.statusBar?.updateState({
+      speed: this.executionSpeed,
+    });
+  }
+
+  /**
+   * Handle Pause button click (Story 4.5).
+   * Stops continuous program execution.
+   * @returns void
+   */
+  private async handlePause(): Promise<void> {
+    if (!this.isRunning || !this.emulatorBridge) return;
+
+    try {
+      // Stop execution and get final state
+      this.cpuState = await this.emulatorBridge.stop();
+
+      // Update running state
+      this.isRunning = false;
+
+      // Clean up subscriptions
+      this.cleanupEmulatorSubscriptions();
+
+      // Update UI to show Run button
+      this.toolbar?.updateState({
+        isRunning: false,
+        canRun: true,
+        canPause: false,
+        canStep: true,
+      });
+
+      // Update status bar with final state
+      this.statusBar?.updateState({
+        pcValue: this.cpuState.pc,
+        cycleCount: this.cpuState.cycles,
+        speed: null,
+      });
+    } catch (error) {
+      console.error('Failed to pause execution:', error);
+      // Reset running state even on error
+      this.isRunning = false;
+      this.cleanupEmulatorSubscriptions();
+      this.toolbar?.updateState({
+        isRunning: false,
+        canRun: this.hasValidAssembly,
+        canPause: false,
+        canStep: this.hasValidAssembly,
+      });
+      // Update status bar to indicate pause failed
+      this.statusBar?.updateState({
+        speed: null,
+        loadStatus: 'Pause failed',
+      });
+    }
+  }
+
+  /**
+   * Handle speed slider change (Story 4.5).
+   * @param speed - New execution speed in Hz (1-1000)
+   */
+  private handleSpeedChange(speed: number): void {
+    this.executionSpeed = speed;
+    // Update status bar if currently running
+    if (this.isRunning) {
+      this.statusBar?.updateState({ speed: this.executionSpeed });
+    }
+  }
+
+  /**
+   * Set up emulator event subscriptions for Run mode (Story 4.5).
+   * Must be called before starting execution.
+   * @returns void
+   */
+  private setupEmulatorSubscriptions(): void {
+    if (!this.emulatorBridge) return;
+
+    // Clean up any existing subscriptions first
+    this.cleanupEmulatorSubscriptions();
+
+    // Subscribe to state updates with throttling for high-speed execution
+    this.unsubscribeStateUpdate = this.emulatorBridge.onStateUpdate((state) => {
+      this.cpuState = state;
+
+      // Throttle UI updates to prevent performance issues at high speeds
+      const now = performance.now();
+      if (now - this.lastStateUpdateTime >= this.STATE_UPDATE_THROTTLE_MS) {
+        this.lastStateUpdateTime = now;
+        // Update status bar with current state
+        this.statusBar?.updateState({
+          pcValue: state.pc,
+          cycleCount: state.cycles,
+        });
+      }
+    });
+
+    // Subscribe to halted events (HLT instruction)
+    this.unsubscribeHalted = this.emulatorBridge.onHalted(() => {
+      this.handleExecutionHalted();
+    });
+
+    // Subscribe to error events
+    this.unsubscribeError = this.emulatorBridge.onError((error) => {
+      this.handleExecutionError(error);
+    });
+  }
+
+  /**
+   * Clean up emulator event subscriptions (Story 4.5).
+   * @returns void
+   */
+  private cleanupEmulatorSubscriptions(): void {
+    if (this.unsubscribeStateUpdate) {
+      this.unsubscribeStateUpdate();
+      this.unsubscribeStateUpdate = null;
+    }
+    if (this.unsubscribeHalted) {
+      this.unsubscribeHalted();
+      this.unsubscribeHalted = null;
+    }
+    if (this.unsubscribeError) {
+      this.unsubscribeError();
+      this.unsubscribeError = null;
+    }
+  }
+
+  /**
+   * Handle CPU halted event (HLT instruction) (Story 4.5).
+   * @returns void
+   */
+  private handleExecutionHalted(): void {
+    this.isRunning = false;
+    this.cleanupEmulatorSubscriptions();
+
+    // Update UI to show Run button
+    this.toolbar?.updateState({
+      isRunning: false,
+      canRun: true,
+      canPause: false,
+      canStep: true,
+    });
+
+    // Update status bar with halted state
+    this.statusBar?.updateState({
+      speed: null,
+      loadStatus: 'Halted',
+    });
+  }
+
+  /**
+   * Handle execution error event (Story 4.5).
+   * @param error - Error details from the emulator
+   * @returns void
+   */
+  private handleExecutionError(error: { message: string; address?: number }): void {
+    this.isRunning = false;
+    this.cleanupEmulatorSubscriptions();
+
+    // Update UI to show Run button
+    this.toolbar?.updateState({
+      isRunning: false,
+      canRun: true,
+      canPause: false,
+      canStep: true,
+    });
+
+    // Display error in error panel
+    // Use line 1 as fallback when address is unknown (line 0 is invalid for editor navigation)
+    this.errorPanel?.setErrors([{
+      line: error.address !== undefined ? error.address : 1,
+      message: `Runtime error: ${error.message}`,
+      type: 'RUNTIME_ERROR',
+    }]);
+
+    // Update status bar
+    this.statusBar?.updateState({
+      speed: null,
+      loadStatus: 'Error',
+    });
+
+    console.error('Execution error:', error);
   }
 
   /**
@@ -1005,11 +1241,11 @@ export class App {
     const callbacks: ToolbarCallbacks = {
       onFileClick: () => { /* Epic 9: File menu */ },
       onAssembleClick: () => this.handleAssemble(),
-      onRunClick: () => { /* Epic 4: Program Execution */ },
-      onPauseClick: () => { /* Epic 4: Program Execution */ },
-      onResetClick: () => { /* Epic 4: Program Execution */ },
+      onRunClick: () => this.handleRun(),
+      onPauseClick: () => this.handlePause(),
+      onResetClick: () => { /* Story 4.7: Reset Button */ },
       onStepClick: () => { /* Epic 5: Debugging */ },
-      onSpeedChange: () => { /* Epic 4: Speed Control */ },
+      onSpeedChange: (speed) => this.handleSpeedChange(speed),
       onHelpClick: () => { /* Epic 20: Educational Content */ },
       onSettingsClick: () => { /* Epic 9: Settings */ },
     };

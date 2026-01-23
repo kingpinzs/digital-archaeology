@@ -81,7 +81,7 @@ development_status:
   4-2-create-emulator-web-worker: done
   4-3-implement-emulatorbridge-class: done
   4-4-implement-load-program: done
-  4-5-implement-run-button: backlog
+  4-5-implement-run-button: done
   4-6-implement-stop-button: backlog
   4-7-implement-reset-button: backlog
   4-8-implement-speed-control: backlog

@@ -18,7 +18,7 @@ export interface ToolbarState {
   canStep: boolean;
   /** Is execution currently running (toggles Run/Pause visibility) */
   isRunning: boolean;
-  /** Current execution speed (1-100) */
+  /** Current execution speed in Hz (1-1000) */
   speed: number;
 }
 
@@ -74,7 +74,7 @@ export class Toolbar {
       canReset: false,
       canStep: false,
       isRunning: false,
-      speed: 50,
+      speed: 60,
     };
   }
 
@@ -188,12 +188,12 @@ export class Toolbar {
             type="range"
             class="da-speed-slider"
             min="1"
-            max="100"
-            value="50"
-            aria-label="Execution speed"
-            title="Execution speed"
+            max="1000"
+            value="60"
+            aria-label="Execution speed (Hz)"
+            title="Execution speed (Hz)"
           />
-          <span class="da-speed-label">50</span>
+          <span class="da-speed-label">60 Hz</span>
         </div>
 
         <div class="da-toolbar-divider"></div>
@@ -247,7 +247,7 @@ export class Toolbar {
         const value = parseInt((e.target as HTMLInputElement).value, 10);
         this.state.speed = value;
         if (this.speedLabel) {
-          this.speedLabel.textContent = String(value);
+          this.speedLabel.textContent = `${value} Hz`;
         }
         this.updateSliderAriaValues();
         this.callbacks.onSpeedChange(value);
@@ -376,7 +376,7 @@ export class Toolbar {
       this.speedSlider.value = String(this.state.speed);
     }
     if (this.speedLabel) {
-      this.speedLabel.textContent = String(this.state.speed);
+      this.speedLabel.textContent = `${this.state.speed} Hz`;
     }
   }
 
@@ -432,6 +432,7 @@ export class Toolbar {
 
     this.speedSlider.setAttribute('aria-valuenow', String(this.state.speed));
     this.speedSlider.setAttribute('aria-valuemin', '1');
-    this.speedSlider.setAttribute('aria-valuemax', '100');
+    this.speedSlider.setAttribute('aria-valuemax', '1000');
+    this.speedSlider.setAttribute('aria-valuetext', `${this.state.speed} Hz`);
   }
 }

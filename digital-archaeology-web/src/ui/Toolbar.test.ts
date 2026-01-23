@@ -683,4 +683,74 @@ describe('Toolbar', () => {
       expect(container.querySelector('.da-toolbar-content')).toBeNull();
     });
   });
+
+  describe('dynamic tooltips (Story 3.7)', () => {
+    it('should show "Assemble first" tooltip when Run is disabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      // Run starts disabled
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      expect(runBtn.title).toBe('Assemble first (F5)');
+    });
+
+    it('should show "Assemble first" tooltip when Step is disabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+      expect(stepBtn.title).toBe('Assemble first (F10)');
+    });
+
+    it('should show "Assemble first" tooltip when Reset is disabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      expect(resetBtn.title).toBe('Assemble first (Shift+F5)');
+    });
+
+    it('should show normal tooltip when Run is enabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canRun: true });
+
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      expect(runBtn.title).toBe('Run (F5)');
+    });
+
+    it('should show normal tooltip when Step is enabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canStep: true });
+
+      const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+      expect(stepBtn.title).toBe('Step (F10)');
+    });
+
+    it('should show normal tooltip when Reset is enabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canReset: true });
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      expect(resetBtn.title).toBe('Reset (Shift+F5)');
+    });
+
+    it('should switch tooltip when button state changes from enabled to disabled', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      // Enable then disable
+      toolbar.updateState({ canRun: true });
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      expect(runBtn.title).toBe('Run (F5)');
+
+      toolbar.updateState({ canRun: false });
+      expect(runBtn.title).toBe('Assemble first (F5)');
+    });
+  });
 });

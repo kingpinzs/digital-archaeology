@@ -79,6 +79,9 @@ export class App {
   // Flag to prevent rapid assembly triggering (debounce guard)
   private isAssembling: boolean = false;
 
+  // Flag indicating code has been successfully assembled and not modified since (Story 3.7)
+  private hasValidAssembly: boolean = false;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -106,6 +109,8 @@ export class App {
 
     this.container = container;
     this.isMounted = true;
+    // Reset assembly state on mount/remount (Story 3.7)
+    this.hasValidAssembly = false;
     this.render();
     this.initializeMenuBar();
     this.initializeToolbar();
@@ -359,6 +364,18 @@ export class App {
       },
       onContentChange: (hasContent) => {
         this.toolbar?.updateState({ canAssemble: hasContent });
+        // Invalidate assembly when code changes (Story 3.7)
+        if (this.hasValidAssembly) {
+          this.hasValidAssembly = false;
+          this.toolbar?.updateState({
+            canRun: false,
+            canStep: false,
+            canReset: false,
+          });
+          // Hide binary output since it's stale
+          this.binaryOutputPanel?.setBinary(null);
+          this.binaryToggleContainer?.classList.add('da-binary-toggle-container--hidden');
+        }
       },
       onAssemble: () => this.handleAssemble(),
     });
@@ -625,6 +642,8 @@ export class App {
           assemblyStatus: 'success',
           assemblyMessage: `${byteCount} bytes`,
         });
+        // Mark assembly as valid (Story 3.7)
+        this.hasValidAssembly = true;
         // Enable execution buttons (Run, Step, Reset)
         this.toolbar?.updateState({
           canAssemble: true,
@@ -637,6 +656,8 @@ export class App {
         this.binaryToggleContainer?.classList.remove('da-binary-toggle-container--hidden');
         this.binaryOutputPanel?.setBinary(result.binary);
       } else {
+        // Mark assembly as invalid (Story 3.7)
+        this.hasValidAssembly = false;
         // Display error message in status bar
         const errorMsg = result.error?.message ?? 'Assembly failed';
         this.statusBar?.updateState({
@@ -659,12 +680,20 @@ export class App {
       }
     } catch (error) {
       // Handle unexpected errors (worker crash, timeout, etc.)
+      // Mark assembly as invalid (Story 3.7)
+      this.hasValidAssembly = false;
       const errorMsg = error instanceof Error ? error.message : 'Unexpected error';
       this.statusBar?.updateState({
         assemblyStatus: 'error',
         assemblyMessage: errorMsg,
       });
-      this.toolbar?.updateState({ canAssemble: true });
+      // Re-enable Assemble but disable execution buttons (Story 3.7)
+      this.toolbar?.updateState({
+        canAssemble: true,
+        canRun: false,
+        canStep: false,
+        canReset: false,
+      });
     } finally {
       // Always clear the assembling flag
       this.isAssembling = false;
@@ -1097,6 +1126,9 @@ export class App {
 
     // Reset panel visibility to defaults
     this.panelVisibility = { code: true, circuit: true, state: true };
+
+    // Reset assembly state (Story 3.7)
+    this.hasValidAssembly = false;
 
     // Clear CSS custom properties
     document.documentElement.style.removeProperty('--da-code-panel-width');

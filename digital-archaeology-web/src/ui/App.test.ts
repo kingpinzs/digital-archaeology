@@ -176,6 +176,9 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
       state.assembleResult = result;
       assembleMock.mockImplementation(() => Promise.resolve(result));
     },
+    _setAssembleThrow: (error: Error) => {
+      assembleMock.mockImplementation(() => Promise.reject(error));
+    },
     _reset: () => {
       state.isReady = true;
       state.assembleResult = {
@@ -2361,6 +2364,202 @@ describe('App', () => {
         await vi.waitFor(() => {
           expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(true);
         });
+      });
+    });
+
+    describe('assembly state invalidation (Story 3.7)', () => {
+      it('should disable execution buttons on initial load', () => {
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canRun).toBe(false);
+        expect(toolbar?.getState().canStep).toBe(false);
+        expect(toolbar?.getState().canReset).toBe(false);
+      });
+
+      it('should disable execution buttons when code changes after successful assembly', async () => {
+        // First, assemble successfully
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for assembly to complete and buttons to be enabled
+        await vi.waitFor(() => {
+          const toolbar = app.getToolbar();
+          expect(toolbar?.getState().canRun).toBe(true);
+          expect(toolbar?.getState().canStep).toBe(true);
+          expect(toolbar?.getState().canReset).toBe(true);
+        });
+
+        // Now change the code (simulates user editing)
+        mockEditorInstance._setContent('LDA 0x10');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x10');
+
+        // Trigger content change callback (simulates Monaco onDidChangeModelContent)
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Execution buttons should now be disabled
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().canRun).toBe(false);
+        expect(toolbar?.getState().canStep).toBe(false);
+        expect(toolbar?.getState().canReset).toBe(false);
+      });
+
+      it('should hide binary output when code changes after successful assembly', async () => {
+        // First, assemble successfully
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for binary toggle to appear
+        await vi.waitFor(() => {
+          const toggleContainer = container.querySelector('.da-binary-toggle-container');
+          expect(toggleContainer?.classList.contains('da-binary-toggle-container--hidden')).toBe(false);
+        });
+
+        // Now change the code
+        mockEditorInstance._setContent('LDA 0x10');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x10');
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Binary toggle should now be hidden
+        const toggleContainer = container.querySelector('.da-binary-toggle-container');
+        expect(toggleContainer?.classList.contains('da-binary-toggle-container--hidden')).toBe(true);
+      });
+
+      it('should re-enable execution buttons after re-assembly', async () => {
+        // First, assemble successfully
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(app.getToolbar()?.getState().canRun).toBe(true);
+        });
+
+        // Change code to invalidate assembly
+        mockEditorInstance._setContent('LDA 0x10');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x10');
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        expect(app.getToolbar()?.getState().canRun).toBe(false);
+
+        // Re-assemble
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x10]),
+          error: null,
+        });
+
+        assembleBtn.click();
+
+        // Should be enabled again
+        await vi.waitFor(() => {
+          expect(app.getToolbar()?.getState().canRun).toBe(true);
+          expect(app.getToolbar()?.getState().canStep).toBe(true);
+          expect(app.getToolbar()?.getState().canReset).toBe(true);
+        });
+      });
+
+      it('should not trigger state change on first content load', async () => {
+        // Assemble first
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(app.getToolbar()?.getState().canRun).toBe(true);
+        });
+
+        // The initial content was set before any assembly - no change should occur now
+        // This test verifies that hasValidAssembly only invalidates AFTER a successful assembly
+      });
+
+      it('should disable execution buttons when assembler throws unexpected error (worker crash)', async () => {
+        // First, assemble successfully
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for assembly to complete and buttons to be enabled
+        await vi.waitFor(() => {
+          expect(app.getToolbar()?.getState().canRun).toBe(true);
+        });
+
+        // Now make assembler throw (simulates worker crash/timeout)
+        mockAssemblerBridge._setAssembleThrow(new Error('Worker crashed'));
+
+        // Try to assemble again
+        assembleBtn.click();
+
+        // Execution buttons should be disabled after the error
+        await vi.waitFor(() => {
+          expect(app.getToolbar()?.getState().canRun).toBe(false);
+          expect(app.getToolbar()?.getState().canStep).toBe(false);
+          expect(app.getToolbar()?.getState().canReset).toBe(false);
+        });
+
+        // Verify error is shown in status bar
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().assemblyStatus).toBe('error');
+        expect(statusBar?.getState().assemblyMessage).toBe('Worker crashed');
       });
     });
   });

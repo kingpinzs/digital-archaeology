@@ -168,16 +168,16 @@ export class Toolbar {
 
         <div class="da-toolbar-divider"></div>
 
-        <button class="da-toolbar-btn" data-action="run" aria-label="Run program" title="Run (F5)" aria-pressed="false" disabled>
+        <button class="da-toolbar-btn" data-action="run" aria-label="Run program" aria-pressed="false" disabled>
           <span class="da-toolbar-btn-icon">▶</span><span class="da-toolbar-btn-text">Run</span>
         </button>
         <button class="da-toolbar-btn" data-action="pause" aria-label="Pause execution" title="Pause (F5)" aria-pressed="false" hidden disabled>
           <span class="da-toolbar-btn-icon">⏸</span>
         </button>
-        <button class="da-toolbar-btn" data-action="reset" aria-label="Reset program" title="Reset (Shift+F5)" disabled>
+        <button class="da-toolbar-btn" data-action="reset" aria-label="Reset program" disabled>
           <span class="da-toolbar-btn-icon">⏹</span><span class="da-toolbar-btn-text">Reset</span>
         </button>
-        <button class="da-toolbar-btn" data-action="step" aria-label="Step one instruction" title="Step (F10)" disabled>
+        <button class="da-toolbar-btn" data-action="step" aria-label="Step one instruction" disabled>
           <span class="da-toolbar-btn-icon">⏭</span><span class="da-toolbar-btn-text">Step</span>
         </button>
       </div>
@@ -353,6 +353,11 @@ export class Toolbar {
     this.setButtonDisabled('reset', !this.state.canReset);
     this.setButtonDisabled('step', !this.state.canStep);
 
+    // Update tooltips based on disabled state (Story 3.7)
+    this.updateButtonTooltip('run', !this.state.canRun);
+    this.updateButtonTooltip('step', !this.state.canStep);
+    this.updateButtonTooltip('reset', !this.state.canReset);
+
     // Toggle Run/Pause visibility based on isRunning
     const runBtn = this.buttons.get('run');
     const pauseBtn = this.buttons.get('pause');
@@ -373,6 +378,38 @@ export class Toolbar {
     if (this.speedLabel) {
       this.speedLabel.textContent = String(this.state.speed);
     }
+  }
+
+  /**
+   * Normal (enabled) tooltips for execution buttons.
+   * Maps button action to its standard tooltip text.
+   */
+  private static readonly NORMAL_TOOLTIPS: Record<string, string> = {
+    run: 'Run (F5)',
+    step: 'Step (F10)',
+    reset: 'Reset (Shift+F5)',
+  };
+
+  /**
+   * Update a button's tooltip based on whether assembly is required.
+   * When disabled due to no valid assembly, shows "Assemble first" message.
+   * @param action - The button action identifier ('run', 'step', 'reset')
+   * @param showAssembleFirst - Whether to show "Assemble first" tooltip
+   */
+  private updateButtonTooltip(action: string, showAssembleFirst: boolean): void {
+    const btn = this.buttons.get(action);
+    if (!btn) return;
+
+    const normalTooltip = Toolbar.NORMAL_TOOLTIPS[action];
+    if (!normalTooltip) return;
+
+    // Extract keyboard shortcut from tooltip (e.g., "F5" from "Run (F5)")
+    const shortcutMatch = normalTooltip.match(/\(([^)]+)\)/);
+    const shortcut = shortcutMatch ? shortcutMatch[1] : '';
+
+    btn.title = showAssembleFirst
+      ? `Assemble first (${shortcut})`
+      : normalTooltip;
   }
 
   /**

@@ -72,7 +72,7 @@ development_status:
   3-4-display-assembly-errors-with-line-numbers: done
   3-5-implement-rich-error-display: done
   3-6-show-binary-output-view: done
-  3-7-validate-syntax-before-execution: backlog
+  3-7-validate-syntax-before-execution: done
   epic-3-retrospective: optional
 
   # Epic 4: Program Execution

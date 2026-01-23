@@ -1,5 +1,4 @@
-// Barrel export for story module
-// Story mode: narrative, characters, choices
-// Exports will be added as components are created
+// src/story/index.ts
+// Export barrel for Story Mode components
 
-export {};
+export { StoryModeContainer } from './StoryModeContainer';

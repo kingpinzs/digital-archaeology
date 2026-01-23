@@ -9,12 +9,15 @@ import type { MenuBarCallbacks } from './MenuBar';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
+import { setTheme, initTheme } from './theme';
+import type { ThemeMode } from './theme';
 import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
+import { StoryModeContainer } from '@story/index';
 
 /**
  * Delay in milliseconds before announcing visibility changes to screen readers.
@@ -44,9 +47,18 @@ export class App {
   private toolbar: Toolbar | null = null;
   private menuBar: MenuBar | null = null;
   private statusBar: StatusBar | null = null;
+  private currentMode: ThemeMode = 'lab';
+
+  // Lab Mode container (the 3-panel layout, Story 10.1)
+  private labModeContainer: HTMLElement | null = null;
+
+  // Story Mode container (Story 10.1)
+  private storyModeContainer: StoryModeContainer | null = null;
+
   private codePanelWidth: number = PANEL_CONSTRAINTS.CODE_DEFAULT;
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
   private boundWindowResize: () => void;
+  private boundKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
@@ -112,6 +124,7 @@ export class App {
 
   constructor() {
     this.boundWindowResize = this.handleWindowResize.bind(this);
+    this.boundKeydownHandler = this.handleGlobalKeydown.bind(this);
   }
 
   /**
@@ -122,6 +135,7 @@ export class App {
     // Clean up existing components before re-mounting to prevent memory leaks
     this.destroyResizers();
     this.destroyToolbar();
+    this.destroyStoryModeContainer();
     this.destroyMenuBar();
     this.destroyStatusBar();
     this.destroyPanelHeaders();
@@ -133,18 +147,35 @@ export class App {
     this.isMounted = true;
     // Reset assembly state on mount/remount (Story 3.7)
     this.hasValidAssembly = false;
+
+    // Initialize theme from stored preference (Story 10.1)
+    this.currentMode = initTheme();
+
     this.render();
     this.initializeMenuBar();
+    // Sync menu bar with initial mode from localStorage (Story 10.1)
+    if (this.menuBar) {
+      this.menuBar.updateState({ currentMode: this.currentMode });
+    }
     this.initializeToolbar();
     this.initializePanelHeaders();
     this.initializeStatusBar();
     this.initializeResizers();
     this.initializeEditor();
+    this.initializeStoryModeContainer();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
+    // Apply initial mode (show/hide appropriate containers, Story 10.1)
+    this.applyModeVisibility();
+
     // Add window resize listener
     window.addEventListener('resize', this.boundWindowResize);
+
+    // Add keyboard shortcut listener (Story 10.1)
+    if (this.boundKeydownHandler) {
+      window.addEventListener('keydown', this.boundKeydownHandler);
+    }
   }
 
   /**
@@ -158,35 +189,41 @@ export class App {
     this.container.innerHTML = `
       <div class="da-app-layout">
         <header class="da-toolbar">
-          <!-- MenuBar and Toolbar components will be mounted here -->
+          <!-- MenuBar (with mode toggle) and Toolbar components will be mounted here -->
         </header>
 
-        <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
-          <div class="da-panel-header-container">
-            <!-- PanelHeader component will be mounted here -->
-          </div>
-          <div class="da-panel-content">
-            <!-- Content: Epic 2 - Assembly Code Editor -->
-          </div>
-        </aside>
+        <!-- Lab Mode Container (3-panel layout, Story 10.1) -->
+        <div id="da-lab-mode-panel" class="da-lab-mode-container da-mode-container">
+          <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
+            <div class="da-panel-header-container">
+              <!-- PanelHeader component will be mounted here -->
+            </div>
+            <div class="da-panel-content">
+              <!-- Content: Epic 2 - Assembly Code Editor -->
+            </div>
+          </aside>
 
-        <main class="da-circuit-panel" aria-label="Circuit Visualizer Panel">
-          <div class="da-panel-header-container">
-            <!-- PanelHeader component will be mounted here -->
-          </div>
-          <div class="da-panel-content">
-            <!-- Content: Epic 6 - Circuit Visualization -->
-          </div>
-        </main>
+          <main class="da-circuit-panel" aria-label="Circuit Visualizer Panel">
+            <div class="da-panel-header-container">
+              <!-- PanelHeader component will be mounted here -->
+            </div>
+            <div class="da-panel-content">
+              <!-- Content: Epic 6 - Circuit Visualization -->
+            </div>
+          </main>
 
-        <aside class="da-panel da-state-panel" aria-label="CPU State Panel">
-          <div class="da-panel-header-container">
-            <!-- PanelHeader component will be mounted here -->
-          </div>
-          <div class="da-panel-content">
-            <!-- Content: Epic 5 - Debugging & State Inspection -->
-          </div>
-        </aside>
+          <aside class="da-panel da-state-panel" aria-label="CPU State Panel">
+            <div class="da-panel-header-container">
+              <!-- PanelHeader component will be mounted here -->
+            </div>
+            <div class="da-panel-content">
+              <!-- Content: Epic 5 - Debugging & State Inspection -->
+            </div>
+          </aside>
+        </div>
+
+        <!-- Story Mode Container mount point (Story 10.1) -->
+        <div id="da-story-mode-panel" class="da-story-mode-mount"></div>
 
         <footer class="da-statusbar" role="status" aria-live="polite" aria-label="Application status bar">
           <!-- StatusBar component will be mounted here -->
@@ -201,6 +238,9 @@ export class App {
         ></div>
       </div>
     `;
+
+    // Cache reference to Lab Mode container (Story 10.1)
+    this.labModeContainer = this.container.querySelector('.da-lab-mode-container');
   }
 
   /**
@@ -220,7 +260,7 @@ export class App {
 
     // Placeholder callbacks - will be wired to actual functionality in later epics
     const callbacks: MenuBarCallbacks = {
-      onModeChange: () => { /* Epic 8: Story Mode */ },
+      onModeChange: (mode) => this.handleModeChange(mode),
       // File menu
       onFileNew: () => { /* Epic 9: File Operations */ },
       onFileOpen: () => { /* Epic 9: File Operations */ },
@@ -273,6 +313,114 @@ export class App {
    */
   getMenuBar(): MenuBar | null {
     return this.menuBar;
+  }
+
+  /**
+   * Handle mode change from MenuBar component (Story 10.1).
+   * Updates theme via theme.ts and stores current mode.
+   * @param mode - The new theme mode
+   * @returns void
+   */
+  private handleModeChange(mode: ThemeMode): void {
+    this.currentMode = mode;
+    setTheme(mode);
+    this.applyModeVisibility();
+    this.announceModeChange(mode);
+  }
+
+  /**
+   * Announce mode change to screen readers (Story 10.1 accessibility).
+   * @param mode - The new theme mode
+   * @returns void
+   */
+  private announceModeChange(mode: ThemeMode): void {
+    if (!this.container) return;
+
+    const announcer = this.container.querySelector('.da-sr-announcer') as HTMLElement;
+    if (!announcer) return;
+
+    const modeName = mode === 'lab' ? 'Lab' : 'Story';
+    announcer.textContent = `Switched to ${modeName} Mode`;
+  }
+
+  /**
+   * Initialize the Story Mode container (Story 10.1).
+   * @returns void
+   */
+  private initializeStoryModeContainer(): void {
+    if (!this.container) return;
+
+    const storyMount = this.container.querySelector('.da-story-mode-mount');
+    if (!storyMount) return;
+
+    this.storyModeContainer = new StoryModeContainer();
+    this.storyModeContainer.mount(storyMount as HTMLElement);
+  }
+
+  /**
+   * Destroy the Story Mode container.
+   * @returns void
+   */
+  private destroyStoryModeContainer(): void {
+    if (this.storyModeContainer) {
+      this.storyModeContainer.destroy();
+      this.storyModeContainer = null;
+    }
+  }
+
+  /**
+   * Apply visibility based on current mode (Story 10.1).
+   * Shows Lab UI and hides Story UI, or vice versa.
+   * @returns void
+   */
+  private applyModeVisibility(): void {
+    if (this.currentMode === 'lab') {
+      this.switchToLabMode();
+    } else {
+      this.switchToStoryMode();
+    }
+  }
+
+  /**
+   * Switch to Lab Mode - shows Lab UI, hides Story UI (Story 10.1).
+   * @returns void
+   */
+  private switchToLabMode(): void {
+    // Check if lab container was hidden (switching from story mode)
+    const wasHidden = this.labModeContainer?.classList.contains('da-mode-container--hidden');
+
+    // Show Lab Mode container
+    this.labModeContainer?.classList.remove('da-mode-container--hidden');
+
+    // Hide Story Mode container
+    this.storyModeContainer?.hide();
+
+    // Refresh editor layout only if we're switching from story mode (container was hidden)
+    if (wasHidden) {
+      requestAnimationFrame(() => {
+        this.editor?.layout();
+      });
+    }
+  }
+
+  /**
+   * Switch to Story Mode - shows Story UI, hides Lab UI (Story 10.1).
+   * @returns void
+   */
+  private switchToStoryMode(): void {
+    // Hide Lab Mode container
+    this.labModeContainer?.classList.add('da-mode-container--hidden');
+
+    // Show Story Mode container
+    this.storyModeContainer?.show();
+  }
+
+  /**
+   * Get the current theme mode.
+   * @returns The current theme mode
+   */
+  getCurrentMode(): ThemeMode {
+    return this.currentMode;
   }
 
   /**
@@ -1370,6 +1518,22 @@ export class App {
   }
 
   /**
+   * Handle global keyboard shortcuts (Story 10.1).
+   * @param e - Keyboard event
+   * @returns void
+   */
+  private handleGlobalKeydown(e: KeyboardEvent): void {
+    // Ctrl+Shift+M: Toggle Story/Lab mode
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
+      e.preventDefault();
+      const newMode: ThemeMode = this.currentMode === 'lab' ? 'story' : 'lab';
+      this.handleModeChange(newMode);
+      // Sync menu bar toggle state
+      this.menuBar?.updateState({ currentMode: newMode });
+    }
+  }
+
+  /**
    * Destroy resizers without clearing container.
    * @returns void
    */
@@ -1416,8 +1580,16 @@ export class App {
     // Remove window resize listener
     window.removeEventListener('resize', this.boundWindowResize);
 
+    // Remove keyboard shortcut listener (Story 10.1)
+    if (this.boundKeydownHandler) {
+      window.removeEventListener('keydown', this.boundKeydownHandler);
+    }
+
     // Destroy menu bar
     this.destroyMenuBar();
+
+    // Destroy story mode container (Story 10.1)
+    this.destroyStoryModeContainer();
 
     // Destroy toolbar
     this.destroyToolbar();

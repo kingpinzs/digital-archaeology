@@ -106,7 +106,7 @@ describe('MenuBar', () => {
 
       const labBtn = container.querySelector('[data-mode="lab"]');
       expect(labBtn?.classList.contains('da-menubar-toggle-btn--active')).toBe(true);
-      expect(labBtn?.getAttribute('aria-pressed')).toBe('true');
+      expect(labBtn?.getAttribute('aria-selected')).toBe('true');
     });
 
     it('should have Story mode inactive by default', () => {
@@ -115,7 +115,7 @@ describe('MenuBar', () => {
 
       const storyBtn = container.querySelector('[data-mode="story"]');
       expect(storyBtn?.classList.contains('da-menubar-toggle-btn--active')).toBe(false);
-      expect(storyBtn?.getAttribute('aria-pressed')).toBe('false');
+      expect(storyBtn?.getAttribute('aria-selected')).toBe('false');
     });
 
     it('should switch to Story mode when Story button is clicked', () => {

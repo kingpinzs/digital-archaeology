@@ -234,7 +234,7 @@ describe('keyboardShortcuts constants', () => {
         expect(shortcut).toHaveProperty('category');
         expect(typeof shortcut.keys).toBe('string');
         expect(typeof shortcut.description).toBe('string');
-        expect(['editing', 'search', 'assembly']).toContain(shortcut.category);
+        expect(['editing', 'search', 'assembly', 'view']).toContain(shortcut.category);
       }
     });
 

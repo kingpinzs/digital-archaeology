@@ -3302,4 +3302,160 @@ describe('App', () => {
       });
     });
   });
+
+  describe('mode toggle integration (Story 10.1)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // Clear localStorage to ensure clean theme state
+      localStorage.removeItem('da-theme');
+      // Reset document HTML classes
+      document.documentElement.classList.remove('story-mode', 'lab-mode');
+      app.mount(container);
+    });
+
+    it('should have mode toggle in MenuBar', () => {
+      const menuBar = app.getMenuBar();
+      expect(menuBar).not.toBeNull();
+    });
+
+    it('should render mode toggle in MenuBar', () => {
+      const menuBarToggle = container.querySelector('.da-menubar-toggle');
+      expect(menuBarToggle).not.toBeNull();
+    });
+
+    it('should have Story and Lab buttons', () => {
+      const storyBtn = container.querySelector('[data-mode="story"]');
+      const labBtn = container.querySelector('[data-mode="lab"]');
+
+      expect(storyBtn).not.toBeNull();
+      expect(labBtn).not.toBeNull();
+    });
+
+    it('should default to lab mode', () => {
+      const currentMode = app.getCurrentMode();
+      expect(currentMode).toBe('lab');
+    });
+
+    it('should switch to story mode when story button clicked', () => {
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+
+      const currentMode = app.getCurrentMode();
+      expect(currentMode).toBe('story');
+    });
+
+    it('should update HTML class when mode changes', () => {
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+
+      expect(document.documentElement.classList.contains('story-mode')).toBe(true);
+      expect(document.documentElement.classList.contains('lab-mode')).toBe(false);
+    });
+
+    it('should hide lab mode container when in story mode', () => {
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+
+      const labContainer = container.querySelector('.da-lab-mode-container');
+      expect(labContainer?.classList.contains('da-mode-container--hidden')).toBe(true);
+    });
+
+    it('should show story mode container when in story mode', () => {
+      // Verify story container starts hidden (initial state is lab mode)
+      let storyContainer = container.querySelector('.da-story-mode-container');
+      expect(storyContainer).not.toBeNull();
+      expect(storyContainer?.classList.contains('da-story-mode-container--hidden')).toBe(true);
+
+      // Switch to story mode
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+
+      // Verify mode was switched
+      expect(app.getCurrentMode()).toBe('story');
+
+      // Verify story container is now visible (hidden class removed)
+      storyContainer = container.querySelector('.da-story-mode-container');
+      expect(storyContainer?.classList.contains('da-story-mode-container--hidden')).toBe(false);
+    });
+
+    it('should show lab mode container when switching back to lab mode', () => {
+      // Switch to story mode first
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+
+      // Switch back to lab mode
+      const labBtn = container.querySelector('[data-mode="lab"]') as HTMLButtonElement;
+      labBtn.click();
+
+      const labContainer = container.querySelector('.da-lab-mode-container');
+      expect(labContainer?.classList.contains('da-mode-container--hidden')).toBe(false);
+    });
+
+    it('should toggle mode with Ctrl+Shift+M keyboard shortcut', () => {
+      // Verify initial state is lab
+      expect(app.getCurrentMode()).toBe('lab');
+
+      const event = new KeyboardEvent('keydown', {
+        key: 'M',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      });
+      window.dispatchEvent(event);
+
+      expect(app.getCurrentMode()).toBe('story');
+    });
+
+    it('should toggle back to lab mode with Ctrl+Shift+M', () => {
+      // First switch to story mode via button
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+      expect(app.getCurrentMode()).toBe('story');
+
+      // Toggle back to lab via keyboard
+      const event = new KeyboardEvent('keydown', {
+        key: 'M',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      });
+      window.dispatchEvent(event);
+      expect(app.getCurrentMode()).toBe('lab');
+    });
+
+    it('should update MenuBar toggle state when keyboard shortcut used', () => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'M',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      });
+      window.dispatchEvent(event);
+
+      // Verify the Story button is now active in the MenuBar
+      const storyBtn = container.querySelector('[data-mode="story"]');
+      expect(storyBtn?.classList.contains('da-menubar-toggle-btn--active')).toBe(true);
+    });
+
+    it('should not affect mode after app is destroyed', () => {
+      // Get initial mode
+      const initialMode = app.getCurrentMode();
+      expect(initialMode).toBe('lab');
+
+      // Destroy app - this removes the keyboard listener
+      app.destroy();
+
+      // Dispatch keyboard event - should have no effect since listener is removed
+      const event = new KeyboardEvent('keydown', {
+        key: 'M',
+        ctrlKey: true,
+        shiftKey: true,
+        bubbles: true,
+      });
+      window.dispatchEvent(event);
+
+      // Mode should still be what it was (the property doesn't reset on destroy)
+      expect(app.getCurrentMode()).toBe('lab');
+    });
+  });
 });

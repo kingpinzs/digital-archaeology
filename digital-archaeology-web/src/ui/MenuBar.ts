@@ -266,11 +266,14 @@ export class MenuBar {
     menuBar.setAttribute('aria-label', 'Application menu bar');
 
     menuBar.innerHTML = `
-      <div class="da-menubar-toggle" role="group" aria-label="View mode toggle">
+      <div class="da-menubar-toggle" role="tablist" aria-label="View mode">
         <button
           class="da-menubar-toggle-btn"
           data-mode="story"
-          aria-pressed="false"
+          role="tab"
+          aria-selected="false"
+          aria-controls="da-story-mode-panel"
+          tabindex="-1"
           title="Switch to Story Mode"
         >
           <span class="da-menubar-toggle-icon">📜</span>
@@ -279,7 +282,10 @@ export class MenuBar {
         <button
           class="da-menubar-toggle-btn da-menubar-toggle-btn--active"
           data-mode="lab"
-          aria-pressed="true"
+          role="tab"
+          aria-selected="true"
+          aria-controls="da-lab-mode-panel"
+          tabindex="0"
           title="Switch to Lab Mode"
         >
           <span class="da-menubar-toggle-icon">⚡</span>
@@ -798,7 +804,8 @@ export class MenuBar {
     this.toggleButtons.forEach((btn, mode) => {
       const isActive = mode === this.state.currentMode;
       btn.classList.toggle('da-menubar-toggle-btn--active', isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      btn.setAttribute('tabindex', isActive ? '0' : '-1');
     });
   }
 }

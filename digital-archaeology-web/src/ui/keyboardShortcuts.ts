@@ -10,7 +10,7 @@ export interface KeyboardShortcut {
   /** Human-readable description of what the shortcut does */
   description: string;
   /** Category for grouping in the shortcuts dialog */
-  category: 'editing' | 'search' | 'assembly';
+  category: 'editing' | 'search' | 'assembly' | 'view';
 }
 
 /**
@@ -38,6 +38,9 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
 
   // Assembly shortcuts
   { keys: 'Ctrl+Enter', description: 'Assemble code', category: 'assembly' },
+
+  // View shortcuts (Story 10.1)
+  { keys: 'Ctrl+Shift+M', description: 'Toggle Story/Lab mode', category: 'view' },
 ];
 
 /**
@@ -47,6 +50,7 @@ export const CATEGORY_LABELS: Record<KeyboardShortcut['category'], string> = {
   editing: 'Editing',
   search: 'Search',
   assembly: 'Assembly',
+  view: 'View',
 };
 
 /**

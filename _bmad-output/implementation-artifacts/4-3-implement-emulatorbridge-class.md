@@ -1,6 +1,6 @@
 # Story 4.3: Implement EmulatorBridge Class
 
-Status: ready-for-dev
+Status: done
 
 ---
 
@@ -34,80 +34,80 @@ So that UI code can easily interact with the worker.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create EmulatorBridge Class Structure (AC: #1-7)
-  - [ ] 1.1 Create `src/emulator/EmulatorBridge.ts` following AssemblerBridge pattern
-  - [ ] 1.2 Add private worker, initialized, initPromise properties
-  - [ ] 1.3 Add `isReady` getter for initialization state
-  - [ ] 1.4 Add callback storage: Set<> for onStateUpdate, onHalted, onError subscribers
-  - [ ] 1.5 Define DEFAULT_TIMEOUT_MS (10000ms) and INIT_TIMEOUT_MS (30000ms)
+- [x] Task 1: Create EmulatorBridge Class Structure (AC: #1-7)
+  - [x] 1.1 Create `src/emulator/EmulatorBridge.ts` following AssemblerBridge pattern
+  - [x] 1.2 Add private worker, initialized, initPromise properties
+  - [x] 1.3 Add `isReady` getter for initialization state
+  - [x] 1.4 Add callback storage: Set<> for onStateUpdate, onHalted, onError subscribers
+  - [x] 1.5 Define DEFAULT_TIMEOUT_MS (10000ms) and INIT_TIMEOUT_MS (30000ms)
 
-- [ ] Task 2: Implement Initialization (AC: #1)
-  - [ ] 2.1 Create `init()` method returning Promise<void> (same pattern as AssemblerBridge)
-  - [ ] 2.2 Create worker using Vite's URL syntax: `new URL('./emulator.worker.ts', import.meta.url)`
-  - [ ] 2.3 Wait for EMULATOR_READY event before resolving
-  - [ ] 2.4 Handle ERROR event during initialization
-  - [ ] 2.5 Implement timeout for init (30 seconds)
-  - [ ] 2.6 Reuse existing init promise if called multiple times
+- [x] Task 2: Implement Initialization (AC: #1)
+  - [x] 2.1 Create `init()` method returning Promise<void> (same pattern as AssemblerBridge)
+  - [x] 2.2 Create worker using Vite's URL syntax: `new URL('./emulator.worker.ts', import.meta.url)`
+  - [x] 2.3 Wait for EMULATOR_READY event before resolving
+  - [x] 2.4 Handle ERROR event during initialization
+  - [x] 2.5 Implement timeout for init (30 seconds)
+  - [x] 2.6 Reuse existing init promise if called multiple times
 
-- [ ] Task 3: Implement loadProgram() (AC: #1)
-  - [ ] 3.1 Send LOAD_PROGRAM command with binary Uint8Array
-  - [ ] 3.2 Accept optional startAddr parameter (default: 0)
-  - [ ] 3.3 Wait for STATE_UPDATE response with initial CPU state
-  - [ ] 3.4 Return Promise<CPUState> resolving with loaded state
-  - [ ] 3.5 Throw if bridge not initialized
+- [x] Task 3: Implement loadProgram() (AC: #1)
+  - [x] 3.1 Send LOAD_PROGRAM command with binary Uint8Array
+  - [x] 3.2 Accept optional startAddr parameter (default: 0)
+  - [x] 3.3 Wait for STATE_UPDATE response with initial CPU state
+  - [x] 3.4 Return Promise<CPUState> resolving with loaded state
+  - [x] 3.5 Throw if bridge not initialized
 
-- [ ] Task 4: Implement step() (AC: #2)
-  - [ ] 4.1 Send STEP command to worker
-  - [ ] 4.2 Wait for STATE_UPDATE response
-  - [ ] 4.3 Return Promise<CPUState> with new state after one instruction
-  - [ ] 4.4 Handle HALTED event (resolve with halted state)
-  - [ ] 4.5 Handle ERROR event (reject with error message)
+- [x] Task 4: Implement step() (AC: #2)
+  - [x] 4.1 Send STEP command to worker
+  - [x] 4.2 Wait for STATE_UPDATE response
+  - [x] 4.3 Return Promise<CPUState> with new state after one instruction
+  - [x] 4.4 Handle HALTED event (resolve with halted state)
+  - [x] 4.5 Handle ERROR event (reject with error message)
 
-- [ ] Task 5: Implement run() and stop() (AC: #3, #4)
-  - [ ] 5.1 Create `run(speed: number)` sending RUN command with speed payload
-  - [ ] 5.2 Create `stop()` sending STOP command, returning Promise<CPUState>
-  - [ ] 5.3 Track isRunning state internally
-  - [ ] 5.4 Prevent multiple run() calls without stop()
-  - [ ] 5.5 Wait for STATE_UPDATE after STOP to get current state
+- [x] Task 5: Implement run() and stop() (AC: #3, #4)
+  - [x] 5.1 Create `run(speed: number)` sending RUN command with speed payload
+  - [x] 5.2 Create `stop()` sending STOP command, returning Promise<CPUState>
+  - [x] 5.3 Track isRunning state internally
+  - [x] 5.4 Prevent multiple run() calls without stop()
+  - [x] 5.5 Wait for STATE_UPDATE after STOP to get current state
 
-- [ ] Task 6: Implement reset() (AC: #5)
-  - [ ] 6.1 Send RESET command to worker
-  - [ ] 6.2 Wait for STATE_UPDATE response with reset state
-  - [ ] 6.3 Return Promise<CPUState> with initial state
-  - [ ] 6.4 Clear isRunning flag if running
+- [x] Task 6: Implement reset() (AC: #5)
+  - [x] 6.1 Send RESET command to worker
+  - [x] 6.2 Wait for STATE_UPDATE response with reset state
+  - [x] 6.3 Return Promise<CPUState> with initial state
+  - [x] 6.4 Clear isRunning flag if running
 
-- [ ] Task 7: Implement Event Subscription (AC: #6, #7)
-  - [ ] 7.1 Create `onStateUpdate(callback)` adding to subscribers Set, return unsubscribe function
-  - [ ] 7.2 Create `onHalted(callback)` for HALTED events
-  - [ ] 7.3 Create `onError(callback)` for ERROR events
-  - [ ] 7.4 Set up permanent message listener for worker events
-  - [ ] 7.5 Dispatch events to all registered callbacks
-  - [ ] 7.6 Clean up subscriptions in terminate()
+- [x] Task 7: Implement Event Subscription (AC: #6, #7)
+  - [x] 7.1 Create `onStateUpdate(callback)` adding to subscribers Set, return unsubscribe function
+  - [x] 7.2 Create `onHalted(callback)` for HALTED events
+  - [x] 7.3 Create `onError(callback)` for ERROR events
+  - [x] 7.4 Set up permanent message listener for worker events
+  - [x] 7.5 Dispatch events to all registered callbacks
+  - [x] 7.6 Clean up subscriptions in terminate()
 
-- [ ] Task 8: Implement terminate() (AC: all)
-  - [ ] 8.1 Terminate worker
-  - [ ] 8.2 Clear all callback subscriptions
-  - [ ] 8.3 Reset initialized flag
-  - [ ] 8.4 Clear initPromise
+- [x] Task 8: Implement terminate() (AC: all)
+  - [x] 8.1 Terminate worker
+  - [x] 8.2 Clear all callback subscriptions
+  - [x] 8.3 Reset initialized flag
+  - [x] 8.4 Clear initPromise
 
-- [ ] Task 9: Write Comprehensive Tests (AC: #1-7)
-  - [ ] 9.1 Create `EmulatorBridge.test.ts` with mocked Worker
-  - [ ] 9.2 Test init() creates worker and waits for EMULATOR_READY
-  - [ ] 9.3 Test loadProgram() sends correct command and returns state
-  - [ ] 9.4 Test step() returns state after one instruction
-  - [ ] 9.5 Test run() sends command with speed
-  - [ ] 9.6 Test stop() sends command and returns current state
-  - [ ] 9.7 Test reset() returns initial state
-  - [ ] 9.8 Test onStateUpdate subscription and unsubscribe
-  - [ ] 9.9 Test onHalted callback fires on HALTED event
-  - [ ] 9.10 Test onError callback fires on ERROR event
-  - [ ] 9.11 Test terminate() cleans up resources
+- [x] Task 9: Write Comprehensive Tests (AC: #1-7)
+  - [x] 9.1 Create `EmulatorBridge.test.ts` with mocked Worker
+  - [x] 9.2 Test init() creates worker and waits for EMULATOR_READY
+  - [x] 9.3 Test loadProgram() sends correct command and returns state
+  - [x] 9.4 Test step() returns state after one instruction
+  - [x] 9.5 Test run() sends command with speed
+  - [x] 9.6 Test stop() sends command and returns current state
+  - [x] 9.7 Test reset() returns initial state
+  - [x] 9.8 Test onStateUpdate subscription and unsubscribe
+  - [x] 9.9 Test onHalted callback fires on HALTED event
+  - [x] 9.10 Test onError callback fires on ERROR event
+  - [x] 9.11 Test terminate() cleans up resources
 
-- [ ] Task 10: Verify Integration (AC: all)
-  - [ ] 10.1 Run `npm test` - all tests pass
-  - [ ] 10.2 Run `npm run build` - Vite builds correctly
-  - [ ] 10.3 TypeScript compilation passes
-  - [ ] 10.4 Export EmulatorBridge from src/emulator/index.ts
+- [x] Task 10: Verify Integration (AC: all)
+  - [x] 10.1 Run `npm test` - all tests pass (893 tests)
+  - [x] 10.2 Run `npm run build` - Vite builds correctly
+  - [x] 10.3 TypeScript compilation passes
+  - [x] 10.4 Export EmulatorBridge from src/emulator/index.ts
 
 ---
 
@@ -656,10 +656,53 @@ dab83ca feat(web): validate syntax before execution (Story 3.7)
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+None - Implementation proceeded without errors.
+
 ### Completion Notes List
 
+1. Created `EmulatorBridge.ts` (336 lines) following AssemblerBridge pattern exactly
+2. Implemented all 8 public methods: init, loadProgram, step, run, stop, reset, getState, terminate
+3. Implemented event subscription system with unsubscribe functions: onStateUpdate, onHalted, onError
+4. Created comprehensive test suite with 49 tests covering all acceptance criteria
+5. Tests use mock Worker class pattern for isolated testing
+6. All 893 project tests pass (49 new tests added)
+7. Build successful - TypeScript compilation passes
+8. Exported EmulatorBridge and callback types from index.ts
+
+### Implementation Notes
+
+- Mirrored AssemblerBridge's init promise reuse pattern
+- Used `satisfies` operator for type-safe postMessage calls
+- Implemented bound handler pattern for event listener cleanup per project-context.md
+- Added getState() method for convenience (not in original AC but useful)
+- HALTED handling in sendCommandAndWaitForState calls getState() to get final state
+
 ### File List
+
+**New Files:**
+- `digital-archaeology-web/src/emulator/EmulatorBridge.ts` - Promise-based emulator API (336 lines)
+- `digital-archaeology-web/src/emulator/EmulatorBridge.test.ts` - Comprehensive tests (862 lines, 49 tests)
+
+**Modified Files:**
+- `digital-archaeology-web/src/emulator/index.ts` - Added EmulatorBridge export + callback types
+
+### Change Log
+
+| Date | Change | Details |
+|------|--------|---------|
+| 2026-01-22 | Story completed | Implemented EmulatorBridge class with full test coverage |
+| 2026-01-22 | Code review fixes | Fixed 6 issues: JSDoc for callback types, race condition in reset(), added worker error test, improved test robustness |
+
+### Code Review Fixes Applied
+
+1. **JSDoc for callback types** - Added comprehensive documentation to StateUpdateCallback, HaltedCallback, ErrorCallback
+2. **Race condition in reset()** - Now awaits STOP completion before sending RESET
+3. **Worker error test** - Added test for worker crash during step() operation
+4. **Test robustness** - Replaced setTimeout(0) with vi.waitFor() for HALTED test
+5. **Test update** - Updated reset() test to handle sequential STOP→RESET with responses
+
+894 tests passing after fixes.

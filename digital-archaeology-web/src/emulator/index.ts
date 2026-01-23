@@ -55,3 +55,9 @@ export {
 
 // Bridge exports
 export { AssemblerBridge } from './AssemblerBridge';
+export { EmulatorBridge } from './EmulatorBridge';
+export type {
+  StateUpdateCallback,
+  HaltedCallback,
+  ErrorCallback,
+} from './EmulatorBridge';

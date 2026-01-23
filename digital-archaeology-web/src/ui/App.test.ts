@@ -5156,6 +5156,260 @@ describe('App', () => {
           expect(mockEditorInstance.deltaDecorations).toHaveBeenCalled();
         });
       });
+
+      it('should use historical PC value in status bar, not emulator reset value (Issue #2 fix)', async () => {
+        // Set up - assemble and load
+        const binary = new Uint8Array([0x10, 0x42, 0x10, 0x43, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nLDI 0x43\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nLDI 0x43\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        // Initial load state at PC=0
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to PC=2 - this creates history entry with PC=0
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0x42,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const appAny = app as unknown as { stateHistory: Array<{ state: { pc: number } }> };
+          expect(appAny.stateHistory.length).toBe(1);
+          // History should contain the state BEFORE step (PC=0)
+          expect(appAny.stateHistory[0].state.pc).toBe(0);
+        });
+
+        // Step again to PC=4 - this creates history entry with PC=2
+        mockEmulatorBridge._setStepResult({
+          pc: 4,
+          accumulator: 0x43,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 2,
+          instructions: 2,
+        });
+
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const appAny = app as unknown as { stateHistory: Array<{ state: { pc: number } }> };
+          expect(appAny.stateHistory.length).toBe(2);
+          // History should contain the state BEFORE step (PC=2)
+          expect(appAny.stateHistory[1].state.pc).toBe(2);
+        });
+
+        // CRITICAL: Emulator returns PC=0 after restoreState (WASM limitation)
+        // But we should display the HISTORICAL PC=2 in the UI
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,  // Emulator resets PC to 0
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+        });
+
+        // Status bar should show the HISTORICAL PC value (0x02), not emulator's 0x00
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().assemblyMessage).toBe('Stepped back to 0x02');
+          expect(statusBar?.getState().pcValue).toBe(2);  // Historical PC, not 0
+        });
+      });
+
+      it('should truncate future history when stepping forward after stepping back', async () => {
+        // Set up - assemble and load
+        const binary = new Uint8Array([0x10, 0x42, 0x10, 0x43, 0x10, 0x44, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nLDI 0x43\nLDI 0x44\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nLDI 0x43\nLDI 0x44\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        // Initial load state at PC=0
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+
+        // Step 3 times to build history of 3 states
+        for (let i = 0; i < 3; i++) {
+          mockEmulatorBridge._setStepResult({
+            pc: (i + 1) * 2,
+            accumulator: 0x42 + i,
+            zeroFlag: false,
+            halted: false,
+            error: false,
+            errorMessage: null,
+            memory: new Uint8Array(256),
+            ir: 0x10,
+            mar: 0,
+            mdr: 0,
+            cycles: i + 1,
+            instructions: i + 1,
+          });
+
+          stepBtn.click();
+
+          await vi.waitFor(() => {
+            const appAny = app as unknown as { stateHistory: Array<{ state: { pc: number } }> };
+            expect(appAny.stateHistory.length).toBe(i + 1);
+          });
+        }
+
+        // Verify we have 3 history entries (PC=0, PC=2, PC=4)
+        const appAny = app as unknown as {
+          stateHistory: Array<{ state: { pc: number } }>;
+          historyPointer: number;
+        };
+        expect(appAny.stateHistory.length).toBe(3);
+        expect(appAny.stateHistory[0].state.pc).toBe(0);
+        expect(appAny.stateHistory[1].state.pc).toBe(2);
+        expect(appAny.stateHistory[2].state.pc).toBe(4);
+
+        // Step back once (to history entry at index 2, which has PC=4)
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,  // Emulator returns 0 but we use historical value
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+          expect(appAny.historyPointer).toBe(2);
+        });
+
+        // Step back again (to history entry at index 1, which has PC=2)
+        mockEmulatorBridge.restoreState.mockClear();
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+          expect(appAny.historyPointer).toBe(1);
+        });
+
+        // Now we're at history position 1 (PC=2), with future states at 2 and 3
+        // Step FORWARD - this should truncate future history
+        mockEmulatorBridge._setStepResult({
+          pc: 10,  // New PC after stepping from position 1
+          accumulator: 0x99,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 5,
+          instructions: 5,
+        });
+
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          // History should be truncated: only entries 0, 1, and new entry (total 3)
+          // The old entries at index 2 (PC=4) should be discarded
+          expect(appAny.stateHistory.length).toBe(3);
+          // The last entry should now be the state at PC=2 (before the new step)
+          // Note: The pushStateToHistory truncates first, then adds new state
+          expect(appAny.stateHistory[2].state.pc).toBe(2);
+          // historyPointer should reset to -1 (latest tracking mode)
+          expect(appAny.historyPointer).toBe(-1);
+        });
+      });
     });
 
     describe('F9 keyboard shortcut', () => {

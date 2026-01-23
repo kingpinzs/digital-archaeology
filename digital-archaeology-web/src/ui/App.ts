@@ -1127,24 +1127,30 @@ export class App {
     try {
       // Get the state from history
       const historyEntry = this.stateHistory[targetIndex];
-      const restoredState = historyEntry.state;
+      const historicalState = historyEntry.state;
 
-      // Restore state to emulator
-      this.cpuState = await this.emulatorBridge.restoreState(restoredState);
+      // Restore state to emulator (memory only - WASM doesn't support register setters)
+      // The emulator will reset PC to 0, but we use the historical values for UI
+      await this.emulatorBridge.restoreState(historicalState);
+
+      // Update cpuState with historical values for correct UI display
+      // Note: Memory is correctly restored in emulator, but registers reset to 0
+      // We track the historical state for UI purposes
+      this.cpuState = historicalState;
 
       // Update history pointer
       this.historyPointer = targetIndex;
 
-      // Update status bar
-      const pcHex = this.cpuState.pc.toString(16).toUpperCase().padStart(2, '0');
+      // Update status bar using historical PC (not emulator's reset PC)
+      const pcHex = historicalState.pc.toString(16).toUpperCase().padStart(2, '0');
       this.statusBar?.updateState({
         assemblyMessage: `Stepped back to 0x${pcHex}`,
-        pcValue: this.cpuState.pc,
-        cycleCount: this.cpuState.cycles,
+        pcValue: historicalState.pc,
+        cycleCount: historicalState.cycles,
       });
 
-      // Highlight the instruction at restored PC
-      this.highlightCurrentInstruction(this.cpuState.pc);
+      // Highlight the instruction at historical PC (not emulator's reset PC)
+      this.highlightCurrentInstruction(historicalState.pc);
 
       // Update Step Back button state
       this.toolbar?.updateState({ canStepBack: targetIndex > 0 });

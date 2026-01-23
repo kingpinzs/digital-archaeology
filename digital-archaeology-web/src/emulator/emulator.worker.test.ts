@@ -774,6 +774,19 @@ describe('Emulator Worker', () => {
         })
       );
     });
+
+    it('should send BREAKPOINTS_LIST with empty addresses after reset (Story 5.8)', () => {
+      const module = createMockModule();
+
+      handleReset(module);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [] },
+        })
+      );
+    });
   });
 
   describe('handleGetState', () => {

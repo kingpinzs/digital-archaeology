@@ -96,7 +96,7 @@ development_status:
   5-5-create-memory-view-panel: done
   5-6-implement-jump-to-address: done
   5-7-highlight-current-instruction-in-editor: done
-  5-8-implement-breakpoint-toggle: backlog
+  5-8-implement-breakpoint-toggle: done
   5-9-implement-run-to-breakpoint: backlog
   5-10-display-rich-runtime-errors: backlog
   epic-5-retrospective: optional

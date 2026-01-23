@@ -68,6 +68,8 @@ const {
     deltaDecorations: vi.fn(() => ['decoration-id']),
     setPosition: vi.fn(),
     revealLineInCenter: vi.fn(),
+    // Mouse event methods (Story 5.8)
+    onMouseDown: vi.fn(() => ({ dispose: vi.fn() })),
     // Helper to reset content for tests
     _setContent: (content: string) => {
       editorContent = content;
@@ -6438,6 +6440,132 @@ describe('App', () => {
         expect(app.getMemoryView()).not.toBeNull();
         app.destroy();
         expect(app.getMemoryView()).toBeNull();
+      });
+    });
+  });
+
+  describe('BreakpointsView Integration (Story 5.8)', () => {
+    let app: App;
+    let container: HTMLDivElement;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+      app = new App();
+      mockEditorInstance._resetContent();
+    });
+
+    afterEach(() => {
+      app.destroy();
+      document.body.removeChild(container);
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount BreakpointsView in state panel content area', () => {
+        app.mount(container);
+
+        const breakpointsView = container.querySelector('.da-breakpoints-view');
+        expect(breakpointsView).not.toBeNull();
+      });
+
+      it('should render BreakpointsView inside .da-state-panel .da-panel-content', () => {
+        app.mount(container);
+
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const breakpointsView = stateContent?.querySelector('.da-breakpoints-view');
+        expect(breakpointsView).not.toBeNull();
+      });
+
+      it('should render BreakpointsView after MemoryView in DOM order', () => {
+        app.mount(container);
+
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const children = Array.from(stateContent?.children ?? []);
+        const memoryViewIdx = children.findIndex(el => el.classList.contains('da-memory-view'));
+        const breakpointsViewIdx = children.findIndex(el => el.classList.contains('da-breakpoints-view'));
+
+        expect(memoryViewIdx).toBeLessThan(breakpointsViewIdx);
+      });
+
+      it('should display Breakpoints title', () => {
+        app.mount(container);
+
+        const title = container.querySelector('.da-breakpoints-view__title');
+        expect(title?.textContent).toBe('Breakpoints');
+      });
+
+      it('should show empty message initially', () => {
+        app.mount(container);
+
+        const emptyMsg = container.querySelector('.da-breakpoints-view__empty');
+        expect(emptyMsg?.textContent).toBe('No breakpoints set');
+      });
+    });
+
+    describe('getBreakpointsView accessor', () => {
+      it('should return BreakpointsView instance after mount', () => {
+        app.mount(container);
+        expect(app.getBreakpointsView()).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        expect(app.getBreakpointsView()).toBeNull();
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove BreakpointsView from DOM on destroy', () => {
+        app.mount(container);
+        expect(container.querySelector('.da-breakpoints-view')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-breakpoints-view')).toBeNull();
+      });
+
+      it('should set breakpointsView to null on destroy', () => {
+        app.mount(container);
+        expect(app.getBreakpointsView()).not.toBeNull();
+        app.destroy();
+        expect(app.getBreakpointsView()).toBeNull();
+      });
+    });
+
+    describe('breakpoints cleared on code change', () => {
+      it('should clear breakpoints when code content changes', async () => {
+        app.mount(container);
+
+        // Set up: assemble to get a source map
+        const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x05\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Verify we have assembled (execution buttons enabled)
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        expect(stepBtn.disabled).toBe(false);
+
+        // Simulate code change
+        mockEditorInstance._setContent('LDI 0x10\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x10\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+
+        // Verify toolbar buttons disabled (code changed, assembly invalid)
+        expect(stepBtn.disabled).toBe(true);
+
+        // Verify empty message is shown (breakpoints cleared)
+        const emptyMsg = container.querySelector('.da-breakpoints-view__empty');
+        expect(emptyMsg?.textContent).toBe('No breakpoints set');
       });
     });
   });

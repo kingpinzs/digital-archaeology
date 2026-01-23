@@ -18,7 +18,8 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
-import { RegisterView, FlagsView, MemoryView } from '@debugger/index';
+import { RegisterView, FlagsView, MemoryView, BreakpointsView } from '@debugger/index';
+import type { BreakpointEntry } from '@debugger/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -160,6 +161,12 @@ export class App {
   // MemoryView for displaying CPU memory (Story 5.5)
   private memoryView: MemoryView | null = null;
 
+  // BreakpointsView for displaying active breakpoints (Story 5.8)
+  private breakpointsView: BreakpointsView | null = null;
+
+  // Breakpoints map: address → line number (Story 5.8)
+  private breakpoints: Map<number, number> = new Map();
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -190,6 +197,7 @@ export class App {
     this.destroyRegisterView();
     this.destroyFlagsView();
     this.destroyMemoryView();
+    this.destroyBreakpointsView();
 
     this.container = container;
     this.isMounted = true;
@@ -214,6 +222,7 @@ export class App {
     this.initializeRegisterView();
     this.initializeFlagsView();
     this.initializeMemoryView();
+    this.initializeBreakpointsView();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -590,6 +599,8 @@ export class App {
           this.hasValidAssembly = false;
           // Story 5.2: Clear state history when code changes
           this.clearStateHistory();
+          // Story 5.8: Clear breakpoints when code changes (source map invalidated)
+          this.clearAllBreakpoints();
           this.toolbar?.updateState({
             canRun: false,
             canStep: false,
@@ -607,6 +618,7 @@ export class App {
         }
       },
       onAssemble: () => this.handleAssemble(),
+      onBreakpointToggle: (lineNumber) => this.handleBreakpointToggle(lineNumber),
     });
     this.editor.mount(codePanelContent as HTMLElement);
 
@@ -874,6 +886,138 @@ export class App {
    */
   getMemoryView(): MemoryView | null {
     return this.memoryView;
+  }
+
+  /**
+   * Initialize the BreakpointsView in the State panel (Story 5.8).
+   * Mounts after MemoryView in the panel content.
+   * @returns void
+   */
+  private initializeBreakpointsView(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.breakpointsView = new BreakpointsView({
+      onRemoveBreakpoint: (address) => this.handleRemoveBreakpoint(address),
+    });
+    this.breakpointsView.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the BreakpointsView component (Story 5.8).
+   * @returns void
+   */
+  private destroyBreakpointsView(): void {
+    if (this.breakpointsView) {
+      this.breakpointsView.destroy();
+      this.breakpointsView = null;
+    }
+    // Clear breakpoints map
+    this.breakpoints.clear();
+  }
+
+  /**
+   * Get the BreakpointsView instance (Story 5.8).
+   * Primarily used for testing and external state inspection.
+   * @returns The BreakpointsView instance or null if not mounted
+   */
+  getBreakpointsView(): BreakpointsView | null {
+    return this.breakpointsView;
+  }
+
+  /**
+   * Handle breakpoint toggle from editor gutter click (Story 5.8).
+   * Toggles breakpoint at the given line number.
+   * @param lineNumber - The 1-based line number clicked
+   */
+  private handleBreakpointToggle(lineNumber: number): void {
+    // Need source map to convert line to address
+    if (!this.sourceMap) {
+      // No valid assembly - can't set breakpoints
+      return;
+    }
+
+    // Convert line number to address
+    const address = this.sourceMap.lineToAddress.get(lineNumber);
+    if (address === undefined) {
+      // Line doesn't map to an instruction address - ignore
+      return;
+    }
+
+    // Check if breakpoint already exists at this address
+    if (this.breakpoints.has(address)) {
+      // Remove breakpoint
+      this.breakpoints.delete(address);
+      this.emulatorBridge?.clearBreakpoint(address);
+    } else {
+      // Add breakpoint
+      this.breakpoints.set(address, lineNumber);
+      this.emulatorBridge?.setBreakpoint(address);
+    }
+
+    // Update UI
+    this.updateBreakpointDecorations();
+    this.updateBreakpointsView();
+  }
+
+  /**
+   * Handle remove breakpoint from BreakpointsView (Story 5.8).
+   * Removes breakpoint at the given address.
+   * @param address - The memory address of the breakpoint to remove
+   */
+  private handleRemoveBreakpoint(address: number): void {
+    if (!this.breakpoints.has(address)) return;
+
+    // Remove from map
+    this.breakpoints.delete(address);
+
+    // Notify emulator
+    this.emulatorBridge?.clearBreakpoint(address);
+
+    // Update UI
+    this.updateBreakpointDecorations();
+    this.updateBreakpointsView();
+  }
+
+  /**
+   * Clear all breakpoints (Story 5.8).
+   * Called when code changes (source map invalidated).
+   */
+  private clearAllBreakpoints(): void {
+    // Clear from emulator
+    for (const address of this.breakpoints.keys()) {
+      this.emulatorBridge?.clearBreakpoint(address);
+    }
+
+    // Clear local map
+    this.breakpoints.clear();
+
+    // Update UI
+    this.editor?.clearBreakpointDecorations();
+    this.breakpointsView?.updateState({ breakpoints: [] });
+  }
+
+  /**
+   * Update editor breakpoint decorations based on current breakpoints (Story 5.8).
+   */
+  private updateBreakpointDecorations(): void {
+    const lines = Array.from(this.breakpoints.values());
+    this.editor?.setBreakpointDecorations(lines);
+  }
+
+  /**
+   * Update BreakpointsView with current breakpoints (Story 5.8).
+   */
+  private updateBreakpointsView(): void {
+    const entries: BreakpointEntry[] = [];
+    for (const [address, line] of this.breakpoints.entries()) {
+      entries.push({ address, line });
+    }
+    // Sort by address for consistent display
+    entries.sort((a, b) => a.address - b.address);
+    this.breakpointsView?.updateState({ breakpoints: entries });
   }
 
   /**
@@ -2221,6 +2365,9 @@ export class App {
 
     // Destroy MemoryView (Story 5.5)
     this.destroyMemoryView();
+
+    // Destroy BreakpointsView (Story 5.8)
+    this.destroyBreakpointsView();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

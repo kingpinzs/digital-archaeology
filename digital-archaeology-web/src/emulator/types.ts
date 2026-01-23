@@ -664,6 +664,35 @@ export interface SetSpeedCommand {
 }
 
 /**
+ * Command to set a breakpoint at a specific address (Story 5.8).
+ */
+export interface SetBreakpointCommand {
+  type: 'SET_BREAKPOINT';
+  payload: {
+    /** Memory address to set breakpoint at (0-255 for Micro4) */
+    address: number;
+  };
+}
+
+/**
+ * Command to clear a breakpoint at a specific address (Story 5.8).
+ */
+export interface ClearBreakpointCommand {
+  type: 'CLEAR_BREAKPOINT';
+  payload: {
+    /** Memory address to clear breakpoint from (0-255 for Micro4) */
+    address: number;
+  };
+}
+
+/**
+ * Command to get all current breakpoints (Story 5.8).
+ */
+export interface GetBreakpointsCommand {
+  type: 'GET_BREAKPOINTS';
+}
+
+/**
  * Union of all emulator commands (main → worker).
  */
 export type EmulatorCommand =
@@ -674,7 +703,10 @@ export type EmulatorCommand =
   | ResetCommand
   | GetStateCommand
   | RestoreStateCommand
-  | SetSpeedCommand;
+  | SetSpeedCommand
+  | SetBreakpointCommand
+  | ClearBreakpointCommand
+  | GetBreakpointsCommand;
 
 /**
  * Event with updated CPU state.
@@ -723,6 +755,18 @@ export interface EmulatorReadyEvent {
 }
 
 /**
+ * Event containing the current list of breakpoints (Story 5.8).
+ * Sent in response to GET_BREAKPOINTS or after SET/CLEAR_BREAKPOINT.
+ */
+export interface BreakpointsListEvent {
+  type: 'BREAKPOINTS_LIST';
+  payload: {
+    /** Array of breakpoint addresses */
+    addresses: number[];
+  };
+}
+
+/**
  * Union of all emulator events (worker → main).
  */
 export type EmulatorEvent =
@@ -730,7 +774,8 @@ export type EmulatorEvent =
   | HaltedEvent
   | EmulatorErrorEvent
   | BreakpointHitEvent
-  | EmulatorReadyEvent;
+  | EmulatorReadyEvent
+  | BreakpointsListEvent;
 
 /* ============================================================================
  * Emulator Module Validation

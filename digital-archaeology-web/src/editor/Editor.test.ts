@@ -46,6 +46,10 @@ const {
     dispose: vi.fn(),
   };
 
+  const mockMouseDownDisposable = {
+    dispose: vi.fn(),
+  };
+
   const mockModel = {
     uri: 'test-uri',
     undo: vi.fn(() => {
@@ -93,6 +97,10 @@ const {
     deltaDecorations: vi.fn(() => ['decoration-id']),
     setPosition: vi.fn(),
     revealLineInCenter: vi.fn(),
+    // Mouse event methods (Story 5.8)
+    onMouseDown: vi.fn(() => mockMouseDownDisposable),
+    // Cursor position method (Story 5.8)
+    getPosition: vi.fn(() => ({ lineNumber: 1, column: 1 })),
   };
 
   // Mock Range class for decorations
@@ -113,6 +121,23 @@ const {
     editor: {
       create: vi.fn(() => mockEditorInstance),
       defineTheme: vi.fn(),
+      // MouseTargetType enum (Story 5.8)
+      MouseTargetType: {
+        UNKNOWN: 0,
+        TEXTAREA: 1,
+        GUTTER_GLYPH_MARGIN: 2,
+        GUTTER_LINE_NUMBERS: 3,
+        GUTTER_LINE_DECORATIONS: 4,
+        GUTTER_VIEW_ZONE: 5,
+        CONTENT_TEXT: 6,
+        CONTENT_EMPTY: 7,
+        CONTENT_VIEW_ZONE: 8,
+        CONTENT_WIDGET: 9,
+        OVERVIEW_RULER: 10,
+        SCROLLBAR: 11,
+        OVERLAY_WIDGET: 12,
+        OUTSIDE_EDITOR: 13,
+      },
     },
     languages: {
       register: vi.fn(),
@@ -124,6 +149,7 @@ const {
     },
     KeyCode: {
       Enter: 3,
+      F9: 98,
     },
     Range: MockRange,
   };
@@ -1560,6 +1586,261 @@ describe('Editor', () => {
       editor.mount(container);
       expect(() => editor.clearHighlight()).not.toThrow();
       editor.destroy();
+    });
+  });
+
+  describe('breakpoint gutter click (Story 5.8)', () => {
+    it('should call onBreakpointToggle when glyph margin clicked', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Simulate mouse down event on glyph margin
+      const mockEvent = {
+        target: {
+          type: 2, // MouseTargetType.GUTTER_GLYPH_MARGIN
+          position: { lineNumber: 5 },
+        },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const mouseDownCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      mouseDownCallback?.(mockEvent);
+
+      expect(onBreakpointToggle).toHaveBeenCalledWith(5);
+
+      editor.destroy();
+    });
+
+    it('should not call onBreakpointToggle when other area clicked', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Simulate mouse down event on content area (not glyph margin)
+      const mockEvent = {
+        target: {
+          type: 6, // MouseTargetType.CONTENT_TEXT
+          position: { lineNumber: 5 },
+        },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const mouseDownCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      mouseDownCallback?.(mockEvent);
+
+      expect(onBreakpointToggle).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should not register mouseDown handler when no onBreakpointToggle callback', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      // onMouseDown should not be called when no callback is provided
+      expect(mockEditorInstance.onMouseDown).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should dispose mouseDown handler on destroy', () => {
+      const onBreakpointToggle = vi.fn();
+      const mockDispose = vi.fn();
+      mockEditorInstance.onMouseDown.mockReturnValue({ dispose: mockDispose });
+
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+      editor.destroy();
+
+      expect(mockDispose).toHaveBeenCalled();
+    });
+
+    it('should handle click with undefined lineNumber gracefully', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Simulate mouse down event with undefined position
+      const mockEvent = {
+        target: {
+          type: 2, // MouseTargetType.GUTTER_GLYPH_MARGIN
+          position: undefined,
+        },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const mouseDownCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      mouseDownCallback?.(mockEvent);
+
+      expect(onBreakpointToggle).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+  });
+
+  describe('setBreakpointDecorations (Story 5.8)', () => {
+    it('should call deltaDecorations with breakpoint decorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.setBreakpointDecorations([3, 7, 12]);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledWith(
+        [],
+        expect.arrayContaining([
+          expect.objectContaining({
+            range: expect.any(Object),
+            options: expect.objectContaining({
+              isWholeLine: true,
+              glyphMarginClassName: 'da-breakpoint-glyph',
+              className: 'da-breakpoint-line',
+            }),
+          }),
+        ])
+      );
+
+      editor.destroy();
+    });
+
+    it('should create decorations for each line number', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.setBreakpointDecorations([5, 10]);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.deltaDecorations.mock.calls as any[];
+      const decorations = (calls[0]?.[1] ?? []) as unknown[];
+      expect(decorations.length).toBe(2);
+
+      editor.destroy();
+    });
+
+    it('should replace previous breakpoint decorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // First call returns IDs
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['bp-id-1', 'bp-id-2']);
+      editor.setBreakpointDecorations([3, 7]);
+
+      // Second call should pass previous IDs
+      editor.setBreakpointDecorations([5]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const secondCall = calls[1] as unknown as [string[], unknown[]];
+      expect(secondCall[0]).toEqual(['bp-id-1', 'bp-id-2']);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.setBreakpointDecorations([1, 2, 3])).not.toThrow();
+    });
+  });
+
+  describe('breakpoint keyboard shortcut F9 (Story 5.8)', () => {
+    it('should register F9 keyboard shortcut when onBreakpointToggle is provided', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Find the breakpoint action in addedActions
+      const breakpointAction = addedActions.find(action => action.id === 'da.toggleBreakpoint');
+      expect(breakpointAction).toBeDefined();
+      expect(breakpointAction?.label).toBe('Toggle Breakpoint');
+      expect(breakpointAction?.keybindings).toContain(mockMonaco.KeyCode.F9);
+
+      editor.destroy();
+    });
+
+    it('should call onBreakpointToggle with current line when F9 action triggered', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Mock getPosition to return a specific position
+      mockEditorInstance.getPosition = vi.fn().mockReturnValue({ lineNumber: 7, column: 1 });
+
+      // Find and run the breakpoint action
+      const breakpointAction = addedActions.find(action => action.id === 'da.toggleBreakpoint');
+      breakpointAction?.run();
+
+      expect(onBreakpointToggle).toHaveBeenCalledWith(7);
+
+      editor.destroy();
+    });
+
+    it('should not call onBreakpointToggle when position is null', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      // Mock getPosition to return null
+      mockEditorInstance.getPosition = vi.fn().mockReturnValue(null);
+
+      // Find and run the breakpoint action
+      const breakpointAction = addedActions.find(action => action.id === 'da.toggleBreakpoint');
+      breakpointAction?.run();
+
+      expect(onBreakpointToggle).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should dispose F9 action on destroy', () => {
+      const onBreakpointToggle = vi.fn();
+      const editor = new Editor({ onBreakpointToggle });
+      editor.mount(container);
+
+      editor.destroy();
+
+      // mockActionDisposable.dispose should be called for both assemble and breakpoint actions
+      // Since onAssemble is not provided, only breakpoint action is registered
+      expect(mockActionDisposable.dispose).toHaveBeenCalled();
+    });
+  });
+
+  describe('clearBreakpointDecorations (Story 5.8)', () => {
+    it('should call deltaDecorations with empty array', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.clearBreakpointDecorations();
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledWith([], []);
+
+      editor.destroy();
+    });
+
+    it('should pass previous decoration IDs when clearing', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // Set decorations first
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['bp-id-1']);
+      editor.setBreakpointDecorations([5]);
+
+      // Clear decorations
+      editor.clearBreakpointDecorations();
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const lastCall = calls[calls.length - 1] as unknown as [string[], unknown[]];
+      expect(lastCall[0]).toEqual(['bp-id-1']);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.clearBreakpointDecorations()).not.toThrow();
     });
   });
 });

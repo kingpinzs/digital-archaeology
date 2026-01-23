@@ -48,6 +48,23 @@ export type HaltedCallback = () => void;
 export type ErrorCallback = (error: { message: string; address?: number }) => void;
 
 /**
+ * Callback type for BREAKPOINT_HIT events (Story 5.8).
+ * Called when execution hits a breakpoint during RUN.
+ * The isRunning flag is automatically cleared when this fires.
+ *
+ * @param address - Memory address where breakpoint was hit
+ */
+export type BreakpointHitCallback = (address: number) => void;
+
+/**
+ * Callback type for BREAKPOINTS_LIST events (Story 5.8).
+ * Called when the list of breakpoints changes (after set/clear/get operations).
+ *
+ * @param addresses - Array of breakpoint addresses, sorted ascending
+ */
+export type BreakpointsChangeCallback = (addresses: number[]) => void;
+
+/**
  * Bridge between main thread and Emulator Web Worker.
  *
  * Provides a Promise-based API for:
@@ -90,6 +107,8 @@ export class EmulatorBridge {
   private stateUpdateSubscribers = new Set<StateUpdateCallback>();
   private haltedSubscribers = new Set<HaltedCallback>();
   private errorSubscribers = new Set<ErrorCallback>();
+  private breakpointHitSubscribers = new Set<BreakpointHitCallback>();
+  private breakpointsChangeSubscribers = new Set<BreakpointsChangeCallback>();
 
   // Bound handler for cleanup
   private boundMessageHandler: ((e: MessageEvent) => void) | null = null;
@@ -196,7 +215,16 @@ export class EmulatorBridge {
         this.isRunning = false;
         this.errorSubscribers.forEach((cb) => cb(event.payload));
         break;
-      // EMULATOR_READY handled in init, BREAKPOINT_HIT for future use
+      case 'BREAKPOINT_HIT':
+        // Breakpoint hit during RUN - stop execution (Story 5.8)
+        this.isRunning = false;
+        this.breakpointHitSubscribers.forEach((cb) => cb(event.payload.address));
+        break;
+      case 'BREAKPOINTS_LIST':
+        // Breakpoint list updated (Story 5.8)
+        this.breakpointsChangeSubscribers.forEach((cb) => cb(event.payload.addresses));
+        break;
+      // EMULATOR_READY handled in init
     }
   }
 
@@ -332,6 +360,85 @@ export class EmulatorBridge {
   }
 
   /**
+   * Set a breakpoint at a specific address (Story 5.8).
+   *
+   * @param address - Memory address to set breakpoint at (0-255 for Micro4)
+   * @returns Promise resolving when breakpoint is set
+   * @throws Error if bridge is not initialized or operation times out
+   */
+  async setBreakpoint(address: number): Promise<void> {
+    this.ensureInitialized();
+    const worker = this.worker!;
+
+    return this.sendCommandAndWaitForBreakpointsList(worker, {
+      type: 'SET_BREAKPOINT',
+      payload: { address },
+    });
+  }
+
+  /**
+   * Clear a breakpoint at a specific address (Story 5.8).
+   *
+   * @param address - Memory address to clear breakpoint from (0-255 for Micro4)
+   * @returns Promise resolving when breakpoint is cleared
+   * @throws Error if bridge is not initialized or operation times out
+   */
+  async clearBreakpoint(address: number): Promise<void> {
+    this.ensureInitialized();
+    const worker = this.worker!;
+
+    return this.sendCommandAndWaitForBreakpointsList(worker, {
+      type: 'CLEAR_BREAKPOINT',
+      payload: { address },
+    });
+  }
+
+  /**
+   * Get all current breakpoints (Story 5.8).
+   *
+   * @returns Promise resolving to array of breakpoint addresses, sorted ascending
+   * @throws Error if bridge is not initialized or operation times out
+   */
+  async getBreakpoints(): Promise<number[]> {
+    this.ensureInitialized();
+    const worker = this.worker!;
+
+    return new Promise<number[]>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('GET_BREAKPOINTS operation timed out'));
+      }, DEFAULT_TIMEOUT_MS);
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        worker.removeEventListener('message', handleMessage);
+        worker.removeEventListener('error', handleError);
+      };
+
+      const handleMessage = (event: MessageEvent<EmulatorEvent>) => {
+        const data = event.data;
+
+        if (data.type === 'BREAKPOINTS_LIST') {
+          cleanup();
+          resolve(data.payload.addresses);
+        } else if (data.type === 'ERROR') {
+          cleanup();
+          reject(new Error(data.payload.message));
+        }
+      };
+
+      const handleError = (event: ErrorEvent) => {
+        cleanup();
+        reject(new Error(`Worker error: ${event.message}`));
+      };
+
+      worker.addEventListener('message', handleMessage);
+      worker.addEventListener('error', handleError);
+      worker.postMessage({ type: 'GET_BREAKPOINTS' } satisfies EmulatorCommand);
+    });
+  }
+
+  /**
    * Subscribe to CPU state updates during RUN.
    *
    * @param callback - Function called with new state on each update
@@ -367,6 +474,30 @@ export class EmulatorBridge {
   }
 
   /**
+   * Subscribe to BREAKPOINT_HIT events (Story 5.8).
+   * Called when execution hits a breakpoint during RUN.
+   *
+   * @param callback - Function called with the address where breakpoint was hit
+   * @returns Unsubscribe function
+   */
+  onBreakpointHit(callback: BreakpointHitCallback): () => void {
+    this.breakpointHitSubscribers.add(callback);
+    return () => this.breakpointHitSubscribers.delete(callback);
+  }
+
+  /**
+   * Subscribe to breakpoint list changes (Story 5.8).
+   * Called when breakpoints are added, removed, or retrieved.
+   *
+   * @param callback - Function called with updated breakpoint addresses array
+   * @returns Unsubscribe function
+   */
+  onBreakpointsChange(callback: BreakpointsChangeCallback): () => void {
+    this.breakpointsChangeSubscribers.add(callback);
+    return () => this.breakpointsChangeSubscribers.delete(callback);
+  }
+
+  /**
    * Terminate the worker and clean up all resources.
    * After calling this, the bridge cannot be reused.
    */
@@ -385,6 +516,8 @@ export class EmulatorBridge {
     this.stateUpdateSubscribers.clear();
     this.haltedSubscribers.clear();
     this.errorSubscribers.clear();
+    this.breakpointHitSubscribers.clear();
+    this.breakpointsChangeSubscribers.clear();
   }
 
   /**
@@ -428,6 +561,49 @@ export class EmulatorBridge {
           cleanup();
           // Request final state
           this.getState().then(resolve).catch(reject);
+        } else if (data.type === 'ERROR') {
+          cleanup();
+          reject(new Error(data.payload.message));
+        }
+      };
+
+      const handleError = (event: ErrorEvent) => {
+        cleanup();
+        reject(new Error(`Worker error: ${event.message}`));
+      };
+
+      worker.addEventListener('message', handleMessage);
+      worker.addEventListener('error', handleError);
+      worker.postMessage(command);
+    });
+  }
+
+  /**
+   * Send a breakpoint command and wait for BREAKPOINTS_LIST response (Story 5.8).
+   * Used by setBreakpoint and clearBreakpoint.
+   */
+  private sendCommandAndWaitForBreakpointsList(
+    worker: Worker,
+    command: EmulatorCommand
+  ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error(`${command.type} operation timed out`));
+      }, DEFAULT_TIMEOUT_MS);
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        worker.removeEventListener('message', handleMessage);
+        worker.removeEventListener('error', handleError);
+      };
+
+      const handleMessage = (event: MessageEvent<EmulatorEvent>) => {
+        const data = event.data;
+
+        if (data.type === 'BREAKPOINTS_LIST') {
+          cleanup();
+          resolve();
         } else if (data.type === 'ERROR') {
           cleanup();
           reject(new Error(data.payload.message));

@@ -966,4 +966,251 @@ describe('EmulatorBridge', () => {
       vi.useRealTimers();
     });
   });
+
+  describe('breakpoint methods (Story 5.8)', () => {
+    beforeEach(async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+    });
+
+    describe('setBreakpoint()', () => {
+      it('should send SET_BREAKPOINT command with address', async () => {
+        const setPromise = bridge.setBreakpoint(0x10);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x10] },
+        });
+
+        await setPromise;
+
+        expect(mockWorker.postMessage).toHaveBeenCalledWith({
+          type: 'SET_BREAKPOINT',
+          payload: { address: 0x10 },
+        });
+      });
+
+      it('should resolve when BREAKPOINTS_LIST received', async () => {
+        const setPromise = bridge.setBreakpoint(0x20);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x20] },
+        });
+
+        await expect(setPromise).resolves.toBeUndefined();
+      });
+
+      it('should throw if not initialized', async () => {
+        const uninitializedBridge = new EmulatorBridge();
+
+        await expect(uninitializedBridge.setBreakpoint(0x10)).rejects.toThrow(
+          'EmulatorBridge not initialized. Call init() first.'
+        );
+
+        uninitializedBridge.terminate();
+      });
+
+      it('should reject on timeout', async () => {
+        vi.useFakeTimers();
+
+        const setPromise = bridge.setBreakpoint(0x10);
+
+        vi.advanceTimersByTime(11000);
+
+        await expect(setPromise).rejects.toThrow('SET_BREAKPOINT operation timed out');
+
+        vi.useRealTimers();
+      });
+    });
+
+    describe('clearBreakpoint()', () => {
+      it('should send CLEAR_BREAKPOINT command with address', async () => {
+        const clearPromise = bridge.clearBreakpoint(0x10);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [] },
+        });
+
+        await clearPromise;
+
+        expect(mockWorker.postMessage).toHaveBeenCalledWith({
+          type: 'CLEAR_BREAKPOINT',
+          payload: { address: 0x10 },
+        });
+      });
+
+      it('should resolve when BREAKPOINTS_LIST received', async () => {
+        const clearPromise = bridge.clearBreakpoint(0x20);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [] },
+        });
+
+        await expect(clearPromise).resolves.toBeUndefined();
+      });
+
+      it('should throw if not initialized', async () => {
+        const uninitializedBridge = new EmulatorBridge();
+
+        await expect(uninitializedBridge.clearBreakpoint(0x10)).rejects.toThrow(
+          'EmulatorBridge not initialized. Call init() first.'
+        );
+
+        uninitializedBridge.terminate();
+      });
+    });
+
+    describe('getBreakpoints()', () => {
+      it('should send GET_BREAKPOINTS command', async () => {
+        const getPromise = bridge.getBreakpoints();
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x10, 0x20] },
+        });
+
+        await getPromise;
+
+        expect(mockWorker.postMessage).toHaveBeenCalledWith({ type: 'GET_BREAKPOINTS' });
+      });
+
+      it('should return breakpoint addresses array', async () => {
+        const getPromise = bridge.getBreakpoints();
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x05, 0x10, 0xff] },
+        });
+
+        const result = await getPromise;
+
+        expect(result).toEqual([0x05, 0x10, 0xff]);
+      });
+
+      it('should return empty array when no breakpoints', async () => {
+        const getPromise = bridge.getBreakpoints();
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [] },
+        });
+
+        const result = await getPromise;
+
+        expect(result).toEqual([]);
+      });
+
+      it('should throw if not initialized', async () => {
+        const uninitializedBridge = new EmulatorBridge();
+
+        await expect(uninitializedBridge.getBreakpoints()).rejects.toThrow(
+          'EmulatorBridge not initialized. Call init() first.'
+        );
+
+        uninitializedBridge.terminate();
+      });
+    });
+
+    describe('onBreakpointHit()', () => {
+      it('should fire callback on BREAKPOINT_HIT events', () => {
+        const callback = vi.fn();
+        bridge.onBreakpointHit(callback);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINT_HIT',
+          payload: { address: 0x42 },
+        });
+
+        expect(callback).toHaveBeenCalledWith(0x42);
+      });
+
+      it('should return unsubscribe function', () => {
+        const callback = vi.fn();
+        const unsubscribe = bridge.onBreakpointHit(callback);
+
+        unsubscribe();
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINT_HIT',
+          payload: { address: 0x10 },
+        });
+
+        expect(callback).not.toHaveBeenCalled();
+      });
+
+      it('should clear isRunning flag on BREAKPOINT_HIT', () => {
+        bridge.run(60);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINT_HIT',
+          payload: { address: 0x10 },
+        });
+
+        // Should be able to run again
+        bridge.run(100);
+
+        const runCalls = mockWorker.postMessage.mock.calls.filter(
+          (call) => call[0]?.type === 'RUN'
+        );
+        expect(runCalls.length).toBe(2);
+      });
+    });
+
+    describe('onBreakpointsChange()', () => {
+      it('should fire callback on BREAKPOINTS_LIST events', () => {
+        const callback = vi.fn();
+        bridge.onBreakpointsChange(callback);
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x10, 0x20] },
+        });
+
+        expect(callback).toHaveBeenCalledWith([0x10, 0x20]);
+      });
+
+      it('should return unsubscribe function', () => {
+        const callback = vi.fn();
+        const unsubscribe = bridge.onBreakpointsChange(callback);
+
+        unsubscribe();
+
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x10] },
+        });
+
+        expect(callback).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('terminate() cleans up breakpoint subscriptions', () => {
+      it('should clear breakpoint subscriptions on terminate', () => {
+        const breakpointHitCallback = vi.fn();
+        const breakpointsChangeCallback = vi.fn();
+
+        bridge.onBreakpointHit(breakpointHitCallback);
+        bridge.onBreakpointsChange(breakpointsChangeCallback);
+
+        bridge.terminate();
+
+        // Simulate messages on the old worker - callbacks should NOT fire
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINT_HIT',
+          payload: { address: 0x10 },
+        });
+        mockWorker.simulateMessage({
+          type: 'BREAKPOINTS_LIST',
+          payload: { addresses: [0x10] },
+        });
+
+        expect(breakpointHitCallback).not.toHaveBeenCalled();
+        expect(breakpointsChangeCallback).not.toHaveBeenCalled();
+      });
+    });
+  });
 });

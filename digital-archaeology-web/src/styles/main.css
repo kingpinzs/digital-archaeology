@@ -1248,6 +1248,31 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   Breakpoint Markers (Story 5.8)
+   Red dot markers in the gutter for user-set breakpoints
+   ============================================================================= */
+
+/*
+ * Breakpoint glyph marker in Monaco gutter.
+ * Shows a red filled circle indicating a breakpoint is set.
+ *
+ * INTENTIONAL: SVG data URLs cannot reference CSS variables due to browser limitations.
+ * The fill color #ef4444 is hardcoded (Tailwind red-500, common breakpoint color).
+ */
+.da-breakpoint-glyph {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='%23ef4444'/%3E%3C/svg%3E") center center no-repeat;
+  background-size: 12px;
+}
+
+/*
+ * Breakpoint line highlight (optional subtle background).
+ * Very subtle to avoid being distracting while still visible.
+ */
+.da-breakpoint-line {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* =============================================================================
    Rich Error Display Components (Story 3.5)
    Enhanced error display with type badges, code snippets, suggestions, and auto-fix
    ============================================================================= */
@@ -1796,4 +1821,90 @@ body.da-resizing * {
   100% {
     background-color: transparent;
   }
+}
+
+/* =============================================================================
+   BreakpointsView Component (Story 5.8)
+   Displays and manages active breakpoints in the State Panel
+   ============================================================================= */
+
+.da-breakpoints-view {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-breakpoints-view__title {
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.da-breakpoints-view__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.da-breakpoints-view__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.da-breakpoints-view__item:not(:last-child) {
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-breakpoints-view__address {
+  color: var(--da-accent);
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.da-breakpoints-view__line {
+  color: var(--da-text-secondary);
+  flex: 1;
+}
+
+.da-breakpoints-view__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--da-text-secondary);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.da-breakpoints-view__remove:hover {
+  opacity: 1;
+  background: var(--da-error);
+  color: white;
+}
+
+.da-breakpoints-view__remove:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+.da-breakpoints-view__empty {
+  color: var(--da-text-secondary);
+  font-size: 11px;
+  font-style: italic;
 }

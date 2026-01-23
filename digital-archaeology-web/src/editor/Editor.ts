@@ -27,6 +27,8 @@ export interface EditorOptions {
   onContentChange?: (hasContent: boolean) => void;
   /** Callback when user triggers assemble action (Ctrl+Enter) */
   onAssemble?: () => void;
+  /** Callback when user clicks in gutter to toggle breakpoint (Story 5.8) */
+  onBreakpointToggle?: (lineNumber: number) => void;
 }
 
 /**
@@ -80,8 +82,11 @@ export class Editor {
   private cursorPositionDisposable: monaco.IDisposable | null = null;
   private contentChangeDisposable: monaco.IDisposable | null = null;
   private assembleActionDisposable: monaco.IDisposable | null = null;
+  private mouseDownDisposable: monaco.IDisposable | null = null;
+  private breakpointActionDisposable: monaco.IDisposable | null = null;
   private errorDecorationIds: string[] = [];
   private currentInstructionDecorationIds: string[] = [];
+  private breakpointDecorationIds: string[] = [];
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -194,6 +199,9 @@ export class Editor {
 
     // Set up assemble keyboard shortcut if callback provided
     this.setupAssembleAction();
+
+    // Set up gutter click handler for breakpoint toggle (Story 5.8)
+    this.setupGutterClickHandler();
   }
 
   /**
@@ -241,6 +249,37 @@ export class Editor {
       ],
       run: () => {
         this.options.onAssemble!();
+      },
+    });
+  }
+
+  /**
+   * Set up the gutter click handler for breakpoint toggle (Story 5.8).
+   * Detects clicks on the glyph margin and calls onBreakpointToggle callback.
+   */
+  private setupGutterClickHandler(): void {
+    if (!this.editor || !this.options.onBreakpointToggle) return;
+
+    this.mouseDownDisposable = this.editor.onMouseDown((e) => {
+      // Check if click is on the glyph margin (where breakpoint markers appear)
+      if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+        const lineNumber = e.target.position?.lineNumber;
+        if (lineNumber !== undefined && lineNumber > 0) {
+          this.options.onBreakpointToggle!(lineNumber);
+        }
+      }
+    });
+
+    // Add F9 keyboard shortcut for breakpoint toggle (Accessibility - Story 5.8)
+    this.breakpointActionDisposable = this.editor.addAction({
+      id: 'da.toggleBreakpoint',
+      label: 'Toggle Breakpoint',
+      keybindings: [monaco.KeyCode.F9],
+      run: () => {
+        const position = this.editor?.getPosition();
+        if (position && this.options.onBreakpointToggle) {
+          this.options.onBreakpointToggle(position.lineNumber);
+        }
       },
     });
   }
@@ -370,6 +409,42 @@ export class Editor {
   }
 
   /**
+   * Set breakpoint decorations on the editor (Story 5.8).
+   * Adds red dot markers in the gutter and optional subtle line highlight.
+   * @param lines - Array of line numbers to show breakpoints on (1-based)
+   */
+  setBreakpointDecorations(lines: number[]): void {
+    if (!this.editor) return;
+
+    const decorations: monaco.editor.IModelDeltaDecoration[] = lines.map(line => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: true,
+        glyphMarginClassName: 'da-breakpoint-glyph',
+        className: 'da-breakpoint-line',
+      },
+    }));
+
+    // Replace existing breakpoint decorations with new ones
+    this.breakpointDecorationIds = this.editor.deltaDecorations(
+      this.breakpointDecorationIds,
+      decorations
+    );
+  }
+
+  /**
+   * Clear all breakpoint decorations from the editor (Story 5.8).
+   */
+  clearBreakpointDecorations(): void {
+    if (!this.editor) return;
+
+    this.breakpointDecorationIds = this.editor.deltaDecorations(
+      this.breakpointDecorationIds,
+      []
+    );
+  }
+
+  /**
    * Reveal a specific line in the editor and set cursor position.
    * @param line - Line number to reveal (1-based)
    * @param column - Column number to set cursor (1-based, defaults to 1)
@@ -410,6 +485,14 @@ export class Editor {
     if (this.assembleActionDisposable) {
       this.assembleActionDisposable.dispose();
       this.assembleActionDisposable = null;
+    }
+    if (this.mouseDownDisposable) {
+      this.mouseDownDisposable.dispose();
+      this.mouseDownDisposable = null;
+    }
+    if (this.breakpointActionDisposable) {
+      this.breakpointActionDisposable.dispose();
+      this.breakpointActionDisposable = null;
     }
     if (this.editor) {
       this.editor.dispose();

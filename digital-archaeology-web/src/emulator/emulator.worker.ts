@@ -16,6 +16,7 @@ import type {
   EmulatorErrorEvent,
   BreakpointHitEvent,
   EmulatorReadyEvent,
+  BreakpointsListEvent,
 } from './types';
 import { validateEmulatorModule } from './types';
 
@@ -106,6 +107,33 @@ export function isEmulatorCommand(data: unknown): data is EmulatorCommand {
         payload.speed >= 0
       );
     }
+    case 'SET_BREAKPOINT': {
+      // Validate payload has address field (Story 5.8)
+      if (typeof obj.payload !== 'object' || obj.payload === null) return false;
+      const payload = obj.payload as Record<string, unknown>;
+      return (
+        'address' in payload &&
+        typeof payload.address === 'number' &&
+        Number.isFinite(payload.address) &&
+        payload.address >= 0 &&
+        payload.address <= 255
+      );
+    }
+    case 'CLEAR_BREAKPOINT': {
+      // Validate payload has address field (Story 5.8)
+      if (typeof obj.payload !== 'object' || obj.payload === null) return false;
+      const payload = obj.payload as Record<string, unknown>;
+      return (
+        'address' in payload &&
+        typeof payload.address === 'number' &&
+        Number.isFinite(payload.address) &&
+        payload.address >= 0 &&
+        payload.address <= 255
+      );
+    }
+    case 'GET_BREAKPOINTS':
+      // No payload required (Story 5.8)
+      return true;
     default:
       return false;
   }
@@ -358,6 +386,7 @@ export function handleSetSpeed(module: EmulatorModule, speed: number): void {
 /**
  * Handle RESET command.
  * Reset CPU state (preserves memory) and return new state.
+ * Also clears all breakpoints (Task 2.5, Story 5.8).
  */
 export function handleReset(module: EmulatorModule): void {
   // Stop any running execution
@@ -366,11 +395,20 @@ export function handleReset(module: EmulatorModule): void {
   // Reset CPU
   module._cpu_reset_instance();
 
+  // Clear all breakpoints (Story 5.8, Task 2.5)
+  breakpoints.clear();
+
   // Send state update
   self.postMessage({
     type: 'STATE_UPDATE',
     payload: readCPUState(module),
   } satisfies StateUpdateEvent);
+
+  // Notify main thread that breakpoints were cleared
+  self.postMessage({
+    type: 'BREAKPOINTS_LIST',
+    payload: { addresses: [] },
+  } satisfies BreakpointsListEvent);
 }
 
 /**
@@ -430,6 +468,49 @@ export function handleRestoreState(
     type: 'STATE_UPDATE',
     payload: readCPUState(module),
   } satisfies StateUpdateEvent);
+}
+
+/**
+ * Handle SET_BREAKPOINT command (Story 5.8).
+ * Add a breakpoint at the specified address.
+ *
+ * @param address - Memory address to set breakpoint at (0-255)
+ */
+export function handleSetBreakpoint(address: number): void {
+  breakpoints.add(address);
+
+  // Notify main thread of updated breakpoint list
+  self.postMessage({
+    type: 'BREAKPOINTS_LIST',
+    payload: { addresses: Array.from(breakpoints).sort((a, b) => a - b) },
+  } satisfies BreakpointsListEvent);
+}
+
+/**
+ * Handle CLEAR_BREAKPOINT command (Story 5.8).
+ * Remove a breakpoint at the specified address.
+ *
+ * @param address - Memory address to clear breakpoint from (0-255)
+ */
+export function handleClearBreakpoint(address: number): void {
+  breakpoints.delete(address);
+
+  // Notify main thread of updated breakpoint list
+  self.postMessage({
+    type: 'BREAKPOINTS_LIST',
+    payload: { addresses: Array.from(breakpoints).sort((a, b) => a - b) },
+  } satisfies BreakpointsListEvent);
+}
+
+/**
+ * Handle GET_BREAKPOINTS command (Story 5.8).
+ * Return the current list of breakpoints.
+ */
+export function handleGetBreakpoints(): void {
+  self.postMessage({
+    type: 'BREAKPOINTS_LIST',
+    payload: { addresses: Array.from(breakpoints).sort((a, b) => a - b) },
+  } satisfies BreakpointsListEvent);
 }
 
 /**
@@ -528,6 +609,18 @@ function handleMessage(event: MessageEvent): void {
     }
     case 'RESTORE_STATE': {
       handleRestoreState(wasmModule, data.payload);
+      break;
+    }
+    case 'SET_BREAKPOINT': {
+      handleSetBreakpoint(data.payload.address);
+      break;
+    }
+    case 'CLEAR_BREAKPOINT': {
+      handleClearBreakpoint(data.payload.address);
+      break;
+    }
+    case 'GET_BREAKPOINTS': {
+      handleGetBreakpoints();
       break;
     }
     default: {

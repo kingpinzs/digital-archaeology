@@ -45,6 +45,7 @@
   --da-success: #00ff88;
   --da-success-hover: #44ff88;
   --da-constraint: #bd93f9;
+  --da-breakpoint-color: #ef4444; /* Story 5.9: Breakpoint hit indicator */
 
   /* Error type badge colors (semi-transparent backgrounds with readable text) */
   --da-error-badge-bg: rgba(255, 68, 68, 0.2);
@@ -105,6 +106,7 @@
   --da-success: #00ff88;
   --da-success-hover: #44ff88;
   --da-constraint: #bd93f9;
+  --da-breakpoint-color: #ef4444; /* Story 5.9: Breakpoint hit indicator */
 
   /* Error type badge colors (inherit from :root since lab-mode is default) */
 
@@ -152,6 +154,7 @@
   --da-warning: #ffbb33;
   --da-success: #44ff88;
   --da-success-hover: #66ff99;
+  --da-breakpoint-color: #f87171; /* Story 5.9: Breakpoint hit indicator (warmer red) */
   --da-constraint: #c792ea;
 
   /* Error type badge colors - warmer variants for story mode */
@@ -444,6 +447,12 @@
 
 .da-statusbar-status--error {
   color: var(--da-error);
+}
+
+/* Story 5.9: Breakpoint hit indicator in status bar */
+.da-status-bar__breakpoint-hit {
+  color: var(--da-breakpoint-color, #ef4444);
+  font-weight: 500;
 }
 
 /* =============================================================================

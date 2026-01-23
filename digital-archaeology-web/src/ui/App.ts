@@ -143,6 +143,7 @@ export class App {
   private unsubscribeStateUpdate: (() => void) | null = null;
   private unsubscribeHalted: (() => void) | null = null;
   private unsubscribeError: (() => void) | null = null;
+  private unsubscribeBreakpointHit: (() => void) | null = null; // Story 5.9
 
   // Throttling for high-speed UI updates (Story 4.5)
   private lastStateUpdateTime: number = 0;
@@ -1190,9 +1191,10 @@ export class App {
       canStep: false,
     });
 
-    // Update status bar with speed
+    // Update status bar with speed, clear breakpoint hit message (Story 5.9)
     this.statusBar?.updateState({
       speed: this.executionSpeed,
+      breakpointHitAddress: null,
     });
   }
 
@@ -1366,12 +1368,13 @@ export class App {
       // Execute one instruction and get the resulting state
       this.cpuState = await this.emulatorBridge.step();
 
-      // Update status bar with new state
+      // Update status bar with new state, clear breakpoint hit message (Story 5.9)
       if (this.cpuState.halted) {
         this.statusBar?.updateState({
           assemblyMessage: 'Program halted',
           pcValue: this.cpuState.pc,
           cycleCount: this.cpuState.cycles,
+          breakpointHitAddress: null,
         });
       } else {
         // Format PC as 2-digit hex with 0x prefix
@@ -1380,6 +1383,7 @@ export class App {
           assemblyMessage: `Stepped to 0x${pcHex}`,
           pcValue: this.cpuState.pc,
           cycleCount: this.cpuState.cycles,
+          breakpointHitAddress: null,
         });
       }
 
@@ -1670,6 +1674,11 @@ export class App {
     this.unsubscribeError = this.emulatorBridge.onError((error) => {
       this.handleExecutionError(error);
     });
+
+    // Subscribe to breakpoint hit events (Story 5.9)
+    this.unsubscribeBreakpointHit = this.emulatorBridge.onBreakpointHit((address) => {
+      this.handleBreakpointHit(address);
+    });
   }
 
   /**
@@ -1688,6 +1697,10 @@ export class App {
     if (this.unsubscribeError) {
       this.unsubscribeError();
       this.unsubscribeError = null;
+    }
+    if (this.unsubscribeBreakpointHit) {
+      this.unsubscribeBreakpointHit();
+      this.unsubscribeBreakpointHit = null;
     }
   }
 
@@ -1765,6 +1778,67 @@ export class App {
     });
 
     console.error('Execution error:', error);
+  }
+
+  /**
+   * Handle breakpoint hit event during execution (Story 5.9).
+   * Pauses execution, updates UI, and highlights the breakpoint line.
+   * @param address - Memory address where breakpoint was hit
+   * @returns void
+   */
+  private handleBreakpointHit(address: number): void {
+    // Stop execution state
+    this.isRunning = false;
+    this.cleanupEmulatorSubscriptions();
+
+    // Update toolbar to allow continue (Run) or Step
+    this.toolbar?.updateState({
+      isRunning: false,
+      canRun: true,   // Can continue running
+      canPause: false,
+      canStep: true,  // Can step from breakpoint
+    });
+
+    // Update status bar with breakpoint hit message
+    this.statusBar?.updateState({
+      speed: null,
+      breakpointHitAddress: address,
+    });
+
+    // Highlight the breakpoint line in editor using source map
+    if (this.sourceMap && this.editor) {
+      const lineNumber = this.sourceMap.addressToLine.get(address);
+      if (lineNumber !== undefined) {
+        this.editor.highlightLine(lineNumber);
+      }
+    }
+
+    // Update RegisterView with state at breakpoint (Story 5.3)
+    if (this.cpuState) {
+      this.registerView?.updateState({
+        pc: this.cpuState.pc,
+        accumulator: this.cpuState.accumulator,
+      });
+
+      // Update FlagsView with state at breakpoint (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: this.cpuState.zeroFlag,
+      });
+
+      // Update MemoryView with state at breakpoint (Story 5.5)
+      this.memoryView?.updateState({
+        memory: this.cpuState.memory,
+        pc: this.cpuState.pc,
+      });
+    }
+
+    // Update status bar with PC and cycle count
+    if (this.cpuState) {
+      this.statusBar?.updateState({
+        pcValue: this.cpuState.pc,
+        cycleCount: this.cpuState.cycles,
+      });
+    }
   }
 
   /**

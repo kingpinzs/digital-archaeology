@@ -253,10 +253,11 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   }));
   const restoreStateMock = vi.fn(() => Promise.resolve(state.cpuState));
 
-  // Event callback storage for simulating events (Story 4.5)
+  // Event callback storage for simulating events (Story 4.5, 5.9)
   let stateUpdateCallback: ((state: CPUState) => void) | null = null;
   let haltedCallback: (() => void) | null = null;
   let errorCallback: ((error: { message: string; address?: number }) => void) | null = null;
+  let breakpointHitCallback: ((address: number) => void) | null = null; // Story 5.9
 
   const onStateUpdateMock = vi.fn((cb: (state: CPUState) => void) => {
     stateUpdateCallback = cb;
@@ -269,6 +270,11 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   const onErrorMock = vi.fn((cb: (error: { message: string; address?: number }) => void) => {
     errorCallback = cb;
     return () => { errorCallback = null; };
+  });
+  // Story 5.9: Breakpoint hit callback
+  const onBreakpointHitMock = vi.fn((cb: (address: number) => void) => {
+    breakpointHitCallback = cb;
+    return () => { breakpointHitCallback = null; };
   });
 
   // Constructor function that will be used as the class
@@ -286,6 +292,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       onStateUpdate: onStateUpdateMock,
       onHalted: onHaltedMock,
       onError: onErrorMock,
+      onBreakpointHit: onBreakpointHitMock, // Story 5.9
       get isReady() {
         return state.isReady;
       },
@@ -306,6 +313,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     onStateUpdate: onStateUpdateMock,
     onHalted: onHaltedMock,
     onError: onErrorMock,
+    onBreakpointHit: onBreakpointHitMock, // Story 5.9
     get isReady() {
       return state.isReady;
     },
@@ -349,6 +357,10 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     _triggerError: (error: { message: string; address?: number }) => {
       if (errorCallback) errorCallback(error);
     },
+    // Story 5.9: Trigger breakpoint hit callback
+    _triggerBreakpointHit: (address: number) => {
+      if (breakpointHitCallback) breakpointHitCallback(address);
+    },
     _reset: () => {
       state.isReady = true;
       state.cpuState = {
@@ -378,6 +390,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       onStateUpdateMock.mockClear();
       onHaltedMock.mockClear();
       onErrorMock.mockClear();
+      onBreakpointHitMock.mockClear(); // Story 5.9
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
       stepMock.mockImplementation(() => Promise.resolve(state.cpuState));
       restoreStateMock.mockImplementation(() => Promise.resolve(state.cpuState));
@@ -393,6 +406,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       stateUpdateCallback = null;
       haltedCallback = null;
       errorCallback = null;
+      breakpointHitCallback = null; // Story 5.9
     },
   };
 
@@ -6566,6 +6580,343 @@ describe('App', () => {
         // Verify empty message is shown (breakpoints cleared)
         const emptyMsg = container.querySelector('.da-breakpoints-view__empty');
         expect(emptyMsg?.textContent).toBe('No breakpoints set');
+      });
+    });
+  });
+
+  // Story 5.9: Run to Breakpoint
+  describe('Run to Breakpoint (Story 5.9)', () => {
+    // Helper to assemble and load a program
+    async function assembleAndLoad(code: string = 'LDI 0x05\nHLT') {
+      app.mount(container);
+      const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+      mockEditorInstance._setContent(code);
+      mockEditorInstance.getValue.mockReturnValue(code);
+      contentChangeListeners.forEach(cb => cb());
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: binary,
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+      });
+    }
+
+    describe('breakpoint hit subscription (Task 1.5)', () => {
+      it('should subscribe to onBreakpointHit when Run is clicked', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        expect(mockEmulatorBridge.onBreakpointHit).toHaveBeenCalled();
+      });
+
+      it('should unsubscribe from onBreakpointHit when breakpoint is hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Trigger breakpoint hit
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Verify callback was cleared (trigger should have no effect now)
+        const statusBar = app.getStatusBar();
+        statusBar?.updateState({ breakpointHitAddress: null });
+
+        // Second trigger should not re-set the breakpoint message
+        mockEmulatorBridge._triggerBreakpointHit(0x04);
+        expect(statusBar?.getState().breakpointHitAddress).toBeNull();
+      });
+    });
+
+    describe('handleBreakpointHit state changes (Task 2.7)', () => {
+      it('should stop running when breakpoint is hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+
+        runBtn.click();
+        expect(runBtn.hidden).toBe(true);
+        expect(pauseBtn.hidden).toBe(false);
+
+        // Trigger breakpoint hit
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        expect(runBtn.hidden).toBe(false);
+        expect(pauseBtn.hidden).toBe(true);
+      });
+
+      it('should enable Run button after breakpoint hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        expect(runBtn.disabled).toBe(false);
+      });
+
+      it('should enable Step button after breakpoint hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+
+        runBtn.click();
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        expect(stepBtn.disabled).toBe(false);
+      });
+
+      it('should update status bar with breakpoint hit address', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x10);
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().breakpointHitAddress).toBe(0x10);
+      });
+
+      it('should clear speed from status bar on breakpoint hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Status bar should show speed while running
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().speed).toBe(60);
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        expect(statusBar?.getState().speed).toBeNull();
+      });
+    });
+
+    describe('status bar breakpoint display (Task 3)', () => {
+      it('should show "Breakpoint hit at 0xNN" in status bar', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x0A);
+
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toBe('Breakpoint hit at 0x0A');
+      });
+
+      it('should clear breakpoint message on Run', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x0A);
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().breakpointHitAddress).toBe(0x0A);
+
+        // Click Run again to continue
+        runBtn.click();
+
+        expect(statusBar?.getState().breakpointHitAddress).toBeNull();
+      });
+
+      it('should clear breakpoint message on Step', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x0A);
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().breakpointHitAddress).toBe(0x0A);
+
+        // Click Step to continue
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          expect(statusBar?.getState().breakpointHitAddress).toBeNull();
+        });
+      });
+    });
+
+    describe('continue after breakpoint (Task 4)', () => {
+      it('should allow Run to continue from breakpoint', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Should be able to click Run again
+        expect(runBtn.disabled).toBe(false);
+        runBtn.click();
+
+        // Should now be running again
+        expect(mockEmulatorBridge.run).toHaveBeenCalled();
+      });
+
+      it('should allow Step to advance from breakpoint', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        expect(stepBtn.disabled).toBe(false);
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.step).toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('integration tests (Task 5)', () => {
+      it('should stop at breakpoint when running (AC: #1)', async () => {
+        await assembleAndLoad();
+
+        // Start running
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Simulate breakpoint hit event
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Should stop execution
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        expect(runBtn.hidden).toBe(false);
+        expect(pauseBtn.hidden).toBe(true);
+
+        // Status should show breakpoint hit
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().breakpointHitAddress).toBe(0x02);
+      });
+
+      it('should format breakpoint address as hex (AC: #1)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0xFF);
+
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toBe('Breakpoint hit at 0xFF');
+      });
+
+      it('should handle breakpoint at address 0x00', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x00);
+
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toBe('Breakpoint hit at 0x00');
+      });
+
+      it('should be able to run again after hitting breakpoint', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+
+        // First run
+        runBtn.click();
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Run again
+        runBtn.click();
+        mockEmulatorBridge._triggerBreakpointHit(0x04);
+
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().breakpointHitAddress).toBe(0x04);
+      });
+
+      it('should be able to step after hitting breakpoint', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+
+        runBtn.click();
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Step
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.step).toHaveBeenCalled();
+        });
+      });
+
+      it('should highlight breakpoint line in editor (Task 5.3)', async () => {
+        await assembleAndLoad();
+        mockEditorInstance.deltaDecorations.mockClear();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Breakpoint at address 0x02 - which should map to line 2 in source
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        // Editor should have called deltaDecorations to highlight the line
+        // The source map maps address 0x02 to line 2 for 'LDI 0x05\nHLT'
+        const calls = mockEditorInstance.deltaDecorations.mock.calls as unknown as Array<[string[], Array<{ options?: { className?: string } }>]>;
+        const highlightCall = calls.find((call) => {
+          if (!call || !call[1]) return false;
+          const decorations = call[1];
+          return decorations.some((d) => 
+            d.options?.className === 'da-current-instruction-highlight'
+          );
+        });
+        expect(highlightCall).toBeDefined();
+      });
+
+      it('should update pcValue in status bar after breakpoint hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        const statusBar = app.getStatusBar();
+        // pcValue should be updated from cpuState (which starts at 0)
+        expect(statusBar?.getState().pcValue).toBe(0);
+      });
+
+      it('should update cycleCount in status bar after breakpoint hit', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerBreakpointHit(0x02);
+
+        const statusBar = app.getStatusBar();
+        // cycleCount should be updated from cpuState
+        expect(statusBar?.getState().cycleCount).toBe(0);
       });
     });
   });

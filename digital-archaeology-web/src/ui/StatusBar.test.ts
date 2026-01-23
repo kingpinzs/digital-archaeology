@@ -744,4 +744,99 @@ describe('StatusBar', () => {
       statusBar.destroy();
     });
   });
+
+  // Story 5.9: Breakpoint hit display tests
+  describe('breakpoint hit display (Story 5.9)', () => {
+    it('should display "Breakpoint hit at 0xNN" when breakpointHitAddress is set', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ breakpointHitAddress: 0x10 });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.textContent).toBe('Breakpoint hit at 0x10');
+
+      statusBar.destroy();
+    });
+
+    it('should format address with uppercase hex and minimum 2 digits', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ breakpointHitAddress: 0x0A });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      expect(loadSection?.textContent).toBe('Breakpoint hit at 0x0A');
+
+      statusBar.destroy();
+    });
+
+    it('should apply breakpoint-hit CSS class', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ breakpointHitAddress: 0x05 });
+
+      const valueSpan = container.querySelector('[data-section="load"] .da-status-bar__breakpoint-hit');
+      expect(valueSpan).not.toBeNull();
+
+      statusBar.destroy();
+    });
+
+    it('should prioritize breakpoint hit over load status', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      // Set both load status and breakpoint hit
+      statusBar.updateState({ 
+        loadStatus: 'Loaded: 10 nibbles',
+        breakpointHitAddress: 0x08 
+      });
+
+      const loadSection = container.querySelector('[data-section="load"]');
+      // Breakpoint hit should take precedence
+      expect(loadSection?.textContent).toBe('Breakpoint hit at 0x08');
+
+      statusBar.destroy();
+    });
+
+    it('should clear breakpoint hit message when set to null', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ breakpointHitAddress: 0x10 });
+      expect(container.querySelector('[data-section="load"]')?.textContent).toBe('Breakpoint hit at 0x10');
+
+      statusBar.updateState({ breakpointHitAddress: null });
+      expect(container.querySelector('[data-section="load"]')?.textContent).toBe('--');
+
+      statusBar.destroy();
+    });
+
+    it('should show load status after clearing breakpoint hit', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ 
+        loadStatus: 'Loaded: 10 nibbles',
+        breakpointHitAddress: 0x08 
+      });
+      expect(container.querySelector('[data-section="load"]')?.textContent).toBe('Breakpoint hit at 0x08');
+
+      statusBar.updateState({ breakpointHitAddress: null });
+      expect(container.querySelector('[data-section="load"]')?.textContent).toBe('Loaded: 10 nibbles');
+
+      statusBar.destroy();
+    });
+
+    it('should store breakpointHitAddress in state', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.updateState({ breakpointHitAddress: 0x20 });
+      expect(statusBar.getState().breakpointHitAddress).toBe(0x20);
+
+      statusBar.destroy();
+    });
+  });
 });

@@ -23,6 +23,7 @@ export interface StatusBarState {
   cycleCount: number;
   speed: number | null;
   cursorPosition: CursorPosition | null;
+  breakpointHitAddress?: number | null; // Story 5.9: Address where breakpoint was hit
 }
 
 /**
@@ -259,19 +260,39 @@ export class StatusBar {
   }
 
   /**
-   * Update the load status section (Story 4.4).
+   * Update the load status section (Story 4.4, 5.9).
+   * Displays breakpoint hit message if breakpointHitAddress is set.
+   * Uses safe DOM methods for XSS prevention.
    */
   private updateLoadSection(): void {
     if (!this.loadSection) return;
 
-    const { loadStatus } = this.state;
-    if (loadStatus === null) {
-      this.loadSection.innerHTML = '<span class="da-statusbar-value">--</span>';
-    } else {
-      // Escape loadStatus to prevent XSS attacks
-      const safeStatus = escapeHtml(loadStatus);
-      this.loadSection.innerHTML = `<span class="da-statusbar-value da-statusbar-status--success">${safeStatus}</span>`;
+    // Clear existing content
+    this.loadSection.textContent = '';
+
+    const { loadStatus, breakpointHitAddress } = this.state;
+
+    // Create value span
+    const valueSpan = document.createElement('span');
+
+    // Story 5.9: Show breakpoint hit message when breakpoint was hit
+    if (breakpointHitAddress !== null && breakpointHitAddress !== undefined) {
+      const hexAddress = `0x${breakpointHitAddress.toString(16).toUpperCase().padStart(2, '0')}`;
+      valueSpan.className = 'da-statusbar-value da-status-bar__breakpoint-hit';
+      valueSpan.textContent = `Breakpoint hit at ${hexAddress}`;
+      this.loadSection.appendChild(valueSpan);
+      return;
     }
+
+    if (loadStatus === null) {
+      valueSpan.className = 'da-statusbar-value';
+      valueSpan.textContent = '--';
+    } else {
+      valueSpan.className = 'da-statusbar-value da-statusbar-status--success';
+      valueSpan.textContent = loadStatus;
+    }
+
+    this.loadSection.appendChild(valueSpan);
   }
 
   /**

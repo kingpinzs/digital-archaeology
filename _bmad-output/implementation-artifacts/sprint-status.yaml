@@ -97,7 +97,7 @@ development_status:
   5-6-implement-jump-to-address: done
   5-7-highlight-current-instruction-in-editor: done
   5-8-implement-breakpoint-toggle: done
-  5-9-implement-run-to-breakpoint: backlog
+  5-9-implement-run-to-breakpoint: done
   5-10-display-rich-runtime-errors: backlog
   epic-5-retrospective: optional
 

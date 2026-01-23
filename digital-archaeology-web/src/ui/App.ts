@@ -20,6 +20,16 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 
 /**
+ * Source map for correlating PC addresses to source line numbers (Story 5.1).
+ */
+export interface SourceMap {
+  /** Maps PC address to source line number (1-based) */
+  addressToLine: Map<number, number>;
+  /** Maps source line number to PC address */
+  lineToAddress: Map<number, number>;
+}
+
+/**
  * Delay in milliseconds before announcing visibility changes to screen readers.
  * This delay ensures the DOM change is detected by assistive technology.
  */
@@ -99,6 +109,9 @@ export class App {
 
   // Flag indicating code has been successfully assembled and not modified since (Story 3.7)
   private hasValidAssembly: boolean = false;
+
+  // Source map for PC-to-line correlation (Story 5.1)
+  private sourceMap: SourceMap | null = null;
 
   // Flag indicating program is currently running (Story 4.5)
   private isRunning: boolean = false;
@@ -548,6 +561,9 @@ export class App {
           // Clear load status since program is stale (Story 4.4)
           this.cpuState = null;
           this.statusBar?.updateState({ loadStatus: null });
+          // Clear source map and editor highlight (Story 5.1)
+          this.sourceMap = null;
+          this.editor?.clearHighlight();
         }
       },
       onAssemble: () => this.handleAssemble(),
@@ -820,6 +836,9 @@ export class App {
         pcValue: this.cpuState.pc,
         cycleCount: this.cpuState.cycles,
       });
+
+      // Highlight the first instruction after load (Story 5.1)
+      this.highlightCurrentInstruction(this.cpuState.pc);
     } catch (error) {
       // Handle load errors
       console.error('Failed to load program into emulator:', error);
@@ -955,6 +974,9 @@ export class App {
         speed: null,
         loadStatus: 'Reset',
       });
+
+      // Highlight the first instruction after reset (Story 5.1)
+      this.highlightCurrentInstruction(this.cpuState.pc);
     } catch (error) {
       console.error('Failed to reset:', error);
       // Reset running state even on error
@@ -990,6 +1012,139 @@ export class App {
       const workerSpeed = Math.max(1, Math.round(this.executionSpeed / 60));
       this.emulatorBridge?.setSpeed(workerSpeed);
     }
+  }
+
+  /**
+   * Handle Step button click (Story 5.1).
+   * Executes exactly one instruction and updates UI with the result.
+   * @returns void
+   */
+  private async handleStep(): Promise<void> {
+    // Guard: Can't step if no valid assembly or already running
+    if (!this.hasValidAssembly || this.isRunning) return;
+
+    // Guard: Can't step without emulator bridge
+    if (!this.emulatorBridge?.isReady) {
+      console.error('EmulatorBridge not ready for step');
+      return;
+    }
+
+    try {
+      // Execute one instruction and get the resulting state
+      this.cpuState = await this.emulatorBridge.step();
+
+      // Update status bar with new state
+      if (this.cpuState.halted) {
+        this.statusBar?.updateState({
+          assemblyMessage: 'Program halted',
+          pcValue: this.cpuState.pc,
+          cycleCount: this.cpuState.cycles,
+        });
+      } else {
+        // Format PC as 2-digit hex with 0x prefix
+        const pcHex = this.cpuState.pc.toString(16).toUpperCase().padStart(2, '0');
+        this.statusBar?.updateState({
+          assemblyMessage: `Stepped to 0x${pcHex}`,
+          pcValue: this.cpuState.pc,
+          cycleCount: this.cpuState.cycles,
+        });
+      }
+
+      // Highlight current instruction line in editor (Story 5.1)
+      this.highlightCurrentInstruction(this.cpuState.pc);
+
+    } catch (error) {
+      console.error('Failed to step:', error);
+      // Could update status bar to show error if needed
+    }
+  }
+
+  /**
+   * Highlight the current instruction line in the editor based on PC value.
+   * Uses the source map built during assembly to correlate PC to line number.
+   * @param pc - The current program counter value
+   */
+  private highlightCurrentInstruction(pc: number): void {
+    if (!this.editor || !this.sourceMap) return;
+
+    const lineNumber = this.sourceMap.addressToLine.get(pc);
+    if (lineNumber !== undefined) {
+      this.editor.highlightLine(lineNumber);
+    }
+    // If PC doesn't map to a source line (e.g., in data section), don't change highlight
+  }
+
+  /**
+   * Build a source map from assembly source code (Story 5.1).
+   * Maps PC addresses to source line numbers for debugging.
+   * @param source - The assembly source code
+   * @returns SourceMap object with address-to-line and line-to-address mappings
+   */
+  private buildSourceMap(source: string): SourceMap {
+    const lines = source.split('\n');
+    const addressToLine = new Map<number, number>();
+    const lineToAddress = new Map<number, number>();
+    let address = 0;
+
+    for (let lineNum = 1; lineNum <= lines.length; lineNum++) {
+      const line = lines[lineNum - 1].trim();
+
+      // Skip empty lines
+      if (!line) continue;
+
+      // Skip comment-only lines
+      if (line.startsWith(';')) continue;
+
+      // Strip inline comments for parsing
+      const codePart = line.split(';')[0].trim();
+      if (!codePart) continue;
+
+      // Check for ORG directive (supports decimal, 0x hex, and $ hex prefix)
+      const orgMatch = codePart.match(/^ORG\s+(?:0x|\$)?([0-9A-Fa-f]+)/i);
+      if (orgMatch) {
+        // Determine base: if original had 0x or $ prefix, or if contains a-f, use hex
+        const hasHexPrefix = /^ORG\s+(?:0x|\$)/i.test(codePart);
+        const hasHexDigits = /[A-Fa-f]/.test(orgMatch[1]);
+        const base = (hasHexPrefix || hasHexDigits) ? 16 : 10;
+        address = parseInt(orgMatch[1], base);
+        continue;
+      }
+
+      // Skip label-only lines (ends with : and nothing else meaningful after)
+      const labelMatch = codePart.match(/^([A-Za-z_][A-Za-z0-9_]*):(.*)$/);
+      if (labelMatch) {
+        const afterLabel = labelMatch[2].trim();
+        if (!afterLabel) continue; // Label only, no instruction on this line
+        // Otherwise, there's an instruction after the label on the same line
+      }
+
+      // Handle DB/DW directives (data, not executable instructions)
+      // They consume address space but aren't "steppable" instructions
+      const dbMatch = codePart.match(/^(?:[A-Za-z_][A-Za-z0-9_]*:\s*)?(DB)\s+(.+)/i);
+      const dwMatch = codePart.match(/^(?:[A-Za-z_][A-Za-z0-9_]*:\s*)?(DW)\s+(.+)/i);
+      if (dbMatch) {
+        // DB consumes 1 byte (2 nibbles) per value
+        const values = dbMatch[2].split(',').length;
+        address += values * 2;
+        continue;
+      }
+      if (dwMatch) {
+        // DW consumes 2 bytes (4 nibbles) per value
+        const values = dwMatch[2].split(',').length;
+        address += values * 4;
+        continue;
+      }
+
+      // This line has an instruction at current address
+      addressToLine.set(address, lineNum);
+      lineToAddress.set(lineNum, address);
+
+      // Advance address by 2 nibbles (1 byte) for Micro4 instructions
+      // Each instruction is 2 nibbles = 8 bits = 1 byte in memory
+      address += 2;
+    }
+
+    return { addressToLine, lineToAddress };
   }
 
   /**
@@ -1179,6 +1334,10 @@ export class App {
         });
         // Mark assembly as valid (Story 3.7)
         this.hasValidAssembly = true;
+
+        // Build source map for PC-to-line correlation (Story 5.1)
+        this.sourceMap = this.buildSourceMap(source);
+
         // Enable execution buttons (Run, Step, Reset)
         this.toolbar?.updateState({
           canAssemble: true,
@@ -1452,7 +1611,7 @@ export class App {
       onRunClick: () => this.handleRun(),
       onPauseClick: () => this.handlePause(),
       onResetClick: () => this.handleReset(),
-      onStepClick: () => { /* Epic 5: Debugging */ },
+      onStepClick: () => this.handleStep(),
       onSpeedChange: (speed) => this.handleSpeedChange(speed),
       onHelpClick: () => { /* Epic 20: Educational Content */ },
       onSettingsClick: () => { /* Epic 9: Settings */ },
@@ -1578,7 +1737,7 @@ export class App {
   }
 
   /**
-   * Handle global keyboard shortcuts (Story 10.1).
+   * Handle global keyboard shortcuts (Story 10.1, 5.1).
    * @param e - Keyboard event
    * @returns void
    */
@@ -1590,6 +1749,16 @@ export class App {
       this.handleModeChange(newMode);
       // Sync menu bar toggle state
       this.menuBar?.updateState({ currentMode: newMode });
+      return;
+    }
+
+    // F10: Step one instruction (Story 5.1)
+    if (e.key === 'F10') {
+      e.preventDefault();
+      // Only step if we have valid assembly and not currently running
+      if (this.hasValidAssembly && !this.isRunning) {
+        this.handleStep();
+      }
     }
   }
 

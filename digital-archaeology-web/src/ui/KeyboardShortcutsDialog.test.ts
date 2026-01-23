@@ -234,7 +234,7 @@ describe('keyboardShortcuts constants', () => {
         expect(shortcut).toHaveProperty('category');
         expect(typeof shortcut.keys).toBe('string');
         expect(typeof shortcut.description).toBe('string');
-        expect(['editing', 'search', 'assembly', 'view']).toContain(shortcut.category);
+        expect(['editing', 'search', 'assembly', 'debugging', 'view']).toContain(shortcut.category);
       }
     });
 
@@ -274,6 +274,13 @@ describe('keyboardShortcuts constants', () => {
       expect(shiftTab).toBeDefined();
       expect(shiftTab?.description.toLowerCase()).toContain('unindent');
     });
+
+    it('should include F10 step shortcut (Story 5.1)', () => {
+      const step = KEYBOARD_SHORTCUTS.find((s) => s.keys === 'F10');
+      expect(step).toBeDefined();
+      expect(step?.description).toBe('Step one instruction');
+      expect(step?.category).toBe('debugging');
+    });
   });
 
   describe('CATEGORY_LABELS', () => {
@@ -287,6 +294,10 @@ describe('keyboardShortcuts constants', () => {
 
     it('should have label for assembly category (Story 3.3)', () => {
       expect(CATEGORY_LABELS.assembly).toBe('Assembly');
+    });
+
+    it('should have label for debugging category (Story 5.1)', () => {
+      expect(CATEGORY_LABELS.debugging).toBe('Debugging');
     });
   });
 
@@ -309,6 +320,11 @@ describe('keyboardShortcuts constants', () => {
     it('should include assembly category (Story 3.3)', () => {
       const categories = getActiveCategories();
       expect(categories).toContain('assembly');
+    });
+
+    it('should include debugging category (Story 5.1)', () => {
+      const categories = getActiveCategories();
+      expect(categories).toContain('debugging');
     });
   });
 });

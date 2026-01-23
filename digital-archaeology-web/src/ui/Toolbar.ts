@@ -177,7 +177,7 @@ export class Toolbar {
         <button class="da-toolbar-btn" data-action="reset" aria-label="Reset program" disabled>
           <span class="da-toolbar-btn-icon">⏹</span><span class="da-toolbar-btn-text">Reset</span>
         </button>
-        <button class="da-toolbar-btn" data-action="step" aria-label="Step one instruction" disabled>
+        <button class="da-toolbar-btn" data-action="step" aria-label="Step one instruction" aria-keyshortcuts="F10" disabled>
           <span class="da-toolbar-btn-icon">⏭</span><span class="da-toolbar-btn-text">Step</span>
         </button>
       </div>

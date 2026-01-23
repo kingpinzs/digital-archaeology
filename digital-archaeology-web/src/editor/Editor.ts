@@ -81,6 +81,7 @@ export class Editor {
   private contentChangeDisposable: monaco.IDisposable | null = null;
   private assembleActionDisposable: monaco.IDisposable | null = null;
   private errorDecorationIds: string[] = [];
+  private currentInstructionDecorationIds: string[] = [];
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -325,6 +326,45 @@ export class Editor {
 
     this.errorDecorationIds = this.editor.deltaDecorations(
       this.errorDecorationIds,
+      []
+    );
+  }
+
+  /**
+   * Highlight the current instruction line during debugging.
+   * Shows a distinct highlight color and glyph marker.
+   * @param lineNumber - The line number to highlight (1-based)
+   */
+  highlightLine(lineNumber: number): void {
+    if (!this.editor) return;
+
+    const decorations: monaco.editor.IModelDeltaDecoration[] = [{
+      range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+      options: {
+        isWholeLine: true,
+        className: 'da-current-instruction-highlight',
+        glyphMarginClassName: 'da-current-instruction-glyph',
+      },
+    }];
+
+    // Replace existing highlight with new one
+    this.currentInstructionDecorationIds = this.editor.deltaDecorations(
+      this.currentInstructionDecorationIds,
+      decorations
+    );
+
+    // Ensure the line is visible in the viewport
+    this.editor.revealLineInCenter(lineNumber);
+  }
+
+  /**
+   * Clear the current instruction highlight.
+   */
+  clearHighlight(): void {
+    if (!this.editor) return;
+
+    this.currentInstructionDecorationIds = this.editor.deltaDecorations(
+      this.currentInstructionDecorationIds,
       []
     );
   }

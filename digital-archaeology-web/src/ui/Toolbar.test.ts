@@ -511,6 +511,16 @@ describe('Toolbar', () => {
       toolbar.destroy();
     });
 
+    it('should have aria-keyshortcuts="F10" on Step button (Story 5.1)', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBtn = container.querySelector('[data-action="step"]');
+      expect(stepBtn?.getAttribute('aria-keyshortcuts')).toBe('F10');
+
+      toolbar.destroy();
+    });
+
     it('should have title attributes for tooltips', () => {
       const toolbar = new Toolbar(mockCallbacks);
       toolbar.mount(container);

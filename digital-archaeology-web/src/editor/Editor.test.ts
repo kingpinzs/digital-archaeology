@@ -1412,4 +1412,154 @@ describe('Editor', () => {
       expect(() => editor.revealLine(5)).not.toThrow();
     });
   });
+
+  describe('highlightLine (Story 5.1)', () => {
+    it('should add decoration for current instruction line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightLine(5);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should create decoration with correct CSS class', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightLine(5);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { options: { className: string } }[]];
+      const decorations = call[1];
+      expect(decorations[0].options.className).toBe('da-current-instruction-highlight');
+
+      editor.destroy();
+    });
+
+    it('should create decoration with correct glyph class', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightLine(5);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { options: { glyphMarginClassName: string } }[]];
+      const decorations = call[1];
+      expect(decorations[0].options.glyphMarginClassName).toBe('da-current-instruction-glyph');
+
+      editor.destroy();
+    });
+
+    it('should create decoration with correct line range', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightLine(10);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { range: { startLineNumber: number } }[]];
+      const decorations = call[1];
+      expect(decorations[0].range.startLineNumber).toBe(10);
+
+      editor.destroy();
+    });
+
+    it('should reveal line in center of viewport', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.revealLineInCenter.mockClear();
+
+      editor.highlightLine(15);
+
+      expect(mockEditorInstance.revealLineInCenter).toHaveBeenCalledWith(15);
+
+      editor.destroy();
+    });
+
+    it('should replace previous highlight when called again', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // Set up first highlight
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['first-decoration-id']);
+      editor.highlightLine(5);
+
+      // Second highlight should pass previous decoration IDs
+      editor.highlightLine(10);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledTimes(2);
+      // Second call should receive the IDs from first call
+      const secondCall = mockEditorInstance.deltaDecorations.mock.calls[1] as unknown as [string[], unknown[]];
+      expect(secondCall[0]).toEqual(['first-decoration-id']);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.highlightLine(5)).not.toThrow();
+    });
+  });
+
+  describe('clearHighlight (Story 5.1)', () => {
+    it('should clear all current instruction decorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // Add a highlight first
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['highlight-id']);
+      editor.highlightLine(5);
+
+      // Clear the highlight
+      editor.clearHighlight();
+
+      // Last call should pass empty array for new decorations
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const lastCall = calls[calls.length - 1] as unknown as [string[], unknown[]];
+      expect(lastCall[1]).toEqual([]);
+
+      editor.destroy();
+    });
+
+    it('should pass previous decoration IDs when clearing', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // Add a highlight first
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['highlight-id']);
+      editor.highlightLine(5);
+
+      // Clear the highlight
+      editor.clearHighlight();
+
+      // Last call should include previous decoration IDs
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const lastCall = calls[calls.length - 1] as unknown as [string[], unknown[]];
+      expect(lastCall[0]).toEqual(['highlight-id']);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.clearHighlight()).not.toThrow();
+    });
+
+    it('should not throw when clearing without previous highlight', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      expect(() => editor.clearHighlight()).not.toThrow();
+      editor.destroy();
+    });
+  });
 });

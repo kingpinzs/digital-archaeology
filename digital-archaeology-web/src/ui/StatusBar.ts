@@ -119,6 +119,10 @@ export class StatusBar {
   private render(): HTMLElement {
     const statusBar = document.createElement('div');
     statusBar.className = 'da-statusbar-content';
+    // Make status bar a live region for screen readers (Story 5.1 accessibility)
+    statusBar.setAttribute('role', 'status');
+    statusBar.setAttribute('aria-live', 'polite');
+    statusBar.setAttribute('aria-atomic', 'false');
 
     // Assembly status section
     const assemblySection = this.createSection('assembly', 'Assembly status');

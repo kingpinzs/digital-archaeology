@@ -464,6 +464,36 @@ describe('StatusBar', () => {
 
       statusBar.destroy();
     });
+
+    it('should have role="status" for screen reader live region (Story 5.1)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const content = container.querySelector('.da-statusbar-content');
+      expect(content?.getAttribute('role')).toBe('status');
+
+      statusBar.destroy();
+    });
+
+    it('should have aria-live="polite" for non-urgent announcements (Story 5.1)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const content = container.querySelector('.da-statusbar-content');
+      expect(content?.getAttribute('aria-live')).toBe('polite');
+
+      statusBar.destroy();
+    });
+
+    it('should have aria-atomic="false" to announce only changed parts (Story 5.1)', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      const content = container.querySelector('.da-statusbar-content');
+      expect(content?.getAttribute('aria-atomic')).toBe('false');
+
+      statusBar.destroy();
+    });
   });
 
   describe('XSS prevention', () => {

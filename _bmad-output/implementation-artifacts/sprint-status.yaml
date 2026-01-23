@@ -84,7 +84,7 @@ development_status:
   4-5-implement-run-button: done
   4-6-implement-stop-button: done
   4-7-implement-reset-button: done
-  4-8-implement-speed-control: backlog
+  4-8-implement-speed-control: done
   epic-4-retrospective: optional
 
   # Epic 5: Debugging & State Inspection

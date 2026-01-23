@@ -251,6 +251,22 @@ export class EmulatorBridge {
   }
 
   /**
+   * Change execution speed while running.
+   * Only affects execution if currently running.
+   *
+   * @param speed - New execution speed (0 = max speed, >0 = instructions per ~16ms tick)
+   */
+  setSpeed(speed: number): void {
+    this.ensureInitialized();
+    if (!this.isRunning || !this.worker) return;
+
+    this.worker.postMessage({
+      type: 'SET_SPEED',
+      payload: { speed },
+    } satisfies EmulatorCommand);
+  }
+
+  /**
    * Stop continuous execution.
    *
    * @returns Promise resolving to current CPU state when stopped

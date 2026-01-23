@@ -15,6 +15,7 @@ import {
   handleStop,
   handleReset,
   handleGetState,
+  handleSetSpeed,
 } from './emulator.worker';
 import type { EmulatorModule, EmulatorCommand, CPUState } from './types';
 
@@ -213,6 +214,62 @@ describe('Emulator Worker', () => {
 
     it('should reject object without type', () => {
       expect(isEmulatorCommand({ payload: {} })).toBe(false);
+    });
+
+    it('should accept valid SET_SPEED command with speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: 100 },
+      };
+      expect(isEmulatorCommand(command)).toBe(true);
+    });
+
+    it('should accept SET_SPEED with speed 0 (max speed)', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: 0 },
+      };
+      expect(isEmulatorCommand(command)).toBe(true);
+    });
+
+    it('should reject SET_SPEED without speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: {},
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should reject SET_SPEED with non-number speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: 'fast' },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should reject SET_SPEED with NaN speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: NaN },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should reject SET_SPEED with Infinity speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: Infinity },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should reject SET_SPEED with negative speed', () => {
+      const command = {
+        type: 'SET_SPEED',
+        payload: { speed: -100 },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
     });
   });
 
@@ -746,6 +803,128 @@ describe('Emulator Worker', () => {
 
       expect(module._cpu_step_instance).not.toHaveBeenCalled();
       expect(module._cpu_reset_instance).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleSetSpeed (Story 4.8)', () => {
+    let intervalCallback: (() => void) | null = null;
+
+    beforeEach(() => {
+      intervalCallback = null;
+      vi.stubGlobal('self', {
+        postMessage: mockPostMessage,
+        setInterval: vi.fn((cb: () => void) => {
+          intervalCallback = cb;
+          return 1;
+        }),
+        clearInterval: vi.fn(),
+      });
+    });
+
+    it('should do nothing if not currently running', () => {
+      const module = createMockModule();
+      // Don't call handleRun first - not running
+
+      handleSetSpeed(module, 200);
+
+      // Should not have cleared or set any intervals
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((self as any).clearInterval).not.toHaveBeenCalled();
+      // setInterval should not have been called for setSpeed (only for run)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((self as any).setInterval).not.toHaveBeenCalled();
+    });
+
+    it('should update running interval with new speed', () => {
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => 0),
+      });
+
+      // Start running at speed 100
+      handleRun(module, 100);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((self as any).setInterval).toHaveBeenCalledTimes(1);
+
+      // Change speed to 200
+      handleSetSpeed(module, 200);
+
+      // Should have cleared old interval and started new one
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((self as any).clearInterval).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((self as any).setInterval).toHaveBeenCalledTimes(2);
+
+      handleStop(); // Clean up
+    });
+
+    it('should use 0ms interval for max speed (speed=0)', () => {
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => 0),
+      });
+
+      handleRun(module, 100);
+      handleSetSpeed(module, 0);
+
+      // Second setInterval call should use 0ms for max speed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setIntervalCalls = (self as any).setInterval.mock.calls;
+      expect(setIntervalCalls[setIntervalCalls.length - 1][1]).toBe(0);
+
+      handleStop(); // Clean up
+    });
+
+    it('should use 16ms interval for throttled speed', () => {
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => 0),
+      });
+
+      handleRun(module, 0); // Start at max speed (0ms interval)
+      handleSetSpeed(module, 60); // Change to throttled speed
+
+      // Second setInterval call should use 16ms for throttled
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setIntervalCalls = (self as any).setInterval.mock.calls;
+      expect(setIntervalCalls[setIntervalCalls.length - 1][1]).toBe(16);
+
+      handleStop(); // Clean up
+    });
+
+    it('should execute correct number of instructions per tick after speed change', () => {
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => 0),
+      });
+
+      handleRun(module, 5); // 5 instructions per tick
+      handleSetSpeed(module, 10); // Change to 10 instructions per tick
+
+      // Execute the run loop callback (from the new setInterval)
+      intervalCallback!();
+
+      // Should execute 10 instructions (new speed)
+      expect(module._cpu_step_instance).toHaveBeenCalledTimes(10);
+
+      handleStop(); // Clean up
+    });
+
+    it('should execute 1000 instructions per tick at max speed after speed change', () => {
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => 0),
+      });
+
+      handleRun(module, 5); // Start at 5 instructions per tick
+      handleSetSpeed(module, 0); // Change to max speed
+
+      // Execute the run loop callback
+      intervalCallback!();
+
+      expect(module._cpu_step_instance).toHaveBeenCalledTimes(1000);
+
+      handleStop(); // Clean up
     });
   });
 

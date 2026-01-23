@@ -976,7 +976,8 @@ export class App {
   }
 
   /**
-   * Handle speed slider change (Story 4.5).
+   * Handle speed slider change (Story 4.5, enhanced in Story 4.8).
+   * Updates the execution speed and notifies the emulator if running.
    * @param speed - New execution speed in Hz (1-1000)
    */
   private handleSpeedChange(speed: number): void {
@@ -984,6 +985,10 @@ export class App {
     // Update status bar if currently running
     if (this.isRunning) {
       this.statusBar?.updateState({ speed: this.executionSpeed });
+      // Story 4.8: Update running emulator speed in real-time
+      // Convert Hz to worker speed (instructions per ~16ms tick)
+      const workerSpeed = Math.max(1, Math.round(this.executionSpeed / 60));
+      this.emulatorBridge?.setSpeed(workerSpeed);
     }
   }
 

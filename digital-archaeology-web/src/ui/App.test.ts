@@ -238,6 +238,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   const loadProgramMock = vi.fn(() => Promise.resolve(state.cpuState));
   const terminateMock = vi.fn();
   const runMock = vi.fn();
+  const setSpeedMock = vi.fn();
   const stopMock = vi.fn(() => Promise.resolve(state.cpuState));
   const resetMock = vi.fn(() => Promise.resolve({
     ...state.cpuState,
@@ -273,6 +274,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       loadProgram: loadProgramMock,
       terminate: terminateMock,
       run: runMock,
+      setSpeed: setSpeedMock,
       stop: stopMock,
       reset: resetMock,
       onStateUpdate: onStateUpdateMock,
@@ -290,6 +292,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     loadProgram: loadProgramMock,
     terminate: terminateMock,
     run: runMock,
+    setSpeed: setSpeedMock,
     stop: stopMock,
     reset: resetMock,
     onStateUpdate: onStateUpdateMock,
@@ -346,6 +349,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       loadProgramMock.mockClear();
       terminateMock.mockClear();
       runMock.mockClear();
+      setSpeedMock.mockClear();
       stopMock.mockClear();
       resetMock.mockClear();
       onStateUpdateMock.mockClear();
@@ -3740,6 +3744,114 @@ describe('App', () => {
 
       // reset() should not have been called since there's no bridge
       expect(mockEmulatorBridge.reset).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Speed control (Story 4.8)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    // Helper to assemble and load a program
+    const assembleAndLoad = async () => {
+      const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: binary,
+        error: null,
+      });
+
+      // Trigger content change listener to enable the Assemble button
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+      });
+    };
+
+    it('should call emulatorBridge.setSpeed() when speed slider changes while running (AC: #1)', async () => {
+      await assembleAndLoad();
+
+      // Start running
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // Change speed slider
+      const speedSlider = container.querySelector('.da-speed-slider') as HTMLInputElement;
+      speedSlider.value = '500';
+      speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Should call setSpeed with the converted worker speed
+      // Hz to worker speed: workerSpeed = Math.max(1, Math.round(Hz / 60))
+      // 500 Hz / 60 = ~8.3 -> 8
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.setSpeed).toHaveBeenCalledWith(8);
+      });
+    });
+
+    it('should NOT call emulatorBridge.setSpeed() when speed slider changes while NOT running', async () => {
+      await assembleAndLoad();
+
+      // Do NOT start running - program is loaded but stopped
+
+      // Change speed slider
+      const speedSlider = container.querySelector('.da-speed-slider') as HTMLInputElement;
+      speedSlider.value = '500';
+      speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Should NOT call setSpeed since not running
+      expect(mockEmulatorBridge.setSpeed).not.toHaveBeenCalled();
+    });
+
+    it('should update status bar speed when slider changes while running (AC: #3)', async () => {
+      await assembleAndLoad();
+
+      // Start running
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // Change speed slider
+      const speedSlider = container.querySelector('.da-speed-slider') as HTMLInputElement;
+      speedSlider.value = '100';
+      speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Status bar should show updated speed
+      await vi.waitFor(() => {
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().speed).toBe(100);
+      });
+    });
+
+    it('should persist speed value across runs (AC: #4)', async () => {
+      await assembleAndLoad();
+
+      // Change speed while not running
+      const speedSlider = container.querySelector('.da-speed-slider') as HTMLInputElement;
+      speedSlider.value = '200';
+      speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Start running - should use the saved speed
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // run() should be called with the saved speed converted
+      // 200 Hz / 60 = ~3.3 -> 3
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.run).toHaveBeenCalledWith(3);
+      });
     });
   });
 

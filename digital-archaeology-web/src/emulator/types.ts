@@ -643,6 +643,18 @@ export interface GetStateCommand {
 }
 
 /**
+ * Command to change execution speed while running.
+ * Only takes effect if the emulator is currently running.
+ */
+export interface SetSpeedCommand {
+  type: 'SET_SPEED';
+  payload: {
+    /** New execution speed (0 = max speed, >0 = instructions per ~16ms tick) */
+    speed: number;
+  };
+}
+
+/**
  * Union of all emulator commands (main → worker).
  */
 export type EmulatorCommand =
@@ -651,7 +663,8 @@ export type EmulatorCommand =
   | RunCommand
   | StopCommand
   | ResetCommand
-  | GetStateCommand;
+  | GetStateCommand
+  | SetSpeedCommand;
 
 /**
  * Event with updated CPU state.

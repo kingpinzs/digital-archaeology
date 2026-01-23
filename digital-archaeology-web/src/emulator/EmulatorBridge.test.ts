@@ -401,6 +401,53 @@ describe('EmulatorBridge', () => {
     });
   });
 
+  describe('setSpeed() (Story 4.8)', () => {
+    beforeEach(async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+    });
+
+    it('should send SET_SPEED command when running', () => {
+      bridge.run(60);
+      bridge.setSpeed(100);
+
+      expect(mockWorker.postMessage).toHaveBeenCalledWith({
+        type: 'SET_SPEED',
+        payload: { speed: 100 },
+      });
+    });
+
+    it('should not send SET_SPEED command when not running', () => {
+      bridge.setSpeed(100);
+
+      const setSpeedCalls = mockWorker.postMessage.mock.calls.filter(
+        (call) => call[0]?.type === 'SET_SPEED'
+      );
+      expect(setSpeedCalls.length).toBe(0);
+    });
+
+    it('should send SET_SPEED with max speed (0)', () => {
+      bridge.run(60);
+      bridge.setSpeed(0);
+
+      expect(mockWorker.postMessage).toHaveBeenCalledWith({
+        type: 'SET_SPEED',
+        payload: { speed: 0 },
+      });
+    });
+
+    it('should throw if not initialized', async () => {
+      const uninitializedBridge = new EmulatorBridge();
+
+      expect(() => uninitializedBridge.setSpeed(100)).toThrow(
+        'EmulatorBridge not initialized. Call init() first.'
+      );
+
+      uninitializedBridge.terminate();
+    });
+  });
+
   describe('stop()', () => {
     beforeEach(async () => {
       const initPromise = bridge.init();

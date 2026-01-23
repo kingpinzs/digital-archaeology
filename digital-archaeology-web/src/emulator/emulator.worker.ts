@@ -84,6 +84,17 @@ export function isEmulatorCommand(data: unknown): data is EmulatorCommand {
         payload.speed >= 0
       );
     }
+    case 'SET_SPEED': {
+      if (typeof obj.payload !== 'object' || obj.payload === null) return false;
+      const payload = obj.payload as Record<string, unknown>;
+      // Validate speed: must be a finite non-negative number
+      return (
+        'speed' in payload &&
+        typeof payload.speed === 'number' &&
+        Number.isFinite(payload.speed) &&
+        payload.speed >= 0
+      );
+    }
     default:
       return false;
   }
@@ -218,25 +229,13 @@ export function handleStep(module: EmulatorModule): void {
 }
 
 /**
- * Handle RUN command.
- * Start continuous execution with configurable speed.
+ * Start or restart the run interval with the given speed.
+ * Shared logic used by both handleRun and handleSetSpeed.
+ *
+ * @param module - The WASM emulator module
  * @param speed - Instructions per ~16ms tick. 0 = max speed (1000 per tick, 0ms interval)
  */
-export function handleRun(module: EmulatorModule, speed: number): void {
-  // Don't start if already running
-  if (runIntervalId !== null) {
-    return;
-  }
-
-  // Don't start if halted or in error state
-  if (module._is_halted() === 1 || module._has_error() === 1) {
-    self.postMessage({
-      type: 'STATE_UPDATE',
-      payload: readCPUState(module),
-    } satisfies StateUpdateEvent);
-    return;
-  }
-
+function startRunInterval(module: EmulatorModule, speed: number): void {
   const instructionsPerTick = speed === 0 ? 1000 : Math.max(1, Math.floor(speed));
   const intervalMs = speed === 0 ? 0 : 16; // ~60fps for throttled, 0 for max
 
@@ -294,6 +293,29 @@ export function handleRun(module: EmulatorModule, speed: number): void {
 }
 
 /**
+ * Handle RUN command.
+ * Start continuous execution with configurable speed.
+ * @param speed - Instructions per ~16ms tick. 0 = max speed (1000 per tick, 0ms interval)
+ */
+export function handleRun(module: EmulatorModule, speed: number): void {
+  // Don't start if already running
+  if (runIntervalId !== null) {
+    return;
+  }
+
+  // Don't start if halted or in error state
+  if (module._is_halted() === 1 || module._has_error() === 1) {
+    self.postMessage({
+      type: 'STATE_UPDATE',
+      payload: readCPUState(module),
+    } satisfies StateUpdateEvent);
+    return;
+  }
+
+  startRunInterval(module, speed);
+}
+
+/**
  * Handle STOP command.
  * Cancel run loop if active.
  */
@@ -302,6 +324,24 @@ export function handleStop(): void {
     self.clearInterval(runIntervalId);
     runIntervalId = null;
   }
+}
+
+/**
+ * Handle SET_SPEED command.
+ * Change execution speed while running. Only affects execution if currently running.
+ *
+ * @param module - The WASM emulator module
+ * @param speed - New execution speed (0 = max speed, >0 = instructions per ~16ms tick)
+ */
+export function handleSetSpeed(module: EmulatorModule, speed: number): void {
+  // Only update if currently running
+  if (runIntervalId === null) {
+    return;
+  }
+
+  // Clear existing interval and restart with new speed
+  self.clearInterval(runIntervalId);
+  startRunInterval(module, speed);
 }
 
 /**
@@ -413,6 +453,10 @@ function handleMessage(event: MessageEvent): void {
         type: 'STATE_UPDATE',
         payload: readCPUState(wasmModule),
       } satisfies StateUpdateEvent);
+      break;
+    }
+    case 'SET_SPEED': {
+      handleSetSpeed(wasmModule, data.payload.speed);
       break;
     }
     case 'RESET': {

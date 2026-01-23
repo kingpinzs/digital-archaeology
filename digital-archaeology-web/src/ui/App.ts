@@ -921,6 +921,61 @@ export class App {
   }
 
   /**
+   * Handle Reset button click (Story 4.7).
+   * Resets the CPU to initial state (PC=0, Accumulator=0, Flags cleared, Memory restored).
+   * Stops execution first if running.
+   * @returns void
+   */
+  private async handleReset(): Promise<void> {
+    if (!this.emulatorBridge) return;
+
+    try {
+      // Reset CPU state (stops if running automatically)
+      this.cpuState = await this.emulatorBridge.reset();
+
+      // Update running state
+      this.isRunning = false;
+
+      // Clean up any active subscriptions
+      this.cleanupEmulatorSubscriptions();
+
+      // Update UI to show Run button and enable controls
+      this.toolbar?.updateState({
+        isRunning: false,
+        canRun: true,
+        canPause: false,
+        canStep: true,
+        canReset: true,
+      });
+
+      // Update status bar with reset state
+      this.statusBar?.updateState({
+        pcValue: this.cpuState.pc,
+        cycleCount: this.cpuState.cycles,
+        speed: null,
+        loadStatus: 'Reset',
+      });
+    } catch (error) {
+      console.error('Failed to reset:', error);
+      // Reset running state even on error
+      this.isRunning = false;
+      this.cleanupEmulatorSubscriptions();
+      this.toolbar?.updateState({
+        isRunning: false,
+        canRun: this.hasValidAssembly,
+        canPause: false,
+        canStep: this.hasValidAssembly,
+        canReset: this.hasValidAssembly,
+      });
+      // Update status bar to indicate reset failed
+      this.statusBar?.updateState({
+        speed: null,
+        loadStatus: 'Reset failed',
+      });
+    }
+  }
+
+  /**
    * Handle speed slider change (Story 4.5).
    * @param speed - New execution speed in Hz (1-1000)
    */
@@ -1391,7 +1446,7 @@ export class App {
       onAssembleClick: () => this.handleAssemble(),
       onRunClick: () => this.handleRun(),
       onPauseClick: () => this.handlePause(),
-      onResetClick: () => { /* Story 4.7: Reset Button */ },
+      onResetClick: () => this.handleReset(),
       onStepClick: () => { /* Epic 5: Debugging */ },
       onSpeedChange: (speed) => this.handleSpeedChange(speed),
       onHelpClick: () => { /* Epic 20: Educational Content */ },

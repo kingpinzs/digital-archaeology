@@ -239,6 +239,14 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   const terminateMock = vi.fn();
   const runMock = vi.fn();
   const stopMock = vi.fn(() => Promise.resolve(state.cpuState));
+  const resetMock = vi.fn(() => Promise.resolve({
+    ...state.cpuState,
+    pc: 0,
+    accumulator: 0,
+    zeroFlag: false,
+    cycles: 0,
+    instructions: 0,
+  }));
 
   // Event callback storage for simulating events (Story 4.5)
   let stateUpdateCallback: ((state: CPUState) => void) | null = null;
@@ -266,6 +274,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       terminate: terminateMock,
       run: runMock,
       stop: stopMock,
+      reset: resetMock,
       onStateUpdate: onStateUpdateMock,
       onHalted: onHaltedMock,
       onError: onErrorMock,
@@ -282,6 +291,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     terminate: terminateMock,
     run: runMock,
     stop: stopMock,
+    reset: resetMock,
     onStateUpdate: onStateUpdateMock,
     onHalted: onHaltedMock,
     onError: onErrorMock,
@@ -301,6 +311,9 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     },
     _setInitThrow: (error: Error) => {
       initMock.mockImplementation(() => Promise.reject(error));
+    },
+    _setResetThrow: (error: Error) => {
+      resetMock.mockImplementation(() => Promise.reject(error));
     },
     // Story 4.5: Trigger event callbacks for testing
     _triggerStateUpdate: (cpuState: CPUState) => {
@@ -334,11 +347,20 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       terminateMock.mockClear();
       runMock.mockClear();
       stopMock.mockClear();
+      resetMock.mockClear();
       onStateUpdateMock.mockClear();
       onHaltedMock.mockClear();
       onErrorMock.mockClear();
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
       stopMock.mockImplementation(() => Promise.resolve(state.cpuState));
+      resetMock.mockImplementation(() => Promise.resolve({
+        ...state.cpuState,
+        pc: 0,
+        accumulator: 0,
+        zeroFlag: false,
+        cycles: 0,
+        instructions: 0,
+      }));
       stateUpdateCallback = null;
       haltedCallback = null;
       errorCallback = null;
@@ -3489,6 +3511,235 @@ describe('App', () => {
           expect(app.getToolbar()?.getState().canStep).toBe(true);
         });
       });
+    });
+  });
+
+  describe('Reset button (Story 4.7)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockEmulatorBridge._reset();
+      app.mount(container);
+    });
+
+    // Helper to assemble and load a program
+    const assembleAndLoad = async () => {
+      const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: binary,
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+      });
+    };
+
+    it('should call emulatorBridge.reset() when Reset clicked (AC: #1-4)', async () => {
+      await assembleAndLoad();
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        expect(mockEmulatorBridge.reset).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should update toolbar state after reset (AC: #6)', async () => {
+      await assembleAndLoad();
+
+      // Start running first
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // Then reset
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        const toolbar = app.getToolbar();
+        expect(toolbar?.getState().isRunning).toBe(false);
+        expect(toolbar?.getState().canRun).toBe(true);
+        expect(toolbar?.getState().canPause).toBe(false);
+        expect(toolbar?.getState().canStep).toBe(true);
+        expect(toolbar?.getState().canReset).toBe(true);
+      });
+    });
+
+    it('should update status bar with "Reset" message (AC: #5)', async () => {
+      await assembleAndLoad();
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().loadStatus).toBe('Reset');
+      });
+    });
+
+    it('should clear speed from status bar after reset', async () => {
+      await assembleAndLoad();
+
+      // Start running to set speed
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // Then reset
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().speed).toBeNull();
+      });
+    });
+
+    it('should reset CPU state to initial values (AC: #1-4)', async () => {
+      await assembleAndLoad();
+
+      // First, simulate running with non-zero state
+      mockEmulatorBridge._setCpuState({
+        pc: 10,
+        accumulator: 42,
+        memory: new Uint8Array(256),
+        zeroFlag: true,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        ir: 0x15,
+        mar: 10,
+        mdr: 42,
+        cycles: 100,
+        instructions: 50,
+      });
+
+      // Configure reset to return fully reset state (AC: #1-4)
+      // AC #1: PC is set to 0
+      // AC #2: Accumulator is cleared
+      // AC #3: Flags are cleared
+      // AC #4: Memory is reset (handled by EmulatorBridge internally)
+      const resetState = {
+        pc: 0,
+        accumulator: 0,
+        memory: new Uint8Array(256),
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        ir: 0,
+        mar: 0,
+        mdr: 0,
+        cycles: 0,
+        instructions: 0,
+      };
+      mockEmulatorBridge.reset.mockResolvedValue(resetState);
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        // Verify reset() was called and returned the expected reset state
+        expect(mockEmulatorBridge.reset).toHaveBeenCalledTimes(1);
+
+        // Verify status bar reflects reset state (AC: #1 - PC=0)
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().pcValue).toBe(0);
+        expect(statusBar?.getState().cycleCount).toBe(0);
+
+        // Note: Accumulator and flag display (AC: #2, #3) is implemented in Epic 5: RegisterView
+        // The reset() mock returning accumulator=0 and zeroFlag=false verifies the state is reset
+        // The actual UI display of these values will be tested in Epic 5
+      });
+    });
+
+    it('should stop execution before reset if running (AC: #6)', async () => {
+      await assembleAndLoad();
+
+      // Start running
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      await vi.waitFor(() => {
+        expect(app.getToolbar()?.getState().isRunning).toBe(true);
+      });
+
+      // Reset while running
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        // EmulatorBridge.reset() handles stopping internally, but App should update isRunning
+        expect(app.getToolbar()?.getState().isRunning).toBe(false);
+        expect(mockEmulatorBridge.reset).toHaveBeenCalled();
+      });
+    });
+
+    it('should be disabled when no program is loaded', () => {
+      // Don't load a program - check that reset button is disabled
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      expect(resetBtn.disabled).toBe(true);
+    });
+
+    it('should be enabled after program is loaded', async () => {
+      await assembleAndLoad();
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      expect(resetBtn.disabled).toBe(false);
+    });
+
+    it('should show "Reset failed" in status bar when reset() throws error', async () => {
+      await assembleAndLoad();
+
+      // Configure reset to throw
+      mockEmulatorBridge._setResetThrow(new Error('Reset failed'));
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        const statusBar = app.getStatusBar();
+        expect(statusBar?.getState().loadStatus).toBe('Reset failed');
+      });
+    });
+
+    it('should reset running state even when reset() throws error', async () => {
+      await assembleAndLoad();
+
+      // Start running
+      const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+      runBtn.click();
+
+      // Configure reset to throw
+      mockEmulatorBridge._setResetThrow(new Error('Reset failed'));
+
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+      resetBtn.click();
+
+      await vi.waitFor(() => {
+        const toolbar = app.getToolbar();
+        // Even on error, running state should be reset
+        expect(toolbar?.getState().isRunning).toBe(false);
+        expect(toolbar?.getState().canRun).toBe(true);
+      });
+    });
+
+    it('should do nothing when reset is called without emulatorBridge', async () => {
+      // Don't load a program, so emulatorBridge won't be initialized
+      // The reset button should be disabled anyway, but let's verify handleReset handles null bridge
+      const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+
+      // Force click even if disabled (for coverage)
+      resetBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+      // reset() should not have been called since there's no bridge
+      expect(mockEmulatorBridge.reset).not.toHaveBeenCalled();
     });
   });
 

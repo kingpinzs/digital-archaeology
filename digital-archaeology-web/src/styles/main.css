@@ -19,6 +19,7 @@
   --da-bg-primary: #1a1a2e;
   --da-bg-secondary: #252542;
   --da-bg-tertiary: #2f2f52;
+  --da-bg-hover: #3a3a62;
 
   /* Text colors - high contrast light gray */
   --da-text-primary: #e0e0e0;
@@ -78,6 +79,7 @@
   --da-bg-primary: #1a1a2e;
   --da-bg-secondary: #252542;
   --da-bg-tertiary: #2f2f52;
+  --da-bg-hover: #3a3a62;
 
   /* Text colors - high contrast light gray */
   --da-text-primary: #e0e0e0;
@@ -125,6 +127,7 @@
   --da-bg-primary: #0a0a12;
   --da-bg-secondary: #141420;
   --da-bg-tertiary: #1e1e2a;
+  --da-bg-hover: #2a2a3a;
 
   /* Text colors - warm white */
   --da-text-primary: #f0e6d6;
@@ -1204,4 +1207,100 @@ body.da-resizing * {
 
 .da-error-fix-btn:active {
   transform: scale(0.98);
+}
+
+/* =============================================================================
+   Binary Output Panel Component (Story 3.6)
+   Displays assembled binary as hex dump with 16 bytes per row
+   ============================================================================= */
+
+/* Binary Panel Container */
+.da-binary-panel {
+  background: var(--da-bg-secondary);
+  border-top: 1px solid var(--da-accent);
+  max-height: 200px;
+}
+
+.da-binary-panel--hidden {
+  display: none;
+}
+
+/* Scrollable content container */
+.da-binary-content {
+  padding: 8px 12px;
+  overflow-y: auto;
+  max-height: 160px;
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Liberation Mono', monospace;
+  font-size: 12px;
+}
+
+/* Single row of hex dump */
+.da-binary-row {
+  display: flex;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+/* Address prefix (0x0000:, 0x0010:, etc.) */
+.da-binary-address {
+  color: var(--da-text-secondary);
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+/* Byte values */
+.da-binary-bytes {
+  color: var(--da-text-primary);
+  letter-spacing: 0.5px;
+}
+
+/* Toggle button in error panel header area */
+.da-binary-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  margin-left: 8px;
+  background: var(--da-bg-tertiary);
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--da-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.da-binary-toggle:hover {
+  background: var(--da-bg-hover);
+  border-color: var(--da-accent);
+  color: var(--da-text-primary);
+}
+
+.da-binary-toggle:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+.da-binary-toggle--active {
+  background: rgba(0, 180, 216, 0.15);
+  border-color: var(--da-accent);
+  color: var(--da-accent);
+}
+
+.da-binary-toggle--active:hover {
+  background: rgba(0, 180, 216, 0.25);
+}
+
+/* Binary toggle container - placed in error panel area */
+.da-binary-toggle-container {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--da-bg-secondary);
+  border-top: 1px solid var(--da-border);
+}
+
+.da-binary-toggle-container--hidden {
+  display: none;
 }

@@ -43,3 +43,7 @@ export type { KeyboardShortcut } from './keyboardShortcuts';
 // ErrorPanel exports
 export { ErrorPanel } from './ErrorPanel';
 export type { ErrorPanelOptions, ErrorClickInfo } from './ErrorPanel';
+
+// BinaryOutputPanel exports
+export { BinaryOutputPanel } from './BinaryOutputPanel';
+export type { BinaryOutputPanelOptions } from './BinaryOutputPanel';

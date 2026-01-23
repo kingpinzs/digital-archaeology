@@ -12,6 +12,7 @@ import type { PanelId } from './PanelHeader';
 import { Editor } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
+import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError } from '@emulator/index';
 
@@ -60,6 +61,14 @@ export class App {
 
   // Error panel for displaying assembly errors
   private errorPanel: ErrorPanel | null = null;
+
+  // Binary output panel for displaying assembled binary as hex dump
+  private binaryOutputPanel: BinaryOutputPanel | null = null;
+
+  // Toggle button for binary view
+  private binaryToggleContainer: HTMLElement | null = null;
+  private binaryToggleButton: HTMLButtonElement | null = null;
+  private boundBinaryToggleHandler: (() => void) | null = null;
 
   // Assembler bridge for WASM worker communication
   private assemblerBridge: AssemblerBridge | null = null;
@@ -358,6 +367,9 @@ export class App {
     // Initialize ErrorPanel for assembly errors (Story 3.4)
     this.initializeErrorPanel(codePanelContent as HTMLElement);
 
+    // Initialize BinaryOutputPanel for hex dump display (Story 3.6)
+    this.initializeBinaryOutputPanel(codePanelContent as HTMLElement);
+
     // Initialize AssemblerBridge for code assembly
     this.initializeAssemblerBridge();
   }
@@ -434,6 +446,81 @@ export class App {
    */
   getErrorPanel(): ErrorPanel | null {
     return this.errorPanel;
+  }
+
+  /**
+   * Initialize the BinaryOutputPanel with toggle button below the error panel area.
+   * @param codePanelContent - The code panel content container
+   * @returns void
+   */
+  private initializeBinaryOutputPanel(codePanelContent: HTMLElement): void {
+    // Create toggle button container (shown when assembly succeeds)
+    this.binaryToggleContainer = document.createElement('div');
+    this.binaryToggleContainer.className = 'da-binary-toggle-container da-binary-toggle-container--hidden';
+
+    this.binaryToggleButton = document.createElement('button');
+    this.binaryToggleButton.className = 'da-binary-toggle';
+    this.binaryToggleButton.textContent = 'Binary';
+    this.binaryToggleButton.type = 'button';
+    this.binaryToggleButton.setAttribute('aria-label', 'Toggle binary output view');
+    this.binaryToggleButton.setAttribute('aria-pressed', 'false');
+    this.boundBinaryToggleHandler = () => this.handleBinaryToggle();
+    this.binaryToggleButton.addEventListener('click', this.boundBinaryToggleHandler);
+
+    this.binaryToggleContainer.appendChild(this.binaryToggleButton);
+    codePanelContent.appendChild(this.binaryToggleContainer);
+
+    // Create container for binary panel
+    const binaryContainer = document.createElement('div');
+    binaryContainer.className = 'da-binary-panel-container';
+    codePanelContent.appendChild(binaryContainer);
+
+    this.binaryOutputPanel = new BinaryOutputPanel({
+      onToggle: (visible) => {
+        // Update toggle button state
+        this.binaryToggleButton?.classList.toggle('da-binary-toggle--active', visible);
+        this.binaryToggleButton?.setAttribute('aria-pressed', String(visible));
+      },
+    });
+    this.binaryOutputPanel.mount(binaryContainer);
+  }
+
+  /**
+   * Handle binary toggle button click.
+   */
+  private handleBinaryToggle(): void {
+    this.binaryOutputPanel?.toggle();
+  }
+
+  /**
+   * Destroy the BinaryOutputPanel and toggle button.
+   * @returns void
+   */
+  private destroyBinaryOutputPanel(): void {
+    if (this.binaryOutputPanel) {
+      this.binaryOutputPanel.destroy();
+      this.binaryOutputPanel = null;
+    }
+    if (this.binaryToggleButton) {
+      if (this.boundBinaryToggleHandler) {
+        this.binaryToggleButton.removeEventListener('click', this.boundBinaryToggleHandler);
+        this.boundBinaryToggleHandler = null;
+      }
+      this.binaryToggleButton.remove();
+      this.binaryToggleButton = null;
+    }
+    if (this.binaryToggleContainer) {
+      this.binaryToggleContainer.remove();
+      this.binaryToggleContainer = null;
+    }
+  }
+
+  /**
+   * Get the BinaryOutputPanel instance for testing.
+   * @returns The BinaryOutputPanel instance or null if not initialized
+   */
+  getBinaryOutputPanel(): BinaryOutputPanel | null {
+    return this.binaryOutputPanel;
   }
 
   /**
@@ -545,6 +632,10 @@ export class App {
           canStep: true,
           canReset: true,
         });
+
+        // Show binary output toggle and set binary data (Story 3.6)
+        this.binaryToggleContainer?.classList.remove('da-binary-toggle-container--hidden');
+        this.binaryOutputPanel?.setBinary(result.binary);
       } else {
         // Display error message in status bar
         const errorMsg = result.error?.message ?? 'Assembly failed';
@@ -560,6 +651,11 @@ export class App {
           this.errorPanel?.setErrors(errors);
           this.editor?.setErrorDecorations(errors);
         }
+
+        // Hide binary toggle and clear binary data on error (Story 3.6)
+        this.binaryToggleContainer?.classList.add('da-binary-toggle-container--hidden');
+        this.binaryOutputPanel?.setBinary(null);
+        this.binaryOutputPanel?.hide();
       }
     } catch (error) {
       // Handle unexpected errors (worker crash, timeout, etc.)
@@ -979,6 +1075,9 @@ export class App {
 
     // Destroy error panel
     this.destroyErrorPanel();
+
+    // Destroy binary output panel
+    this.destroyBinaryOutputPanel();
 
     // Destroy keyboard shortcuts dialog
     this.destroyKeyboardShortcutsDialog();

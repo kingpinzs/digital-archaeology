@@ -2131,5 +2131,237 @@ describe('App', () => {
         expect(mockEditorInstance.focus).toHaveBeenCalled();
       });
     });
+
+    describe('BinaryOutputPanel integration (Story 3.6)', () => {
+      it('should show binary toggle button after successful assembly', async () => {
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleContainer = container.querySelector('.da-binary-toggle-container');
+          expect(toggleContainer?.classList.contains('da-binary-toggle-container--hidden')).toBe(false);
+        });
+      });
+
+      it('should hide binary toggle button after assembly error', async () => {
+        // First succeed to show the toggle
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleContainer = container.querySelector('.da-binary-toggle-container');
+          expect(toggleContainer?.classList.contains('da-binary-toggle-container--hidden')).toBe(false);
+        });
+
+        // Now fail assembly
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction: INVALID' },
+        });
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleContainer = container.querySelector('.da-binary-toggle-container');
+          expect(toggleContainer?.classList.contains('da-binary-toggle-container--hidden')).toBe(true);
+        });
+      });
+
+      it('should toggle binary panel visibility when toggle button clicked', async () => {
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleBtn = container.querySelector('.da-binary-toggle');
+          expect(toggleBtn).not.toBeNull();
+        });
+
+        const toggleBtn = container.querySelector('.da-binary-toggle') as HTMLButtonElement;
+        const binaryPanel = container.querySelector('.da-binary-panel');
+
+        // Initially hidden
+        expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(true);
+
+        // Click to show
+        toggleBtn.click();
+        expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(false);
+        expect(toggleBtn.classList.contains('da-binary-toggle--active')).toBe(true);
+        expect(toggleBtn.getAttribute('aria-pressed')).toBe('true');
+
+        // Click to hide
+        toggleBtn.click();
+        expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(true);
+        expect(toggleBtn.classList.contains('da-binary-toggle--active')).toBe(false);
+        expect(toggleBtn.getAttribute('aria-pressed')).toBe('false');
+      });
+
+      it('should display binary data as hex dump after successful assembly', async () => {
+        mockEditorInstance._setContent('LDA 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05\nHLT');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05, 0xF0, 0x00]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleBtn = container.querySelector('.da-binary-toggle');
+          expect(toggleBtn).not.toBeNull();
+        });
+
+        // Show the panel
+        const toggleBtn = container.querySelector('.da-binary-toggle') as HTMLButtonElement;
+        toggleBtn.click();
+
+        // Verify hex dump is displayed
+        const binaryContent = container.querySelector('.da-binary-content');
+        expect(binaryContent?.textContent).toContain('0x0000:');
+        expect(binaryContent?.textContent).toContain('1A');
+        expect(binaryContent?.textContent).toContain('05');
+        expect(binaryContent?.textContent).toContain('F0');
+        expect(binaryContent?.textContent).toContain('00');
+      });
+
+      it('should clear binary data when assembly fails', async () => {
+        // First succeed
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleBtn = container.querySelector('.da-binary-toggle');
+          expect(toggleBtn).not.toBeNull();
+        });
+
+        // Show the panel and verify data
+        const toggleBtn = container.querySelector('.da-binary-toggle') as HTMLButtonElement;
+        toggleBtn.click();
+
+        let binaryRows = container.querySelectorAll('.da-binary-row');
+        expect(binaryRows.length).toBe(1);
+
+        // Now fail assembly
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Unknown instruction: INVALID' },
+        });
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          binaryRows = container.querySelectorAll('.da-binary-row');
+          expect(binaryRows.length).toBe(0);
+        });
+      });
+
+      it('should expose getBinaryOutputPanel method', () => {
+        expect(app.getBinaryOutputPanel()).not.toBeNull();
+      });
+
+      it('should hide binary panel after assembly error', async () => {
+        // First succeed and show the panel
+        mockEditorInstance._setContent('LDA 0x05');
+        mockEditorInstance.getValue.mockReturnValue('LDA 0x05');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x1A, 0x05]),
+          error: null,
+        });
+
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const toggleBtn = container.querySelector('.da-binary-toggle');
+          expect(toggleBtn).not.toBeNull();
+        });
+
+        // Show the panel
+        const toggleBtn = container.querySelector('.da-binary-toggle') as HTMLButtonElement;
+        toggleBtn.click();
+
+        const binaryPanel = container.querySelector('.da-binary-panel');
+        expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(false);
+
+        // Now fail assembly
+        mockEditorInstance._setContent('INVALID');
+        mockEditorInstance.getValue.mockReturnValue('INVALID');
+        mockAssemblerBridge._setAssembleResult({
+          success: false,
+          binary: null,
+          error: { line: 1, message: 'Error' },
+        });
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(binaryPanel?.classList.contains('da-binary-panel--hidden')).toBe(true);
+        });
+      });
+    });
   });
 });

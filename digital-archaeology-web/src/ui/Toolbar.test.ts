@@ -20,6 +20,7 @@ describe('Toolbar', () => {
       onPauseClick: vi.fn(),
       onResetClick: vi.fn(),
       onStepClick: vi.fn(),
+      onStepBackClick: vi.fn(),
       onSpeedChange: vi.fn(),
       onHelpClick: vi.fn(),
       onSettingsClick: vi.fn(),
@@ -464,6 +465,32 @@ describe('Toolbar', () => {
       toolbar.destroy();
     });
 
+    it('should call onStepBackClick when Step Back button clicked (when enabled) (Story 5.2)', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canStepBack: true });
+      const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+      stepBackBtn.click();
+
+      expect(mockCallbacks.onStepBackClick).toHaveBeenCalledTimes(1);
+
+      toolbar.destroy();
+    });
+
+    it('should NOT call onStepBackClick when Step Back button is disabled (Story 5.2)', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      // Step Back is disabled by default
+      const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+      stepBackBtn.click();
+
+      expect(mockCallbacks.onStepBackClick).not.toHaveBeenCalled();
+
+      toolbar.destroy();
+    });
+
     it('should call onSpeedChange when slider value changes', () => {
       const toolbar = new Toolbar(mockCallbacks);
       toolbar.mount(container);
@@ -761,6 +788,92 @@ describe('Toolbar', () => {
 
       toolbar.updateState({ canRun: false });
       expect(runBtn.title).toBe('Assemble first (F5)');
+    });
+  });
+
+  describe('Step Back button (Story 5.2)', () => {
+    it('should render Step Back button', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBackBtn = container.querySelector('[data-action="step-back"]');
+      expect(stepBackBtn).not.toBeNull();
+      expect(stepBackBtn?.textContent).toContain('Back');
+
+      toolbar.destroy();
+    });
+
+    it('should have correct aria-keyshortcuts attribute for F9', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBackBtn = container.querySelector('[data-action="step-back"]');
+      expect(stepBackBtn?.getAttribute('aria-keyshortcuts')).toBe('F9');
+
+      toolbar.destroy();
+    });
+
+    it('should have correct aria-label for screen readers', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBackBtn = container.querySelector('[data-action="step-back"]');
+      expect(stepBackBtn?.getAttribute('aria-label')).toBe('Step back one instruction');
+
+      toolbar.destroy();
+    });
+
+    it('should have correct title tooltip', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBackBtn = container.querySelector('[data-action="step-back"]');
+      expect(stepBackBtn?.getAttribute('title')).toBe('Step back one instruction (F9)');
+
+      toolbar.destroy();
+    });
+
+    it('should be disabled by default', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+      expect(stepBackBtn.disabled).toBe(true);
+
+      toolbar.destroy();
+    });
+
+    it('should be enabled when canStepBack is true', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canStepBack: true });
+      const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+      expect(stepBackBtn.disabled).toBe(false);
+
+      toolbar.destroy();
+    });
+
+    it('should be disabled when canStepBack is false', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ canStepBack: true });
+      toolbar.updateState({ canStepBack: false });
+      const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+      expect(stepBackBtn.disabled).toBe(true);
+
+      toolbar.destroy();
+    });
+
+    it('should initialize canStepBack to false in default state', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const state = toolbar.getState();
+      expect(state.canStepBack).toBe(false);
+
+      toolbar.destroy();
     });
   });
 });

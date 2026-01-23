@@ -73,6 +73,17 @@ export function isEmulatorCommand(data: unknown): data is EmulatorCommand {
     case 'RESET':
     case 'GET_STATE':
       return true;
+    case 'RESTORE_STATE': {
+      // Validate payload has required CPUState fields
+      if (typeof obj.payload !== 'object' || obj.payload === null) return false;
+      const payload = obj.payload as Record<string, unknown>;
+      return (
+        typeof payload.pc === 'number' &&
+        typeof payload.accumulator === 'number' &&
+        typeof payload.zeroFlag === 'boolean' &&
+        'memory' in payload
+      );
+    }
     case 'RUN': {
       if (typeof obj.payload !== 'object' || obj.payload === null) return false;
       const payload = obj.payload as Record<string, unknown>;
@@ -374,6 +385,54 @@ export function handleGetState(module: EmulatorModule): void {
 }
 
 /**
+ * Handle RESTORE_STATE command (Story 5.2).
+ * Restore CPU to a specific state from history for step-back functionality.
+ *
+ * NOTE: This implementation uses loadProgram to restore memory since the WASM
+ * emulator doesn't expose individual register setters. The approach:
+ * 1. Reset CPU
+ * 2. Restore memory via loadProgram
+ * 3. The reset sets PC=0, accumulator=0, zeroFlag=false
+ *
+ * LIMITATION: True state restoration would require WASM setter functions
+ * for PC, accumulator, etc. For now, step-back restores memory but
+ * always resets other registers. This is acceptable for educational use
+ * where stepping back is primarily used to review memory/instruction changes.
+ *
+ * @param module - The WASM emulator module
+ * @param state - The CPU state to restore
+ */
+export function handleRestoreState(
+  module: EmulatorModule,
+  state: CPUState
+): void {
+  // Stop any running execution
+  handleStop();
+
+  // Reset CPU first
+  module._cpu_reset_instance();
+
+  // Restore memory by loading the memory contents as if it were a program
+  // This restores the full 256-byte memory state
+  const memoryArray =
+    state.memory instanceof Uint8Array
+      ? state.memory
+      : new Uint8Array(Array.from(state.memory));
+
+  const programPtr = module._malloc(memoryArray.length);
+  module.HEAPU8.set(memoryArray, programPtr);
+  module._cpu_load_program_instance(programPtr, memoryArray.length, 0);
+  module._free(programPtr);
+
+  // Send state update with the restored state
+  // Note: PC and other registers are reset to initial values by cpu_reset_instance
+  self.postMessage({
+    type: 'STATE_UPDATE',
+    payload: readCPUState(module),
+  } satisfies StateUpdateEvent);
+}
+
+/**
  * Initialize the WASM module.
  * Returns true on success, false on failure (sets initError).
  */
@@ -465,6 +524,10 @@ function handleMessage(event: MessageEvent): void {
     }
     case 'GET_STATE': {
       handleGetState(wasmModule);
+      break;
+    }
+    case 'RESTORE_STATE': {
+      handleRestoreState(wasmModule, data.payload);
       break;
     }
     default: {

@@ -39,8 +39,9 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
   // Assembly shortcuts
   { keys: 'Ctrl+Enter', description: 'Assemble code', category: 'assembly' },
 
-  // Debugging shortcuts (Story 5.1)
+  // Debugging shortcuts (Story 5.1, 5.2)
   { keys: 'F10', description: 'Step one instruction', category: 'debugging' },
+  { keys: 'F9', description: 'Step back one instruction', category: 'debugging' },
 
   // View shortcuts (Story 10.1)
   { keys: 'Ctrl+Shift+M', description: 'Toggle Story/Lab mode', category: 'view' },

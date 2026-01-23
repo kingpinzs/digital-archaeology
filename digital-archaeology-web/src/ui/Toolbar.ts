@@ -16,6 +16,8 @@ export interface ToolbarState {
   canReset: boolean;
   /** Can the Step button be clicked */
   canStep: boolean;
+  /** Can the Step Back button be clicked (Story 5.2) */
+  canStepBack: boolean;
   /** Is execution currently running (toggles Run/Pause visibility) */
   isRunning: boolean;
   /** Current execution speed in Hz (1-1000) */
@@ -38,6 +40,8 @@ export interface ToolbarCallbacks {
   onResetClick: () => void;
   /** Called when Step button is clicked */
   onStepClick: () => void;
+  /** Called when Step Back button is clicked (Story 5.2) */
+  onStepBackClick: () => void;
   /** Called when speed slider value changes */
   onSpeedChange: (speed: number) => void;
   /** Called when Help button is clicked */
@@ -73,6 +77,7 @@ export class Toolbar {
       canPause: false,
       canReset: false,
       canStep: false,
+      canStepBack: false,
       isRunning: false,
       speed: 60,
     };
@@ -179,6 +184,9 @@ export class Toolbar {
         </button>
         <button class="da-toolbar-btn" data-action="step" aria-label="Step one instruction" aria-keyshortcuts="F10" disabled>
           <span class="da-toolbar-btn-icon">⏭</span><span class="da-toolbar-btn-text">Step</span>
+        </button>
+        <button class="da-toolbar-btn" data-action="step-back" aria-label="Step back one instruction" aria-keyshortcuts="F9" title="Step back one instruction (F9)" disabled>
+          <span class="da-toolbar-btn-icon">⏮</span><span class="da-toolbar-btn-text">Back</span>
         </button>
       </div>
 
@@ -333,6 +341,9 @@ export class Toolbar {
       case 'step':
         this.callbacks.onStepClick();
         break;
+      case 'step-back':
+        this.callbacks.onStepBackClick();
+        break;
       case 'help':
         this.callbacks.onHelpClick();
         break;
@@ -352,6 +363,7 @@ export class Toolbar {
     this.setButtonDisabled('pause', !this.state.canPause);
     this.setButtonDisabled('reset', !this.state.canReset);
     this.setButtonDisabled('step', !this.state.canStep);
+    this.setButtonDisabled('step-back', !this.state.canStepBack);
 
     // Update tooltips based on disabled state (Story 3.7)
     this.updateButtonTooltip('run', !this.state.canRun);

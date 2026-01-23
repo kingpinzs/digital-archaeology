@@ -249,6 +249,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     cycles: 0,
     instructions: 0,
   }));
+  const restoreStateMock = vi.fn(() => Promise.resolve(state.cpuState));
 
   // Event callback storage for simulating events (Story 4.5)
   let stateUpdateCallback: ((state: CPUState) => void) | null = null;
@@ -279,6 +280,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       step: stepMock,
       stop: stopMock,
       reset: resetMock,
+      restoreState: restoreStateMock,
       onStateUpdate: onStateUpdateMock,
       onHalted: onHaltedMock,
       onError: onErrorMock,
@@ -298,6 +300,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     step: stepMock,
     stop: stopMock,
     reset: resetMock,
+    restoreState: restoreStateMock,
     onStateUpdate: onStateUpdateMock,
     onHalted: onHaltedMock,
     onError: onErrorMock,
@@ -326,6 +329,13 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     },
     _setStepThrow: (error: Error) => {
       stepMock.mockImplementation(() => Promise.reject(error));
+    },
+    // Story 5.2: Set restore state result
+    _setRestoreStateResult: (cpuState: CPUState) => {
+      restoreStateMock.mockImplementation(() => Promise.resolve(cpuState));
+    },
+    _setResetResult: (cpuState: CPUState) => {
+      resetMock.mockImplementation(() => Promise.resolve(cpuState));
     },
     // Story 4.5: Trigger event callbacks for testing
     _triggerStateUpdate: (cpuState: CPUState) => {
@@ -362,11 +372,13 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       stepMock.mockClear();
       stopMock.mockClear();
       resetMock.mockClear();
+      restoreStateMock.mockClear();
       onStateUpdateMock.mockClear();
       onHaltedMock.mockClear();
       onErrorMock.mockClear();
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
       stepMock.mockImplementation(() => Promise.resolve(state.cpuState));
+      restoreStateMock.mockImplementation(() => Promise.resolve(state.cpuState));
       stopMock.mockImplementation(() => Promise.resolve(state.cpuState));
       resetMock.mockImplementation(() => Promise.resolve({
         ...state.cpuState,
@@ -4762,6 +4774,531 @@ describe('App', () => {
 
       // Mode should still be what it was (the property doesn't reset on destroy)
       expect(app.getCurrentMode()).toBe('lab');
+    });
+  });
+
+  // ============================================================================
+  // Story 5.2: State History Interface and Constants
+  // ============================================================================
+
+  describe('State History (Story 5.2)', () => {
+    describe('StateHistoryEntry interface and MAX_HISTORY_SIZE constant', () => {
+      it('should export StateHistoryEntry interface type', async () => {
+        // Verify the type is exported by importing it
+        const module = await import('./App');
+        expect(module).toHaveProperty('MAX_HISTORY_SIZE');
+      });
+
+      it('should export MAX_HISTORY_SIZE constant with value 50', async () => {
+        const module = await import('./App');
+        expect(module.MAX_HISTORY_SIZE).toBe(50);
+      });
+
+      it('should have stateHistory initialized as empty array', () => {
+        // Access private property via type assertion for testing
+        const appAny = app as unknown as { stateHistory: unknown[] };
+        expect(appAny.stateHistory).toEqual([]);
+      });
+
+      it('should have historyPointer initialized to -1', () => {
+        // Access private property via type assertion for testing
+        const appAny = app as unknown as { historyPointer: number };
+        expect(appAny.historyPointer).toBe(-1);
+      });
+    });
+
+    describe('State history recording', () => {
+      beforeEach(() => {
+        vi.clearAllMocks();
+        mockAssemblerBridge._reset();
+        mockEmulatorBridge._reset();
+        mockEditorInstance._resetContent();
+        contentChangeListeners.length = 0;
+        addedActions.length = 0;
+        app.mount(container);
+      });
+
+      // Helper to assemble and load a program
+      const assembleAndLoadForHistory = async () => {
+        const binary = new Uint8Array([0x10, 0x42, 0x20, 0x00, 0xF0]); // LDI 0x42, STA 0, HLT
+        mockEditorInstance._setContent('LDI 0x42\nSTA 0\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nSTA 0\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+      };
+
+      it('should push current state to history before stepping', async () => {
+        await assembleAndLoadForHistory();
+
+        const appAny = app as unknown as { stateHistory: unknown[] };
+        expect(appAny.stateHistory.length).toBe(0);
+
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0x42,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          expect(appAny.stateHistory.length).toBe(1);
+        });
+      });
+
+      it('should enforce MAX_HISTORY_SIZE by removing oldest entries', async () => {
+        await assembleAndLoadForHistory();
+
+        const appAny = app as unknown as {
+          stateHistory: unknown[];
+          pushStateToHistory: (state: unknown) => void;
+        };
+
+        // Push 55 states manually (exceeds MAX_HISTORY_SIZE of 50)
+        const mockState = {
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        };
+
+        for (let i = 0; i < 55; i++) {
+          appAny.pushStateToHistory({ ...mockState, pc: i });
+        }
+
+        // Should be capped at MAX_HISTORY_SIZE
+        expect(appAny.stateHistory.length).toBeLessThanOrEqual(50);
+      });
+
+      it('should clear history on program load', async () => {
+        await assembleAndLoadForHistory();
+
+        const appAny = app as unknown as {
+          stateHistory: unknown[];
+          pushStateToHistory: (state: unknown) => void;
+        };
+
+        // Add some history
+        appAny.pushStateToHistory({
+          pc: 0, accumulator: 0, zeroFlag: false, halted: false, error: false,
+          errorMessage: null, memory: new Uint8Array(256), ir: 0, mar: 0, mdr: 0,
+          cycles: 0, instructions: 0,
+        });
+        expect(appAny.stateHistory.length).toBe(1);
+
+        // Load a new program - should clear history
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0xF0]),
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(appAny.stateHistory.length).toBe(0);
+        });
+      });
+
+      it('should clear history on reset', async () => {
+        await assembleAndLoadForHistory();
+
+        const appAny = app as unknown as {
+          stateHistory: unknown[];
+          pushStateToHistory: (state: unknown) => void;
+        };
+
+        // Add some history
+        appAny.pushStateToHistory({
+          pc: 0, accumulator: 0, zeroFlag: false, halted: false, error: false,
+          errorMessage: null, memory: new Uint8Array(256), ir: 0, mar: 0, mdr: 0,
+          cycles: 0, instructions: 0,
+        });
+        expect(appAny.stateHistory.length).toBe(1);
+
+        mockEmulatorBridge._setResetResult({
+          pc: 0, accumulator: 0, zeroFlag: false, halted: false, error: false,
+          errorMessage: null, memory: new Uint8Array(256), ir: 0, mar: 0, mdr: 0,
+          cycles: 0, instructions: 0,
+        });
+
+        const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+        resetBtn.click();
+
+        await vi.waitFor(() => {
+          expect(appAny.stateHistory.length).toBe(0);
+        });
+      });
+
+      it('should clear history when code changes', async () => {
+        await assembleAndLoadForHistory();
+
+        const appAny = app as unknown as {
+          stateHistory: unknown[];
+          pushStateToHistory: (state: unknown) => void;
+        };
+
+        // Add some history
+        appAny.pushStateToHistory({
+          pc: 0, accumulator: 0, zeroFlag: false, halted: false, error: false,
+          errorMessage: null, memory: new Uint8Array(256), ir: 0, mar: 0, mdr: 0,
+          cycles: 0, instructions: 0,
+        });
+        expect(appAny.stateHistory.length).toBe(1);
+
+        // Change code
+        mockEditorInstance._setContent('LDI 0x00\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x00\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+
+        await vi.waitFor(() => {
+          expect(appAny.stateHistory.length).toBe(0);
+        });
+      });
+    });
+
+    describe('handleStepBack', () => {
+      beforeEach(() => {
+        vi.clearAllMocks();
+        mockAssemblerBridge._reset();
+        mockEmulatorBridge._reset();
+        mockEditorInstance._resetContent();
+        contentChangeListeners.length = 0;
+        addedActions.length = 0;
+        app.mount(container);
+      });
+
+      // Helper to assemble, load, and step to build history
+      const setupWithHistory = async () => {
+        const binary = new Uint8Array([0x10, 0x42, 0x20, 0x00, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nSTA 0\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nSTA 0\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step once to create history
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0x42,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const appAny = app as unknown as { stateHistory: unknown[] };
+          expect(appAny.stateHistory.length).toBe(1);
+        });
+      };
+
+      it('should enable Step Back button after stepping', async () => {
+        await setupWithHistory();
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        expect(stepBackBtn.disabled).toBe(false);
+      });
+
+      it('should disable Step Back button when no history', async () => {
+        // Just assemble and load without stepping
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        expect(stepBackBtn.disabled).toBe(true);
+      });
+
+      it('should call restoreState on emulator when stepping back', async () => {
+        await setupWithHistory();
+
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+        });
+      });
+
+      it('should update status bar with "Stepped back to" message', async () => {
+        await setupWithHistory();
+
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        // Wait for restoreState to be called and status bar to be updated
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+        });
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().assemblyMessage).toBe('Stepped back to 0x00');
+        });
+      });
+
+      it('should highlight restored instruction in editor', async () => {
+        await setupWithHistory();
+        mockEditorInstance.deltaDecorations.mockClear();
+
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEditorInstance.deltaDecorations).toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('F9 keyboard shortcut', () => {
+      beforeEach(() => {
+        vi.clearAllMocks();
+        mockAssemblerBridge._reset();
+        mockEmulatorBridge._reset();
+        mockEditorInstance._resetContent();
+        contentChangeListeners.length = 0;
+        addedActions.length = 0;
+        app.mount(container);
+      });
+
+      it('should trigger handleStepBack on F9 keypress when history exists', async () => {
+        // Set up with history
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to create history
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0x42,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const appAny = app as unknown as { stateHistory: unknown[] };
+          expect(appAny.stateHistory.length).toBe(1);
+        });
+
+        // Set up restore result
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        // Press F9
+        const keyEvent = new KeyboardEvent('keydown', { key: 'F9', bubbles: true });
+        window.dispatchEvent(keyEvent);
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+        });
+      });
+
+      it('should not trigger handleStepBack on F9 when no history', async () => {
+        // Assemble and load without stepping
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Press F9 with no history
+        const keyEvent = new KeyboardEvent('keydown', { key: 'F9', bubbles: true });
+        window.dispatchEvent(keyEvent);
+
+        // Should not call restoreState
+        expect(mockEmulatorBridge.restoreState).not.toHaveBeenCalled();
+      });
+
+      it('should prevent default browser behavior on F9', async () => {
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        const keyEvent = new KeyboardEvent('keydown', { key: 'F9', bubbles: true, cancelable: true });
+        const preventDefaultSpy = vi.spyOn(keyEvent, 'preventDefault');
+
+        window.dispatchEvent(keyEvent);
+
+        expect(preventDefaultSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('F9 in keyboard shortcuts dialog', () => {
+      it('should include F9 shortcut in debugging category', async () => {
+        const { KEYBOARD_SHORTCUTS } = await import('./keyboardShortcuts');
+        const f9Shortcut = KEYBOARD_SHORTCUTS.find(s => s.keys === 'F9');
+        expect(f9Shortcut).toBeDefined();
+        expect(f9Shortcut?.description).toBe('Step back one instruction');
+        expect(f9Shortcut?.category).toBe('debugging');
+      });
     });
   });
 });

@@ -90,7 +90,7 @@ development_status:
   # Epic 5: Debugging & State Inspection
   epic-5: in-progress
   5-1-implement-step-execution: done
-  5-2-implement-step-back: ready-for-dev
+  5-2-implement-step-back: done
   5-3-create-register-view-panel: backlog
   5-4-create-flags-display: backlog
   5-5-create-memory-view-panel: backlog

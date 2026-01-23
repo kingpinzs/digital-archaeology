@@ -30,6 +30,24 @@ export interface SourceMap {
 }
 
 /**
+ * State history entry for step-back functionality (Story 5.2).
+ * Stores a complete CPU state snapshot for navigation.
+ */
+export interface StateHistoryEntry {
+  /** Complete CPU state snapshot */
+  state: CPUState;
+  /** Timestamp for debugging/display (optional) */
+  timestamp: number;
+}
+
+/**
+ * Maximum number of CPU states to keep in history (Story 5.2).
+ * Each CPUState is ~300 bytes (256 byte memory + flags/registers).
+ * 50 entries = ~15KB - acceptable memory overhead.
+ */
+export const MAX_HISTORY_SIZE = 50;
+
+/**
  * Delay in milliseconds before announcing visibility changes to screen readers.
  * This delay ensures the DOM change is detected by assistive technology.
  */
@@ -127,6 +145,10 @@ export class App {
   // Throttling for high-speed UI updates (Story 4.5)
   private lastStateUpdateTime: number = 0;
   private readonly STATE_UPDATE_THROTTLE_MS = 16; // ~60fps max UI updates
+
+  // State history for step-back functionality (Story 5.2)
+  private stateHistory: StateHistoryEntry[] = [];
+  private historyPointer: number = -1; // -1 = at latest, tracking new states
 
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
@@ -550,6 +572,8 @@ export class App {
         // Invalidate assembly when code changes (Story 3.7)
         if (this.hasValidAssembly) {
           this.hasValidAssembly = false;
+          // Story 5.2: Clear state history when code changes
+          this.clearStateHistory();
           this.toolbar?.updateState({
             canRun: false,
             canStep: false,
@@ -825,6 +849,9 @@ export class App {
     }
 
     try {
+      // Story 5.2: Clear state history on program load
+      this.clearStateHistory();
+
       // loadProgram resets CPU and copies binary to memory
       // Issue #6 fix: No need for ! since we've already guarded for null above
       this.cpuState = await this.emulatorBridge.loadProgram(binary);
@@ -949,6 +976,9 @@ export class App {
     if (!this.emulatorBridge) return;
 
     try {
+      // Story 5.2: Clear state history on reset
+      this.clearStateHistory();
+
       // Reset CPU state (stops if running automatically)
       this.cpuState = await this.emulatorBridge.reset();
 
@@ -1030,6 +1060,11 @@ export class App {
     }
 
     try {
+      // Story 5.2: Push current state to history BEFORE stepping
+      if (this.cpuState) {
+        this.pushStateToHistory(this.cpuState);
+      }
+
       // Execute one instruction and get the resulting state
       this.cpuState = await this.emulatorBridge.step();
 
@@ -1053,9 +1088,69 @@ export class App {
       // Highlight current instruction line in editor (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
 
+      // Story 5.2: Enable Step Back button if history exists
+      this.toolbar?.updateState({ canStepBack: this.stateHistory.length > 0 });
+
     } catch (error) {
       console.error('Failed to step:', error);
       // Could update status bar to show error if needed
+    }
+  }
+
+  /**
+   * Handle step back button click - restores previous CPU state from history (Story 5.2).
+   * @returns Promise that resolves when step back is complete
+   */
+  private async handleStepBack(): Promise<void> {
+    // Guard: Can't step back if no history, running, or no valid assembly
+    if (this.stateHistory.length === 0 || this.isRunning || !this.hasValidAssembly) return;
+
+    // Guard: Can't step back without emulator bridge
+    if (!this.emulatorBridge?.isReady) {
+      console.error('EmulatorBridge not ready for step back');
+      return;
+    }
+
+    // Calculate target history index
+    let targetIndex: number;
+    if (this.historyPointer === -1) {
+      // First step back - go to most recent history entry
+      targetIndex = this.stateHistory.length - 1;
+    } else {
+      // Subsequent step back - go to previous entry
+      targetIndex = this.historyPointer - 1;
+    }
+
+    // Guard: Can't step back beyond beginning of history
+    if (targetIndex < 0) return;
+
+    try {
+      // Get the state from history
+      const historyEntry = this.stateHistory[targetIndex];
+      const restoredState = historyEntry.state;
+
+      // Restore state to emulator
+      this.cpuState = await this.emulatorBridge.restoreState(restoredState);
+
+      // Update history pointer
+      this.historyPointer = targetIndex;
+
+      // Update status bar
+      const pcHex = this.cpuState.pc.toString(16).toUpperCase().padStart(2, '0');
+      this.statusBar?.updateState({
+        assemblyMessage: `Stepped back to 0x${pcHex}`,
+        pcValue: this.cpuState.pc,
+        cycleCount: this.cpuState.cycles,
+      });
+
+      // Highlight the instruction at restored PC
+      this.highlightCurrentInstruction(this.cpuState.pc);
+
+      // Update Step Back button state
+      this.toolbar?.updateState({ canStepBack: targetIndex > 0 });
+
+    } catch (error) {
+      console.error('Failed to step back:', error);
     }
   }
 
@@ -1072,6 +1167,44 @@ export class App {
       this.editor.highlightLine(lineNumber);
     }
     // If PC doesn't map to a source line (e.g., in data section), don't change highlight
+  }
+
+  /**
+   * Push current CPU state to history before stepping (Story 5.2).
+   * If stepping from a history position, truncates future states.
+   * Enforces MAX_HISTORY_SIZE by removing oldest entries.
+   * @param state - The CPU state to record
+   */
+  private pushStateToHistory(state: CPUState): void {
+    // If we're stepping from a history position, truncate future states
+    if (this.historyPointer >= 0 && this.historyPointer < this.stateHistory.length - 1) {
+      this.stateHistory = this.stateHistory.slice(0, this.historyPointer + 1);
+    }
+
+    // Push the current state
+    this.stateHistory.push({
+      state: { ...state, memory: new Uint8Array(state.memory) }, // Deep copy memory
+      timestamp: Date.now(),
+    });
+
+    // Enforce MAX_HISTORY_SIZE by removing oldest entries
+    while (this.stateHistory.length > MAX_HISTORY_SIZE) {
+      this.stateHistory.shift();
+    }
+
+    // Reset pointer to latest (tracking mode)
+    this.historyPointer = -1;
+  }
+
+  /**
+   * Clear all state history and reset pointer (Story 5.2).
+   * Called on program load, reset, or code change.
+   */
+  private clearStateHistory(): void {
+    this.stateHistory = [];
+    this.historyPointer = -1;
+    // Update toolbar to disable Step Back button
+    this.toolbar?.updateState({ canStepBack: false });
   }
 
   /**
@@ -1612,6 +1745,7 @@ export class App {
       onPauseClick: () => this.handlePause(),
       onResetClick: () => this.handleReset(),
       onStepClick: () => this.handleStep(),
+      onStepBackClick: () => this.handleStepBack(),
       onSpeedChange: (speed) => this.handleSpeedChange(speed),
       onHelpClick: () => { /* Epic 20: Educational Content */ },
       onSettingsClick: () => { /* Epic 9: Settings */ },
@@ -1758,6 +1892,15 @@ export class App {
       // Only step if we have valid assembly and not currently running
       if (this.hasValidAssembly && !this.isRunning) {
         this.handleStep();
+      }
+    }
+
+    // F9: Step back one instruction (Story 5.2)
+    if (e.key === 'F9') {
+      e.preventDefault();
+      // Only step back if we have history, valid assembly and not currently running
+      if (this.stateHistory.length > 0 && this.hasValidAssembly && !this.isRunning) {
+        this.handleStepBack();
       }
     }
   }

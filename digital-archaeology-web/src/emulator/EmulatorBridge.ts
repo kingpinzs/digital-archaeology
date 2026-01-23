@@ -314,6 +314,24 @@ export class EmulatorBridge {
   }
 
   /**
+   * Restore CPU to a specific state (Story 5.2).
+   * Used for step-back functionality to revert to a previous state snapshot.
+   *
+   * @param state - The CPU state to restore (from history)
+   * @returns Promise resolving to restored CPU state
+   * @throws Error if bridge is not initialized or operation times out
+   */
+  async restoreState(state: CPUState): Promise<CPUState> {
+    this.ensureInitialized();
+    const worker = this.worker!;
+
+    return this.sendCommandAndWaitForState(worker, {
+      type: 'RESTORE_STATE',
+      payload: state,
+    });
+  }
+
+  /**
    * Subscribe to CPU state updates during RUN.
    *
    * @param callback - Function called with new state on each update

@@ -643,6 +643,15 @@ export interface GetStateCommand {
 }
 
 /**
+ * Command to restore CPU to a specific state (Story 5.2).
+ * Used for step-back functionality to revert to a previous state snapshot.
+ */
+export interface RestoreStateCommand {
+  type: 'RESTORE_STATE';
+  payload: CPUState;
+}
+
+/**
  * Command to change execution speed while running.
  * Only takes effect if the emulator is currently running.
  */
@@ -664,6 +673,7 @@ export type EmulatorCommand =
   | StopCommand
   | ResetCommand
   | GetStateCommand
+  | RestoreStateCommand
   | SetSpeedCommand;
 
 /**

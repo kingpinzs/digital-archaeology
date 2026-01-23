@@ -1629,3 +1629,94 @@ body.da-resizing * {
 .da-flag-changed {
   animation: da-register-flash 300ms ease-out;
 }
+
+/* =============================================================================
+   MemoryView Component Styles (Story 5.5)
+   Displays scrollable hex dump of CPU memory (256 nibbles)
+   ============================================================================= */
+
+.da-memory-view {
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-memory-view__title {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-memory-view__scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  background-color: var(--da-bg-primary);
+}
+
+.da-memory-view__table {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+}
+
+.da-memory-row {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-memory-row:last-child {
+  border-bottom: none;
+}
+
+.da-memory-header {
+  background-color: var(--da-bg-secondary);
+  font-weight: 600;
+  color: var(--da-text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.da-memory-addr {
+  min-width: 40px;
+  color: var(--da-text-secondary);
+  font-weight: 500;
+}
+
+.da-memory-cell {
+  width: 16px;
+  text-align: center;
+  padding: 2px;
+  color: var(--da-text-primary);
+}
+
+.da-memory-hex {
+  width: 16px;
+  text-align: center;
+  padding: 2px;
+}
+
+/* PC row highlighting */
+.da-memory-pc {
+  background-color: color-mix(in srgb, var(--da-accent) 10%, transparent);
+}
+
+/* PC cell highlighting */
+.da-memory-pc-cell {
+  background-color: var(--da-accent);
+  color: var(--da-bg-primary);
+  font-weight: 700;
+  border-radius: 2px;
+}
+
+/* Flash animation for changed cells - reuses da-register-flash keyframes */
+.da-memory-changed {
+  animation: da-register-flash 300ms ease-out;
+}

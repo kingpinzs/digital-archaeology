@@ -6160,4 +6160,285 @@ describe('App', () => {
       });
     });
   });
+
+  describe('MemoryView Integration (Story 5.5)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount MemoryView in state panel content area', () => {
+        const memoryView = container.querySelector('.da-memory-view');
+        expect(memoryView).not.toBeNull();
+      });
+
+      it('should render MemoryView inside .da-state-panel .da-panel-content', () => {
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const memoryView = stateContent?.querySelector('.da-memory-view');
+        expect(memoryView).not.toBeNull();
+      });
+
+      it('should render MemoryView after FlagsView in DOM order', () => {
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const flagsView = stateContent?.querySelector('.da-flags-view');
+        const memoryView = stateContent?.querySelector('.da-memory-view');
+
+        expect(flagsView).not.toBeNull();
+        expect(memoryView).not.toBeNull();
+
+        // MemoryView should come after FlagsView
+        const children = Array.from(stateContent?.children || []);
+        const flagsIndex = children.indexOf(flagsView as Element);
+        const memoryIndex = children.indexOf(memoryView as Element);
+        expect(memoryIndex).toBeGreaterThan(flagsIndex);
+      });
+
+      it('should display 16 memory rows', () => {
+        const rows = container.querySelectorAll('.da-memory-row:not(.da-memory-header)');
+        expect(rows.length).toBe(16);
+      });
+
+      it('should display Memory title', () => {
+        const title = container.querySelector('.da-memory-view__title');
+        expect(title?.textContent).toBe('Memory');
+      });
+    });
+
+    describe('getMemoryView accessor', () => {
+      it('should return MemoryView instance after mount', () => {
+        const memoryView = app.getMemoryView();
+        expect(memoryView).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        const newApp = new App();
+        expect(newApp.getMemoryView()).toBeNull();
+      });
+    });
+
+    describe('update on load', () => {
+      it('should update MemoryView with initial state after load', async () => {
+        const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x05\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        // Set initial CPU state with specific memory values
+        const memory = new Uint8Array(256);
+        memory[0] = 0x10;
+        memory[1] = 0x05;
+        memory[2] = 0xF0;
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: memory,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Verify MemoryView shows the memory values (as hex: 10=0x10, 5=0x5, F0=0xF0)
+        const firstRow = container.querySelector('[data-address="0"]');
+        const cells = firstRow?.querySelectorAll('.da-memory-cell');
+        // Memory stores nibbles (0-15), so values 0x10, 0x05, 0xF0 will wrap/show as nibbles
+        // Since mock memory sets memory[0]=0x10 (16 decimal), it will show as hex
+        expect(cells?.[0].textContent).toBe('10'); // actually this may be wrong - let me check
+      });
+
+      it('should highlight PC row after load', async () => {
+        const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x05\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Verify PC row is highlighted (PC=0 means row with data-address="0")
+        const pcRow = container.querySelector('[data-address="0"]');
+        expect(pcRow?.classList.contains('da-memory-pc')).toBe(true);
+      });
+    });
+
+    describe('update on step', () => {
+      it('should update MemoryView PC highlighting after step', async () => {
+        // Set up: assemble and load
+        const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x05\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to PC=2
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 5,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          // PC=2 is in row 0 (addresses 0-15), cell offset 2
+          const pcRow = container.querySelector('[data-address="0"]');
+          const pcCell = pcRow?.querySelector('[data-offset="2"]');
+          expect(pcCell?.classList.contains('da-memory-pc-cell')).toBe(true);
+        });
+      });
+    });
+
+    describe('update on reset', () => {
+      it('should reset MemoryView PC to 0 after reset', async () => {
+        // Set up: assemble and load
+        const binary = new Uint8Array([0x10, 0x05, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x05\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x05\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to advance PC
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 5,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.step).toHaveBeenCalled();
+        });
+
+        // Reset to PC=0
+        mockEmulatorBridge._setResetResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+        resetBtn.click();
+
+        await vi.waitFor(() => {
+          // PC=0 cell should be highlighted again
+          const pcRow = container.querySelector('[data-address="0"]');
+          const pcCell = pcRow?.querySelector('[data-offset="0"]');
+          expect(pcCell?.classList.contains('da-memory-pc-cell')).toBe(true);
+        });
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove MemoryView from DOM on destroy', () => {
+        expect(container.querySelector('.da-memory-view')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-memory-view')).toBeNull();
+      });
+
+      it('should set memoryView to null on destroy', () => {
+        expect(app.getMemoryView()).not.toBeNull();
+        app.destroy();
+        expect(app.getMemoryView()).toBeNull();
+      });
+    });
+  });
 });

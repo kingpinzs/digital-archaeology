@@ -18,7 +18,7 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
-import { RegisterView, FlagsView } from '@debugger/index';
+import { RegisterView, FlagsView, MemoryView } from '@debugger/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -157,6 +157,9 @@ export class App {
   // FlagsView for displaying CPU flags (Story 5.4)
   private flagsView: FlagsView | null = null;
 
+  // MemoryView for displaying CPU memory (Story 5.5)
+  private memoryView: MemoryView | null = null;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -186,6 +189,7 @@ export class App {
     this.destroyEmulatorBridge();
     this.destroyRegisterView();
     this.destroyFlagsView();
+    this.destroyMemoryView();
 
     this.container = container;
     this.isMounted = true;
@@ -209,6 +213,7 @@ export class App {
     this.initializeStoryModeContainer();
     this.initializeRegisterView();
     this.initializeFlagsView();
+    this.initializeMemoryView();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -837,6 +842,41 @@ export class App {
   }
 
   /**
+   * Initialize the MemoryView in the State panel (Story 5.5).
+   * Mounts after FlagsView in the panel content.
+   * @returns void
+   */
+  private initializeMemoryView(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.memoryView = new MemoryView();
+    this.memoryView.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the MemoryView component (Story 5.5).
+   * @returns void
+   */
+  private destroyMemoryView(): void {
+    if (this.memoryView) {
+      this.memoryView.destroy();
+      this.memoryView = null;
+    }
+  }
+
+  /**
+   * Get the MemoryView instance (Story 5.5).
+   * Primarily used for testing and external state inspection.
+   * @returns The MemoryView instance or null if not mounted
+   */
+  getMemoryView(): MemoryView | null {
+    return this.memoryView;
+  }
+
+  /**
    * Initialize the AssemblerBridge for WASM worker communication.
    * Runs asynchronously to avoid blocking UI during WASM loading.
    * @returns void
@@ -956,6 +996,12 @@ export class App {
       // Update FlagsView with initial state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
+      });
+
+      // Update MemoryView with initial state (Story 5.5)
+      this.memoryView?.updateState({
+        memory: this.cpuState.memory,
+        pc: this.cpuState.pc,
       });
     } catch (error) {
       // Handle load errors
@@ -1109,6 +1155,12 @@ export class App {
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
       });
+
+      // Update MemoryView with reset state (Story 5.5)
+      this.memoryView?.updateState({
+        memory: this.cpuState.memory,
+        pc: this.cpuState.pc,
+      });
     } catch (error) {
       console.error('Failed to reset:', error);
       // Reset running state even on error
@@ -1201,6 +1253,12 @@ export class App {
         zeroFlag: this.cpuState.zeroFlag,
       });
 
+      // Update MemoryView with new state (Story 5.5)
+      this.memoryView?.updateState({
+        memory: this.cpuState.memory,
+        pc: this.cpuState.pc,
+      });
+
       // Story 5.2: Enable Step Back button if history exists
       this.toolbar?.updateState({ canStepBack: this.stateHistory.length > 0 });
 
@@ -1274,6 +1332,12 @@ export class App {
       // Update FlagsView with historical state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: historicalState.zeroFlag,
+      });
+
+      // Update MemoryView with historical state (Story 5.5)
+      this.memoryView?.updateState({
+        memory: historicalState.memory,
+        pc: historicalState.pc,
       });
 
       // Update Step Back button state
@@ -1444,6 +1508,12 @@ export class App {
         this.flagsView?.updateState({
           zeroFlag: state.zeroFlag,
         });
+
+        // Update MemoryView during RUN mode (Story 5.5)
+        this.memoryView?.updateState({
+          memory: state.memory,
+          pc: state.pc,
+        });
       }
     });
 
@@ -1509,6 +1579,12 @@ export class App {
       // Update FlagsView with final halted state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
+      });
+
+      // Update MemoryView with final halted state (Story 5.5)
+      this.memoryView?.updateState({
+        memory: this.cpuState.memory,
+        pc: this.cpuState.pc,
       });
     }
   }
@@ -2142,6 +2218,9 @@ export class App {
 
     // Destroy FlagsView (Story 5.4)
     this.destroyFlagsView();
+
+    // Destroy MemoryView (Story 5.5)
+    this.destroyMemoryView();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

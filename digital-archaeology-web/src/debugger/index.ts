@@ -6,3 +6,6 @@ export type { RegisterViewState, RegisterViewOptions } from './RegisterView';
 
 export { FlagsView } from './FlagsView';
 export type { FlagsViewState, FlagsViewOptions } from './FlagsView';
+
+export { MemoryView } from './MemoryView';
+export type { MemoryViewState, MemoryViewOptions } from './MemoryView';

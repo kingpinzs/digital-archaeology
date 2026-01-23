@@ -1,6 +1,6 @@
 # Story 5.1: Implement Step Execution
 
-Status: review
+Status: done
 
 ---
 
@@ -118,7 +118,7 @@ case 'STEP':
 
 ### PC-to-Line Mapping Strategy
 
-**Option 1: Parse Assembly Output (Recommended)**
+**Option 1: Parse Assembly Output (Implemented)**
 After assembly, create a map of memory addresses to source line numbers:
 ```typescript
 interface SourceMap {
@@ -134,23 +134,34 @@ function buildSourceMap(source: string): SourceMap {
 
   for (let lineNum = 1; lineNum <= lines.length; lineNum++) {
     const line = lines[lineNum - 1].trim();
+    if (!line || line.startsWith(';')) continue;
 
-    // Skip empty lines, comments, labels-only
-    if (!line || line.startsWith(';') || line.endsWith(':')) continue;
+    const codePart = line.split(';')[0].trim();
+    if (!codePart) continue;
 
-    // Check for ORG directive
-    const orgMatch = line.match(/^ORG\s+(\d+)/i);
+    // Check for ORG directive (supports decimal, 0x hex, and $ hex prefix)
+    const orgMatch = codePart.match(/^ORG\s+(?:0x|\$)?([0-9A-Fa-f]+)/i);
     if (orgMatch) {
-      address = parseInt(orgMatch[1], 10);
+      const hasHexPrefix = /^ORG\s+(?:0x|\$)/i.test(codePart);
+      const hasHexDigits = /[A-Fa-f]/.test(orgMatch[1]);
+      address = parseInt(orgMatch[1], (hasHexPrefix || hasHexDigits) ? 16 : 10);
       continue;
     }
+
+    // Handle label-only lines
+    const labelMatch = codePart.match(/^([A-Za-z_][A-Za-z0-9_]*):(.*)$/);
+    if (labelMatch && !labelMatch[2].trim()) continue;
+
+    // Handle DB/DW directives (advance address but don't map)
+    const dbMatch = codePart.match(/^(?:[A-Za-z_][A-Za-z0-9_]*:\s*)?(DB)\s+(.+)/i);
+    if (dbMatch) { address += dbMatch[2].split(',').length * 2; continue; }
+    const dwMatch = codePart.match(/^(?:[A-Za-z_][A-Za-z0-9_]*:\s*)?(DW)\s+(.+)/i);
+    if (dwMatch) { address += dwMatch[2].split(',').length * 4; continue; }
 
     // This line has an instruction at current address
     addressToLine.set(address, lineNum);
     lineToAddress.set(lineNum, address);
-
-    // Advance address (instructions are 2 nibbles = 1 byte each for Micro4)
-    address += 2;
+    address += 2;  // Micro4 instructions are 2 nibbles
   }
 
   return { addressToLine, lineToAddress };

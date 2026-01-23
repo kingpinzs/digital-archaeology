@@ -1237,8 +1237,10 @@ body.da-resizing * {
 /*
  * Current instruction glyph marker in Monaco gutter.
  * Shows a small arrow indicating the current program counter position.
- * Note: CSS data URLs cannot use CSS variables, so the fill color is hardcoded.
- * Using #00b4d8 which matches --da-accent in lab-mode theme.
+ *
+ * INTENTIONAL: SVG data URLs cannot reference CSS variables due to browser limitations.
+ * The fill color #00b4d8 is hardcoded to match --da-accent in lab-mode theme.
+ * If theme accent changes, update both this value and :root --da-accent.
  */
 .da-current-instruction-glyph {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 3 L12 8 L4 13 Z' fill='%2300b4d8'/%3E%3C/svg%3E") center center no-repeat;

@@ -5865,4 +5865,299 @@ describe('App', () => {
       });
     });
   });
+
+  describe('FlagsView Integration (Story 5.4)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount FlagsView in state panel content area', () => {
+        const flagsView = container.querySelector('.da-flags-view');
+        expect(flagsView).not.toBeNull();
+      });
+
+      it('should render FlagsView inside .da-state-panel .da-panel-content', () => {
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const flagsView = stateContent?.querySelector('.da-flags-view');
+        expect(flagsView).not.toBeNull();
+      });
+
+      it('should render FlagsView after RegisterView in DOM order', () => {
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const registerView = stateContent?.querySelector('.da-register-view');
+        const flagsView = stateContent?.querySelector('.da-flags-view');
+
+        expect(registerView).not.toBeNull();
+        expect(flagsView).not.toBeNull();
+
+        // FlagsView should come after RegisterView
+        const children = Array.from(stateContent?.children || []);
+        const registerIndex = children.indexOf(registerView as Element);
+        const flagsIndex = children.indexOf(flagsView as Element);
+        expect(flagsIndex).toBeGreaterThan(registerIndex);
+      });
+
+      it('should display Zero flag row with initial clear state', () => {
+        const zeroRow = container.querySelector('[data-flag="zero"]');
+        const value = zeroRow?.querySelector('.da-flag-value');
+        const status = zeroRow?.querySelector('.da-flag-status');
+        expect(value?.textContent).toBe('0');
+        expect(status?.textContent).toBe('clear');
+      });
+    });
+
+    describe('getFlagsView accessor', () => {
+      it('should return FlagsView instance after mount', () => {
+        const flagsView = app.getFlagsView();
+        expect(flagsView).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        const newApp = new App();
+        expect(newApp.getFlagsView()).toBeNull();
+      });
+    });
+
+    describe('update on load', () => {
+      it('should update FlagsView with initial state after load', async () => {
+        const binary = new Uint8Array([0x10, 0x00, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x00\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x00\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        // Set initial CPU state with zeroFlag=false
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Verify FlagsView shows initial state (zeroFlag=false → 0/clear)
+        const zeroRow = container.querySelector('[data-flag="zero"]');
+        const value = zeroRow?.querySelector('.da-flag-value');
+        const status = zeroRow?.querySelector('.da-flag-status');
+        expect(value?.textContent).toBe('0');
+        expect(status?.textContent).toBe('clear');
+        expect(zeroRow?.classList.contains('da-flag-set')).toBe(false);
+      });
+
+      it('should update FlagsView with zeroFlag=true state after load', async () => {
+        const binary = new Uint8Array([0x10, 0x00, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x00\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x00\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        // Set initial CPU state with zeroFlag=true
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: true,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Verify FlagsView shows zeroFlag=true state (1/SET)
+        const zeroRow = container.querySelector('[data-flag="zero"]');
+        const value = zeroRow?.querySelector('.da-flag-value');
+        const status = zeroRow?.querySelector('.da-flag-status');
+        expect(value?.textContent).toBe('1');
+        expect(status?.textContent).toBe('SET');
+        expect(zeroRow?.classList.contains('da-flag-set')).toBe(true);
+      });
+    });
+
+    describe('update on step with zeroFlag=true', () => {
+      it('should update FlagsView to SET when step result has zeroFlag=true', async () => {
+        // Set up: assemble and load
+        const binary = new Uint8Array([0x10, 0x00, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x00\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x00\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step with zeroFlag=true
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0,
+          zeroFlag: true, // Zero flag should be SET after loading 0
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const zeroRow = container.querySelector('[data-flag="zero"]');
+          const value = zeroRow?.querySelector('.da-flag-value');
+          expect(value?.textContent).toBe('1');
+        });
+
+        const zeroRow = container.querySelector('[data-flag="zero"]');
+        const status = zeroRow?.querySelector('.da-flag-status');
+        expect(status?.textContent).toBe('SET');
+        expect(zeroRow?.classList.contains('da-flag-set')).toBe(true);
+      });
+    });
+
+    describe('update on reset', () => {
+      it('should update FlagsView to clear after reset', async () => {
+        // Set up: assemble, load, and step to set flag
+        const binary = new Uint8Array([0x10, 0x00, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x00\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x00\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to set flag
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0,
+          zeroFlag: true,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const zeroRow = container.querySelector('[data-flag="zero"]');
+          const value = zeroRow?.querySelector('.da-flag-value');
+          expect(value?.textContent).toBe('1');
+        });
+
+        // Reset should clear the flag
+        mockEmulatorBridge._setResetResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+        resetBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.reset).toHaveBeenCalled();
+        });
+
+        await vi.waitFor(() => {
+          const zeroRow = container.querySelector('[data-flag="zero"]');
+          const value = zeroRow?.querySelector('.da-flag-value');
+          expect(value?.textContent).toBe('0');
+        });
+
+        const zeroRow = container.querySelector('[data-flag="zero"]');
+        const status = zeroRow?.querySelector('.da-flag-status');
+        expect(status?.textContent).toBe('clear');
+        expect(zeroRow?.classList.contains('da-flag-set')).toBe(false);
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove FlagsView from DOM on destroy', () => {
+        expect(container.querySelector('.da-flags-view')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-flags-view')).toBeNull();
+      });
+
+      it('should set flagsView to null on destroy', () => {
+        expect(app.getFlagsView()).not.toBeNull();
+        app.destroy();
+        expect(app.getFlagsView()).toBeNull();
+      });
+    });
+  });
 });

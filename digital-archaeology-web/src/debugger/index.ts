@@ -3,3 +3,6 @@
 
 export { RegisterView } from './RegisterView';
 export type { RegisterViewState, RegisterViewOptions } from './RegisterView';
+
+export { FlagsView } from './FlagsView';
+export type { FlagsViewState, FlagsViewOptions } from './FlagsView';

@@ -1553,3 +1553,79 @@ body.da-resizing * {
 .da-register-changed {
   animation: da-register-flash 300ms ease-out;
 }
+
+/* =============================================================================
+   FlagsView Component Styles (Story 5.4)
+   Displays CPU flag states in the State panel, below RegisterView.
+   ============================================================================= */
+
+.da-flags-view {
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-flags-view__title {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-flags-view__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-flag-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.da-flag-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--da-text-secondary);
+  min-width: 20px;
+}
+
+.da-flag-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--da-text-primary);
+  min-width: 16px;
+  text-align: center;
+}
+
+.da-flag-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--da-text-secondary);
+}
+
+/* SET flag visual distinction */
+.da-flag-set {
+  background-color: color-mix(in srgb, var(--da-accent) 15%, transparent);
+}
+
+.da-flag-set .da-flag-value {
+  color: var(--da-accent);
+  font-weight: 700;
+}
+
+.da-flag-set .da-flag-status {
+  color: var(--da-accent);
+  font-weight: 600;
+}
+
+/* Flash animation for changed flags - reuses da-register-flash keyframes */
+.da-flag-changed {
+  animation: da-register-flash 300ms ease-out;
+}

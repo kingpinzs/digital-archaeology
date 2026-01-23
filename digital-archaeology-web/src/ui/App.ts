@@ -18,7 +18,7 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
-import { RegisterView } from '@debugger/index';
+import { RegisterView, FlagsView } from '@debugger/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -154,6 +154,9 @@ export class App {
   // RegisterView for displaying CPU registers (Story 5.3)
   private registerView: RegisterView | null = null;
 
+  // FlagsView for displaying CPU flags (Story 5.4)
+  private flagsView: FlagsView | null = null;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -182,6 +185,7 @@ export class App {
     this.destroyAssemblerBridge();
     this.destroyEmulatorBridge();
     this.destroyRegisterView();
+    this.destroyFlagsView();
 
     this.container = container;
     this.isMounted = true;
@@ -204,6 +208,7 @@ export class App {
     this.initializeEditor();
     this.initializeStoryModeContainer();
     this.initializeRegisterView();
+    this.initializeFlagsView();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -797,6 +802,41 @@ export class App {
   }
 
   /**
+   * Initialize the FlagsView in the State panel (Story 5.4).
+   * Mounts after RegisterView in the panel content.
+   * @returns void
+   */
+  private initializeFlagsView(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.flagsView = new FlagsView();
+    this.flagsView.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the FlagsView component (Story 5.4).
+   * @returns void
+   */
+  private destroyFlagsView(): void {
+    if (this.flagsView) {
+      this.flagsView.destroy();
+      this.flagsView = null;
+    }
+  }
+
+  /**
+   * Get the FlagsView instance (Story 5.4).
+   * Primarily used for testing and external state inspection.
+   * @returns The FlagsView instance or null if not mounted
+   */
+  getFlagsView(): FlagsView | null {
+    return this.flagsView;
+  }
+
+  /**
    * Initialize the AssemblerBridge for WASM worker communication.
    * Runs asynchronously to avoid blocking UI during WASM loading.
    * @returns void
@@ -911,6 +951,11 @@ export class App {
       this.registerView?.updateState({
         pc: this.cpuState.pc,
         accumulator: this.cpuState.accumulator,
+      });
+
+      // Update FlagsView with initial state (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: this.cpuState.zeroFlag,
       });
     } catch (error) {
       // Handle load errors
@@ -1059,6 +1104,11 @@ export class App {
         pc: this.cpuState.pc,
         accumulator: this.cpuState.accumulator,
       });
+
+      // Update FlagsView with reset state (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: this.cpuState.zeroFlag,
+      });
     } catch (error) {
       console.error('Failed to reset:', error);
       // Reset running state even on error
@@ -1146,6 +1196,11 @@ export class App {
         accumulator: this.cpuState.accumulator,
       });
 
+      // Update FlagsView with new state (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: this.cpuState.zeroFlag,
+      });
+
       // Story 5.2: Enable Step Back button if history exists
       this.toolbar?.updateState({ canStepBack: this.stateHistory.length > 0 });
 
@@ -1214,6 +1269,11 @@ export class App {
       this.registerView?.updateState({
         pc: historicalState.pc,
         accumulator: historicalState.accumulator,
+      });
+
+      // Update FlagsView with historical state (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: historicalState.zeroFlag,
       });
 
       // Update Step Back button state
@@ -1379,6 +1439,11 @@ export class App {
           pc: state.pc,
           accumulator: state.accumulator,
         });
+
+        // Update FlagsView during RUN mode (Story 5.4)
+        this.flagsView?.updateState({
+          zeroFlag: state.zeroFlag,
+        });
       }
     });
 
@@ -1439,6 +1504,11 @@ export class App {
       this.registerView?.updateState({
         pc: this.cpuState.pc,
         accumulator: this.cpuState.accumulator,
+      });
+
+      // Update FlagsView with final halted state (Story 5.4)
+      this.flagsView?.updateState({
+        zeroFlag: this.cpuState.zeroFlag,
       });
     }
   }
@@ -2069,6 +2139,9 @@ export class App {
 
     // Destroy RegisterView (Story 5.3)
     this.destroyRegisterView();
+
+    // Destroy FlagsView (Story 5.4)
+    this.destroyFlagsView();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

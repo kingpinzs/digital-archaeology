@@ -1631,8 +1631,9 @@ body.da-resizing * {
 }
 
 /* =============================================================================
-   MemoryView Component Styles (Story 5.5)
+   MemoryView Component Styles (Story 5.5, 5.6)
    Displays scrollable hex dump of CPU memory (256 nibbles)
+   Story 5.6 adds jump-to-address UI
    ============================================================================= */
 
 .da-memory-view {
@@ -1719,4 +1720,80 @@ body.da-resizing * {
 /* Flash animation for changed cells - reuses da-register-flash keyframes */
 .da-memory-changed {
   animation: da-register-flash 300ms ease-out;
+}
+
+/* =============================================================================
+   Jump to Address UI (Story 5.6)
+   Input field, button, and error display for jumping to memory address
+   ============================================================================= */
+
+.da-memory-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.da-memory-jump__label {
+  color: var(--da-text-secondary);
+}
+
+.da-memory-jump__input {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  background-color: var(--da-bg-primary);
+  color: var(--da-text-primary);
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.da-memory-jump__input:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: -2px;
+}
+
+.da-memory-jump__button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--da-accent);
+  color: var(--da-bg-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.da-memory-jump__button:hover {
+  filter: brightness(1.1);
+}
+
+.da-memory-jump__button:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+.da-memory-jump__error {
+  color: var(--da-error);
+  font-size: 10px;
+}
+
+.da-memory-jump__error:empty {
+  display: none;
+}
+
+/* Jump target highlight animation */
+.da-memory-jump-target {
+  animation: da-jump-highlight 1s ease-out;
+}
+
+@keyframes da-jump-highlight {
+  0% {
+    background-color: color-mix(in srgb, var(--da-accent) 40%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
 }

@@ -1,5 +1,5 @@
 // src/debugger/MemoryView.test.ts
-// Unit tests for MemoryView component (Story 5.5)
+// Unit tests for MemoryView component (Story 5.5, 5.6)
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MemoryView } from './MemoryView';
@@ -427,6 +427,302 @@ describe('MemoryView', () => {
       // PC should be at 90 (row 5, offset 10)
       const pcRow = container.querySelector('[data-address="80"]');
       expect(pcRow?.classList.contains('da-memory-pc')).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // Story 5.6: Jump to Address Tests
+  // =========================================================================
+
+  describe('jump to address UI', () => {
+    it('should render jump input with label, input, and button', () => {
+      memoryView.mount(container);
+
+      expect(container.querySelector('.da-memory-jump')).not.toBeNull();
+      expect(container.querySelector('.da-memory-jump__label')?.textContent).toBe('Jump to:');
+      expect(container.querySelector('.da-memory-jump__input')).not.toBeNull();
+      expect(container.querySelector('.da-memory-jump__button')).not.toBeNull();
+    });
+
+    it('should have correct placeholder on input', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      expect(input.placeholder).toBe('0x00 or 0');
+    });
+
+    it('should have accessibility attributes', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input');
+      const button = container.querySelector('.da-memory-jump__button');
+      const error = container.querySelector('.da-memory-jump__error');
+
+      expect(input?.getAttribute('aria-label')).toBe('Memory address to jump to');
+      expect(button?.getAttribute('aria-label')).toBe('Jump to address');
+      expect(error?.getAttribute('aria-live')).toBe('polite');
+      expect(error?.getAttribute('role')).toBe('alert');
+    });
+  });
+
+  describe('parseAddress', () => {
+    it('should parse hex format (0x10 → 16)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('0x10')).toBe(16);
+    });
+
+    it('should parse hex format case-insensitive (0XFF → 255)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('0XFF')).toBe(255);
+      expect(memoryView.parseAddress('0xff')).toBe(255);
+    });
+
+    it('should parse decimal format (16 → 16)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('16')).toBe(16);
+    });
+
+    it('should parse decimal format (255 → 255)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('255')).toBe(255);
+    });
+
+    it('should return null for empty input', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('')).toBeNull();
+    });
+
+    it('should return null for whitespace-only input', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('   ')).toBeNull();
+    });
+
+    it('should return null for invalid input (non-numeric)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('abc')).toBeNull();
+      expect(memoryView.parseAddress('hello')).toBeNull();
+    });
+
+    it('should return null for out-of-range values (256, -1)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('256')).toBeNull();
+      expect(memoryView.parseAddress('-1')).toBeNull();
+      expect(memoryView.parseAddress('0x100')).toBeNull();
+    });
+
+    it('should trim whitespace before parsing', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('  16  ')).toBe(16);
+      expect(memoryView.parseAddress('  0x10  ')).toBe(16);
+    });
+
+    it('should parse edge cases (0 and 255)', () => {
+      memoryView.mount(container);
+      expect(memoryView.parseAddress('0')).toBe(0);
+      expect(memoryView.parseAddress('0x00')).toBe(0);
+      expect(memoryView.parseAddress('255')).toBe(255);
+      expect(memoryView.parseAddress('0xFF')).toBe(255);
+    });
+  });
+
+  describe('jump button click', () => {
+    it('should scroll to correct row on valid address', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+
+      input.value = '32';
+      button.click();
+
+      // Check that target row gets highlight class
+      const targetRow = container.querySelector('[data-address="32"]');
+      expect(targetRow?.classList.contains('da-memory-jump-target')).toBe(true);
+    });
+
+    it('should highlight correct row for hex address', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+
+      input.value = '0x30'; // 48 decimal, row at address 48
+      button.click();
+
+      const targetRow = container.querySelector('[data-address="48"]');
+      expect(targetRow?.classList.contains('da-memory-jump-target')).toBe(true);
+    });
+
+    it('should show error for invalid address', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      input.value = 'invalid';
+      button.click();
+
+      expect(error?.textContent).toBe('Invalid address');
+    });
+
+    it('should show error for empty input', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      input.value = '';
+      button.click();
+
+      expect(error?.textContent).toBe('Invalid address');
+    });
+
+    it('should show error for out-of-range address', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      input.value = '300';
+      button.click();
+
+      expect(error?.textContent).toBe('Address out of range (0-255)');
+    });
+
+    it('should clear error on valid address', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      // First, trigger error
+      input.value = 'invalid';
+      button.click();
+      expect(error?.textContent).toBe('Invalid address');
+
+      // Then, enter valid address
+      input.value = '16';
+      button.click();
+      expect(error?.textContent).toBe('');
+    });
+  });
+
+  describe('input change clears error', () => {
+    it('should clear error when user starts typing', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      // First, trigger error
+      input.value = 'invalid';
+      button.click();
+      expect(error?.textContent).toBe('Invalid address');
+
+      // Then, start typing (trigger input event)
+      input.value = '1';
+      const inputEvent = new Event('input', { bubbles: true });
+      input.dispatchEvent(inputEvent);
+
+      expect(error?.textContent).toBe('');
+    });
+
+    it('should clear error on any input change', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const error = container.querySelector('.da-memory-jump__error');
+
+      // Trigger out-of-range error
+      input.value = '300';
+      button.click();
+      expect(error?.textContent).toBe('Address out of range (0-255)');
+
+      // Clear by typing
+      const inputEvent = new Event('input', { bubbles: true });
+      input.dispatchEvent(inputEvent);
+
+      expect(error?.textContent).toBe('');
+    });
+  });
+
+  describe('Enter key triggers jump', () => {
+    it('should trigger jump on Enter key press in input', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+
+      input.value = '48';
+      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+      input.dispatchEvent(event);
+
+      const targetRow = container.querySelector('[data-address="48"]');
+      expect(targetRow?.classList.contains('da-memory-jump-target')).toBe(true);
+    });
+
+    it('should NOT trigger jump on other key presses', () => {
+      memoryView.mount(container);
+
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+
+      input.value = '48';
+      const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
+      input.dispatchEvent(event);
+
+      const targetRow = container.querySelector('[data-address="48"]');
+      expect(targetRow?.classList.contains('da-memory-jump-target')).toBe(false);
+    });
+  });
+
+  describe('scrollToAddress public API', () => {
+    it('should return true for valid address (number)', () => {
+      memoryView.mount(container);
+      expect(memoryView.scrollToAddress(16)).toBe(true);
+    });
+
+    it('should return true for valid address (string)', () => {
+      memoryView.mount(container);
+      expect(memoryView.scrollToAddress('0x20')).toBe(true);
+    });
+
+    it('should return false for invalid address', () => {
+      memoryView.mount(container);
+      expect(memoryView.scrollToAddress('invalid')).toBe(false);
+      expect(memoryView.scrollToAddress(300)).toBe(false);
+      expect(memoryView.scrollToAddress(-5)).toBe(false);
+    });
+
+    it('should scroll to correct row when called externally', () => {
+      memoryView.mount(container);
+
+      memoryView.scrollToAddress(64);
+
+      const targetRow = container.querySelector('[data-address="64"]');
+      expect(targetRow?.classList.contains('da-memory-jump-target')).toBe(true);
+    });
+  });
+
+  describe('jump event listener cleanup', () => {
+    it('should remove event listeners on destroy', () => {
+      memoryView.mount(container);
+
+      const button = container.querySelector('.da-memory-jump__button') as HTMLButtonElement;
+      const input = container.querySelector('.da-memory-jump__input') as HTMLInputElement;
+
+      const buttonRemoveSpy = vi.spyOn(button, 'removeEventListener');
+      const inputRemoveSpy = vi.spyOn(input, 'removeEventListener');
+
+      memoryView.destroy();
+
+      expect(buttonRemoveSpy).toHaveBeenCalledWith('click', expect.any(Function));
+      expect(inputRemoveSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
+      expect(inputRemoveSpy).toHaveBeenCalledWith('input', expect.any(Function));
     });
   });
 });

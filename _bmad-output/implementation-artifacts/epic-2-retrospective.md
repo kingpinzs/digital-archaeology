@@ -155,21 +155,21 @@ The mock in Editor.test.ts grew substantially across stories.
 
 ### Carried Forward from Epic 1 (Must Address)
 
-| # | Action Item | Priority | Proposed Resolution |
-|---|-------------|----------|---------------------|
-| 1 | Add accessibility checklist to story template | HIGH | Add during Epic 3 planning |
-| 2 | Document escapeHtml() pattern | MEDIUM | Add to project-context.md |
-| 3 | Document event listener cleanup pattern | MEDIUM | Add to project-context.md |
+| # | Action Item | Priority | Status |
+|---|-------------|----------|--------|
+| 1 | Add accessibility checklist to story template | HIGH | DONE (Epic 3) |
+| 2 | Document escapeHtml() pattern | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/xss-prevention.md` |
+| 3 | Document event listener cleanup pattern | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/event-listener-cleanup.md` |
 
 ### New from Epic 2
 
-| # | Action Item | Priority | Rationale |
-|---|-------------|----------|-----------|
-| 4 | Allocate time for process debt in sprint planning | HIGH | Prevent action item accumulation |
-| 5 | Add WASM compilation step to CI/CD | HIGH | Required for Epic 3 |
-| 6 | Create Web Worker messaging pattern guide | MEDIUM | Epic 3 uses workers |
-| 7 | Document Monaco error marker integration | MEDIUM | Story 3.4 will need this |
-| 8 | Consolidate Monaco mock into shared test utility | LOW | Reduce duplication |
+| # | Action Item | Priority | Status |
+|---|-------------|----------|--------|
+| 4 | Allocate time for process debt in sprint planning | HIGH | DONE (Epic 4 retro addressed all debt) |
+| 5 | Add WASM compilation step to CI/CD | HIGH | DONE (Epic 4 retro) - `.github/workflows/ci.yml` |
+| 6 | Create Web Worker messaging pattern guide | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/web-worker-bridge.md` |
+| 7 | Document Monaco error marker integration | MEDIUM | DONE (Epic 3 via implementation) |
+| 8 | Consolidate Monaco mock into shared test utility | LOW | DONE (Epic 4 retro) - `src/test-utils/monaco-mock.ts` |
 
 ---
 

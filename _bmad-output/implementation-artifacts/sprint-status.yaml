@@ -76,7 +76,7 @@ development_status:
   epic-3-retrospective: done
 
   # Epic 4: Program Execution
-  epic-4: in-progress
+  epic-4: done
   4-1-compile-emulator-to-wasm: done
   4-2-create-emulator-web-worker: done
   4-3-implement-emulatorbridge-class: done
@@ -85,7 +85,7 @@ development_status:
   4-6-implement-stop-button: done
   4-7-implement-reset-button: done
   4-8-implement-speed-control: done
-  epic-4-retrospective: optional
+  epic-4-retrospective: done
 
   # Epic 5: Debugging & State Inspection
   epic-5: backlog

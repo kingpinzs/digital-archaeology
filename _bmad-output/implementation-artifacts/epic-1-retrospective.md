@@ -134,11 +134,11 @@ Stories 1.6, 1.7, 1.8 all had similar issues:
 
 | # | Action Item | Owner | Priority | Status |
 |---|-------------|-------|----------|--------|
-| 1 | Add accessibility checklist to story template | SM | HIGH | Pending |
-| 2 | Document `escapeHtml()` pattern in project-context.md | Dev | MEDIUM | Pending |
-| 3 | Create keyboard navigation testing guide | Dev | MEDIUM | Pending |
-| 4 | Document event listener cleanup pattern | Dev | MEDIUM | Pending |
-| 5 | Review Monaco bundle optimization options | Dev | LOW | Pending |
+| 1 | Add accessibility checklist to story template | SM | HIGH | DONE (Epic 3) |
+| 2 | Document `escapeHtml()` pattern | Dev | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/xss-prevention.md` |
+| 3 | Create keyboard navigation testing guide | Dev | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/keyboard-navigation.md` |
+| 4 | Document event listener cleanup pattern | Dev | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/event-listener-cleanup.md` |
+| 5 | Review Monaco bundle optimization options | Dev | LOW | Deferred - Not blocking development |
 
 ---
 

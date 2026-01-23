@@ -75,21 +75,21 @@ The adversarial review process caught edge cases that would have caused bugs:
 
 ## What Didn't Go Well
 
-### 1. Action Items Still Accumulating
-Epic 2 had 8 action items, only 2 fully addressed:
+### 1. Action Items Were Accumulating (Now Resolved)
+At the time of Epic 3 completion, Epic 2 had 8 action items with only 2 fully addressed. This technical debt was subsequently resolved in the Epic 4 retrospective:
 
 | # | Action Item | Status |
 |---|-------------|--------|
-| 1 | Add accessibility checklist to story template | ✅ Done |
-| 2 | Document escapeHtml() pattern | ❌ Not done |
-| 3 | Document event listener cleanup pattern | ⚠️ Used but not formalized |
-| 4 | Allocate time for process debt | ⚠️ Partially |
-| 5 | Add WASM compilation to CI/CD | ❌ Not done |
-| 6 | Create Web Worker messaging pattern guide | ❌ Not done |
+| 1 | Add accessibility checklist to story template | ✅ Done (Epic 3) |
+| 2 | Document escapeHtml() pattern | ✅ Done (Epic 4 retro) - `docs/patterns/xss-prevention.md` |
+| 3 | Document event listener cleanup pattern | ✅ Done (Epic 4 retro) - `docs/patterns/event-listener-cleanup.md` |
+| 4 | Allocate time for process debt | ✅ Done (Epic 4 retro addressed all debt) |
+| 5 | Add WASM compilation to CI/CD | ✅ Done (Epic 4 retro) - `.github/workflows/ci.yml` |
+| 6 | Create Web Worker messaging pattern guide | ✅ Done (Epic 4 retro) - `docs/patterns/web-worker-bridge.md` |
 | 7 | Document Monaco error marker integration | ✅ Done (via implementation) |
-| 8 | Consolidate Monaco mock into shared utility | ❌ Not done |
+| 8 | Consolidate Monaco mock into shared utility | ✅ Done (Epic 4 retro) - `src/test-utils/monaco-mock.ts` |
 
-**Improvement from Epic 2:** 2/8 vs 0/5 (better but still needs work)
+**Final Status:** 8/8 action items completed (all documentation debt cleared)
 
 ### 2. State Management Complexity (Story 3.7)
 The `hasValidAssembly` flag needed resets in 4 different places:
@@ -163,21 +163,21 @@ class AssemblerBridge {
 
 ### Carried Forward (Priority Order)
 
-| # | Action Item | Priority | Notes |
-|---|-------------|----------|-------|
-| 1 | Add WASM compilation to CI/CD | HIGH | Manual builds are error-prone |
-| 2 | Document Web Worker + Bridge pattern | MEDIUM | Pattern proven, needs documentation |
-| 3 | Document event listener cleanup pattern | MEDIUM | Used but not formalized |
-| 4 | Consolidate Monaco mock into shared utility | LOW | Reduce test duplication |
+| # | Action Item | Priority | Status |
+|---|-------------|----------|--------|
+| 1 | Add WASM compilation to CI/CD | HIGH | DONE (Epic 4 retro) - `.github/workflows/ci.yml` |
+| 2 | Document Web Worker + Bridge pattern | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/web-worker-bridge.md` |
+| 3 | Document event listener cleanup pattern | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/event-listener-cleanup.md` |
+| 4 | Consolidate Monaco mock into shared utility | LOW | DONE (Epic 4 retro) - `src/test-utils/monaco-mock.ts` |
 
 ### New from Epic 3
 
-| # | Action Item | Priority | Rationale |
-|---|-------------|----------|-----------|
-| 5 | Create state management guide | MEDIUM | Story 3.7 needed resets in 4 places |
-| 6 | Document CSS variable usage policy | LOW | Multiple stories had hardcoded colors |
-| 7 | Create EmulatorBridge mirroring AssemblerBridge | HIGH | Pattern proven, apply to Epic 4 |
-| 8 | Add pre-commit hook for test count verification | LOW | Multiple stories had count mismatches |
+| # | Action Item | Priority | Status |
+|---|-------------|----------|--------|
+| 5 | Create state management guide | MEDIUM | DONE (Epic 4 retro) - `docs/patterns/state-management.md` |
+| 6 | Document CSS variable usage policy | LOW | DONE (Epic 4 retro) - `docs/patterns/css-variables.md` |
+| 7 | Create EmulatorBridge mirroring AssemblerBridge | HIGH | DONE (Epic 4 implementation) - `src/emulator/EmulatorBridge.ts` |
+| 8 | Add pre-commit hook for test count verification | LOW | DONE (Epic 4 retro) - `scripts/verify-test-count.sh` |
 
 ---
 
@@ -218,7 +218,7 @@ class AssemblerBridge {
 | Final Test Count | ~430 | 745 | +315 |
 | Code Review Issues | ~12 | ~23 | +11 |
 | Clean Stories (0 issues) | 2 | 3 | +1 |
-| Action Items Addressed | 0/5 | 2/8 | Improved |
+| Action Items Addressed | 0/5 | 8/8 | ✅ All Complete |
 
 ---
 
@@ -248,9 +248,9 @@ class AssemblerBridge {
 
 Epic 3 successfully delivered the complete assembly pipeline with rich error handling and syntax validation. The WASM + Web Worker integration was smoother than anticipated, and the AssemblerBridge pattern provides a reusable template for Epic 4's EmulatorBridge.
 
-The retrospective process is demonstrably working - Stories 3.1-3.3 had zero code review issues because the team applied patterns established in previous epics. The action item completion rate improved from 0/5 to 2/8, though documentation debt continues to accumulate.
+The retrospective process is demonstrably working - Stories 3.1-3.3 had zero code review issues because the team applied patterns established in previous epics. All 8 action items from Epic 3 were subsequently completed during the Epic 4 retrospective, clearing all accumulated documentation debt.
 
-Key focus for Epic 4: Apply the Bridge pattern to the emulator, plan state management upfront, and finally address the CI/CD automation for WASM builds.
+**Update (Epic 4 Retrospective):** All documentation patterns have been formalized, CI/CD automation is in place, and the Monaco mock is documented in the shared test utilities.
 
 ---
 

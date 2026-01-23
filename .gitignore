@@ -18,3 +18,9 @@ src/simulator/circuit.json
 # Backup files
 *.backup
 CLAUDE.md.backup
+
+# Personal notes
+videos_list.md
+
+# MCP config (local)
+.mcp.json

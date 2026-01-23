@@ -65,7 +65,7 @@ development_status:
   epic-2-retrospective: done
 
   # Epic 3: Code Assembly & Error Handling
-  epic-3: in-progress
+  epic-3: done
   3-1-compile-assembler-to-wasm: done
   3-2-create-assembler-web-worker: done
   3-3-implement-assemble-button: done
@@ -73,7 +73,7 @@ development_status:
   3-5-implement-rich-error-display: done
   3-6-show-binary-output-view: done
   3-7-validate-syntax-before-execution: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   # Epic 4: Program Execution
   epic-4: backlog

@@ -5555,4 +5555,314 @@ describe('App', () => {
       });
     });
   });
+
+  describe('RegisterView Integration (Story 5.3)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount RegisterView in state panel content area', () => {
+        const registerView = container.querySelector('.da-register-view');
+        expect(registerView).not.toBeNull();
+      });
+
+      it('should render RegisterView inside .da-state-panel .da-panel-content', () => {
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const registerView = stateContent?.querySelector('.da-register-view');
+        expect(registerView).not.toBeNull();
+      });
+
+      it('should display initial PC value as 0x00 (0)', () => {
+        const pcRow = container.querySelector('[data-register="pc"]');
+        const value = pcRow?.querySelector('.da-register-value');
+        expect(value?.textContent).toBe('0x00 (0)');
+      });
+
+      it('should display initial Accumulator value as 0x0 (0)', () => {
+        const accRow = container.querySelector('[data-register="accumulator"]');
+        const value = accRow?.querySelector('.da-register-value');
+        expect(value?.textContent).toBe('0x0 (0)');
+      });
+    });
+
+    describe('getRegisterView accessor', () => {
+      it('should return RegisterView instance after mount', () => {
+        const registerView = app.getRegisterView();
+        expect(registerView).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        const newApp = new App();
+        expect(newApp.getRegisterView()).toBeNull();
+      });
+    });
+
+    describe('update on load', () => {
+      it('should update RegisterView with initial state after load', async () => {
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        mockEmulatorBridge._setCpuState({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+        const accValue = container.querySelector('[data-register="accumulator"] .da-register-value');
+        expect(pcValue?.textContent).toBe('0x00 (0)');
+        expect(accValue?.textContent).toBe('0x0 (0)');
+      });
+    });
+
+    describe('update on step', () => {
+      it('should update RegisterView with new state after step', async () => {
+        // Set up: assemble and load
+        const binary = new Uint8Array([0x10, 0x42, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x42\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x42\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step with new state - use valid 4-bit accumulator value (0-15)
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0xA, // Valid 4-bit value (10 decimal)
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+          expect(pcValue?.textContent).toBe('0x02 (2)');
+        });
+
+        const accValue = container.querySelector('[data-register="accumulator"] .da-register-value');
+        // Accumulator is 0xA (10 decimal) - valid 4-bit value
+        expect(accValue?.textContent).toBe('0xA (10)');
+      });
+    });
+
+    describe('update on step back', () => {
+      it('should update RegisterView with historical state after step back', async () => {
+        // Set up: assemble, load, and step to create history
+        const binary = new Uint8Array([0x10, 0x0A, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x0A\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x0A\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to create history - use valid 4-bit accumulator value
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0xA, // Valid 4-bit value (10 decimal)
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const appAny = app as unknown as { stateHistory: unknown[] };
+          expect(appAny.stateHistory.length).toBe(1);
+        });
+
+        // Step back
+        mockEmulatorBridge._setRestoreStateResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const stepBackBtn = container.querySelector('[data-action="step-back"]') as HTMLButtonElement;
+        stepBackBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.restoreState).toHaveBeenCalled();
+        });
+
+        // RegisterView should show historical state (PC=0, ACC=0)
+        await vi.waitFor(() => {
+          const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+          expect(pcValue?.textContent).toBe('0x00 (0)');
+        });
+
+        const accValue = container.querySelector('[data-register="accumulator"] .da-register-value');
+        expect(accValue?.textContent).toBe('0x0 (0)');
+      });
+    });
+
+    describe('update on reset', () => {
+      it('should update RegisterView with reset state after reset', async () => {
+        // Set up: assemble, load, and step - use valid 4-bit accumulator value
+        const binary = new Uint8Array([0x10, 0x0A, 0xF0]);
+        mockEditorInstance._setContent('LDI 0x0A\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDI 0x0A\nHLT');
+        contentChangeListeners.forEach(cb => cb());
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+        });
+
+        // Step to change state - use valid 4-bit accumulator value
+        mockEmulatorBridge._setStepResult({
+          pc: 2,
+          accumulator: 0xA, // Valid 4-bit value (10 decimal)
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x10,
+          mar: 0,
+          mdr: 0,
+          cycles: 1,
+          instructions: 1,
+        });
+
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        stepBtn.click();
+
+        await vi.waitFor(() => {
+          const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+          expect(pcValue?.textContent).toBe('0x02 (2)');
+        });
+
+        // Reset
+        mockEmulatorBridge._setResetResult({
+          pc: 0,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        });
+
+        const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+        resetBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.reset).toHaveBeenCalled();
+        });
+
+        // RegisterView should show reset state
+        await vi.waitFor(() => {
+          const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+          expect(pcValue?.textContent).toBe('0x00 (0)');
+        });
+
+        const accValue = container.querySelector('[data-register="accumulator"] .da-register-value');
+        expect(accValue?.textContent).toBe('0x0 (0)');
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove RegisterView from DOM on destroy', () => {
+        expect(container.querySelector('.da-register-view')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-register-view')).toBeNull();
+      });
+
+      it('should set registerView to null on destroy', () => {
+        expect(app.getRegisterView()).not.toBeNull();
+        app.destroy();
+        expect(app.getRegisterView()).toBeNull();
+      });
+    });
+  });
 });

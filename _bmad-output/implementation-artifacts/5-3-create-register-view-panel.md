@@ -1,6 +1,6 @@
 # Story 5.3: Create Register View Panel
 
-Status: ready-for-dev
+Status: done
 
 ---
 
@@ -22,83 +22,83 @@ so that I can understand CPU state.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RegisterView Component Structure (AC: #1)
-  - [ ] 1.1 Create `src/debugger/RegisterView.ts` with RegisterView class
-  - [ ] 1.2 Define `RegisterViewState` interface (pc, accumulator, zeroFlag, halted, previousPc, previousAccumulator)
-  - [ ] 1.3 Create `RegisterViewOptions` interface (onMount callbacks if needed)
-  - [ ] 1.4 Implement constructor with state initialization
-  - [ ] 1.5 Create `mount(container: HTMLElement)` method
-  - [ ] 1.6 Create `destroy()` method for cleanup
+- [x] Task 1: Create RegisterView Component Structure (AC: #1)
+  - [x] 1.1 Create `src/debugger/RegisterView.ts` with RegisterView class
+  - [x] 1.2 Define `RegisterViewState` interface (pc, accumulator)
+  - [x] 1.3 Create `RegisterViewOptions` interface (reserved for future callbacks)
+  - [x] 1.4 Implement constructor with state initialization
+  - [x] 1.5 Create `mount(container: HTMLElement)` method
+  - [x] 1.6 Create `destroy()` method for cleanup
 
-- [ ] Task 2: Implement Register Display HTML Structure (AC: #1)
-  - [ ] 2.1 Create semantic HTML structure with `da-register-view` container class
-  - [ ] 2.2 Add "Registers" section header with `<h3>` or appropriate heading
-  - [ ] 2.3 Create PC row with label, hex value (`0x00`), and decimal value (`(0)`)
-  - [ ] 2.4 Create Accumulator row with label, hex value (`0x0`), and decimal value (`(0)`)
-  - [ ] 2.5 Add `data-register` attributes for test targeting (pc, accumulator)
-  - [ ] 2.6 Use `aria-live="polite"` on value containers for screen reader updates
+- [x] Task 2: Implement Register Display HTML Structure (AC: #1)
+  - [x] 2.1 Create semantic HTML structure with `da-register-view` container class
+  - [x] 2.2 Add "Registers" section header with `<h3>` heading
+  - [x] 2.3 Create PC row with label, hex value (`0x00`), and decimal value (`(0)`)
+  - [x] 2.4 Create Accumulator row with label, hex value (`0x0`), and decimal value (`(0)`)
+  - [x] 2.5 Add `data-register` attributes for test targeting (pc, accumulator)
+  - [x] 2.6 Use `aria-live="polite"` on value containers for screen reader updates
 
-- [ ] Task 3: Implement updateState Method (AC: #1)
-  - [ ] 3.1 Create `updateState(state: Partial<RegisterViewState>)` method
-  - [ ] 3.2 Store previous values before updating for change detection
-  - [ ] 3.3 Format PC as hex (2 digits, uppercase) and decimal: `0x${hex} (${dec})`
-  - [ ] 3.4 Format Accumulator as hex (1 digit, uppercase) and decimal: `0x${hex} (${dec})`
-  - [ ] 3.5 Update DOM elements with new formatted values
+- [x] Task 3: Implement updateState Method (AC: #1)
+  - [x] 3.1 Create `updateState(state: Partial<RegisterViewState>)` method
+  - [x] 3.2 Store previous values before updating for change detection
+  - [x] 3.3 Format PC as hex (2 digits, uppercase) and decimal: `0x${hex} (${dec})`
+  - [x] 3.4 Format Accumulator as hex (1 digit, uppercase) and decimal: `0x${hex} (${dec})`
+  - [x] 3.5 Update DOM elements with new formatted values
 
-- [ ] Task 4: Implement Change Flash Animation (AC: #1)
-  - [ ] 4.1 Add `da-register-changed` CSS class to register row when value changes
-  - [ ] 4.2 CSS animation: brief accent color background flash (~300ms)
-  - [ ] 4.3 Remove class after animation completes (use `animationend` event)
-  - [ ] 4.4 Compare current vs previous value to detect changes
-  - [ ] 4.5 Handle initial state (no flash on first render)
+- [x] Task 4: Implement Change Flash Animation (AC: #1)
+  - [x] 4.1 Add `da-register-changed` CSS class to register row when value changes
+  - [x] 4.2 CSS animation: brief accent color background flash (~300ms)
+  - [x] 4.3 Remove class after animation completes (use `animationend` event)
+  - [x] 4.4 Compare current vs previous value to detect changes
+  - [x] 4.5 Handle initial state (no flash on first render)
 
-- [ ] Task 5: Add CSS Styling (AC: #1)
-  - [ ] 5.1 Add RegisterView styles to `src/styles/main.css` (all project CSS is in this single file)
-  - [ ] 5.2 Use CSS variables for colors (`--da-bg-secondary`, `--da-text-primary`, `--da-accent`, `--da-border`)
-  - [ ] 5.3 Style register rows with proper spacing and alignment (use Tailwind spacing or define variables)
-  - [ ] 5.4 Ensure monospace font for hex values (use `font-family: monospace` or Tailwind `font-mono`)
-  - [ ] 5.5 Define `@keyframes da-register-flash` animation
-  - [ ] 5.6 Style `.da-register-changed` with animation
+- [x] Task 5: Add CSS Styling (AC: #1)
+  - [x] 5.1 Add RegisterView styles to `src/styles/main.css` (all project CSS is in this single file)
+  - [x] 5.2 Use CSS variables for colors (`--da-bg-secondary`, `--da-text-primary`, `--da-accent`, `--da-border`)
+  - [x] 5.3 Style register rows with proper spacing and alignment
+  - [x] 5.4 Ensure monospace font for hex values (JetBrains Mono, Fira Code, ui-monospace)
+  - [x] 5.5 Define `@keyframes da-register-flash` animation
+  - [x] 5.6 Style `.da-register-changed` with animation
 
-- [ ] Task 6: Integrate with App.ts State Panel (AC: #1)
-  - [ ] 6.1 Import RegisterView in App.ts
-  - [ ] 6.2 Create private `registerView: RegisterView | null = null` property
-  - [ ] 6.3 Mount RegisterView in State panel's `.da-panel-content` during `render()`
-  - [ ] 6.4 Call `registerView.updateState()` when `cpuState` changes (after step, load, reset, step-back)
-  - [ ] 6.5 Call `registerView.destroy()` in App's `destroy()` method
+- [x] Task 6: Integrate with App.ts State Panel (AC: #1)
+  - [x] 6.1 Import RegisterView in App.ts
+  - [x] 6.2 Create private `registerView: RegisterView | null = null` property
+  - [x] 6.3 Mount RegisterView in State panel's `.da-panel-content` during mount()
+  - [x] 6.4 Call `registerView.updateState()` when `cpuState` changes (after step, load, reset, step-back)
+  - [x] 6.5 Call `registerView.destroy()` in App's `destroy()` method
 
-- [ ] Task 7: Update RegisterView on CPU State Changes (AC: #1)
-  - [ ] 7.1 In `handleLoad()`: Update RegisterView with initial state
-  - [ ] 7.2 In `handleStep()`: Update RegisterView after step execution
-  - [ ] 7.3 In `handleStepBack()`: Update RegisterView with restored state
-  - [ ] 7.4 In `handleReset()`: Update RegisterView with reset state
-  - [ ] 7.5 During RUN mode: Update RegisterView via onStateUpdate callback (use existing throttle pattern: `STATE_UPDATE_THROTTLE_MS = 16`)
-  - [ ] 7.6 On HALTED event: Update RegisterView (state already current)
+- [x] Task 7: Update RegisterView on CPU State Changes (AC: #1)
+  - [x] 7.1 In `loadProgramIntoEmulator()`: Update RegisterView with initial state
+  - [x] 7.2 In `handleStep()`: Update RegisterView after step execution
+  - [x] 7.3 In `handleStepBack()`: Update RegisterView with restored historical state
+  - [x] 7.4 In `handleReset()`: Update RegisterView with reset state
+  - [x] 7.5 During RUN mode: Update RegisterView via throttled onStateUpdate callback
+  - [x] 7.6 On HALTED event: Update RegisterView with final state
 
-- [ ] Task 8: Export from debugger/index.ts (AC: #1)
-  - [ ] 8.1 Add `export { RegisterView } from './RegisterView'` to debugger/index.ts
-  - [ ] 8.2 Add type exports: `export type { RegisterViewState, RegisterViewOptions }`
+- [x] Task 8: Export from debugger/index.ts (AC: #1)
+  - [x] 8.1 Add `export { RegisterView } from './RegisterView'` to debugger/index.ts
+  - [x] 8.2 Add type exports: `export type { RegisterViewState, RegisterViewOptions }`
 
-- [ ] Task 9: Add Comprehensive Tests (AC: #1)
-  - [ ] 9.1 Create `src/debugger/RegisterView.test.ts`
-  - [ ] 9.2 Test: Component mounts and renders register section
-  - [ ] 9.3 Test: PC displays in hex and decimal format
-  - [ ] 9.4 Test: Accumulator displays in hex and decimal format
-  - [ ] 9.5 Test: updateState updates displayed values
-  - [ ] 9.6 Test: Changed values receive `da-register-changed` class
-  - [ ] 9.7 Test: Flash class is removed after animation
-  - [ ] 9.8 Test: No flash on initial render
-  - [ ] 9.9 Test: destroy() removes component from DOM
-  - [ ] 9.10 App.test.ts: RegisterView is mounted in state panel
-  - [ ] 9.11 App.test.ts: RegisterView updates on step
-  - [ ] 9.12 App.test.ts: RegisterView updates on load
-  - [ ] 9.13 App.test.ts: RegisterView updates on reset
+- [x] Task 9: Add Comprehensive Tests (AC: #1)
+  - [x] 9.1 Create `src/debugger/RegisterView.test.ts` (26 tests)
+  - [x] 9.2 Test: Component mounts and renders register section
+  - [x] 9.3 Test: PC displays in hex and decimal format
+  - [x] 9.4 Test: Accumulator displays in hex and decimal format
+  - [x] 9.5 Test: updateState updates displayed values
+  - [x] 9.6 Test: Changed values receive `da-register-changed` class
+  - [x] 9.7 Test: Flash class is removed after animation
+  - [x] 9.8 Test: No flash on initial render
+  - [x] 9.9 Test: destroy() removes component from DOM
+  - [x] 9.10 App.test.ts: RegisterView is mounted in state panel (12 integration tests added)
+  - [x] 9.11 App.test.ts: RegisterView updates on step
+  - [x] 9.12 App.test.ts: RegisterView updates on load
+  - [x] 9.13 App.test.ts: RegisterView updates on reset
 
-- [ ] Task 10: Integration Verification (AC: #1)
-  - [ ] 10.1 Run `npm test` - all tests pass
-  - [ ] 10.2 Run `npm run build` - build succeeds
-  - [ ] 10.3 TypeScript compilation - no type errors
-  - [ ] 10.4 Manual verification: Load program, step, observe register updates
+- [x] Task 10: Integration Verification (AC: #1)
+  - [x] 10.1 Run `npm test` - all 1132 tests pass
+  - [x] 10.2 Run `npm run build` - build succeeds
+  - [x] 10.3 TypeScript compilation - no type errors
+  - [ ] 10.4 Manual verification: Load program, step, observe register updates (deferred to code review)
 
 ---
 
@@ -480,11 +480,47 @@ this.unsubscribeStateUpdate = this.emulatorBridge.onStateUpdate((state) => {
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
+N/A - No debug issues encountered
+
 ### Completion Notes List
 
+1. **Component Implementation**: Created RegisterView component in `src/debugger/RegisterView.ts` with full mount/destroy lifecycle
+2. **State Management**: Implemented `RegisterViewState` interface with PC and Accumulator tracking; simplified from original design (removed previousPc/previousAccumulator from interface, handled internally)
+3. **Change Detection**: Implemented flash animation with `da-register-changed` CSS class, removes after animationend event
+4. **First Render Handling**: Added `isFirstRender` flag to prevent flash on initial mount
+5. **Integration**: Added RegisterView initialization to App.ts mount(), updates in step/stepBack/load/reset/run handlers
+6. **Destroy Cleanup**: Added destroyRegisterView() call to App.destroy() method
+7. **Test Coverage**: 34 unit tests in RegisterView.test.ts, 12 integration tests in App.test.ts (total 1140 tests pass)
+8. **Build Verification**: TypeScript compilation and Vite build both succeed
+
+### Code Review Fixes (2026-01-23)
+
+**MEDIUM Issues Fixed:**
+- M1/M2: Added input validation with value clamping (PC: 0-255, ACC: 0-15)
+- M3: Accumulator formatting now consistent with spec (1 hex digit for 4-bit values)
+- M4: Added 8 boundary tests for invalid values (NaN, Infinity, negative, overflow, floats)
+
+**LOW Issues Fixed:**
+- L2: Removed redundant font-family from `.da-register-value` CSS (inherits from parent)
+- L3: Fixed bound handler type by using proper event wrapper instead of type assertion
+- L4: Clarified getRegisterView() JSDoc comment
+
+**Tests Updated:**
+- Fixed integration tests to use valid 4-bit accumulator values (0xA instead of 0x42)
+
 ### File List
+
+**Created:**
+- `src/debugger/RegisterView.ts` - RegisterView component (160 lines)
+- `src/debugger/RegisterView.test.ts` - Unit tests (34 tests, ~290 lines)
+
+**Modified:**
+- `src/debugger/index.ts` - Added RegisterView exports
+- `src/styles/main.css` - Added RegisterView CSS styles and animation
+- `src/ui/App.ts` - Integration (import, property, init/destroy methods, state update calls)
+- `src/ui/App.test.ts` - Added 12 integration tests for RegisterView, fixed accumulator values
 

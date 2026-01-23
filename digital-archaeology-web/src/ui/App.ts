@@ -18,6 +18,7 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
+import { RegisterView } from '@debugger/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -150,6 +151,9 @@ export class App {
   private stateHistory: StateHistoryEntry[] = [];
   private historyPointer: number = -1; // -1 = at latest, tracking new states
 
+  // RegisterView for displaying CPU registers (Story 5.3)
+  private registerView: RegisterView | null = null;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -177,6 +181,7 @@ export class App {
     this.destroyEditor();
     this.destroyAssemblerBridge();
     this.destroyEmulatorBridge();
+    this.destroyRegisterView();
 
     this.container = container;
     this.isMounted = true;
@@ -198,6 +203,7 @@ export class App {
     this.initializeResizers();
     this.initializeEditor();
     this.initializeStoryModeContainer();
+    this.initializeRegisterView();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -757,6 +763,40 @@ export class App {
   }
 
   /**
+   * Initialize the RegisterView in the State panel (Story 5.3).
+   * @returns void
+   */
+  private initializeRegisterView(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.registerView = new RegisterView();
+    this.registerView.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the RegisterView component (Story 5.3).
+   * @returns void
+   */
+  private destroyRegisterView(): void {
+    if (this.registerView) {
+      this.registerView.destroy();
+      this.registerView = null;
+    }
+  }
+
+  /**
+   * Get the RegisterView instance (Story 5.3).
+   * Primarily used for testing and external state inspection.
+   * @returns The RegisterView instance or null if not mounted
+   */
+  getRegisterView(): RegisterView | null {
+    return this.registerView;
+  }
+
+  /**
    * Initialize the AssemblerBridge for WASM worker communication.
    * Runs asynchronously to avoid blocking UI during WASM loading.
    * @returns void
@@ -866,6 +906,12 @@ export class App {
 
       // Highlight the first instruction after load (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
+
+      // Update RegisterView with initial state (Story 5.3)
+      this.registerView?.updateState({
+        pc: this.cpuState.pc,
+        accumulator: this.cpuState.accumulator,
+      });
     } catch (error) {
       // Handle load errors
       console.error('Failed to load program into emulator:', error);
@@ -1007,6 +1053,12 @@ export class App {
 
       // Highlight the first instruction after reset (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
+
+      // Update RegisterView with reset state (Story 5.3)
+      this.registerView?.updateState({
+        pc: this.cpuState.pc,
+        accumulator: this.cpuState.accumulator,
+      });
     } catch (error) {
       console.error('Failed to reset:', error);
       // Reset running state even on error
@@ -1088,6 +1140,12 @@ export class App {
       // Highlight current instruction line in editor (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
 
+      // Update RegisterView with new state (Story 5.3)
+      this.registerView?.updateState({
+        pc: this.cpuState.pc,
+        accumulator: this.cpuState.accumulator,
+      });
+
       // Story 5.2: Enable Step Back button if history exists
       this.toolbar?.updateState({ canStepBack: this.stateHistory.length > 0 });
 
@@ -1151,6 +1209,12 @@ export class App {
 
       // Highlight the instruction at historical PC (not emulator's reset PC)
       this.highlightCurrentInstruction(historicalState.pc);
+
+      // Update RegisterView with historical state (Story 5.3)
+      this.registerView?.updateState({
+        pc: historicalState.pc,
+        accumulator: historicalState.accumulator,
+      });
 
       // Update Step Back button state
       this.toolbar?.updateState({ canStepBack: targetIndex > 0 });
@@ -1310,6 +1374,11 @@ export class App {
           pcValue: state.pc,
           cycleCount: state.cycles,
         });
+        // Update RegisterView during RUN mode (Story 5.3)
+        this.registerView?.updateState({
+          pc: state.pc,
+          accumulator: state.accumulator,
+        });
       }
     });
 
@@ -1364,6 +1433,14 @@ export class App {
       speed: null,
       loadStatus: 'Halted',
     });
+
+    // Update RegisterView with final halted state (Story 5.3)
+    if (this.cpuState) {
+      this.registerView?.updateState({
+        pc: this.cpuState.pc,
+        accumulator: this.cpuState.accumulator,
+      });
+    }
   }
 
   /**
@@ -1989,6 +2066,9 @@ export class App {
 
     // Destroy error panel
     this.destroyErrorPanel();
+
+    // Destroy RegisterView (Story 5.3)
+    this.destroyRegisterView();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

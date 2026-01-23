@@ -1491,3 +1491,65 @@ body.da-resizing * {
 .da-binary-toggle-container--hidden {
   display: none;
 }
+
+/* =============================================================================
+   RegisterView Component Styles (Story 5.3)
+   Displays CPU register values in the State panel.
+   ============================================================================= */
+
+.da-register-view {
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+.da-register-view__title {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-register-view__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-register-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-register-row:last-child {
+  border-bottom: none;
+}
+
+.da-register-label {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--da-text-secondary);
+}
+
+.da-register-value {
+  font-size: 12px;
+  color: var(--da-text-primary);
+  /* font-family inherited from .da-register-view */
+}
+
+/* Flash animation for changed register values */
+@keyframes da-register-flash {
+  0% {
+    background-color: var(--da-accent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.da-register-changed {
+  animation: da-register-flash 300ms ease-out;
+}

@@ -1,8 +1,8 @@
 /**
  * Emulator Module Type Definitions
  *
- * TypeScript interfaces for the Micro4 assembler WASM module
- * and related emulator types.
+ * TypeScript interfaces for the Micro4 assembler and CPU emulator WASM modules
+ * and related types for worker communication.
  */
 
 /**
@@ -346,6 +346,454 @@ export function validateAssemblerModule(
     }
     return typeof mod[name] !== 'function';
   });
+
+  if (missingExports.length === 0 && missingRuntimeMethods.length === 0) {
+    return null;
+  }
+
+  return { missingExports, missingRuntimeMethods };
+}
+
+/* ============================================================================
+ * CPU Emulator Module Types
+ * ============================================================================ */
+
+/**
+ * Emscripten module interface for the Micro4 CPU emulator.
+ *
+ * This interface describes the WASM module loaded via the
+ * Emscripten-generated JavaScript glue code (micro4-cpu.js).
+ *
+ * @example
+ * ```typescript
+ * // In a Web Worker:
+ * const createModule = await import('/wasm/micro4-cpu.js');
+ * const Module: EmulatorModule = await createModule.default();
+ *
+ * // Initialize and run CPU
+ * Module._cpu_init_instance();
+ * const cycles = Module._cpu_step_instance();
+ * ```
+ */
+export interface EmulatorModule {
+  /**
+   * Call a C function by name.
+   */
+  ccall: (
+    name: string,
+    returnType: 'number' | 'string' | null,
+    argTypes: Array<'number' | 'string' | 'array'>,
+    args: unknown[]
+  ) => number | string | null;
+
+  /**
+   * Create a wrapped JavaScript function for calling C code.
+   */
+  cwrap: (
+    name: string,
+    returnType: 'number' | 'string' | null,
+    argTypes: Array<'number' | 'string'>
+  ) => (...args: unknown[]) => number | string | null;
+
+  /**
+   * Direct access to the WASM heap as a Uint8Array.
+   * Used for reading CPU memory and loading programs.
+   */
+  HEAPU8: Uint8Array;
+
+  /**
+   * Convert a pointer to a null-terminated UTF8 string.
+   */
+  UTF8ToString: (ptr: number, maxLength?: number) => string;
+
+  /**
+   * Allocate memory in the WASM heap.
+   */
+  _malloc: (size: number) => number;
+
+  /**
+   * Free previously allocated memory.
+   */
+  _free: (ptr: number) => void;
+
+  /* CPU Lifecycle Functions */
+
+  /**
+   * Initialize the CPU to its default state.
+   * Must be called before any other CPU operations.
+   */
+  _cpu_init_instance: () => void;
+
+  /**
+   * Reset the CPU state while preserving memory contents.
+   */
+  _cpu_reset_instance: () => void;
+
+  /**
+   * Execute one instruction.
+   * @returns Number of cycles consumed (0 if halted or error)
+   */
+  _cpu_step_instance: () => number;
+
+  /**
+   * Load a program into CPU memory.
+   *
+   * @param ptr - Pointer to program data in WASM memory (use _malloc)
+   * @param size - Number of nibbles to load
+   * @param addr - Starting address in CPU memory (0-255)
+   */
+  _cpu_load_program_instance: (ptr: number, size: number, addr: number) => void;
+
+  /* State Accessors */
+
+  /**
+   * Get the current Program Counter value.
+   * @returns 8-bit PC value (0-255)
+   */
+  _get_pc: () => number;
+
+  /**
+   * Get the current Accumulator value.
+   * @returns 4-bit value (0-15)
+   */
+  _get_accumulator: () => number;
+
+  /**
+   * Get the Zero flag status.
+   * @returns 1 if zero flag is set, 0 otherwise
+   */
+  _get_zero_flag: () => number;
+
+  /**
+   * Check if the CPU has halted.
+   * @returns 1 if halted, 0 if still running
+   */
+  _is_halted: () => number;
+
+  /**
+   * Check if the CPU has encountered an error.
+   * @returns 1 if error occurred, 0 otherwise
+   */
+  _has_error: () => number;
+
+  /**
+   * Get pointer to the error message string.
+   *
+   * IMPORTANT: The returned pointer is valid only until the next CPU operation.
+   * Copy the string immediately using UTF8ToString() before calling any other
+   * CPU functions (init, reset, step, load_program).
+   *
+   * @returns Pointer to null-terminated error string, use UTF8ToString() to convert
+   */
+  _get_error_message: () => number;
+
+  /**
+   * Get pointer to the CPU memory array.
+   *
+   * Usage: Create a fresh Uint8Array view each time you read memory:
+   *   new Uint8Array(Module.HEAPU8.buffer, Module._get_memory_ptr(), 256)
+   *
+   * IMPORTANT: Do NOT cache this view. With ALLOW_MEMORY_GROWTH=1, the
+   * underlying ArrayBuffer can be replaced when WASM memory grows,
+   * invalidating any previously created views.
+   *
+   * @returns Pointer to the 256-nibble memory array
+   */
+  _get_memory_ptr: () => number;
+
+  /* Internal Registers (for debugging/visualization) */
+
+  /**
+   * Get the Instruction Register value.
+   * @returns 8-bit IR value
+   */
+  _get_ir: () => number;
+
+  /**
+   * Get the Memory Address Register value.
+   * @returns 8-bit MAR value
+   */
+  _get_mar: () => number;
+
+  /**
+   * Get the Memory Data Register value.
+   * @returns 4-bit MDR value
+   */
+  _get_mdr: () => number;
+
+  /* Statistics */
+
+  /**
+   * Get total CPU cycles executed.
+   *
+   * Note: The C function returns uint64_t, but JavaScript numbers safely
+   * represent integers only up to 2^53-1 (~9 quadrillion). For typical
+   * Micro4 programs this is not a concern, but very long-running programs
+   * may experience precision loss.
+   *
+   * @returns Cycle count as JavaScript number
+   */
+  _get_cycles: () => number;
+
+  /**
+   * Get total instructions executed.
+   *
+   * Note: The C function returns uint64_t, but JavaScript numbers safely
+   * represent integers only up to 2^53-1 (~9 quadrillion). For typical
+   * Micro4 programs this is not a concern, but very long-running programs
+   * may experience precision loss.
+   *
+   * @returns Instruction count as JavaScript number
+   */
+  _get_instructions: () => number;
+}
+
+/**
+ * Factory function type for creating the EmulatorModule.
+ * This is the default export of the Emscripten-generated JS file.
+ */
+export type EmulatorModuleFactory = () => Promise<EmulatorModule>;
+
+/**
+ * CPU state snapshot for UI updates.
+ * Contains all visible CPU state for rendering.
+ */
+export interface CPUState {
+  /** Program Counter (0-255) */
+  pc: number;
+  /** Accumulator (0-15) */
+  accumulator: number;
+  /** Zero flag */
+  zeroFlag: boolean;
+  /** CPU has halted (HLT or error) */
+  halted: boolean;
+  /** Error occurred during execution */
+  error: boolean;
+  /** Error message if error is true */
+  errorMessage: string | null;
+  /** Copy of CPU memory (256 nibbles) */
+  memory: Uint8Array;
+  /** Instruction Register - last fetched instruction */
+  ir: number;
+  /** Memory Address Register - last memory address accessed */
+  mar: number;
+  /** Memory Data Register - last data read/written */
+  mdr: number;
+  /** Total CPU cycles executed */
+  cycles: number;
+  /** Total instructions executed */
+  instructions: number;
+}
+
+/* ============================================================================
+ * Emulator Worker Message Protocol
+ * ============================================================================ */
+
+/**
+ * Command to load a program into CPU memory.
+ */
+export interface LoadProgramCommand {
+  type: 'LOAD_PROGRAM';
+  payload: {
+    /** Assembled binary (nibbles) */
+    binary: Uint8Array;
+    /** Starting address (default: 0) */
+    startAddr?: number;
+  };
+}
+
+/**
+ * Command to execute a single instruction.
+ */
+export interface StepCommand {
+  type: 'STEP';
+}
+
+/**
+ * Command to run continuously at specified speed.
+ */
+export interface RunCommand {
+  type: 'RUN';
+  payload: {
+    /** Instructions per second (0 = max speed) */
+    speed: number;
+  };
+}
+
+/**
+ * Command to stop continuous execution.
+ */
+export interface StopCommand {
+  type: 'STOP';
+}
+
+/**
+ * Command to reset the CPU (keep memory).
+ */
+export interface ResetCommand {
+  type: 'RESET';
+}
+
+/**
+ * Command to request current CPU state.
+ */
+export interface GetStateCommand {
+  type: 'GET_STATE';
+}
+
+/**
+ * Union of all emulator commands (main → worker).
+ */
+export type EmulatorCommand =
+  | LoadProgramCommand
+  | StepCommand
+  | RunCommand
+  | StopCommand
+  | ResetCommand
+  | GetStateCommand;
+
+/**
+ * Event with updated CPU state.
+ */
+export interface StateUpdateEvent {
+  type: 'STATE_UPDATE';
+  payload: CPUState;
+}
+
+/**
+ * Event indicating CPU has halted.
+ */
+export interface HaltedEvent {
+  type: 'HALTED';
+}
+
+/**
+ * Event indicating a runtime error occurred.
+ */
+export interface EmulatorErrorEvent {
+  type: 'ERROR';
+  payload: {
+    /** Error message */
+    message: string;
+    /** Address where error occurred */
+    address?: number;
+  };
+}
+
+/**
+ * Event indicating a breakpoint was hit.
+ */
+export interface BreakpointHitEvent {
+  type: 'BREAKPOINT_HIT';
+  payload: {
+    /** Address of the breakpoint */
+    address: number;
+  };
+}
+
+/**
+ * Event indicating the emulator worker is ready.
+ */
+export interface EmulatorReadyEvent {
+  type: 'EMULATOR_READY';
+}
+
+/**
+ * Union of all emulator events (worker → main).
+ */
+export type EmulatorEvent =
+  | StateUpdateEvent
+  | HaltedEvent
+  | EmulatorErrorEvent
+  | BreakpointHitEvent
+  | EmulatorReadyEvent;
+
+/* ============================================================================
+ * Emulator Module Validation
+ * ============================================================================ */
+
+/**
+ * Required exports from the WASM emulator module.
+ * Used for runtime validation that the module loaded correctly.
+ */
+export const REQUIRED_EMULATOR_EXPORTS = [
+  '_cpu_init_instance',
+  '_cpu_reset_instance',
+  '_cpu_step_instance',
+  '_cpu_load_program_instance',
+  '_get_pc',
+  '_get_accumulator',
+  '_get_zero_flag',
+  '_is_halted',
+  '_has_error',
+  '_get_error_message',
+  '_get_memory_ptr',
+  '_get_ir',
+  '_get_mar',
+  '_get_mdr',
+  '_get_cycles',
+  '_get_instructions',
+  '_malloc',
+  '_free',
+] as const;
+
+/**
+ * Required Emscripten runtime methods for the emulator module.
+ */
+export const REQUIRED_EMULATOR_RUNTIME_METHODS = [
+  'ccall',
+  'cwrap',
+  'HEAPU8',
+  'UTF8ToString',
+] as const;
+
+/**
+ * Validation error for missing emulator WASM exports.
+ */
+export interface EmulatorValidationError {
+  missingExports: string[];
+  missingRuntimeMethods: string[];
+}
+
+/**
+ * Validates that a loaded emulator module has all required exports.
+ *
+ * @param module - The loaded Emscripten module to validate
+ * @returns null if valid, or an EmulatorValidationError describing missing exports
+ *
+ * @example
+ * ```typescript
+ * const Module = await createModule();
+ * const error = validateEmulatorModule(Module);
+ * if (error) {
+ *   throw new Error(`WASM validation failed: missing ${error.missingExports.join(', ')}`);
+ * }
+ * ```
+ */
+export function validateEmulatorModule(
+  module: unknown
+): EmulatorValidationError | null {
+  if (!module || typeof module !== 'object') {
+    return {
+      missingExports: [...REQUIRED_EMULATOR_EXPORTS],
+      missingRuntimeMethods: [...REQUIRED_EMULATOR_RUNTIME_METHODS],
+    };
+  }
+
+  const mod = module as Record<string, unknown>;
+
+  const missingExports = REQUIRED_EMULATOR_EXPORTS.filter(
+    (name) => typeof mod[name] !== 'function'
+  );
+
+  const missingRuntimeMethods = REQUIRED_EMULATOR_RUNTIME_METHODS.filter(
+    (name) => {
+      if (name === 'HEAPU8') {
+        return !(mod[name] instanceof Uint8Array);
+      }
+      return typeof mod[name] !== 'function';
+    }
+  );
 
   if (missingExports.length === 0 && missingRuntimeMethods.length === 0) {
     return null;

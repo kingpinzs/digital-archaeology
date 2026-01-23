@@ -12,11 +12,30 @@ import type {
   WorkerReadyEvent,
   AssemblerCommand,
   AssemblerEvent,
+  EmulatorModule,
+  EmulatorModuleFactory,
+  CPUState,
+  LoadProgramCommand,
+  StepCommand,
+  RunCommand,
+  StopCommand,
+  ResetCommand,
+  GetStateCommand,
+  EmulatorCommand,
+  StateUpdateEvent,
+  HaltedEvent,
+  EmulatorErrorEvent,
+  BreakpointHitEvent,
+  EmulatorReadyEvent,
+  EmulatorEvent,
 } from './types';
 import {
   validateAssemblerModule,
   REQUIRED_WASM_EXPORTS,
   REQUIRED_RUNTIME_METHODS,
+  validateEmulatorModule,
+  REQUIRED_EMULATOR_EXPORTS,
+  REQUIRED_EMULATOR_RUNTIME_METHODS,
 } from './types';
 
 describe('Emulator Types', () => {
@@ -678,6 +697,684 @@ DATA:   DB 5         ; Initial value
       };
 
       expect(expectedError.line).toBe(1);
+    });
+  });
+});
+
+/* ============================================================================
+ * CPU Emulator Module Types Tests
+ * ============================================================================ */
+
+describe('CPU Emulator Types', () => {
+  describe('CPUState', () => {
+    it('should define all CPU state fields', () => {
+      const state: CPUState = {
+        pc: 0x10,
+        accumulator: 5,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        memory: new Uint8Array(256),
+        ir: 0x15,
+        mar: 0x20,
+        mdr: 0x0a,
+        cycles: 100,
+        instructions: 25,
+      };
+
+      expect(state.pc).toBe(0x10);
+      expect(state.accumulator).toBe(5);
+      expect(state.zeroFlag).toBe(false);
+      expect(state.halted).toBe(false);
+      expect(state.error).toBe(false);
+      expect(state.errorMessage).toBeNull();
+      expect(state.memory).toBeInstanceOf(Uint8Array);
+      expect(state.memory.length).toBe(256);
+      expect(state.ir).toBe(0x15);
+      expect(state.mar).toBe(0x20);
+      expect(state.mdr).toBe(0x0a);
+      expect(state.cycles).toBe(100);
+      expect(state.instructions).toBe(25);
+    });
+
+    it('should represent halted CPU with error', () => {
+      const state: CPUState = {
+        pc: 0xff,
+        accumulator: 0,
+        zeroFlag: true,
+        halted: true,
+        error: true,
+        errorMessage: 'PC out of bounds: 0xFF',
+        memory: new Uint8Array(256),
+        ir: 0x00,
+        mar: 0x00,
+        mdr: 0x00,
+        cycles: 50,
+        instructions: 10,
+      };
+
+      expect(state.halted).toBe(true);
+      expect(state.error).toBe(true);
+      expect(state.errorMessage).toContain('PC out of bounds');
+    });
+  });
+
+  describe('Emulator Command Types', () => {
+    describe('LoadProgramCommand', () => {
+      it('should have LOAD_PROGRAM type with binary payload', () => {
+        const command: LoadProgramCommand = {
+          type: 'LOAD_PROGRAM',
+          payload: {
+            binary: new Uint8Array([0x1, 0x0, 0xf, 0x0]),
+          },
+        };
+
+        expect(command.type).toBe('LOAD_PROGRAM');
+        expect(command.payload.binary).toBeInstanceOf(Uint8Array);
+        expect(command.payload.startAddr).toBeUndefined();
+      });
+
+      it('should support optional startAddr', () => {
+        const command: LoadProgramCommand = {
+          type: 'LOAD_PROGRAM',
+          payload: {
+            binary: new Uint8Array([0x0, 0x0]),
+            startAddr: 0x10,
+          },
+        };
+
+        expect(command.payload.startAddr).toBe(0x10);
+      });
+    });
+
+    describe('StepCommand', () => {
+      it('should have STEP type with no payload', () => {
+        const command: StepCommand = {
+          type: 'STEP',
+        };
+
+        expect(command.type).toBe('STEP');
+      });
+    });
+
+    describe('RunCommand', () => {
+      it('should have RUN type with speed payload', () => {
+        const command: RunCommand = {
+          type: 'RUN',
+          payload: {
+            speed: 1000, // 1000 instructions per second
+          },
+        };
+
+        expect(command.type).toBe('RUN');
+        expect(command.payload.speed).toBe(1000);
+      });
+
+      it('should support speed 0 for max speed', () => {
+        const command: RunCommand = {
+          type: 'RUN',
+          payload: {
+            speed: 0,
+          },
+        };
+
+        expect(command.payload.speed).toBe(0);
+      });
+    });
+
+    describe('StopCommand', () => {
+      it('should have STOP type', () => {
+        const command: StopCommand = {
+          type: 'STOP',
+        };
+
+        expect(command.type).toBe('STOP');
+      });
+    });
+
+    describe('ResetCommand', () => {
+      it('should have RESET type', () => {
+        const command: ResetCommand = {
+          type: 'RESET',
+        };
+
+        expect(command.type).toBe('RESET');
+      });
+    });
+
+    describe('GetStateCommand', () => {
+      it('should have GET_STATE type', () => {
+        const command: GetStateCommand = {
+          type: 'GET_STATE',
+        };
+
+        expect(command.type).toBe('GET_STATE');
+      });
+    });
+  });
+
+  describe('Emulator Event Types', () => {
+    describe('StateUpdateEvent', () => {
+      it('should have STATE_UPDATE type with CPUState payload', () => {
+        const event: StateUpdateEvent = {
+          type: 'STATE_UPDATE',
+          payload: {
+            pc: 0,
+            accumulator: 0,
+            zeroFlag: true,
+            halted: false,
+            error: false,
+            errorMessage: null,
+            memory: new Uint8Array(256),
+            ir: 0,
+            mar: 0,
+            mdr: 0,
+            cycles: 0,
+            instructions: 0,
+          },
+        };
+
+        expect(event.type).toBe('STATE_UPDATE');
+        expect(event.payload.memory.length).toBe(256);
+      });
+    });
+
+    describe('HaltedEvent', () => {
+      it('should have HALTED type', () => {
+        const event: HaltedEvent = {
+          type: 'HALTED',
+        };
+
+        expect(event.type).toBe('HALTED');
+      });
+    });
+
+    describe('EmulatorErrorEvent', () => {
+      it('should have ERROR type with message', () => {
+        const event: EmulatorErrorEvent = {
+          type: 'ERROR',
+          payload: {
+            message: 'Unknown opcode: 0xF at PC=0x10',
+          },
+        };
+
+        expect(event.type).toBe('ERROR');
+        expect(event.payload.message).toContain('Unknown opcode');
+      });
+
+      it('should support optional address field', () => {
+        const event: EmulatorErrorEvent = {
+          type: 'ERROR',
+          payload: {
+            message: 'Error at address',
+            address: 0x10,
+          },
+        };
+
+        expect(event.payload.address).toBe(0x10);
+      });
+    });
+
+    describe('BreakpointHitEvent', () => {
+      it('should have BREAKPOINT_HIT type with address', () => {
+        const event: BreakpointHitEvent = {
+          type: 'BREAKPOINT_HIT',
+          payload: {
+            address: 0x20,
+          },
+        };
+
+        expect(event.type).toBe('BREAKPOINT_HIT');
+        expect(event.payload.address).toBe(0x20);
+      });
+    });
+
+    describe('EmulatorReadyEvent', () => {
+      it('should have EMULATOR_READY type', () => {
+        const event: EmulatorReadyEvent = {
+          type: 'EMULATOR_READY',
+        };
+
+        expect(event.type).toBe('EMULATOR_READY');
+      });
+    });
+  });
+
+  describe('Emulator Union Types', () => {
+    it('EmulatorCommand should include all command types', () => {
+      const commands: EmulatorCommand[] = [
+        { type: 'LOAD_PROGRAM', payload: { binary: new Uint8Array(0) } },
+        { type: 'STEP' },
+        { type: 'RUN', payload: { speed: 100 } },
+        { type: 'STOP' },
+        { type: 'RESET' },
+        { type: 'GET_STATE' },
+      ];
+
+      expect(commands).toHaveLength(6);
+      expect(commands[0].type).toBe('LOAD_PROGRAM');
+      expect(commands[1].type).toBe('STEP');
+      expect(commands[2].type).toBe('RUN');
+      expect(commands[3].type).toBe('STOP');
+      expect(commands[4].type).toBe('RESET');
+      expect(commands[5].type).toBe('GET_STATE');
+    });
+
+    it('EmulatorEvent should include all event types', () => {
+      const events: EmulatorEvent[] = [
+        { type: 'EMULATOR_READY' },
+        {
+          type: 'STATE_UPDATE',
+          payload: {
+            pc: 0,
+            accumulator: 0,
+            zeroFlag: false,
+            halted: false,
+            error: false,
+            errorMessage: null,
+            memory: new Uint8Array(256),
+            ir: 0,
+            mar: 0,
+            mdr: 0,
+            cycles: 0,
+            instructions: 0,
+          },
+        },
+        { type: 'HALTED' },
+        { type: 'ERROR', payload: { message: 'Error' } },
+        { type: 'BREAKPOINT_HIT', payload: { address: 0 } },
+      ];
+
+      expect(events).toHaveLength(5);
+      expect(events[0].type).toBe('EMULATOR_READY');
+      expect(events[1].type).toBe('STATE_UPDATE');
+      expect(events[2].type).toBe('HALTED');
+      expect(events[3].type).toBe('ERROR');
+      expect(events[4].type).toBe('BREAKPOINT_HIT');
+    });
+
+    it('should discriminate events by type', () => {
+      const event: EmulatorEvent = {
+        type: 'STATE_UPDATE',
+        payload: {
+          pc: 10,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0x15,
+          mar: 0x10,
+          mdr: 0x05,
+          cycles: 20,
+          instructions: 5,
+        },
+      };
+
+      // Type narrowing via discriminated union
+      if (event.type === 'STATE_UPDATE') {
+        expect(event.payload.pc).toBe(10);
+        expect(event.payload.accumulator).toBe(5);
+      }
+    });
+  });
+
+  describe('EmulatorModule interface', () => {
+    it('should define all required WASM wrapper methods', () => {
+      // Create a mock that satisfies the interface
+      const mockModule: Partial<EmulatorModule> = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => {},
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_accumulator: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+      };
+
+      expect(mockModule._cpu_init_instance).toBeDefined();
+      expect(mockModule._cpu_step_instance).toBeDefined();
+      expect(mockModule._get_pc).toBeDefined();
+      expect(mockModule._get_accumulator).toBeDefined();
+      expect(mockModule._is_halted).toBeDefined();
+      expect(mockModule._get_memory_ptr).toBeDefined();
+    });
+  });
+
+  describe('EmulatorModuleFactory', () => {
+    it('should be a function that returns a Promise', async () => {
+      const mockFactory: EmulatorModuleFactory = async () => {
+        return {
+          ccall: () => 0,
+          cwrap: () => () => 0,
+          HEAPU8: new Uint8Array(0),
+          UTF8ToString: () => '',
+          _malloc: () => 0,
+          _free: () => {},
+          _cpu_init_instance: () => {},
+          _cpu_reset_instance: () => {},
+          _cpu_step_instance: () => 0,
+          _cpu_load_program_instance: () => {},
+          _get_pc: () => 0,
+          _get_accumulator: () => 0,
+          _get_zero_flag: () => 0,
+          _is_halted: () => 0,
+          _has_error: () => 0,
+          _get_error_message: () => 0,
+          _get_memory_ptr: () => 0,
+          _get_ir: () => 0,
+          _get_mar: () => 0,
+          _get_mdr: () => 0,
+          _get_cycles: () => 0,
+          _get_instructions: () => 0,
+        };
+      };
+
+      const module = await mockFactory();
+      expect(module).toBeDefined();
+      expect(typeof module._cpu_init_instance).toBe('function');
+      expect(typeof module._cpu_step_instance).toBe('function');
+    });
+  });
+});
+
+describe('Emulator WASM Module Validation', () => {
+  describe('validateEmulatorModule', () => {
+    it('should return null for valid module with all exports', () => {
+      const validModule = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => {},
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_accumulator: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+      };
+
+      const error = validateEmulatorModule(validModule);
+      expect(error).toBeNull();
+    });
+
+    it('should detect missing CPU exports', () => {
+      const moduleWithMissingExports = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        // Missing all CPU functions
+      };
+
+      const error = validateEmulatorModule(moduleWithMissingExports);
+      expect(error).not.toBeNull();
+      expect(error?.missingExports).toContain('_cpu_init_instance');
+      expect(error?.missingExports).toContain('_cpu_step_instance');
+      expect(error?.missingExports).toContain('_get_pc');
+      expect(error?.missingExports).toContain('_get_accumulator');
+      expect(error?.missingExports).toContain('_is_halted');
+      expect(error?.missingExports).toContain('_get_memory_ptr');
+      expect(error?.missingRuntimeMethods).toHaveLength(0);
+    });
+
+    it('should detect missing runtime methods', () => {
+      const moduleWithMissingRuntime = {
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => {},
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_accumulator: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+        // Missing: ccall, cwrap, HEAPU8, UTF8ToString
+      };
+
+      const error = validateEmulatorModule(moduleWithMissingRuntime);
+      expect(error).not.toBeNull();
+      expect(error?.missingRuntimeMethods).toContain('ccall');
+      expect(error?.missingRuntimeMethods).toContain('cwrap');
+      expect(error?.missingRuntimeMethods).toContain('HEAPU8');
+      expect(error?.missingRuntimeMethods).toContain('UTF8ToString');
+      expect(error?.missingExports).toHaveLength(0);
+    });
+
+    it('should reject null module', () => {
+      const error = validateEmulatorModule(null);
+      expect(error).not.toBeNull();
+      expect(error?.missingExports.length).toBeGreaterThan(0);
+      expect(error?.missingRuntimeMethods.length).toBeGreaterThan(0);
+    });
+
+    it('should reject undefined module', () => {
+      const error = validateEmulatorModule(undefined);
+      expect(error).not.toBeNull();
+    });
+
+    it('should reject non-object module', () => {
+      const error = validateEmulatorModule('not an object');
+      expect(error).not.toBeNull();
+    });
+
+    it('should detect when HEAPU8 is not a Uint8Array', () => {
+      const moduleWithBadHeap = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: 'not a Uint8Array', // Wrong type
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => {},
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_accumulator: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+      };
+
+      const error = validateEmulatorModule(moduleWithBadHeap);
+      expect(error).not.toBeNull();
+      expect(error?.missingRuntimeMethods).toContain('HEAPU8');
+    });
+  });
+
+  describe('REQUIRED_EMULATOR_EXPORTS', () => {
+    it('should include all required CPU function exports', () => {
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_cpu_init_instance');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_cpu_reset_instance');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_cpu_step_instance');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_cpu_load_program_instance');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_pc');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_accumulator');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_zero_flag');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_is_halted');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_has_error');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_error_message');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_memory_ptr');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_ir');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_mar');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_mdr');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_cycles');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_get_instructions');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_malloc');
+      expect(REQUIRED_EMULATOR_EXPORTS).toContain('_free');
+    });
+  });
+
+  describe('REQUIRED_EMULATOR_RUNTIME_METHODS', () => {
+    it('should include all required Emscripten runtime methods', () => {
+      expect(REQUIRED_EMULATOR_RUNTIME_METHODS).toContain('ccall');
+      expect(REQUIRED_EMULATOR_RUNTIME_METHODS).toContain('cwrap');
+      expect(REQUIRED_EMULATOR_RUNTIME_METHODS).toContain('HEAPU8');
+      expect(REQUIRED_EMULATOR_RUNTIME_METHODS).toContain('UTF8ToString');
+    });
+  });
+});
+
+describe('Expected CPU Emulator Behavior', () => {
+  describe('Expected WASM API', () => {
+    it('should document cpu_init_instance function', () => {
+      // void cpu_init_instance(void)
+      // Initializes CPU to default state
+      const expectedSignature = {
+        name: 'cpu_init_instance',
+        returnType: null,
+        argTypes: [] as string[],
+      };
+
+      expect(expectedSignature.name).toBe('cpu_init_instance');
+      expect(expectedSignature.returnType).toBeNull();
+    });
+
+    it('should document cpu_step_instance function', () => {
+      // int cpu_step_instance(void)
+      // Returns number of cycles consumed (0 if halted)
+      const expectedSignature = {
+        name: 'cpu_step_instance',
+        returnType: 'number',
+        argTypes: [] as string[],
+      };
+
+      expect(expectedSignature.name).toBe('cpu_step_instance');
+      expect(expectedSignature.returnType).toBe('number');
+    });
+
+    it('should document cpu_load_program_instance function', () => {
+      // void cpu_load_program_instance(ptr, size, addr)
+      // Loads program binary into CPU memory
+      const expectedSignature = {
+        name: 'cpu_load_program_instance',
+        returnType: null,
+        argTypes: ['number', 'number', 'number'],
+      };
+
+      expect(expectedSignature.name).toBe('cpu_load_program_instance');
+      expect(expectedSignature.argTypes).toHaveLength(3);
+    });
+
+    it('should document get_memory_ptr function', () => {
+      // uint8_t* get_memory_ptr(void)
+      // Returns pointer to 256-byte memory array
+      const expectedSignature = {
+        name: 'get_memory_ptr',
+        returnType: 'number', // Pointer
+        argTypes: [] as string[],
+        memorySize: 256, // MEM_SIZE constant
+      };
+
+      expect(expectedSignature.memorySize).toBe(256);
+    });
+  });
+
+  describe('Expected CPU Execution Behavior', () => {
+    it('should document initial CPU state after init', () => {
+      // After cpu_init_instance():
+      const initialState = {
+        pc: 0,
+        accumulator: 0,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        cycles: 0,
+        instructions: 0,
+      };
+
+      expect(initialState.pc).toBe(0);
+      expect(initialState.halted).toBe(false);
+    });
+
+    it('should document HLT instruction behavior', () => {
+      // HLT (opcode 0x0) sets halted = true
+      // cpu_step_instance returns 1 cycle, then 0 on subsequent calls
+      const expectedBehavior = {
+        opcode: 0x0,
+        cyclesUsed: 1,
+        setsHalted: true,
+        subsequentStepReturnsCycles: 0,
+      };
+
+      expect(expectedBehavior.setsHalted).toBe(true);
+      expect(expectedBehavior.subsequentStepReturnsCycles).toBe(0);
+    });
+
+    it('should document LDA instruction behavior', () => {
+      // LDA addr (opcode 0x1)
+      // Loads value from memory[addr] into accumulator
+      // Sets zero flag if result is 0
+      const expectedBehavior = {
+        opcode: 0x1,
+        cyclesUsed: 5, // 2 fetch + 2 addr fetch + 1 execute
+        affectsAccumulator: true,
+        affectsZeroFlag: true,
+      };
+
+      expect(expectedBehavior.affectsAccumulator).toBe(true);
+      expect(expectedBehavior.affectsZeroFlag).toBe(true);
+    });
+
+    it('should document error handling for PC overflow', () => {
+      // When PC >= MEM_SIZE - 1, CPU enters error state
+      const expectedError = {
+        condition: 'pc >= 255',
+        setsError: true,
+        setsHalted: true,
+        errorMessageContains: 'PC out of bounds',
+      };
+
+      expect(expectedError.setsError).toBe(true);
+      expect(expectedError.setsHalted).toBe(true);
     });
   });
 });

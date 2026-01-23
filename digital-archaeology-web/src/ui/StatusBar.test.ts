@@ -227,10 +227,10 @@ describe('StatusBar', () => {
       const statusBar = new StatusBar();
       statusBar.mount(container);
 
-      statusBar.updateState({ loadStatus: 'Loaded: 12 bytes' });
+      statusBar.updateState({ loadStatus: 'Loaded: 12 nibbles' });
 
       const loadSection = container.querySelector('[data-section="load"]');
-      expect(loadSection?.textContent).toContain('Loaded: 12 bytes');
+      expect(loadSection?.textContent).toContain('Loaded: 12 nibbles');
 
       statusBar.destroy();
     });
@@ -239,7 +239,7 @@ describe('StatusBar', () => {
       const statusBar = new StatusBar();
       statusBar.mount(container);
 
-      statusBar.updateState({ loadStatus: 'Loaded: 12 bytes' });
+      statusBar.updateState({ loadStatus: 'Loaded: 12 nibbles' });
       statusBar.updateState({ loadStatus: null });
 
       const loadSection = container.querySelector('[data-section="load"]');

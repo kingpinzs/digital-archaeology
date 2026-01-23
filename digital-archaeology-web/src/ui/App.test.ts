@@ -268,6 +268,9 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     _setLoadThrow: (error: Error) => {
       loadProgramMock.mockImplementation(() => Promise.reject(error));
     },
+    _setInitThrow: (error: Error) => {
+      initMock.mockImplementation(() => Promise.reject(error));
+    },
     _reset: () => {
       state.isReady = true;
       state.cpuState = {
@@ -285,6 +288,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
         instructions: 0,
       };
       initMock.mockClear();
+      initMock.mockImplementation(() => Promise.resolve());
       loadProgramMock.mockClear();
       terminateMock.mockClear();
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
@@ -2731,7 +2735,7 @@ describe('App', () => {
 
         await vi.waitFor(() => {
           const loadSection = container.querySelector('[data-section="load"]');
-          expect(loadSection?.textContent).toContain('Loaded: 3 bytes');
+          expect(loadSection?.textContent).toContain('Loaded: 3 nibbles');
         });
       });
 
@@ -2843,6 +2847,103 @@ describe('App', () => {
       });
     });
 
+    describe('Issue #3: state reset on load failure', () => {
+      it('should reset pcValue and cycleCount on load failure', async () => {
+        // First do a successful load to set pcValue and cycleCount
+        const binary = new Uint8Array([0x01, 0x05]);
+        mockEditorInstance._setContent('LDA 5');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+        mockEmulatorBridge._setCpuState({
+          pc: 10,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 42,
+          instructions: 0,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().pcValue).toBe(10);
+          expect(statusBar?.getState().cycleCount).toBe(42);
+        });
+
+        // Now set up for load failure
+        mockEmulatorBridge._setLoadThrow(new Error('Load failed'));
+
+        // Suppress console.error for this test
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().loadStatus).toBeNull();
+          expect(statusBar?.getState().pcValue).toBeNull();
+          expect(statusBar?.getState().cycleCount).toBe(0);
+        });
+
+        consoleSpy.mockRestore();
+      });
+    });
+
+    describe('Issue #4: EmulatorBridge init failure notification', () => {
+      it('should show error in status bar when EmulatorBridge init fails', async () => {
+        // Create a fresh app instance with init failure
+        app.destroy();
+        mockEmulatorBridge._reset();
+        mockEmulatorBridge._setInitThrow(new Error('WASM load failed'));
+
+        app = new App();
+        app.mount(container);
+
+        // Wait for the async init failure to propagate
+        await vi.waitFor(() => {
+          const statusBar = app.getStatusBar();
+          expect(statusBar?.getState().loadStatus).toBe('Emulator init failed');
+        });
+      });
+    });
+
+    describe('Issue #5: binary type verification', () => {
+      it('should receive binary as Uint8Array from AssemblerBridge', async () => {
+        const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+        mockEditorInstance._setContent('LDA 5\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: binary,
+          error: null,
+        });
+
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.loadProgram).toHaveBeenCalled();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const calls = (mockEmulatorBridge.loadProgram as any).mock.calls;
+          const calledArg = calls[0][0];
+          expect(calledArg).toBeInstanceOf(Uint8Array);
+          expect(calledArg).toEqual(binary);
+        });
+      });
+    });
+
     describe('load status invalidation on code change', () => {
       it('should clear load status when code changes after successful load', async () => {
         // First, assemble and load successfully
@@ -2865,7 +2966,7 @@ describe('App', () => {
         // Wait for load to complete
         await vi.waitFor(() => {
           const loadSection = container.querySelector('[data-section="load"]');
-          expect(loadSection?.textContent).toContain('Loaded: 2 bytes');
+          expect(loadSection?.textContent).toContain('Loaded: 2 nibbles');
         });
 
         // Now change the code

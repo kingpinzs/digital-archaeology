@@ -595,7 +595,10 @@ export class App {
     // Initialize asynchronously - don't block UI
     this.emulatorBridge.init().catch((error) => {
       console.error('Failed to initialize EmulatorBridge:', error);
-      // Could show error in status bar here
+      // Show warning in status bar so user knows emulator won't work (Issue #4 fix)
+      this.statusBar?.updateState({
+        loadStatus: 'Emulator init failed',
+      });
     });
   }
 
@@ -619,25 +622,34 @@ export class App {
    * @returns void
    */
   private async loadProgramIntoEmulator(binary: Uint8Array): Promise<void> {
+    // Issue #1 fix: Explicit null guard before any operations
+    if (!this.emulatorBridge) {
+      console.error('EmulatorBridge not initialized');
+      this.statusBar?.updateState({ loadStatus: null, pcValue: null, cycleCount: 0 });
+      return;
+    }
+
     // Check if emulator is ready
-    if (!this.emulatorBridge?.isReady) {
+    if (!this.emulatorBridge.isReady) {
       // Emulator not ready yet - try to wait for init
       try {
-        await this.emulatorBridge?.init();
+        await this.emulatorBridge.init();
       } catch {
         console.error('EmulatorBridge not ready for program load');
-        this.statusBar?.updateState({ loadStatus: null });
+        this.statusBar?.updateState({ loadStatus: null, pcValue: null, cycleCount: 0 });
         return;
       }
     }
 
     try {
       // loadProgram resets CPU and copies binary to memory
-      this.cpuState = await this.emulatorBridge!.loadProgram(binary);
+      // Issue #6 fix: No need for ! since we've already guarded for null above
+      this.cpuState = await this.emulatorBridge.loadProgram(binary);
 
       // Update status bar with load status
+      // Issue #2 fix: Use "nibbles" instead of "bytes" for Micro4 terminology
       this.statusBar?.updateState({
-        loadStatus: `Loaded: ${binary.length} bytes`,
+        loadStatus: `Loaded: ${binary.length} nibbles`,
         pcValue: this.cpuState.pc,
         cycleCount: this.cpuState.cycles,
       });
@@ -645,7 +657,8 @@ export class App {
       // Handle load errors
       console.error('Failed to load program into emulator:', error);
       this.cpuState = null;
-      this.statusBar?.updateState({ loadStatus: null });
+      // Issue #3 fix: Reset all emulator-related status bar fields
+      this.statusBar?.updateState({ loadStatus: null, pcValue: null, cycleCount: 0 });
     }
   }
 

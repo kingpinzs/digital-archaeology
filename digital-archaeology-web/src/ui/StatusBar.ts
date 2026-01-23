@@ -17,7 +17,7 @@ export type AssemblyStatus = 'none' | 'assembling' | 'success' | 'error';
 export interface StatusBarState {
   assemblyStatus: AssemblyStatus;
   assemblyMessage: string | null;
-  loadStatus: string | null; // "Loaded: X bytes" or null (Story 4.4)
+  loadStatus: string | null; // "Loaded: X nibbles" or null (Story 4.4)
   pcValue: number | null;
   nextInstruction: string | null;
   cycleCount: number;

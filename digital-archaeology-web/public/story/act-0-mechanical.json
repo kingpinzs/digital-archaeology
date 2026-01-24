@@ -773,9 +773,41 @@
           "id": "chapter-0-2",
           "number": 3,
           "title": "The Age of Reason",
-          "subtitle": "Mechanical Minds in Paris",
-          "year": "1642",
+          "subtitle": "Mechanical Minds Across Europe",
+          "year": "1623-1694",
           "scenes": [
+            {
+              "id": "scene-0-2-0",
+              "type": "narrative",
+              "setting": {
+                "text": "Tübingen, Germany, 1623. A professor of Hebrew, mathematics, and astronomy has built something extraordinary—and almost no one will know for 300 years."
+              },
+              "narrative": [
+                "Wilhelm Schickard has a problem: astronomical calculations are killing him. Computing planetary positions requires thousands of multiplications and additions. One slip and months of work are worthless.",
+                "His solution is remarkable: a 'calculating clock' combining Napier's Bones (multiplication rods) with a mechanical adding machine. Turn the handle and gears perform arithmetic automatically.",
+                "In 1623—nineteen years before Pascal—Schickard builds the first working mechanical calculator. He writes excitedly to his friend Johannes Kepler: 'I have constructed a machine consisting of eleven complete and six mutilated sprocket wheels which can calculate.'"
+              ],
+              "characters": [
+                {
+                  "avatar": "🔭",
+                  "name": "Wilhelm Schickard",
+                  "title": "Professor of Hebrew & Astronomy",
+                  "bio": "A polymath at Tübingen, Schickard invented the first mechanical calculator in 1623—nearly 20 years before Pascal. His machine was lost when Schickard died of plague in 1635. Only letters to Kepler preserved his achievement.",
+                  "stats": [
+                    { "label": "First Calculator", "value": "1623" },
+                    { "label": "Predates Pascal", "value": "19 years" },
+                    { "label": "Fate", "value": "Died of plague 1635" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Schickard's 'calculating clock' combined two innovations: Napier's Bones for multiplication lookup, and a gear-based adding machine for accumulating results. A second machine was under construction for Kepler but was destroyed in a fire.",
+                  "codeSnippet": "// Schickard's Calculating Clock (1623)\n// \n// Upper section: Napier's Bones\n//   Rotating cylinders with multiplication tables\n//   Look up products directly\n// \n// Lower section: Adding machine\n//   6-digit accumulator\n//   Automatic carry mechanism\n// \n// Combined: Multiply AND add mechanically\n// Lost for 300 years until letters rediscovered"
+                }
+              ],
+              "nextScene": "scene-0-2-1"
+            },
             {
               "id": "scene-0-2-1",
               "type": "narrative",
@@ -1085,6 +1117,38 @@
                 {
                   "content": "The Jacquard portrait used 24,000 cards with ~1,000 holes each—roughly 24 million binary decisions. This demonstrated that punch cards could encode arbitrary complexity. When Babbage saw this, he realized the same principle could encode mathematical operations.",
                   "codeSnippet": "// From Looms to Computers:\n// \n// 1804: Jacquard loom (patterns)\n// 1837: Babbage Analytical Engine (programs)\n// 1890: Hollerith Census (data)\n// 1928: IBM 80-column card (standard)\n// 1950s: FORTRAN punched onto cards\n// 1970s: Cards finally phased out\n// \n// 170 years of punch card computing!"
+                }
+              ],
+              "nextScene": "scene-0-jac-4"
+            },
+            {
+              "id": "scene-0-jac-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Paris, 1820. While Jacquard's looms transform textiles, a French inventor is about to transform commerce itself."
+              },
+              "narrative": [
+                "Charles Xavier Thomas de Colmar has a vision: a calculating machine that anyone can use. Not a scientific curiosity for mathematicians, but a practical tool for insurance clerks, bankers, and merchants.",
+                "His Arithmometer is built on Leibniz's stepped drum principle—but engineered for reliability and mass production. It can add, subtract, multiply, and divide. It fits on a desk. It rarely breaks.",
+                "By the 1850s, the Arithmometer becomes the world's first commercially successful mechanical calculator. Insurance companies buy them by the dozen. Banks depend on them. For the first time, mechanical calculation isn't a curiosity—it's a business tool."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏭",
+                  "name": "Charles Xavier Thomas de Colmar",
+                  "title": "Inventor of the Arithmometer",
+                  "bio": "A French inventor and insurance executive who created the first mass-produced mechanical calculator. His Arithmometer remained in production for nearly a century (1851-1915), proving mechanical calculation could be a practical business tool.",
+                  "stats": [
+                    { "label": "Invention", "value": "Arithmometer (1820)" },
+                    { "label": "Production", "value": "1851-1915" },
+                    { "label": "Impact", "value": "First commercial calculator" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Arithmometer used Leibniz's stepped drum for multiplication and division, with a carriage that shifted for place values. Unlike previous calculators, it was engineered for durability and ease of use. Over 5,000 units were sold during its production run.",
+                  "codeSnippet": "// Arithmometer Timeline\n// \n// 1820: Thomas patents design\n// 1851: Mass production begins\n// 1878: Gold medal at Paris Exposition\n// 1915: Production ends (overtaken by newer designs)\n// \n// ~5,000 units sold over 64 years\n// First calculator you could BUY\n// \n// Competitors emerged:\n// - Odhner (Russia, 1873)\n// - Brunsviga (Germany, 1892)\n// - Curta (Austria, 1948)"
                 }
               ],
               "nextScene": "scene-0-3-1"

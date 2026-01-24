@@ -370,6 +370,171 @@
           ]
         },
         {
+          "id": "chapter-2-2b",
+          "number": 2.5,
+          "title": "The First True Computers",
+          "subtitle": "Manchester Baby and EDSAC",
+          "year": "1948-1949",
+          "scenes": [
+            {
+              "id": "scene-2-2b-1",
+              "type": "narrative",
+              "setting": {
+                "text": "University of Manchester, England. June 21, 1948. In a cramped laboratory, a machine the size of a room flickers to life. It has no keyboard, no printer—just lights and switches. But it's about to make history."
+              },
+              "narrative": [
+                "The Manchester Baby—officially the Small-Scale Experimental Machine (SSEM)—is about to run the world's first stored program. Not hardwired like ENIAC. Not theoretical like EDVAC. An actual program, loaded into electronic memory, executed instruction by instruction.",
+                "The program is simple: find the highest proper factor of a number. It will take 52 minutes to run, testing 3.5 million possible factors. A human could do it faster. But that's not the point.",
+                "The point is that the program lives in memory. The machine fetches each instruction, executes it, moves to the next. The stored-program computer—von Neumann's dream—is finally real."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "Frederic Williams",
+                  "title": "Professor of Engineering, Manchester",
+                  "bio": "Inventor of the Williams tube—a CRT-based memory that could store bits as dots on a screen. This breakthrough solved the memory problem that plagued all early computers.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Williams tube memory" },
+                    { "label": "Significance", "value": "First practical random-access memory" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "Tom Kilburn",
+                  "title": "Lecturer, Manchester",
+                  "bio": "Designed and built the Manchester Baby with Williams. Kilburn wrote the first program ever to run on a stored-program computer—a 17-instruction routine to find factors.",
+                  "stats": [
+                    { "label": "First Program", "value": "Factor-finding, June 1948" },
+                    { "label": "Instructions", "value": "17 lines of code" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Williams tube used a CRT to store bits as electrostatic charges. A focused electron beam could write dots (1) or dashes (0) on the screen's phosphor coating. Reading detected the capacitive change. This was the first random-access electronic memory—any bit could be accessed instantly, unlike serial delay lines.",
+                  "codeSnippet": "// Manchester Baby specifications\n// Memory: 32 words × 32 bits (Williams tube)\n// Instructions: 7 (JMP, JRP, LDN, STO, SUB, CMP, STP)\n// Clock: 1.1 MHz\n// \n// First stored program (June 21, 1948):\n// Find largest proper factor of 2^18\n// Runtime: 52 minutes\n// Instructions executed: 3.5 million\n// \n// FIRST STORED-PROGRAM COMPUTER TO RUN"
+                }
+              ],
+              "nextScene": "scene-2-2b-2"
+            },
+            {
+              "id": "scene-2-2b-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Cambridge University Computing Laboratory. May 6, 1949. Maurice Wilkes and his team have built EDSAC—the Electronic Delay Storage Automatic Calculator. Unlike the Baby, this machine is designed to be useful."
+              },
+              "narrative": [
+                "Wilkes attended the Moore School lectures in 1946, returned to England inspired, and immediately began building. While Americans debated EDVAC's design, Wilkes finished EDSAC—the first practical stored-program computer.",
+                "EDSAC isn't a prototype. It has real memory (512 words), real I/O (paper tape), and real programs. Scientists from across Cambridge are already lining up to use it for calculations.",
+                "One of Wilkes's collaborators is particularly important: Kathleen Booth, who has invented something that will make programming possible for mere mortals—assembly language."
+              ],
+              "characters": [
+                {
+                  "avatar": "📐",
+                  "name": "Maurice Wilkes",
+                  "title": "Director, Cambridge Computing Laboratory",
+                  "bio": "Built EDSAC in under three years by focusing on simplicity and practicality. Wilkes later invented microprogramming, a technique still used in modern CPUs.",
+                  "stats": [
+                    { "label": "Achievement", "value": "First practical stored-program computer" },
+                    { "label": "Later Work", "value": "Microprogramming, cache memory" }
+                  ]
+                },
+                {
+                  "avatar": "👩‍💻",
+                  "name": "Kathleen Booth",
+                  "title": "Researcher, Birkbeck College",
+                  "bio": "Co-invented assembly language and wrote the first assembler. Her work on the ARC computer and its programming language made programming accessible to non-specialists. Also contributed to the first neural network simulation.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Assembly language, first assembler" },
+                    { "label": "Legacy", "value": "Made programming human-readable" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Wilkes",
+                  "text": "The Americans have theories and blueprints. We have a working machine. EDSAC ran its first calculation today—computing a table of squares."
+                },
+                {
+                  "speaker": "Booth",
+                  "text": "But programming in raw machine code is misery. Every number, every address must be worked out by hand. We need a language that humans can read—and a program to translate it."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "EDSAC used mercury delay-line memory, holding 512 words of 17 bits each. It ran its first program on May 6, 1949—almost a year after Manchester Baby but far more practical. EDSAC calculated the first scientific computations performed by a stored-program computer.",
+                  "codeSnippet": "// EDSAC vs Manchester Baby\n// \n// Manchester Baby (June 1948):\n//   First stored-program execution\n//   32 words memory, 7 instructions\n//   Experimental prototype\n// \n// EDSAC (May 1949):\n//   First PRACTICAL stored-program computer\n//   512 words memory, 18 instructions\n//   Used for real scientific work\n//   Paper tape I/O, subroutine library"
+                }
+              ],
+              "nextScene": "scene-2-2b-3"
+            },
+            {
+              "id": "scene-2-2b-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Kathleen Booth's desk at Birkbeck College, London. She's working on the ARC computer, but her real breakthrough is on paper: a notation that lets programmers write code in words, not numbers."
+              },
+              "narrative": [
+                "Machine code is binary: ones and zeros, or numbers representing them. To add two numbers, you might write '15 0 100 101'—opcode, address, operand, operand. Cryptic. Error-prone. Inhuman.",
+                "Booth's insight: let programmers write 'ADD R0, X, Y' instead. A program—an assembler—can translate the human-readable form into machine code. The machine does the tedious translation; humans write in a language they can understand.",
+                "It seems obvious now. In 1947, it was revolutionary. Assembly language would become the first level of abstraction between humans and machines—the ancestor of every programming language."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Booth",
+                  "text": "I call it 'assembly language' because it assembles the final machine code from symbolic pieces. ADD means addition. R0 means register zero. The assembler handles the translation."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the machine learns to read human notation?"
+                },
+                {
+                  "speaker": "Booth",
+                  "text": "The machine doesn't learn—the assembler is just a program that does the translation mechanically. But yes, it means we can write programs that make sense to human eyes. That changes everything."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Kathleen Booth's 1947 work on assembly language for the ARC computer was groundbreaking. Before assembly, programmers wrote raw machine code—numeric opcodes and addresses. Assembly introduced mnemonics (ADD, SUB, JMP) and symbolic labels, making code readable. Modern assembly languages descend directly from her invention.",
+                  "codeSnippet": "// Machine code vs Assembly language\n// \n// Machine code (raw numbers):\n// 01 02 64 65    ; Cryptic, error-prone\n// \n// Assembly language (Booth's invention):\n// ADD R0, X, Y   ; Human-readable!\n// \n// The assembler translates:\n// Symbol → Address\n// Mnemonic → Opcode\n// Label → Numeric value\n// \n// First level of programming abstraction"
+                }
+              ],
+              "nextScene": "scene-2-2b-4"
+            },
+            {
+              "id": "scene-2-2b-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "Back at Cambridge, EDSAC is running constantly. A subroutine library grows—reusable code that any programmer can call. The foundations of software engineering are being laid."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Wilkes",
+                  "text": "We're building a library of subroutines. Square roots, trigonometry, input/output. Write once, use forever. Programming becomes combining existing pieces."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the Americans didn't actually build the first stored-program computer?"
+                },
+                {
+                  "speaker": "Wilkes",
+                  "text": "They invented the concept. Von Neumann's report was brilliant. But while they debated, we built. EDVAC didn't run until 1951—two years after EDSAC. Manchester beat everyone with the Baby in 1948."
+                },
+                {
+                  "speaker": "Booth",
+                  "text": "The lesson? Ideas are wonderful, but working machines change the world. And machines need programs—which means they need languages humans can write."
+                }
+              ],
+              "narrative": [
+                "The race to build the first stored-program computer ended in Britain. Manchester's Baby ran first, in June 1948. Cambridge's EDSAC followed in May 1949, proving the concept could be practical. American EDVAC, the machine that inspired them all, didn't run until 1951.",
+                "Kathleen Booth's assembly language would transform programming from an esoteric art into an accessible skill. Grace Hopper—working with UNIVAC—would soon take the next step: compilers that translated high-level languages into machine code.",
+                "The vacuum tube giants were reaching their peak. But the real revolution was happening at Bell Labs, where three physicists were about to change everything."
+              ],
+              "nextScene": "chapter-2-3"
+            }
+          ]
+        },
+        {
           "id": "chapter-2-3",
           "number": 3,
           "title": "The Electronic Brain",

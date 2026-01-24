@@ -22,6 +22,37 @@
           "year": "1890",
           "scenes": [
             {
+              "id": "scene-1-1-0",
+              "type": "narrative",
+              "setting": {
+                "text": "Lincoln, England, 1854. In a modest study, a largely self-taught mathematician puts down his pen. He has just completed 'An Investigation of the Laws of Thought'—a work that will transform human reasoning into algebra."
+              },
+              "narrative": [
+                "George Boole has done something revolutionary: he has proven that logic itself can be expressed as mathematics. AND, OR, NOT—the fundamental operations of human reasoning—can be written as equations.",
+                "His insight seems abstract, almost philosophical. What use is an algebra of thought? The answer won't come for nearly a century, but when it does, it will power every digital computer ever built.",
+                "Boole's algebra reduces all logical statements to two values: TRUE (1) and FALSE (0). Any argument, any deduction, any chain of reasoning can be expressed as operations on these binary values."
+              ],
+              "characters": [
+                {
+                  "avatar": "📚",
+                  "name": "George Boole",
+                  "title": "Mathematician & Logician",
+                  "bio": "A self-educated English mathematician who became professor at Queen's College Cork. His Boolean algebra would become the mathematical foundation of digital computing—though he never lived to see it applied to machines.",
+                  "stats": [
+                    { "label": "Key Work", "value": "The Laws of Thought (1854)" },
+                    { "label": "Legacy", "value": "Boolean algebra in every CPU" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Boolean algebra defines operations on binary values: AND (both must be true), OR (either can be true), NOT (invert). These three operations are sufficient to express any logical function—and they map directly to physical switches, relays, and transistors.",
+                  "codeSnippet": "// Boolean algebra fundamentals\n// \n// Variables: A, B can be 0 or 1\n// \n// AND: A ∧ B = 1 only if both are 1\n//   0 AND 0 = 0\n//   0 AND 1 = 0\n//   1 AND 0 = 0\n//   1 AND 1 = 1\n// \n// OR: A ∨ B = 1 if either is 1\n// NOT: ¬A inverts the value\n// \n// Any logic circuit is Boolean algebra\n// implemented in hardware"
+                }
+              ],
+              "nextScene": "scene-1-1-1"
+            },
+            {
               "id": "scene-1-1-1",
               "type": "narrative",
               "setting": {
@@ -360,7 +391,45 @@
                 "After the war, Zuse would found a computer company that built Germany's first commercial computers. But by then, American and British machines had taken the lead—developed with military funding he never received.",
                 "Still, Zuse's legacy endures: binary arithmetic, floating-point computation, and the stored-program concept. He proved that relay computers could think.",
                 "But relays were slow. Thousands of operations per second, not millions. The next breakthrough would require something faster—something with no moving parts at all."
-              ]
+              ],
+              "nextScene": "scene-1-2-6"
+            },
+            {
+              "id": "scene-1-2-6",
+              "type": "narrative",
+              "setting": {
+                "text": "Bell Telephone Laboratories, New York City, September 1940. A telephone engineer named George Stibitz is about to make history—with a demonstration that predicts the future of computing by sixty years."
+              },
+              "narrative": [
+                "In his home kitchen in 1937, Stibitz had built a circuit from telephone relays that could add binary numbers. His wife dubbed it the 'Model K'—for kitchen table. It seemed like a parlor trick.",
+                "But Bell Labs saw potential. Complex numbers are essential for analyzing electrical circuits, and calculating them by hand was tedious. Stibitz built the Complex Number Calculator: a room full of relays that could multiply complex numbers.",
+                "Today, at a mathematics conference at Dartmouth College, Stibitz will demonstrate something unprecedented: remote computing over a telephone line."
+              ],
+              "characters": [
+                {
+                  "avatar": "📞",
+                  "name": "George Stibitz",
+                  "title": "Bell Labs Research Mathematician",
+                  "bio": "A telephone engineer who built computing circuits from surplus relays on his kitchen table. His Complex Number Calculator was the first machine to perform remote computation—the ancestor of every networked computer.",
+                  "stats": [
+                    { "label": "First Demo", "value": "Remote computing, 1940" },
+                    { "label": "Innovation", "value": "Networked computation" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Stibitz",
+                  "text": "The machine is in New York City. We're in Dartmouth, New Hampshire. I'll type the problem on this teletype. The answer will come back over the telephone line. Watch."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 1940 Dartmouth demonstration was the first remote computation in history. Mathematicians including John von Neumann and Norbert Wiener watched as Stibitz typed problems on a teletype that transmitted over telephone lines to the Complex Number Calculator in NYC—250 miles away. The results returned seconds later.",
+                  "codeSnippet": "// First remote computing session (1940)\n// \n// Location: Dartmouth College, NH\n// Computer: Bell Labs NYC (250 miles away)\n// Connection: Telephone line + teletype\n// \n// Problem sent: (2 + 3i) × (4 - 2i)\n// Answer received: 14 + 8i\n// Time: A few seconds\n// \n// Witnesses included:\n// - John von Neumann\n// - Norbert Wiener\n// - Many other mathematicians"
+                }
+              ],
+              "nextScene": "chapter-1-3"
             }
           ]
         },
@@ -523,7 +592,88 @@
               "narrative": [
                 "The relay era ends here. Zuse proved that programmable machines could work. Colossus proved that electronic speed was achievable.",
                 "But the next step—a general-purpose electronic computer, stored-program control, the architecture that would define computing for decades—awaits across the Atlantic.",
-                "The Electronic Numerical Integrator and Computer is about to change everything.",
+                "The Electronic Numerical Integrator and Computer is about to change everything."
+              ],
+              "nextScene": "scene-1-3-6"
+            },
+            {
+              "id": "scene-1-3-6",
+              "type": "narrative",
+              "setting": {
+                "text": "Harvard University, Cambridge, Massachusetts, August 1944. In the basement of the Cruft Laboratory, the largest electromechanical computer ever built clicks and whirs: 51 feet long, 8 feet tall, 5 tons of relays, gears, and wires."
+              },
+              "narrative": [
+                "Howard Aiken had a vision: a machine that could perform any mathematical operation, automatically, without human intervention. He convinced IBM to fund it. The result is the Harvard Mark I—officially the IBM Automatic Sequence Controlled Calculator.",
+                "The Mark I is a hybrid: electromechanical relays perform logic, but mechanical counters handle numbers. It's slow by electronic standards—three seconds for a multiplication—but it runs 24 hours a day, calculating naval ballistics tables for the war effort.",
+                "A young Navy Lieutenant named Grace Hopper has been assigned to program it. She will become the first of a new breed: the computer programmer."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎓",
+                  "name": "Howard Aiken",
+                  "title": "Commander, Harvard Computation Laboratory",
+                  "bio": "A physicist who dreamed of a general-purpose calculating machine and persuaded IBM to build it. The Mark I was the last great electromechanical computer—and the training ground for the first programmers.",
+                  "stats": [
+                    { "label": "Vision", "value": "Automatic mathematical computation" },
+                    { "label": "Legacy", "value": "Mark I - IV computers" }
+                  ]
+                },
+                {
+                  "avatar": "⚓",
+                  "name": "Grace Hopper",
+                  "title": "Lieutenant, US Navy Reserve",
+                  "bio": "A mathematician and Navy officer who became one of the first programmers. She would later invent the first compiler and coin the term 'debugging' after removing a moth from the Mark II. Her influence on programming languages would be incalculable.",
+                  "stats": [
+                    { "label": "Innovation", "value": "First compiler (A-0), COBOL" },
+                    { "label": "Famous Quote", "value": "'It's easier to ask forgiveness than permission'" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Aiken",
+                  "text": "The Navy needs firing tables. Each trajectory calculation would take a human computer twenty hours. The Mark I does it in minutes."
+                },
+                {
+                  "speaker": "Hopper",
+                  "text": "But programming it is like solving a puzzle. Every operation, every branch, every loop must be planned in advance. We're not just operating a machine—we're teaching it to think."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Harvard Mark I contained 765,000 components, 500 miles of wire, and 3 million connections. It could store 72 numbers of 23 digits each. Programs were fed on punched paper tape. Grace Hopper and her team developed many fundamental programming concepts while working on this machine.",
+                  "codeSnippet": "// Harvard Mark I specifications (1944)\n// Length: 51 feet\n// Height: 8 feet  \n// Weight: 5 tons (10,000 lbs)\n// Components: 765,000\n// Relays: 3,304\n// \n// Speed:\n//   Addition: 0.3 seconds\n//   Multiplication: 3 seconds\n//   Division: 15 seconds\n// \n// 24/7 operation for war effort\n// First modern 'computer operators'"
+                }
+              ],
+              "nextScene": "scene-1-3-7"
+            },
+            {
+              "id": "scene-1-3-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "The Mark I hums steadily, paper tape feeding through its readers. Grace Hopper reviews the latest program with her team, planning calculations that will help win the war."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Hopper",
+                  "text": "We found a moth stuck in one of the relays yesterday. Caused a malfunction. I taped it into the logbook—we're calling it 'debugging' now."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is the Mark I the future of computing?"
+                },
+                {
+                  "speaker": "Hopper",
+                  "text": "It's a bridge. Relays are reliable but slow. I've heard about machines using vacuum tubes—they're a thousand times faster. The future will be electronic."
+                },
+                {
+                  "speaker": "Aiken",
+                  "text": "Perhaps. But someone still needs to tell the machine what to do. Programming—that's where the real challenge lies. And that's what Lieutenant Hopper is pioneering."
+                }
+              ],
+              "narrative": [
+                "The relay era reaches its pinnacle with the Mark I. But its clicking mechanisms are already obsolete. Across Philadelphia, ENIAC's vacuum tubes are being wired together—18,000 of them.",
+                "The electromechanical age built by Hollerith, Zuse, Stibitz, and Aiken is ending. The electronic age of Flowers, Turing, and Mauchly is about to begin.",
                 "Continue to Act 2: The Electronic Giants."
               ]
             }

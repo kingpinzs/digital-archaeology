@@ -369,6 +369,52 @@
                   "codeSnippet": "// 32-bit x86 vs AMD64\n// \n// 32-bit mode:\n//   8 GPRs: EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP\n//   32-bit registers, 4 GB addressable\n// \n// 64-bit mode:\n//   16 GPRs: RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP,\n//            R8, R9, R10, R11, R12, R13, R14, R15\n//   64-bit registers, 256 TB virtual addressable\n// \n// Fully backwards compatible: run 32-bit code unchanged"
                 }
               ],
+              "nextScene": "scene-9-2-3b"
+            },
+            {
+              "id": "scene-9-2-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel's Hillsboro campus, 2002. Engineers demonstrate a new technology: Hyper-Threading. One physical core pretending to be two."
+              },
+              "narrative": [
+                "Here's a secret of superscalar processors: even the best code rarely keeps all execution units busy. Memory stalls, branch mispredictions, data dependencies—there's always idle capacity.",
+                "Hyper-Threading adds a second set of architectural registers—program counter, stack pointer, general-purpose registers. To the operating system, it looks like two CPUs. But the execution resources are shared.",
+                "When one 'thread' stalls waiting for memory, the other thread can use the idle execution units. A single core, doing the work of 1.3 to 1.5 cores."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔀",
+                  "name": "Deborah Marr",
+                  "title": "Principal Engineer, Intel",
+                  "bio": "Lead architect for Intel's Hyper-Threading implementation in Pentium 4. Marr's work brought simultaneous multithreading (SMT) to x86, squeezing more utilization from existing execution resources.",
+                  "stats": [
+                    { "label": "Technology", "value": "Hyper-Threading (SMT)" },
+                    { "label": "Benefit", "value": "30-50% throughput gain" },
+                    { "label": "Cost", "value": "~5% die area" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Marr",
+                  "text": "Execution units sit idle 30-40% of the time waiting for memory or branch resolution. Hyper-Threading fills those bubbles with useful work from a second thread."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So it's like having two cores?"
+                },
+                {
+                  "speaker": "Marr",
+                  "text": "Not quite. Two threads share the same execution units, caches, branch predictor. They can compete for resources. But the OS sees two logical processors, and for multi-threaded workloads, throughput increases significantly."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Simultaneous Multithreading (SMT), marketed as Hyper-Threading, duplicates only the architectural state (~5% area increase) while sharing execution resources. When Thread A stalls, Thread B can execute. Throughput improves 15-30% for well-threaded workloads. Modern CPUs use 2-way (Intel) or 2-4 way (IBM POWER) SMT.",
+                  "codeSnippet": "// Hyper-Threading utilization\n// \n// Without HT:\n// Thread A: | exec | stall | exec | stall |\n//           |  50% |  50%  |  50% |  50%  |\n// Utilization: 50%\n// \n// With HT (two threads):\n// Thread A: | exec | stall | exec | stall |\n// Thread B: | stall | exec | stall | exec |\n//           |  75%+ utilization overall   |\n// \n// Fill idle cycles with second thread"
+                }
+              ],
               "nextScene": "scene-9-2-4"
             },
             {
@@ -471,6 +517,44 @@
                 {
                   "content": "Core 2 Duo specifications: 14-stage pipeline (vs 31 in late Pentium 4), 4-wide decode, 4 ALUs, up to 4 MB L2 cache. At 2.4 GHz, it matched a 3.6 GHz Pentium 4 while using half the power. This proved that IPC mattered more than raw frequency.",
                   "codeSnippet": "// Core 2 vs Pentium 4 efficiency\n// \n// Pentium 4 Extreme Edition 3.73 GHz\n//   Performance: 100% (normalized)\n//   Power: 130W\n//   Perf/Watt: 0.77\n// \n// Core 2 Duo E6600 2.4 GHz\n//   Performance: 110% (higher despite lower clock!)\n//   Power: 65W  \n//   Perf/Watt: 1.69\n// \n// More than 2x better efficiency!"
+                }
+              ],
+              "nextScene": "scene-9-2-6b"
+            },
+            {
+              "id": "scene-9-2-6b",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel's architecture labs, 2011. Sandy Bridge is launching with a new capability: AVX—Advanced Vector Extensions. SIMD enters a new era."
+              },
+              "narrative": [
+                "SIMD—Single Instruction Multiple Data—isn't new. MMX in 1997, SSE in 1999. Process multiple data elements with a single instruction. But registers were limited: 64 bits (MMX), then 128 bits (SSE).",
+                "AVX doubles the vector width to 256 bits. Eight 32-bit floats processed simultaneously. For the right workloads—graphics, physics, machine learning, scientific computing—it's a massive performance boost.",
+                "And Intel has plans: AVX2 in 2013, AVX-512 in 2017 (512-bit vectors!). For embarrassingly parallel problems, vector processing offers performance that scalar code can never match."
+              ],
+              "characters": [
+                {
+                  "avatar": "📊",
+                  "name": "Ronak Singhal",
+                  "title": "Chief Architect, Intel Core",
+                  "bio": "Led Intel's microarchitecture development through Sandy Bridge and beyond. Singhal championed AVX as a way to deliver performance gains even as frequency scaling stalled.",
+                  "stats": [
+                    { "label": "Innovation", "value": "AVX (256-bit SIMD)" },
+                    { "label": "Evolution", "value": "MMX → SSE → AVX → AVX-512" },
+                    { "label": "Impact", "value": "2-8x for vectorizable code" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Singhal",
+                  "text": "When you're multiplying a million floats, do them eight at a time instead of one. Same instruction count, eight times the work. That's the power of SIMD."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "SIMD evolution: MMX (1997, 64-bit, integer), SSE (1999, 128-bit, float), SSE2-4 (expanded operations), AVX (2011, 256-bit), AVX2 (2013, integer 256-bit), AVX-512 (2017, 512-bit). Each generation doubled vector width, enabling 2x throughput for vectorizable code.",
+                  "codeSnippet": "// SIMD vector addition evolution\n// \n// Scalar (one at a time):\n// for (i=0; i<8; i++) c[i] = a[i] + b[i];\n// 8 iterations, 8 adds\n// \n// SSE (128-bit, 4 floats):\n// movaps xmm0, [a]\n// addps xmm0, [b]    ; 4 adds at once\n// movaps [c], xmm0\n// 2 iterations total\n// \n// AVX (256-bit, 8 floats):\n// vmovaps ymm0, [a]\n// vaddps ymm0, ymm0, [b]  ; 8 adds at once\n// vmovaps [c], ymm0\n// 1 iteration!"
                 }
               ],
               "nextScene": "scene-9-2-7"

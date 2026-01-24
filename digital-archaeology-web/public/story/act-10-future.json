@@ -519,6 +519,49 @@
                   ]
                 }
               ],
+              "nextScene": "scene-10-3-3b"
+            },
+            {
+              "id": "scene-10-3-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "ARM headquarters, Cambridge, UK. The company that powers virtually every smartphone on Earth occupies a modest campus. No factories. No fabrication. Just designs."
+              },
+              "narrative": [
+                "In 1985, a small British computer company called Acorn needed a processor for their next machine. Unable to find anything suitable, engineers Sophie Wilson and Steve Furber designed their own: the Acorn RISC Machine.",
+                "That chip evolved into ARM—a company with perhaps the most successful business model in semiconductor history. ARM doesn't manufacture chips. They license designs. Apple, Qualcomm, Samsung, NVIDIA, Amazon—everyone pays ARM for the privilege of building ARM-compatible processors.",
+                "By 2023, over 250 billion ARM chips have shipped. They power 99% of smartphones, most tablets, and increasingly, laptops and servers. The Apple M1's stunning efficiency proved ARM can compete with x86 even on the desktop."
+              ],
+              "characters": [
+                {
+                  "avatar": "🇬🇧",
+                  "name": "Sophie Wilson",
+                  "title": "Co-designer, ARM Architecture",
+                  "bio": "One of the original ARM architects at Acorn. Wilson designed the instruction set that would become the world's most widely used processor architecture. Her work on conditional execution made ARM uniquely power-efficient.",
+                  "stats": [
+                    { "label": "Created", "value": "ARM ISA (1985)" },
+                    { "label": "Innovation", "value": "Conditional execution" },
+                    { "label": "Impact", "value": "250+ billion chips shipped" }
+                  ]
+                },
+                {
+                  "avatar": "📱",
+                  "name": "ARM Holdings",
+                  "title": "The Architecture Licensor",
+                  "bio": "ARM designs processor architectures and licenses them to manufacturers. They've never fabricated a chip. Their customers include Apple, Qualcomm, Samsung, and virtually every smartphone maker on Earth.",
+                  "stats": [
+                    { "label": "Model", "value": "IP licensing" },
+                    { "label": "Revenue", "value": "~$2B/year royalties" },
+                    { "label": "Customers", "value": "500+ licensees" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "ARM's power efficiency comes from its RISC heritage: fixed-width instructions, load-store architecture, and conditional execution (every instruction can be predicated). This lets ARM cores achieve more work per watt than x86, making them ideal for battery-powered devices.",
+                  "codeSnippet": "// ARM vs x86 Efficiency (typical)\n// \n// Smartphone (ARM Cortex-A78):\n//   4 TOPS/watt\n//   1-3W typical power\n//   10+ hours battery life\n// \n// Laptop (Intel Core i7):\n//   0.3 TOPS/watt\n//   15-45W typical power\n//   6-8 hours battery life\n// \n// Apple M1 (ARM):\n//   Matches desktop x86 performance\n//   At 1/3 the power consumption"
+                }
+              ],
               "nextScene": "scene-10-3-4"
             },
             {
@@ -529,8 +572,8 @@
               },
               "narrative": [
                 "While companies build proprietary accelerators, a group at Berkeley asks a different question: why are instruction set architectures proprietary at all?",
-                "ARM charges license fees. x86 is controlled by Intel and AMD. Building a new chip means paying tribute to established players. What if there was an open alternative?",
-                "RISC-V is born: a clean, modern, open-source instruction set architecture. Anyone can implement it. No fees. No restrictions. No permission needed."
+                "ARM charges license fees—hundreds of millions of dollars annually for major customers. x86 is controlled by Intel and AMD, who refuse to license it at all. Building a chip means paying tribute to established players.",
+                "What if there was an open alternative? RISC-V is born: a clean, modern, open-source instruction set architecture. Anyone can implement it. No fees. No restrictions. No permission needed."
               ],
               "characters": [
                 {
@@ -562,7 +605,7 @@
               "id": "scene-10-3-5",
               "type": "dialogue",
               "setting": {
-                "text": "A RISC-V summit. The open architecture has gone global."
+                "text": "A RISC-V summit, 2022. The open architecture has become a geopolitical flashpoint."
               },
               "dialogues": [
                 {
@@ -570,16 +613,24 @@
                   "text": "When we started RISC-V, we thought it would be useful for teaching. Now it's in everything from IoT sensors to supercomputers. Billions of cores have shipped."
                 },
                 {
-                  "speaker": "Industry Executive",
-                  "text": "The geopolitical angle matters too. Countries that can't license ARM or x86 can build RISC-V. It's semiconductor independence."
+                  "speaker": "Chinese Engineer",
+                  "text": "For China, RISC-V isn't optional—it's existential. US sanctions bar our companies from ARM and x86 licenses. RISC-V is the only path to semiconductor independence."
+                },
+                {
+                  "speaker": "European Executive",
+                  "text": "Europe sees it similarly. We import 90% of our chips. RISC-V lets us build sovereign processor capability without American or British licensing dependencies."
                 },
                 {
                   "speaker": "Asanovic",
-                  "text": "But the real power is modularity. RISC-V isn't one architecture—it's a family. Base integer instructions, then extensions: multiply, floating point, vectors, whatever you need. You can build exactly the processor your application requires."
+                  "text": "We never intended RISC-V to be geopolitical. But open standards have a way of becoming essential infrastructure. The internet was open. Linux was open. Now instruction sets must be open too."
+                },
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "The numbers are staggering. China's Alibaba, Huawei, and dozens of startups are building RISC-V chips. India has adopted RISC-V for government projects. The RISC-V International foundation has 3,000+ members worldwide."
                 },
                 {
                   "speaker": "Patterson",
-                  "text": "We proved something important: instruction sets should be open infrastructure, like roads or the internet. No one should have to pay rent to compute."
+                  "text": "We proved something important: instruction sets should be open infrastructure, like roads or the internet. No one should have to pay rent to compute. And now, no nation can be locked out of computing by another nation's export controls."
                 }
               ],
               "technicalNotes": [
@@ -693,35 +744,44 @@
               "id": "scene-10-3-10",
               "type": "dialogue",
               "setting": {
-                "text": "Epilogue: The story continues."
+                "text": "Epilogue: The story continues. Every innovation you've witnessed echoes in today's machines."
               },
               "dialogues": [
                 {
                   "speaker": "Narrator",
-                  "text": "You've traveled through 5,000 years of computational history. From tally marks on bone to quantum qubits in supercooled chambers. From Babylonian counting boards to photonic matrix multipliers."
+                  "text": "Remember Kushim, the Sumerian accountant who carved the first written numbers 5,000 years ago? His positional notation lives on in every register of every processor."
                 },
                 {
                   "speaker": "Narrator",
-                  "text": "Every innovation solved a problem that demanded it. Manual counting was slow—so we invented the abacus. Vacuum tubes were unreliable—so we invented the transistor. General-purpose CPUs were inefficient for AI—so we invented TPUs and NPUs."
+                  "text": "Remember Leibniz, dreaming of binary in 1679? His 1s and 0s pulse through every transistor, every memory cell, every quantum qubit. Two symbols encoding everything."
                 },
                 {
                   "speaker": "Narrator",
-                  "text": "The pattern repeats. Today's solutions become tomorrow's limitations. Tomorrow's breakthroughs are being conceived right now, in labs and garages and university offices around the world."
+                  "text": "Remember Jacquard's punch cards controlling silk looms in 1804? His insight—that patterns could be stored and executed mechanically—became Babbage's programs, Hollerith's census machines, and the software you run today."
                 },
                 {
                   "speaker": "Narrator",
-                  "text": "You've learned not just what was built, but why it was built. The problems that drove invention. The constraints that shaped design. The tradeoffs that haunt every decision."
+                  "text": "Remember Shockley, Bardeen, and Brattain at Bell Labs in 1947? Their transistor replaced glowing vacuum tubes with silent semiconductors. Every chip in your pocket contains billions of their invention."
                 },
                 {
                   "speaker": "Narrator",
-                  "text": "That understanding is rare. Most people use computers without knowing how they work. You now know not just how, but why. You understand the history that shapes the present—and the principles that will shape the future."
+                  "text": "Remember Federico Faggin, hand-drafting the Intel 4004's 2,300 transistors in 1971? His initials 'F.F.' are etched into that die. His vision—a computer on a chip—now powers civilization."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "Remember Sophie Wilson designing ARM's conditional execution, or Patterson and Hennessy proving RISC was faster? Their architectures run in your phone, your watch, your car."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "Every scene you witnessed, every person you met, shaped the machines you use today. Computing didn't appear from nowhere. It was built, piece by piece, problem by problem, genius by genius, for five millennia."
                 }
               ],
               "narrative": [
-                "The story of computing is still being written. Quantum computers may crack problems we thought unsolvable. Neuromorphic chips may achieve artificial general intelligence. Photonic processors may make today's supercomputers seem primitive.",
-                "Or perhaps the next revolution will come from something no one has imagined yet. That's the nature of progress: it's only obvious in retrospect.",
+                "The story of computing is still being written. Lisa Su's chiplets are redefining manufacturing. Google's TPUs are training AI that may exceed human intelligence. RISC-V is democratizing processor design across the globe.",
+                "Quantum computers may crack problems we thought unsolvable. Neuromorphic chips may achieve artificial general intelligence. Photonic processors may make today's supercomputers seem primitive.",
                 "What's certain is this: computation will continue to transform human civilization. And now you understand the foundations on which that transformation rests.",
-                "From abacus to quantum. From mechanical gears to photonic light. From room-sized ENIAC to chips in every device.",
+                "From the Lebombo Bone's tally marks to quantum superposition. From Pascal's brass gears to Lisa Su's chiplets. From ENIAC's room-sized vacuum tubes to neural engines in your pocket.",
+                "You've learned not just what was built, but why. The problems that drove invention. The constraints that shaped design. The rivalries that pushed progress.",
                 "The journey continues.",
                 "THE END... and THE BEGINNING."
               ],

@@ -568,7 +568,164 @@
               "narrative": [
                 "The 8-bit era democratized computing. For the first time, individuals could own computers—not rent time on shared mainframes, not submit batch jobs, but sit at a keyboard and interact directly.",
                 "The Apple II, Commodore PET, TRS-80: the trinity of 1977. Each powered by an 8-bit processor, each costing less than a few thousand dollars. The personal computer revolution had begun.",
-                "But 64KB wasn't enough. As programs grew, as data accumulated, the 16-bit address space became a prison. The solution was clear: more bits. Again.",
+                "But there's another story to tell: the Z80 that powers the TRS-80 and countless other machines, and the operating system that made business computing possible."
+              ],
+              "nextScene": "chapter-5-4"
+            }
+          ]
+        },
+        {
+          "id": "chapter-5-4",
+          "number": 4,
+          "title": "The Operating System",
+          "subtitle": "Gary Kildall and CP/M",
+          "year": "1974-1980",
+          "scenes": [
+            {
+              "id": "scene-5-4-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Zilog Corporation, Los Gatos, California, 1976. Former Intel engineers have created something remarkable: the Z80, an 8080-compatible chip that does everything better—and at a lower price."
+              },
+              "narrative": [
+                "Federico Faggin left Intel over disputes about credit for the 4004. At his new company Zilog, he and his team design the Z80: fully compatible with Intel's 8080 but dramatically improved.",
+                "The Z80 has twice as many registers, including index registers for easier array access. It has a better interrupt system, block move instructions, and a single +5V power supply instead of the 8080's three voltage rails.",
+                "Most importantly, it costs less than the 8080. The Z80 will power more machines than any other 8-bit processor: TRS-80, Sinclair ZX Spectrum, MSX, countless CP/M business computers."
+              ],
+              "characters": [
+                {
+                  "avatar": "💎",
+                  "name": "Federico Faggin",
+                  "title": "Co-founder, Zilog",
+                  "bio": "The father of the microprocessor, now building Intel's competitor. Faggin designed the Z80 to be everything the 8080 should have been: more registers, better instructions, simpler power requirements.",
+                  "stats": [
+                    { "label": "Z80 Registers", "value": "18 total (vs 8080's 7)" },
+                    { "label": "Market Share", "value": "Dominated 8-bit business computing" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "Masatoshi Shima",
+                  "title": "Co-designer, Z80",
+                  "bio": "The Japanese engineer who co-designed both the 4004 and Z80. Shima's meticulous attention to detail made the Z80 one of the most reliable processors ever manufactured.",
+                  "stats": [
+                    { "label": "Achievement", "value": "Two revolutionary CPUs" },
+                    { "label": "Legacy", "value": "Z80 still in production today" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "Intel won't give us credit for the 4004? Fine. We'll build something better. The Z80 runs all 8080 software, but it's what the 8080 should have been."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Z80's innovations included: shadow registers (instant context switch), IX/IY index registers (simplified array access), block I/O instructions (LDIR, LDDR for fast memory copy), and a cleaner interrupt system. It remained in production for over 40 years.",
+                  "codeSnippet": "// Z80 improvements over 8080\n// \n// Index registers:\n// LD A, (IX+5)    ; Array access with offset\n// \n// Block moves:\n// LDIR            ; Copy BC bytes from HL to DE\n// \n// Shadow registers:\n// EX AF, AF'      ; Swap to alternate register set\n// EXX             ; Swap BC, DE, HL with shadows\n// \n// Single +5V supply (8080 needed +5, -5, +12V)"
+                }
+              ],
+              "nextScene": "scene-5-4-2"
+            },
+            {
+              "id": "scene-5-4-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Pacific Grove, California, 1974. Gary Kildall, a computer science professor at the Naval Postgraduate School, is frustrated. He has an Intel development system with a floppy disk drive, but no way to use disks with his microprocessor programs."
+              },
+              "narrative": [
+                "Kildall writes his own disk operating system—a program to manage files, load programs, and provide a consistent interface to storage hardware. He calls it CP/M: Control Program for Microcomputers.",
+                "CP/M does something revolutionary: it separates the hardware-specific code into a 'BIOS' that can be customized for each machine, while the rest of the operating system stays the same. Write software for CP/M, and it runs on any CP/M machine.",
+                "This is the first portable operating system for microcomputers. It will become the standard for business computing—until IBM enters the market."
+              ],
+              "characters": [
+                {
+                  "avatar": "💿",
+                  "name": "Gary Kildall",
+                  "title": "Founder, Digital Research",
+                  "bio": "The inventor of CP/M and arguably the father of the PC software industry. Kildall created the first microcomputer operating system, the first BIOS architecture, and the first portable business software platform.",
+                  "stats": [
+                    { "label": "Innovation", "value": "CP/M, BIOS concept" },
+                    { "label": "Tragedy", "value": "Lost IBM deal to Microsoft" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kildall",
+                  "text": "Every computer has different hardware—different disk controllers, different serial ports. But if I abstract that into a BIOS layer, software doesn't need to know. Write once, run anywhere."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "CP/M introduced concepts still used today: the command line interface, the file system with directory structure, the BIOS abstraction layer, and memory-resident system services. MS-DOS was heavily inspired by CP/M—Microsoft even licensed a CP/M clone (86-DOS) as its basis.",
+                  "codeSnippet": "// CP/M architecture\n// \n// Memory map:\n// 0000-00FF: System parameters\n// 0100-xxxx: TPA (Transient Program Area)\n// xxxx-BDOS: CP/M system calls\n// BDOS-BIOS: Hardware abstraction\n// BIOS-FFFF: Hardware-specific code\n// \n// Application calls BDOS (portable)\n// BDOS calls BIOS (machine-specific)\n// Result: Portable software!"
+                }
+              ],
+              "nextScene": "scene-5-4-3"
+            },
+            {
+              "id": "scene-5-4-3",
+              "type": "narrative",
+              "setting": {
+                "text": "A law office, 1979. Stacks of paper cover every surface. The firm just bought a Z80-based computer running CP/M, along with a program called WordStar. Everything is about to change."
+              },
+              "narrative": [
+                "WordStar transforms the practice of law. Documents that took days to type, retype, and retype again can now be edited on screen. Find and replace. Copy and paste. Spelling correction.",
+                "The lawyer dictates changes. The secretary edits the file. The document prints perfectly, every time. No retyping. No white-out. No carbon copies.",
+                "This is the killer app for CP/M business machines. WordStar proves that personal computers aren't toys—they're tools that transform how work gets done."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Secretary",
+                  "text": "I used to retype this contract three times for every revision. Now I change a few lines and print. I go home at 5 PM instead of 8 PM."
+                },
+                {
+                  "speaker": "Lawyer",
+                  "text": "And the billable hours I save on clerical work? I can handle twice as many clients. The computer paid for itself in a month."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "WordStar (1978) became the best-selling software program in the world. Its keyboard commands (Ctrl-K for block operations, Ctrl-Q for quick movement) were memorized by millions. Many writers, including George R.R. Martin, still use WordStar or WordStar-compatible editors today.",
+                  "codeSnippet": "// WordStar commands (still used in some editors)\n// \n// Ctrl-K B  Mark block begin\n// Ctrl-K K  Mark block end\n// Ctrl-K C  Copy block\n// Ctrl-K V  Move block\n// Ctrl-K Y  Delete block\n// \n// Ctrl-Q F  Find\n// Ctrl-Q A  Find and replace\n// \n// ^K S      Save file\n// ^K D      Save and exit"
+                }
+              ],
+              "nextScene": "scene-5-4-4"
+            },
+            {
+              "id": "scene-5-4-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "Digital Research headquarters, 1980. Gary Kildall has built CP/M into a multi-million dollar business. Then IBM calls."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Kildall",
+                  "text": "IBM wants an operating system for their new personal computer. This is the moment we've been waiting for—the biggest computer company in the world, choosing CP/M."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What happened with the IBM deal?"
+                },
+                {
+                  "speaker": "Kildall",
+                  "text": "They came when I was out flying. My wife Dorothy met with them but wouldn't sign their non-disclosure agreement—the terms were unreasonable. IBM got impatient. They went to Microsoft instead."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But Microsoft didn't have an operating system..."
+                },
+                {
+                  "speaker": "Kildall",
+                  "text": "They bought one. A CP/M clone called 86-DOS. Renamed it MS-DOS. Got a deal where they could license it to anyone—not just IBM. The rest... the rest is history."
+                }
+              ],
+              "narrative": [
+                "The Z80 and CP/M dominated business computing until IBM chose a different path. But their influence persists: the Z80's architecture influenced later designs, and CP/M's concepts—command lines, file systems, BIOS abstraction—live on in every PC.",
+                "Gary Kildall never recovered from losing the IBM deal. He died in 1994, largely forgotten by an industry he helped create. But without CP/M, there would have been no DOS. Without the Z80, no affordable business computers.",
+                "The 8-bit era proved that personal computing could be serious. But 64KB wasn't enough for serious work. The 16-bit era beckoned—with promises of megabytes of memory and IBM's blessing.",
                 "Continue to Act 6: The 16-bit Era."
               ]
             }

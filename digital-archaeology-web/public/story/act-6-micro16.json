@@ -395,8 +395,206 @@
               "narrative": [
                 "The IBM PC established the architecture that would dominate for decades. Open hardware. Microsoft software. Intel processors.",
                 "But the 8088's limits were already showing. The 80286 promised more—protected mode, 16MB addressing—but it had its own problems.",
+                "Meanwhile, the 68000 world was flourishing—and Intel had another innovation to reveal: the math coprocessor."
+              ],
+              "nextScene": "scene-6-2-7"
+            },
+            {
+              "id": "scene-6-2-7",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel's fab, 1980. Alongside the 8086, Intel has designed a companion chip: the 8087 Numeric Data Processor. It does one thing: floating-point math. And it does it 100 times faster than software."
+              },
+              "narrative": [
+                "The 8086 can multiply integers in hardware, but floating-point—the mathematics of science, engineering, and finance—still requires software routines. Slow, complex, error-prone.",
+                "The 8087 changes everything. Plug it into the coprocessor socket and suddenly your PC can do real numerical computing. Scientists, engineers, and spreadsheet power users rejoice.",
+                "This coprocessor architecture will persist for a decade, until the 486 integrates the FPU directly into the CPU."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔢",
+                  "name": "John Palmer",
+                  "title": "8087 Project Manager, Intel",
+                  "bio": "Led the team that created the 8087 floating-point coprocessor. Palmer worked with mathematician William Kahan to implement IEEE 754 floating-point standard, which became universal.",
+                  "stats": [
+                    { "label": "Innovation", "value": "IEEE 754 floating-point in silicon" },
+                    { "label": "Impact", "value": "Enabled PC scientific computing" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8087 implemented the IEEE 754 floating-point standard before it was finalized—Intel's proposal became the standard. It had eight 80-bit registers arranged as a stack, supporting single, double, and extended precision. The 8087 cost as much as the 8086 itself but was essential for numerical work.",
+                  "codeSnippet": "// 8087 coprocessor operation\n// \n// Software float multiply: ~1000 cycles\n// 8087 FMUL: ~200 cycles\n// Speedup: ~5× per operation\n// \n// But real programs: 50-100× speedup\n// (eliminating loop overhead, memory access)\n// \n// 8087 instructions:\n// FLD   ; Load to stack\n// FADD  ; Add\n// FMUL  ; Multiply\n// FSQRT ; Square root\n// FSIN  ; Sine"
+                }
+              ],
+              "nextScene": "chapter-6-2b"
+            }
+          ]
+        },
+        {
+          "id": "chapter-6-2b",
+          "number": 2.5,
+          "title": "The 68000 Golden Age",
+          "subtitle": "Macintosh, Amiga, and Atari ST",
+          "year": "1984-1987",
+          "scenes": [
+            {
+              "id": "scene-6-2b-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Cupertino, California. January 24, 1984. Steve Jobs unveils the Macintosh. Powered by a Motorola 68000, it has a graphical interface, a mouse, and no command line."
+              },
+              "narrative": [
+                "While IBM compatibles struggle with 640KB and segmented memory, the Macintosh has 128KB of linear address space—and it feels limitless. No segments. No near/far pointer confusion. Just memory.",
+                "The 68000's clean architecture enables the Mac's revolutionary interface. Windows overlap smoothly. Graphics render quickly. The Toolbox ROM provides consistent APIs.",
+                "This is what computing should feel like. Point. Click. Create."
+              ],
+              "characters": [
+                {
+                  "avatar": "🍎",
+                  "name": "Steve Jobs",
+                  "title": "Co-founder, Apple Computer",
+                  "bio": "The visionary who demanded elegance in computing. Jobs chose the 68000 over the 8086 because he wanted a computer that was insanely great—not just compatible.",
+                  "stats": [
+                    { "label": "Vision", "value": "A computer for the rest of us" },
+                    { "label": "Choice", "value": "68000 for clean architecture" }
+                  ]
+                },
+                {
+                  "avatar": "🖥️",
+                  "name": "Andy Hertzfeld",
+                  "title": "Software Lead, Macintosh",
+                  "bio": "Principal architect of the original Macintosh system software. Hertzfeld exploited the 68000's capabilities to create the revolutionary Mac interface.",
+                  "stats": [
+                    { "label": "Achievement", "value": "Mac Toolbox and System" },
+                    { "label": "Why 68000", "value": "Orthogonal, 32-bit, elegant" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hertzfeld",
+                  "text": "The 68000 has sixteen 32-bit registers. Any instruction can use any addressing mode. It's like the processor was designed for high-level languages. The 8086? It's like programming with one hand tied behind your back."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 68000's orthogonal instruction set meant consistent, predictable coding. MOVE.L worked identically with any register, any addressing mode. The 8086's irregular architecture forced programmers to remember special cases: MUL always uses AX, string operations require SI/DI, etc.",
+                  "codeSnippet": "// 68000 elegance vs 8086 quirks\n// \n// 68000: Move any to any\n// MOVE.L D0, D1\n// MOVE.L A0, D1\n// MOVE.L (A0)+, (A1)+\n// \n// 8086: Special cases everywhere\n// MUL BX    ; Must use AX, result in DX:AX\n// DIV CX    ; Dividend must be in DX:AX\n// MOVSB     ; Must use SI→DI\n// LODS      ; Must use SI→AL/AX"
+                }
+              ],
+              "nextScene": "scene-6-2b-2"
+            },
+            {
+              "id": "scene-6-2b-2",
+              "type": "narrative",
+              "setting": {
+                "text": "West Chester, Pennsylvania. 1985. Commodore unveils the Amiga 1000. The 68000 powers a multimedia revolution."
+              },
+              "narrative": [
+                "The Amiga does things no PC can dream of: 4096 colors, four-channel stereo sound, hardware sprites, smooth scrolling—all with the 68000 at its heart.",
+                "Custom chips named Agnus, Denise, and Paula handle graphics and sound while the CPU runs programs. This is the first true multimedia computer.",
+                "Video producers, musicians, and game developers flock to the Amiga. It's years ahead of anything IBM-compatible."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎨",
+                  "name": "Jay Miner",
+                  "title": "Chief Engineer, Amiga",
+                  "bio": "The 'father of the Amiga' who designed the custom chips that made it revolutionary. Miner's vision: a computer for creativity, not just productivity.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Custom chipset for multimedia" },
+                    { "label": "Ahead of time", "value": "5-10 years" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Miner",
+                  "text": "The 68000 handles the logic. Our custom chips handle the graphics and sound. They work together, in parallel. An IBM PC with EGA can't touch what we can do."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Amiga's custom chipset offloaded graphics and audio from the CPU: Agnus handled DMA and display timing, Denise generated the actual video output, and Paula managed audio and I/O. This coprocessor approach enabled capabilities that IBM PCs wouldn't match until the late 1990s.",
+                  "codeSnippet": "// Amiga capabilities (1985)\n// \n// Graphics:\n//   4096 colors (HAM mode)\n//   Hardware sprites (8 independent)\n//   Blitter for fast block operations\n//   Dual playfield scrolling\n// \n// Audio:\n//   4 channels, 8-bit samples\n//   Hardware mixing\n// \n// IBM PC (EGA, 1985):\n//   16 colors\n//   No sprites, no blitter\n//   PC speaker beeps"
+                }
+              ],
+              "nextScene": "scene-6-2b-3"
+            },
+            {
+              "id": "scene-6-2b-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Sunnyvale, California. 1985. Atari launches the 520ST. The '68000 for the masses' at an unbeatable price."
+              },
+              "narrative": [
+                "Jack Tramiel, the man who brought computing to the masses with the Commodore 64, does it again. The Atari ST: a 68000 computer with 512KB RAM, GEM graphical interface, and MIDI ports—for $799.",
+                "Musicians embrace it instantly. The built-in MIDI makes the ST the centerpiece of recording studios worldwide. Steinberg's Cubase runs on Atari ST first.",
+                "The 68000 ecosystem offers three distinct personalities: Mac for desktop publishing, Amiga for multimedia, ST for music. Each proves what clean architecture can achieve."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎹",
+                  "name": "Jack Tramiel",
+                  "title": "CEO, Atari Corporation",
+                  "bio": "The legendary businessman who made computers affordable. Tramiel's philosophy: 'Computers for the masses, not the classes.' The ST was his 68000-powered answer.",
+                  "stats": [
+                    { "label": "Philosophy", "value": "Low cost, high capability" },
+                    { "label": "ST success", "value": "Music production standard" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Tramiel",
+                  "text": "Why pay $2,000 for a Macintosh when the ST does the same job for $800? The 68000 is the same. GEM gives you windows and a mouse. And we include MIDI ports standard."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Atari ST's built-in MIDI ports made it the de facto standard for music production throughout the late 1980s and early 1990s. The 68000's linear addressing made timing-critical MIDI applications straightforward to program—no segment wrestling required.",
+                  "codeSnippet": "// Atari ST MIDI advantages\n// \n// Built-in MIDI In/Out ports\n// 68000 linear addressing\n// Predictable timing\n// \n// Software:\n// Steinberg Cubase (started on ST)\n// Notator Logic (ST exclusive)\n// Dr. T's KCS\n// \n// Professional studios used STs\n// well into the 1990s"
+                }
+              ],
+              "nextScene": "scene-6-2b-4"
+            },
+            {
+              "id": "scene-6-2b-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "A software developer's office, 1987. On the desk: a Mac, an Amiga, and an Atari ST. All running 68000 code. On the floor: an IBM PC clone, gathering dust."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Developer",
+                  "text": "I can write code that runs on all three 68000 machines with minimal changes. Try that with the IBM PC and its segments and BIOS calls and memory models."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But IBM compatibles are everywhere. The business market..."
+                },
+                {
+                  "speaker": "Developer",
+                  "text": "Business chose IBM because it said 'IBM.' Not because the 8086 is better. For creative work—graphics, music, video—the 68000 machines are years ahead."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Will the 68000 ever catch up in business?"
+                },
+                {
+                  "speaker": "Developer",
+                  "text": "Maybe. Maybe not. IBM compatibles have momentum. Microsoft has DOS and Windows. Intel has the 386 coming. But for now? The 68000 is where the innovation happens."
+                }
+              ],
+              "narrative": [
+                "The 68000 golden age produced three legendary platforms: Macintosh revolutionized desktop publishing, Amiga pioneered multimedia, Atari ST defined music production.",
+                "But IBM compatibility proved more powerful than elegance. Microsoft Windows, Lotus 1-2-3, and corporate purchasing decisions favored the x86 ecosystem. The 68000 platforms would eventually fade—Mac switching to PowerPC, then Intel; Amiga and ST becoming niche memories.",
+                "Still, the 68000's influence persists. Its clean architecture inspired later designs. Its Toolbox, AmigaOS, and GEM showed what operating systems could be. And musicians still speak fondly of their Atari STs.",
                 "True relief would require the 80386: 32-bit registers, 4GB addressing, and the flat memory model programmers craved."
-              ]
+              ],
+              "nextScene": "chapter-6-3"
             }
           ]
         },

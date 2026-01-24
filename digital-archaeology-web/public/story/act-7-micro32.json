@@ -385,6 +385,43 @@
                   "text": "Clock speed is a marketing number. What matters is instructions per clock. A well-designed 200 MHz processor beats a poorly designed 300 MHz one."
                 }
               ],
+              "nextScene": "scene-7-3-2b"
+            },
+            {
+              "id": "scene-7-3-2b",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel's Folsom design center, November 1995. Engineers celebrate the launch of Pentium Pro—a processor that will define x86 architecture for the next two decades."
+              },
+              "narrative": [
+                "The Pentium Pro introduces the P6 microarchitecture: out-of-order execution, register renaming, and a three-way superscalar core. It translates x86 instructions into internal micro-operations, executing them in whatever order maximizes throughput.",
+                "This is revolutionary. The messy, variable-length x86 instruction set gets decoded into clean, uniform micro-ops. The execution core doesn't see x86 at all—it sees a RISC-like internal architecture.",
+                "The Pentium Pro is expensive and optimized for 32-bit code (16-bit code runs slower). It targets servers and workstations. But its architecture will evolve into Pentium II, Pentium III, Core, and beyond."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏆",
+                  "name": "Bob Colwell",
+                  "title": "Chief Architect, Pentium Pro",
+                  "bio": "The engineer who led the P6 architecture team. Colwell's design—translating x86 to micro-ops and executing out-of-order—became the template for every subsequent Intel processor.",
+                  "stats": [
+                    { "label": "Innovation", "value": "P6 microarchitecture" },
+                    { "label": "Legacy", "value": "20+ years of derivatives" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Colwell",
+                  "text": "The x86 instruction set is complex—variable length, many addressing modes. But internally, we break it into simple micro-ops. The execution engine sees a clean RISC core. The complexity is absorbed in the decoder."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The P6 microarchitecture introduced: instruction decoding to micro-ops, register renaming to eliminate false dependencies, a reorder buffer for out-of-order execution, and separate retirement to maintain precise exceptions. This basic structure persists in Intel CPUs today.",
+                  "codeSnippet": "// P6 pipeline concept\n// \n// x86 instruction → Decoder → Micro-ops\n// \n// ADD EAX, [EBX+4]  ; Complex x86\n// becomes:\n//   load temp, [EBX+4]  ; micro-op 1\n//   add EAX, temp       ; micro-op 2\n// \n// Micro-ops execute out-of-order\n// Results retire in-order\n// \n// This model: 1995-present"
+                }
+              ],
               "nextScene": "scene-7-3-3"
             },
             {

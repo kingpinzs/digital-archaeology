@@ -5,6 +5,7 @@
 // Story 10.6: Create Scene Setting Component
 // Story 10.7: Create Character Card Component
 // Story 10.8: Create Dialogue Block Component
+// Story 10.9: Create Choice Card Component
 
 /**
  * Represents a discovery badge earned by the player.
@@ -94,4 +95,18 @@ export interface DialogueData {
   speaker: string;
   /** The dialogue text spoken by the character */
   text: string;
+}
+
+/**
+ * Represents a choice option in the story.
+ */
+export interface ChoiceData {
+  /** Unique identifier for this choice */
+  id: string;
+  /** Emoji or icon character for the choice */
+  icon: string;
+  /** Short title for the choice (e.g., "Investigate Carry Look-Ahead") */
+  title: string;
+  /** Longer description explaining the choice */
+  description: string;
 }

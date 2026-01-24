@@ -2757,3 +2757,77 @@ body.da-resizing * {
   line-height: 1.7;
   color: var(--da-text-secondary, #b0b0b0);
 }
+
+/* =============================================================================
+   Choice Card Component (Story 10.9)
+   ============================================================================= */
+
+.da-choice-card {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 16px 20px;
+  background: transparent;
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.3));
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.da-choice-card--hidden {
+  display: none;
+}
+
+.da-choice-card:hover {
+  transform: translateX(8px);
+  border-color: var(--persona-gold, #d4a574);
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.da-choice-card:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+.da-choice-card-icon {
+  flex-shrink: 0;
+  font-size: 24px;
+  margin-right: 16px;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-choice-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.da-choice-card-title {
+  display: block;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--persona-gold, #d4a574);
+  margin-bottom: 4px;
+}
+
+.da-choice-card-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+.da-choice-card-arrow {
+  flex-shrink: 0;
+  font-size: 20px;
+  margin-left: 16px;
+  color: var(--persona-gold, #d4a574);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.da-choice-card:hover .da-choice-card-arrow {
+  opacity: 1;
+}

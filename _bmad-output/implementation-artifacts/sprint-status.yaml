@@ -106,8 +106,8 @@ development_status:
   6-1-create-canvas-circuit-renderer: done
   6-2-load-and-parse-circuit-data: done
   6-3-render-gates-with-type-colors: done
-  6-4-render-wires-with-signal-states: review
-  6-5-animate-signal-propagation: backlog
+  6-4-render-wires-with-signal-states: done
+  6-5-animate-signal-propagation: done
   6-6-implement-zoom-controls: backlog
   6-7-implement-pan-navigation: backlog
   6-8-show-component-tooltips: backlog

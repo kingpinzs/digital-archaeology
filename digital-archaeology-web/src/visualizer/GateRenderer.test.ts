@@ -2,7 +2,7 @@
 // Unit tests for GateRenderer (Story 6.3)
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { GateRenderer, DEFAULT_GATE_CONFIG } from './GateRenderer';
+import { GateRenderer, DEFAULT_GATE_CONFIG, DEFAULT_PULSE_SCALE } from './GateRenderer';
 import type { CircuitGate } from './types';
 
 describe('GateRenderer', () => {
@@ -251,6 +251,94 @@ describe('GateRenderer', () => {
       expect(config.width).toBe(80);
       expect(config.height).toBe(50);
       expect(config.cornerRadius).toBe(8);
+    });
+  });
+
+  describe('DEFAULT_PULSE_SCALE', () => {
+    it('should be 1.1', () => {
+      expect(DEFAULT_PULSE_SCALE).toBe(1.1);
+    });
+  });
+
+  describe('pulse effect (Story 6.5)', () => {
+    it('should render at normal size when pulseScale is 1.0', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0);
+
+      // Should use exact dimensions (no scaling)
+      expect(mockCtx.roundRect).toHaveBeenCalledWith(10, 20, 60, 40, 4);
+    });
+
+    it('should scale gate dimensions when pulseScale is 1.1', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.1);
+
+      // Scaled dimensions: 60 * 1.1 = 66, 40 * 1.1 = 44
+      // Position adjusted to keep centered: x - (66-60)/2 = 7, y - (44-40)/2 = 18
+      // Corner radius: round(4 * 1.1) = round(4.4) = 4 (rounded to avoid sub-pixel artifacts)
+      expect(mockCtx.roundRect).toHaveBeenCalledWith(7, 18, 66, 44, 4);
+    });
+
+    it('should center scaled gate around original position', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 100, 100, 60, 40, 1.2);
+
+      // Scaled: 60 * 1.2 = 72, 40 * 1.2 = 48
+      // Adjustment: x - (72-60)/2 = 94, y - (48-40)/2 = 96
+      // Corner radius: round(4 * 1.2) = round(4.8) = 5 (rounded to avoid sub-pixel artifacts)
+      expect(mockCtx.roundRect).toHaveBeenCalledWith(94, 96, 72, 48, 5);
+    });
+
+    it('should center text in scaled gate', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.1);
+
+      // Adjusted position: 7, 18, size: 66, 44
+      // Text center: 7 + 66/2 = 40, 18 + 44/2 = 40
+      expect(mockCtx.fillText).toHaveBeenCalledWith('AND', 40, 40);
+    });
+
+    it('should scale font size with pulse', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.2);
+
+      // Font size: 10 * 1.2 = 12
+      expect(mockCtx.font).toBe('12px JetBrains Mono, monospace');
     });
   });
 });

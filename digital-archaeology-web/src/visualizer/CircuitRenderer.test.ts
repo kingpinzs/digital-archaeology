@@ -995,4 +995,230 @@ describe('CircuitRenderer', () => {
       expect(renderer.getCircuitModel()).toBeNull();
     });
   });
+
+  describe('animation (Story 6.5)', () => {
+    const mockCircuitDataStart: CircuitData = {
+      cycle: 0,
+      stable: true,
+      wires: [
+        { id: 0, name: 'wire0', width: 1, is_input: false, is_output: false, state: [0] },
+      ],
+      gates: [
+        { id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [{ wire: 0, bit: 0 }] },
+      ],
+    };
+
+    const mockCircuitDataEnd: CircuitData = {
+      cycle: 1,
+      stable: true,
+      wires: [
+        { id: 0, name: 'wire0', width: 1, is_input: false, is_output: false, state: [1] },
+      ],
+      gates: [
+        { id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [{ wire: 0, bit: 0 }] },
+      ],
+    };
+
+    let mockMoveTo: ReturnType<typeof vi.fn>;
+    let mockLineTo: ReturnType<typeof vi.fn>;
+    let mockStroke: ReturnType<typeof vi.fn>;
+    let mockBeginPath: ReturnType<typeof vi.fn>;
+    let mockRoundRect: ReturnType<typeof vi.fn>;
+    let mockFill: ReturnType<typeof vi.fn>;
+    let mockFillText: ReturnType<typeof vi.fn>;
+    let rafCallbacks: Array<{ id: number; callback: FrameRequestCallback }>;
+    let nextRafId: number;
+    let currentTime: number;
+
+    beforeEach(() => {
+      mockMoveTo = vi.fn();
+      mockLineTo = vi.fn();
+      mockStroke = vi.fn();
+      mockBeginPath = vi.fn();
+      mockRoundRect = vi.fn();
+      mockFill = vi.fn();
+      mockFillText = vi.fn();
+      rafCallbacks = [];
+      nextRafId = 1;
+      currentTime = 0;
+
+      // Mock requestAnimationFrame
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+        const id = nextRafId++;
+        rafCallbacks.push({ id, callback });
+        return id;
+      });
+
+      // Mock cancelAnimationFrame
+      vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
+        rafCallbacks = rafCallbacks.filter((item) => item.id !== id);
+      });
+
+      // Mock performance.now()
+      vi.spyOn(performance, 'now').mockImplementation(() => currentTime);
+
+      // Enhanced mock context
+      mockCtx = {
+        fillRect: mockFillRect,
+        scale: mockScale,
+        setTransform: mockSetTransform,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 0,
+        lineCap: 'butt' as CanvasLineCap,
+        beginPath: mockBeginPath,
+        moveTo: mockMoveTo,
+        lineTo: mockLineTo,
+        stroke: mockStroke,
+        roundRect: mockRoundRect,
+        fill: mockFill,
+        fillText: mockFillText,
+        font: '',
+        textAlign: '' as CanvasTextAlign,
+        textBaseline: '' as CanvasTextBaseline,
+      } as unknown as CanvasRenderingContext2D;
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        (contextId: string) => {
+          if (contextId === '2d') {
+            return mockCtx;
+          }
+          return null;
+        }
+      );
+
+      // Mock CSS variables
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-bg-primary': '#1a1a2e',
+            '--da-wire-high': '#00ff88',
+            '--da-wire-low': '#3a3a3a',
+            '--da-wire-unknown': '#ffaa00',
+            '--da-gate-and': '#4ecdc4',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+
+      // Mock matchMedia for reduced motion check
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: vi.fn().mockImplementation(() => ({
+          matches: false, // User does NOT prefer reduced motion
+          media: '(prefers-reduced-motion: reduce)',
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        })),
+      });
+    });
+
+    // Helper to advance animation
+    function advanceFrame(deltaMs: number): void {
+      currentTime += deltaMs;
+      const callbacks = [...rafCallbacks];
+      rafCallbacks = [];
+      callbacks.forEach(({ callback }) => callback(currentTime));
+    }
+
+    it('should set isAnimating to true during animation', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+
+      expect(renderer.isAnimating).toBe(false);
+
+      renderer.animateTransition(mockCircuitDataEnd);
+
+      expect(renderer.isAnimating).toBe(true);
+    });
+
+    it('should set isAnimating to false after animation completes', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+
+      renderer.animateTransition(mockCircuitDataEnd);
+      expect(renderer.isAnimating).toBe(true);
+
+      // Advance past animation duration
+      advanceFrame(600);
+
+      expect(renderer.isAnimating).toBe(false);
+    });
+
+    it('should render multiple frames during animation', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+
+      // Clear mocks
+      mockRoundRect.mockClear();
+
+      renderer.animateTransition(mockCircuitDataEnd);
+
+      // Advance through animation
+      advanceFrame(100);
+      advanceFrame(100);
+      advanceFrame(100);
+
+      // Should have rendered at least 3 times (one per frame)
+      // Each render draws 1 gate = 1 roundRect call per frame
+      expect(mockRoundRect.mock.calls.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('should skip animation when no changes detected', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+
+      // Animate to same state
+      renderer.animateTransition(mockCircuitDataStart);
+
+      // Should not start animation
+      expect(renderer.isAnimating).toBe(false);
+    });
+
+    it('should update circuit model after animation', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+
+      renderer.animateTransition(mockCircuitDataEnd);
+      advanceFrame(600);
+
+      const model = renderer.getCircuitModel();
+      expect(model?.wires.get(0)?.state[0]).toBe(1);
+    });
+
+    it('should clean up animation on destroy', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataStart });
+      renderer.animateTransition(mockCircuitDataEnd);
+
+      expect(renderer.isAnimating).toBe(true);
+
+      renderer.destroy();
+
+      expect(renderer.isAnimating).toBe(false);
+    });
+
+    it('should use immediate update when animation is disabled', () => {
+      const noAnimRenderer = new CircuitRenderer({
+        animation: { enableAnimation: false },
+      });
+      noAnimRenderer.mount(container);
+      noAnimRenderer.updateState({ circuitData: mockCircuitDataStart });
+
+      noAnimRenderer.animateTransition(mockCircuitDataEnd);
+
+      // Should not be animating - immediate update
+      expect(noAnimRenderer.isAnimating).toBe(false);
+
+      // Model should be updated immediately
+      const model = noAnimRenderer.getCircuitModel();
+      expect(model?.wires.get(0)?.state[0]).toBe(1);
+
+      noAnimRenderer.destroy();
+    });
+  });
 });

@@ -3,7 +3,7 @@
 
 // Story 6.1: Canvas Circuit Renderer
 export { CircuitRenderer } from './CircuitRenderer';
-export type { CircuitRendererOptions, CircuitRendererState } from './CircuitRenderer';
+export type { CircuitRendererOptions, CircuitRendererState, AnimationOptions } from './CircuitRenderer';
 
 // Story 6.2: Circuit Data Loading
 export { CircuitLoader, CircuitLoadError } from './CircuitLoader';
@@ -37,3 +37,18 @@ export { WireRenderer, DEFAULT_WIRE_CONFIG } from './WireRenderer';
 export type { WireRenderConfig } from './WireRenderer';
 export { getWireColor, DEFAULT_WIRE_COLORS, WIRE_COLOR_VARS } from './wireColors';
 export type { WirePosition, WireSegment } from './CircuitLayout';
+
+// Story 6.5: Animation
+export { AnimationController, DEFAULT_ANIMATION_CONFIG, getAnimationDurationFromCSS } from './AnimationController';
+export type { AnimationConfig, FrameCallback, CompleteCallback } from './AnimationController';
+export { SignalAnimator } from './SignalAnimator';
+export type { SignalSnapshot } from './SignalAnimator';
+export { DEFAULT_PULSE_SCALE } from './GateRenderer';
+export {
+  easeOutQuad,
+  calculatePulseScale,
+  prefersReducedMotion,
+  getPulseScaleFromCSS,
+  DEFAULT_PULSE_MAX_SCALE,
+  DEFAULT_PULSE_DURATION,
+} from './animationUtils';

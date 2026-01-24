@@ -38,6 +38,10 @@
   --da-wire-low: #3a3a3a;
   --da-wire-unknown: #ffaa00;
 
+  /* Animation configuration (Story 6.5) */
+  --da-animation-duration: 500ms;
+  --da-gate-pulse-scale: 1.1;
+
   /* Gate type colors (circuit visualization) - universal across themes */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;

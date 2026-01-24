@@ -1,5 +1,5 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4, 6.5)
 
 import type { CircuitData } from './types';
 import { CircuitModel } from './CircuitModel';
@@ -7,6 +7,9 @@ import { CircuitLoader, CircuitLoadError } from './CircuitLoader';
 import { GateRenderer } from './GateRenderer';
 import { CircuitLayout } from './CircuitLayout';
 import { WireRenderer } from './WireRenderer';
+import { AnimationController } from './AnimationController';
+import { SignalAnimator } from './SignalAnimator';
+import { calculatePulseScale, prefersReducedMotion } from './animationUtils';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -16,11 +19,27 @@ import { WireRenderer } from './WireRenderer';
 const DEFAULT_BG_PRIMARY = '#1a1a2e';
 
 /**
+ * Animation configuration for CircuitRenderer.
+ */
+export interface AnimationOptions {
+  /** Animation duration in milliseconds (default: 500) */
+  animationDuration?: number;
+  /** Target frames per second (default: 30) */
+  targetFps?: number;
+  /** Enable gate pulse effect (default: true) */
+  enableGatePulse?: boolean;
+  /** Enable animation (false for immediate updates, default: true) */
+  enableAnimation?: boolean;
+}
+
+/**
  * Options for CircuitRenderer component.
  */
 export interface CircuitRendererOptions {
   /** Optional callback when render completes */
   onRenderComplete?: () => void;
+  /** Animation configuration (Story 6.5) */
+  animation?: AnimationOptions;
 }
 
 /**
@@ -63,6 +82,13 @@ export class CircuitRenderer {
 
   // Wire rendering (Story 6.4)
   private wireRenderer: WireRenderer | null = null;
+
+  // Animation (Story 6.5)
+  private animationController: AnimationController | null = null;
+  private signalAnimator: SignalAnimator | null = null;
+  private animationProgress: number = 1.0; // 1.0 = no animation in progress
+  private changedGates: Set<number> = new Set();
+  private interpolatedWireStates: Map<number, number[]> | null = null;
 
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
@@ -234,6 +260,7 @@ export class CircuitRenderer {
   /**
    * Render all wires in the circuit.
    * Wires are rendered before gates so gates appear on top.
+   * Uses interpolated wire states during animation.
    * @private
    */
   private renderWires(): void {
@@ -251,10 +278,14 @@ export class CircuitRenderer {
 
       const isMultiBit = wire.width > 1;
 
+      // Use interpolated states during animation, otherwise use actual wire state
+      const wireState =
+        this.interpolatedWireStates?.get(wire.id) ?? wire.state;
+
       // Render each segment of the wire
       for (const segment of wirePosition.segments) {
         // Get the signal value for this bit
-        const signalValue = wire.state[segment.bitIndex] ?? 2; // Default to unknown
+        const signalValue = wireState[segment.bitIndex] ?? 2; // Default to unknown
 
         this.wireRenderer.renderWire(
           this.ctx,
@@ -273,6 +304,7 @@ export class CircuitRenderer {
    * Render all gates in the circuit.
    * Gates are positioned by CircuitLayout and drawn by GateRenderer.
    * Layout calculation is handled by ensureLayoutCalculated().
+   * Applies pulse effect during animation for gates with changed outputs.
    * @private
    */
   private renderGates(): void {
@@ -286,17 +318,25 @@ export class CircuitRenderer {
     // Get gate dimensions from layout config
     const layoutConfig = this.layout.getConfig();
 
+    // Check if gate pulse is enabled
+    const enablePulse = this.options.animation?.enableGatePulse !== false;
+
     // Render each gate at its calculated position
     for (const gate of this.circuitModel.gates.values()) {
       const position = this.layout.getPosition(gate.id);
       if (position) {
+        // Calculate pulse scale for animation
+        const isActive = enablePulse && this.changedGates.has(gate.id);
+        const pulseScale = calculatePulseScale(this.animationProgress, isActive);
+
         this.gateRenderer.renderGate(
           this.ctx,
           gate,
           position.x,
           position.y,
           layoutConfig.gateWidth,
-          layoutConfig.gateHeight
+          layoutConfig.gateHeight,
+          pulseScale
         );
       }
     }
@@ -316,8 +356,96 @@ export class CircuitRenderer {
       this.lastLayoutModelId = 0;
     }
 
+    // Clear animation state for immediate update
+    this.animationProgress = 1.0;
+    this.changedGates.clear();
+    this.interpolatedWireStates = null;
+
     // Re-render with updated state
     this.render();
+  }
+
+  /**
+   * Animate transition from current state to new circuit data.
+   * Provides smooth visual transition with wire color interpolation and gate pulse effects.
+   * Respects user's reduced motion preference.
+   * @param newData - The new circuit data to transition to
+   */
+  animateTransition(newData: CircuitData): void {
+    // Check if animation is enabled
+    const enableAnimation = this.options.animation?.enableAnimation !== false;
+
+    // Skip animation if disabled or user prefers reduced motion
+    if (!enableAnimation || prefersReducedMotion()) {
+      this.updateState({ circuitData: newData });
+      return;
+    }
+
+    // Lazily create animation components
+    if (!this.animationController) {
+      this.animationController = new AnimationController({
+        duration: this.options.animation?.animationDuration ?? 500,
+        targetFps: this.options.animation?.targetFps ?? 30,
+      });
+    }
+    if (!this.signalAnimator) {
+      this.signalAnimator = new SignalAnimator();
+    }
+
+    // Stop any in-progress animation and clear previous animation state
+    // to prevent race conditions when animations are triggered rapidly
+    this.animationController.stopAnimation();
+    this.changedGates.clear();
+    this.interpolatedWireStates = null;
+    this.animationProgress = 1.0;
+
+    // Capture current state before updating model
+    if (this.circuitModel) {
+      this.signalAnimator.captureState(this.circuitModel);
+    }
+
+    // Update to new circuit model
+    this.circuitModel = new CircuitModel(newData);
+    this.lastLayoutModelId = 0; // Invalidate layout cache
+
+    // Set target state and get changed gates
+    this.signalAnimator.setTargetState(this.circuitModel);
+    this.changedGates = this.signalAnimator.getChangedGates();
+
+    // If no changes, skip animation
+    if (!this.signalAnimator.hasChanges()) {
+      this.animationProgress = 1.0;
+      this.interpolatedWireStates = null;
+      this.render();
+      return;
+    }
+
+    // Set up animation callbacks
+    this.animationController
+      .onFrame((progress) => {
+        this.animationProgress = progress;
+        this.interpolatedWireStates = this.signalAnimator!.interpolate(progress);
+        this.render();
+      })
+      .onComplete(() => {
+        // Animation complete - clear animation state
+        this.animationProgress = 1.0;
+        this.changedGates.clear();
+        this.interpolatedWireStates = null;
+        this.render();
+      });
+
+    // Start animation
+    const duration = this.options.animation?.animationDuration ?? 500;
+    this.animationController.startAnimation(duration);
+  }
+
+  /**
+   * Check if an animation is currently running.
+   * @returns True if animation is in progress
+   */
+  get isAnimating(): boolean {
+    return this.animationController?.isAnimating ?? false;
   }
 
   /**
@@ -411,6 +539,18 @@ export class CircuitRenderer {
 
     // Clean up wire rendering (Story 6.4)
     this.wireRenderer = null;
+
+    // Clean up animation (Story 6.5)
+    if (this.animationController) {
+      this.animationController.stopAnimation();
+      this.animationController = null;
+    }
+    if (this.signalAnimator) {
+      this.signalAnimator.clear();
+      this.signalAnimator = null;
+    }
+    this.changedGates.clear();
+    this.interpolatedWireStates = null;
   }
 }
 

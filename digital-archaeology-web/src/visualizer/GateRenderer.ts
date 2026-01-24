@@ -1,8 +1,14 @@
 // src/visualizer/GateRenderer.ts
-// Gate rendering utility for circuit visualization (Story 6.3)
+// Gate rendering utility for circuit visualization (Story 6.3, 6.5)
 
 import type { CircuitGate } from './types';
 import { getGateColor, getGateBorderColor, getGateTextColor } from './gateColors';
+
+/**
+ * Default pulse scale for gate animation.
+ * Gates scale up to this value and back during pulse effect.
+ */
+export const DEFAULT_PULSE_SCALE = 1.1;
 
 /**
  * Gate rendering dimensions and styling configuration.
@@ -66,6 +72,7 @@ export class GateRenderer {
    * @param y - Y coordinate of top-left corner
    * @param width - Optional width override (defaults to config.width)
    * @param height - Optional height override (defaults to config.height)
+   * @param pulseScale - Optional scale factor for pulse animation (1.0 = normal, 1.1 = pulsed)
    */
   renderGate(
     ctx: CanvasRenderingContext2D,
@@ -73,15 +80,26 @@ export class GateRenderer {
     x: number,
     y: number,
     width?: number,
-    height?: number
+    height?: number,
+    pulseScale: number = 1.0
   ): void {
-    const w = width ?? this.config.width;
-    const h = height ?? this.config.height;
+    const baseW = width ?? this.config.width;
+    const baseH = height ?? this.config.height;
+
+    // Apply pulse scale
+    const w = baseW * pulseScale;
+    const h = baseH * pulseScale;
+
+    // Adjust position to keep gate centered during pulse
+    const adjustedX = x - (w - baseW) / 2;
+    const adjustedY = y - (h - baseH) / 2;
 
     // Fill with gate type color
+    // Round corner radius to avoid sub-pixel rendering artifacts
+    const cornerRadius = Math.round(this.config.cornerRadius * pulseScale);
     ctx.fillStyle = getGateColor(gate.type);
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, this.config.cornerRadius);
+    ctx.roundRect(adjustedX, adjustedY, w, h, cornerRadius);
     ctx.fill();
 
     // Draw border (read from CSS variables, fallback to config)
@@ -91,10 +109,10 @@ export class GateRenderer {
 
     // Draw type label centered in gate (read from CSS variables, fallback to config)
     ctx.fillStyle = getGateTextColor();
-    ctx.font = `${this.config.fontSize}px ${this.config.fontFamily}`;
+    ctx.font = `${this.config.fontSize * pulseScale}px ${this.config.fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(gate.type, x + w / 2, y + h / 2);
+    ctx.fillText(gate.type, adjustedX + w / 2, adjustedY + h / 2);
   }
 
   /**

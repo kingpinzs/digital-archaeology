@@ -1,0 +1,163 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-1",
+      "number": 1,
+      "title": "The Humbling Beginning",
+      "description": "In 1971, you join Fairchild Semiconductor as a junior engineer. The silicon revolution is just beginning, and you'll learn the fundamentals of digital logic by building a simple 4-bit processor from the ground up.",
+      "era": "1971",
+      "cpuStage": "micro4",
+      "chapters": [
+        {
+          "id": "chapter-1-1",
+          "number": 1,
+          "title": "First Day",
+          "subtitle": "Junior Engineer at Fairchild Semiconductor",
+          "year": "1971",
+          "scenes": [
+            {
+              "id": "scene-1-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "The morning sun filters through the tall windows of Fairchild Semiconductor's Mountain View facility. The air carries the faint smell of solder and the hum of oscilloscopes. Engineers in short-sleeved shirts huddle over breadboards, their conversations punctuated by the click of logic probes."
+              },
+              "narrative": [
+                "You step into the digital logic lab for the first time, clutching your employee badge. The space is a maze of workbenches covered in integrated circuits, data sheets, and half-assembled prototype boards.",
+                "A woman in a white lab coat notices you and approaches with a warm smile. Her badge reads 'Dr. Sarah Chen - Senior Design Engineer'."
+              ],
+              "characters": [
+                {
+                  "avatar": "👩‍🔬",
+                  "name": "Dr. Sarah Chen",
+                  "title": "Senior Design Engineer",
+                  "bio": "A pioneer in digital logic design who helped develop some of the first integrated ALU chips. Known for her patient teaching style and encyclopedic knowledge of Boolean algebra.",
+                  "stats": [
+                    { "label": "Expertise", "value": "ALU Design, Boolean Logic" },
+                    { "label": "Years at Fairchild", "value": "6" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Dr. Chen",
+                  "text": "Welcome to Fairchild! You must be our new junior engineer. I'm Sarah Chen - I'll be your mentor as you learn the ropes here."
+                },
+                {
+                  "speaker": "Dr. Chen",
+                  "text": "We're building something special. Not just circuits, but the building blocks of computation itself. Ready to get started?"
+                }
+              ],
+              "nextScene": "scene-1-1-2"
+            },
+            {
+              "id": "scene-1-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Dr. Chen leads you to a workbench in the corner of the lab. On it sits a breadboard with a few wires and a handful of chips scattered nearby."
+              },
+              "narrative": [
+                "She picks up a small black chip with silver legs and holds it up to the light.",
+                "This is a 7400 series NAND gate. Four gates in one package. With just this humble chip, you can build anything - adders, multiplexers, entire processors."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "NAND gates are 'universal gates' - any Boolean function can be implemented using only NAND gates. This makes them the fundamental building block of digital logic.",
+                  "codeSnippet": "// NAND gate truth table\n// A B | OUT\n// 0 0 |  1\n// 0 1 |  1\n// 1 0 |  1\n// 1 1 |  0"
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Dr. Chen",
+                  "text": "Your first task is simple: build a half-adder. It takes two single-bit inputs and produces a sum and a carry. Think you can figure it out?"
+                }
+              ],
+              "nextScene": "scene-1-1-3"
+            },
+            {
+              "id": "scene-1-1-3",
+              "type": "choice",
+              "setting": {
+                "text": "The workbench awaits. Several paths forward present themselves."
+              },
+              "narrative": [
+                "Dr. Chen steps back, giving you space to work. The breadboard, chips, and data sheets are at your disposal."
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-datasheet",
+                  "icon": "📖",
+                  "title": "Study the Data Sheet",
+                  "description": "Carefully read the 7400 series documentation to understand the pin configurations and timing characteristics."
+                },
+                {
+                  "id": "choice-dive-in",
+                  "icon": "⚡",
+                  "title": "Dive Right In",
+                  "description": "Start wiring up the breadboard immediately. The best way to learn is by doing."
+                },
+                {
+                  "id": "choice-ask-hint",
+                  "icon": "💡",
+                  "title": "Ask for a Hint",
+                  "description": "Request a quick overview of half-adder logic from Dr. Chen before starting."
+                }
+              ],
+              "nextScene": "scene-1-1-4"
+            },
+            {
+              "id": "scene-1-1-4",
+              "type": "challenge",
+              "setting": {
+                "text": "The lab bench is ready. Oscilloscope humming, logic probe in hand."
+              },
+              "narrative": [
+                "Time to put theory into practice. Build the half-adder circuit using the Micro4 HDL simulator."
+              ],
+              "challenge": {
+                "title": "BUILD A HALF-ADDER",
+                "objectives": [
+                  { "id": "obj-1", "text": "Create XOR gate for sum output", "completed": false },
+                  { "id": "obj-2", "text": "Create AND gate for carry output", "completed": false },
+                  { "id": "obj-3", "text": "Connect inputs A and B", "completed": false },
+                  { "id": "obj-4", "text": "Verify with test vectors", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "A half-adder computes: Sum = A XOR B, Carry = A AND B. Remember, XOR can be built from NAND gates: A XOR B = ((A NAND (A NAND B)) NAND (B NAND (A NAND B)))"
+                }
+              ],
+              "nextScene": "scene-1-1-5"
+            },
+            {
+              "id": "scene-1-1-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "After completing the challenge, Dr. Chen returns to check your work."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Dr. Chen",
+                  "text": "Excellent work! You've just taken your first step into digital design. A half-adder is simple, but it's the foundation of everything we build here."
+                },
+                {
+                  "speaker": "Dr. Chen",
+                  "text": "Tomorrow, we'll chain multiple adders together to create a full 4-bit ALU. But for now, take a moment to appreciate what you've accomplished."
+                }
+              ],
+              "narrative": [
+                "As the afternoon sun casts long shadows across the lab, you realize this is just the beginning of a long journey. The world of digital logic stretches out before you, full of possibilities."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

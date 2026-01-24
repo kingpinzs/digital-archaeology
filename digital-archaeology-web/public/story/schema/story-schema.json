@@ -1,0 +1,341 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://digital-archaeology.example.com/story-schema.json",
+  "title": "Story Content Schema",
+  "description": "Schema for Digital Archaeology story content files",
+  "type": "object",
+  "required": ["version", "metadata", "acts"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version for compatibility checking",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "metadata": {
+      "$ref": "#/definitions/StoryMetadata"
+    },
+    "acts": {
+      "type": "array",
+      "description": "All acts in the story",
+      "items": {
+        "$ref": "#/definitions/StoryAct"
+      },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "StoryMetadata": {
+      "type": "object",
+      "description": "Metadata about the story content",
+      "required": ["title", "author", "lastUpdated"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the story",
+          "minLength": 1
+        },
+        "author": {
+          "type": "string",
+          "description": "Author or team name",
+          "minLength": 1
+        },
+        "lastUpdated": {
+          "type": "string",
+          "description": "ISO date string of last update",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      }
+    },
+    "StoryAct": {
+      "type": "object",
+      "description": "Represents an act in the story",
+      "required": ["id", "number", "title", "description", "era", "cpuStage", "chapters"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (e.g., 'act-1')",
+          "pattern": "^act-\\d+$"
+        },
+        "number": {
+          "type": "integer",
+          "description": "Act number (1-5)",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "title": {
+          "type": "string",
+          "description": "Act title",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Act description/summary"
+        },
+        "era": {
+          "type": "string",
+          "description": "Historical era (e.g., '1971')"
+        },
+        "cpuStage": {
+          "type": "string",
+          "description": "CPU stage for this act",
+          "enum": ["micro4", "micro8", "micro16", "micro32", "micro32p", "micro32s"]
+        },
+        "chapters": {
+          "type": "array",
+          "description": "Chapters within this act",
+          "items": {
+            "$ref": "#/definitions/StoryChapter"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "StoryChapter": {
+      "type": "object",
+      "description": "Represents a chapter within an act",
+      "required": ["id", "number", "title", "subtitle", "year", "scenes"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (e.g., 'chapter-1-1')",
+          "pattern": "^chapter-\\d+-\\d+$"
+        },
+        "number": {
+          "type": "integer",
+          "description": "Chapter number within the act",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "description": "Chapter title",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Chapter subtitle"
+        },
+        "year": {
+          "type": "string",
+          "description": "Year for historical context",
+          "pattern": "^\\d{4}$"
+        },
+        "scenes": {
+          "type": "array",
+          "description": "Scenes within this chapter",
+          "items": {
+            "$ref": "#/definitions/StoryScene"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "StoryScene": {
+      "type": "object",
+      "description": "Represents a scene within a chapter",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (e.g., 'scene-1-1-1')",
+          "pattern": "^scene-\\d+-\\d+-\\d+$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Scene type determines primary content",
+          "enum": ["narrative", "dialogue", "choice", "challenge"]
+        },
+        "setting": {
+          "$ref": "#/definitions/SceneSettingData"
+        },
+        "narrative": {
+          "type": "array",
+          "description": "Narrative paragraphs",
+          "items": {
+            "type": "string"
+          }
+        },
+        "characters": {
+          "type": "array",
+          "description": "Characters appearing in this scene",
+          "items": {
+            "$ref": "#/definitions/CharacterData"
+          }
+        },
+        "dialogues": {
+          "type": "array",
+          "description": "Dialogue blocks",
+          "items": {
+            "$ref": "#/definitions/DialogueData"
+          }
+        },
+        "choices": {
+          "type": "array",
+          "description": "Player choice options",
+          "items": {
+            "$ref": "#/definitions/ChoiceData"
+          }
+        },
+        "technicalNotes": {
+          "type": "array",
+          "description": "Technical explanations",
+          "items": {
+            "$ref": "#/definitions/TechnicalNoteData"
+          }
+        },
+        "challenge": {
+          "$ref": "#/definitions/ChallengeData"
+        },
+        "nextScene": {
+          "type": "string",
+          "description": "ID of the next scene"
+        }
+      }
+    },
+    "SceneSettingData": {
+      "type": "object",
+      "description": "Scene setting description",
+      "required": ["text"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Atmospheric/setting details"
+        }
+      }
+    },
+    "CharacterData": {
+      "type": "object",
+      "description": "Character/NPC data",
+      "required": ["avatar", "name", "title", "bio", "stats"],
+      "properties": {
+        "avatar": {
+          "type": "string",
+          "description": "Avatar emoji string"
+        },
+        "name": {
+          "type": "string",
+          "description": "Character's full name"
+        },
+        "title": {
+          "type": "string",
+          "description": "Character's title/role"
+        },
+        "bio": {
+          "type": "string",
+          "description": "Character's background"
+        },
+        "stats": {
+          "type": "array",
+          "description": "Key stats",
+          "items": {
+            "$ref": "#/definitions/CharacterStat"
+          }
+        }
+      }
+    },
+    "CharacterStat": {
+      "type": "object",
+      "description": "Character stat key-value pair",
+      "required": ["label", "value"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Stat label"
+        },
+        "value": {
+          "type": "string",
+          "description": "Stat value"
+        }
+      }
+    },
+    "DialogueData": {
+      "type": "object",
+      "description": "Dialogue line",
+      "required": ["speaker", "text"],
+      "properties": {
+        "speaker": {
+          "type": "string",
+          "description": "Name of the speaker"
+        },
+        "text": {
+          "type": "string",
+          "description": "Dialogue text"
+        }
+      }
+    },
+    "ChoiceData": {
+      "type": "object",
+      "description": "Player choice option",
+      "required": ["id", "icon", "title", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Emoji or icon"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Longer description"
+        }
+      }
+    },
+    "TechnicalNoteData": {
+      "type": "object",
+      "description": "Technical note content",
+      "required": ["content"],
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "Explanatory text"
+        },
+        "codeSnippet": {
+          "type": "string",
+          "description": "Optional code snippet"
+        }
+      }
+    },
+    "ChallengeData": {
+      "type": "object",
+      "description": "Challenge objectives for Lab Mode",
+      "required": ["title", "objectives"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Challenge title"
+        },
+        "objectives": {
+          "type": "array",
+          "description": "List of objectives",
+          "items": {
+            "$ref": "#/definitions/ChallengeObjective"
+          }
+        }
+      }
+    },
+    "ChallengeObjective": {
+      "type": "object",
+      "description": "Single objective in a challenge",
+      "required": ["id", "text", "completed"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier"
+        },
+        "text": {
+          "type": "string",
+          "description": "Objective description"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether completed"
+        }
+      }
+    }
+  }
+}

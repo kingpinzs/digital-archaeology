@@ -216,6 +216,16 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     instructions: number;
   };
 
+  // Mock RuntimeErrorContext for Story 5.10
+  type RuntimeErrorContext = {
+    errorType: string;
+    pc: number;
+    instruction: string;
+    opcode: number;
+    componentName?: string;
+    signalValues?: Array<{ name: string; value: number }>;
+  };
+
   // Mutable state for test manipulation
   const state: { isReady: boolean; cpuState: CPUState } = {
     isReady: true,
@@ -354,7 +364,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     _triggerHalted: () => {
       if (haltedCallback) haltedCallback();
     },
-    _triggerError: (error: { message: string; address?: number }) => {
+    _triggerError: (error: { message: string; address?: number; context?: RuntimeErrorContext }) => {
       if (errorCallback) errorCallback(error);
     },
     // Story 5.9: Trigger breakpoint hit callback
@@ -3295,6 +3305,170 @@ describe('App', () => {
         const statusBar = app.getStatusBar();
         expect(statusBar?.getState().loadStatus).toBe('Error');
         expect(statusBar?.getState().speed).toBeNull();
+      });
+
+      it('should show RuntimeErrorPanel with error type (Story 5.10)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Simulate error with rich context
+        mockEmulatorBridge._triggerError({
+          message: 'Invalid memory address',
+          address: 0x05,
+          context: {
+            errorType: 'MEMORY_ERROR',
+            pc: 0x05,
+            instruction: 'STO',
+            opcode: 0x6,
+            componentName: 'Memory Controller',
+          },
+        });
+
+        // RuntimeErrorPanel should be visible
+        const errorPanel = container.querySelector('.da-runtime-error-panel');
+        expect(errorPanel).not.toBeNull();
+
+        // Check error type badge
+        const badge = container.querySelector('.da-runtime-error-panel__type-badge');
+        expect(badge?.textContent).toBe('MEMORY_ERROR');
+        expect(badge?.classList.contains('da-runtime-error-panel__type-badge--error')).toBe(true);
+      });
+
+      it('should show instruction context in RuntimeErrorPanel (Story 5.10)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        mockEmulatorBridge._triggerError({
+          message: 'Invalid memory address',
+          address: 0x05,
+          context: {
+            errorType: 'MEMORY_ERROR',
+            pc: 0x05,
+            instruction: 'STO',
+            opcode: 0x6,
+            componentName: 'Memory Controller',
+          },
+        });
+
+        // Check instruction context
+        const contextList = container.querySelector('.da-runtime-error-panel__context-list');
+        expect(contextList).not.toBeNull();
+
+        // PC should be displayed in hex
+        const pcValue = contextList?.querySelector('li:nth-child(1) code');
+        expect(pcValue?.textContent).toBe('0x05');
+
+        // Instruction mnemonic
+        const instrValue = contextList?.querySelector('li:nth-child(2) code');
+        expect(instrValue?.textContent).toBe('STO');
+      });
+
+      it('should clear RuntimeErrorPanel on successful Step (Story 5.10)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Trigger error to show panel
+        mockEmulatorBridge._triggerError({
+          message: 'Error',
+          address: 0x00,
+          context: {
+            errorType: 'UNKNOWN_ERROR',
+            pc: 0x00,
+            instruction: 'NOP',
+            opcode: 0x0,
+          },
+        });
+
+        expect(container.querySelector('.da-runtime-error-panel')).not.toBeNull();
+
+        // Step to clear error
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        await stepBtn.click();
+
+        // Panel should be cleared
+        expect(container.querySelector('.da-runtime-error-panel')).toBeNull();
+      });
+
+      it('should clear RuntimeErrorPanel on Run start (Story 5.10)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // Trigger error to show panel
+        mockEmulatorBridge._triggerError({
+          message: 'Error',
+          address: 0x00,
+          context: {
+            errorType: 'UNKNOWN_ERROR',
+            pc: 0x00,
+            instruction: 'NOP',
+            opcode: 0x0,
+          },
+        });
+
+        expect(container.querySelector('.da-runtime-error-panel')).not.toBeNull();
+
+        // Pause first
+        const pauseBtn = container.querySelector('[data-action="pause"]') as HTMLButtonElement;
+        await pauseBtn.click();
+
+        // Run again to clear error
+        await runBtn.click();
+
+        // Panel should be cleared
+        expect(container.querySelector('.da-runtime-error-panel')).toBeNull();
+      });
+
+      it('should replace previous error with new error (Story 5.10)', async () => {
+        await assembleAndLoad();
+
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        runBtn.click();
+
+        // First error
+        mockEmulatorBridge._triggerError({
+          message: 'First error',
+          address: 0x00,
+          context: {
+            errorType: 'MEMORY_ERROR',
+            pc: 0x00,
+            instruction: 'LDA',
+            opcode: 0x4,
+          },
+        });
+
+        let badge = container.querySelector('.da-runtime-error-panel__type-badge');
+        expect(badge?.textContent).toBe('MEMORY_ERROR');
+
+        // Run again
+        runBtn.click();
+
+        // Second error (different type)
+        mockEmulatorBridge._triggerError({
+          message: 'Second error',
+          address: 0x10,
+          context: {
+            errorType: 'ARITHMETIC_WARNING',
+            pc: 0x10,
+            instruction: 'ADD',
+            opcode: 0x1,
+          },
+        });
+
+        // Badge should show new error type
+        badge = container.querySelector('.da-runtime-error-panel__type-badge');
+        expect(badge?.textContent).toBe('ARITHMETIC_WARNING');
+
+        // Should only have one panel
+        const panels = container.querySelectorAll('.da-runtime-error-panel');
+        expect(panels.length).toBe(1);
       });
     });
 

@@ -765,6 +765,36 @@ describe('EmulatorBridge', () => {
         );
         expect(runCalls.length).toBe(2);
       });
+
+      it('should pass rich error context to callback (Story 5.10)', () => {
+        const callback = vi.fn();
+        bridge.onError(callback);
+
+        const errorPayload = {
+          message: 'Invalid memory address',
+          address: 0x05,
+          context: {
+            errorType: 'MEMORY_ERROR' as const,
+            pc: 0x05,
+            instruction: 'STO',
+            opcode: 0x6,
+            componentName: 'Memory Controller',
+          },
+        };
+        mockWorker.simulateMessage({
+          type: 'ERROR',
+          payload: errorPayload,
+        });
+
+        expect(callback).toHaveBeenCalledWith(errorPayload);
+        expect(callback.mock.calls[0][0].context).toEqual({
+          errorType: 'MEMORY_ERROR',
+          pc: 0x05,
+          instruction: 'STO',
+          opcode: 0x6,
+          componentName: 'Memory Controller',
+        });
+      });
     });
   });
 

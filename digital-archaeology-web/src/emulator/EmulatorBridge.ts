@@ -8,7 +8,12 @@
  * All WASM execution happens in a Web Worker to avoid blocking the main thread.
  */
 
-import type { EmulatorCommand, EmulatorEvent, CPUState } from './types';
+import type {
+  EmulatorCommand,
+  EmulatorEvent,
+  CPUState,
+  RuntimeErrorContext,
+} from './types';
 
 /**
  * Default timeout for emulator operations in milliseconds.
@@ -42,10 +47,15 @@ export type HaltedCallback = () => void;
  * Callback type for ERROR events.
  * Called when a runtime error occurs during execution (e.g., invalid instruction).
  * The isRunning flag is automatically cleared when this fires.
+ * Extended in Story 5.10 to include rich error context.
  *
- * @param error - Error details with message and optional address where error occurred
+ * @param error - Error details with message, optional address, and optional context (Story 5.10)
  */
-export type ErrorCallback = (error: { message: string; address?: number }) => void;
+export type ErrorCallback = (error: {
+  message: string;
+  address?: number;
+  context?: RuntimeErrorContext;
+}) => void;
 
 /**
  * Callback type for BREAKPOINT_HIT events (Story 5.8).

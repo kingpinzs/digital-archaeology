@@ -28,6 +28,10 @@ import type {
   BreakpointHitEvent,
   EmulatorReadyEvent,
   EmulatorEvent,
+  // Story 5.10: Rich runtime error types
+  RuntimeErrorType,
+  RuntimeErrorContext,
+  SignalValue,
 } from './types';
 import {
   validateAssemblerModule,
@@ -913,6 +917,132 @@ describe('CPU Emulator Types', () => {
         };
 
         expect(event.payload.address).toBe(0x10);
+      });
+
+      it('should support optional context field with rich error details (Story 5.10)', () => {
+        const event: EmulatorErrorEvent = {
+          type: 'ERROR',
+          payload: {
+            message: 'Invalid memory access at 0xFF',
+            address: 0x05,
+            context: {
+              errorType: 'MEMORY_ERROR',
+              pc: 0x05,
+              instruction: 'STO',
+              opcode: 0x6,
+              componentName: 'Memory Controller',
+              signalValues: [
+                { name: 'MEM_ADDR', value: 0xff },
+                { name: 'MEM_WR', value: 1 },
+              ],
+            },
+          },
+        };
+
+        expect(event.payload.context).toBeDefined();
+        expect(event.payload.context?.errorType).toBe('MEMORY_ERROR');
+        expect(event.payload.context?.pc).toBe(0x05);
+        expect(event.payload.context?.instruction).toBe('STO');
+        expect(event.payload.context?.opcode).toBe(0x6);
+        expect(event.payload.context?.componentName).toBe('Memory Controller');
+        expect(event.payload.context?.signalValues).toHaveLength(2);
+      });
+    });
+
+    describe('RuntimeErrorType (Story 5.10)', () => {
+      it('should include MEMORY_ERROR type', () => {
+        const errorType: RuntimeErrorType = 'MEMORY_ERROR';
+        expect(errorType).toBe('MEMORY_ERROR');
+      });
+
+      it('should include ARITHMETIC_WARNING type', () => {
+        const errorType: RuntimeErrorType = 'ARITHMETIC_WARNING';
+        expect(errorType).toBe('ARITHMETIC_WARNING');
+      });
+
+      it('should include INVALID_OPCODE type', () => {
+        const errorType: RuntimeErrorType = 'INVALID_OPCODE';
+        expect(errorType).toBe('INVALID_OPCODE');
+      });
+
+      it('should include STACK_OVERFLOW type', () => {
+        const errorType: RuntimeErrorType = 'STACK_OVERFLOW';
+        expect(errorType).toBe('STACK_OVERFLOW');
+      });
+
+      it('should include UNKNOWN_ERROR type', () => {
+        const errorType: RuntimeErrorType = 'UNKNOWN_ERROR';
+        expect(errorType).toBe('UNKNOWN_ERROR');
+      });
+    });
+
+    describe('RuntimeErrorContext (Story 5.10)', () => {
+      it('should have required fields: errorType, pc, instruction, opcode', () => {
+        const context: RuntimeErrorContext = {
+          errorType: 'INVALID_OPCODE',
+          pc: 0x10,
+          instruction: 'UNK',
+          opcode: 0xf,
+        };
+
+        expect(context.errorType).toBe('INVALID_OPCODE');
+        expect(context.pc).toBe(0x10);
+        expect(context.instruction).toBe('UNK');
+        expect(context.opcode).toBe(0xf);
+      });
+
+      it('should support optional componentName field', () => {
+        const context: RuntimeErrorContext = {
+          errorType: 'MEMORY_ERROR',
+          pc: 0x05,
+          instruction: 'LDA',
+          opcode: 0x4,
+          componentName: 'ALU',
+        };
+
+        expect(context.componentName).toBe('ALU');
+      });
+
+      it('should support optional signalValues array', () => {
+        const context: RuntimeErrorContext = {
+          errorType: 'ARITHMETIC_WARNING',
+          pc: 0x08,
+          instruction: 'ADD',
+          opcode: 0x1,
+          signalValues: [
+            { name: 'ALU_A', value: 15 },
+            { name: 'ALU_B', value: 3 },
+            { name: 'ALU_COUT', value: 1 },
+          ],
+        };
+
+        expect(context.signalValues).toBeDefined();
+        expect(context.signalValues).toHaveLength(3);
+        expect(context.signalValues?.[0].name).toBe('ALU_A');
+        expect(context.signalValues?.[0].value).toBe(15);
+        expect(context.signalValues?.[2].name).toBe('ALU_COUT');
+      });
+    });
+
+    describe('SignalValue (Story 5.10)', () => {
+      it('should have name and value properties', () => {
+        const signal: SignalValue = {
+          name: 'MEM_DATA',
+          value: 0xa5,
+        };
+
+        expect(signal.name).toBe('MEM_DATA');
+        expect(signal.value).toBe(0xa5);
+      });
+
+      it('should support binary signal values (0 or 1)', () => {
+        const signals: SignalValue[] = [
+          { name: 'CLK', value: 1 },
+          { name: 'RST', value: 0 },
+        ];
+
+        expect(signals[0].value).toBe(1);
+        expect(signals[1].value).toBe(0);
       });
     });
 

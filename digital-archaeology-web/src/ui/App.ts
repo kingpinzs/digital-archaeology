@@ -18,8 +18,8 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
-import { RegisterView, FlagsView, MemoryView, BreakpointsView } from '@debugger/index';
-import type { BreakpointEntry } from '@debugger/index';
+import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
+import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -165,6 +165,9 @@ export class App {
   // BreakpointsView for displaying active breakpoints (Story 5.8)
   private breakpointsView: BreakpointsView | null = null;
 
+  // RuntimeErrorPanel for displaying rich runtime errors (Story 5.10)
+  private runtimeErrorPanel: RuntimeErrorPanel | null = null;
+
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
 
@@ -199,6 +202,7 @@ export class App {
     this.destroyFlagsView();
     this.destroyMemoryView();
     this.destroyBreakpointsView();
+    this.destroyRuntimeErrorPanel();
 
     this.container = container;
     this.isMounted = true;
@@ -224,6 +228,7 @@ export class App {
     this.initializeFlagsView();
     this.initializeMemoryView();
     this.initializeBreakpointsView();
+    this.initializeRuntimeErrorPanel();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -929,6 +934,117 @@ export class App {
   }
 
   /**
+   * Initialize the RuntimeErrorPanel in the State panel (Story 5.10).
+   * Mounts after BreakpointsView in the panel content.
+   * @returns void
+   */
+  private initializeRuntimeErrorPanel(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.runtimeErrorPanel = new RuntimeErrorPanel({
+      onViewInCircuit: () => this.handleViewInCircuit(),
+      onViewInCode: () => this.handleViewInCode(),
+      onReset: () => this.handleRuntimeErrorReset(),
+    });
+    this.runtimeErrorPanel.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the RuntimeErrorPanel component (Story 5.10).
+   * @returns void
+   */
+  private destroyRuntimeErrorPanel(): void {
+    if (this.runtimeErrorPanel) {
+      this.runtimeErrorPanel.destroy();
+      this.runtimeErrorPanel = null;
+    }
+  }
+
+  /**
+   * Get the RuntimeErrorPanel instance (Story 5.10).
+   * Primarily used for testing and external state inspection.
+   * @returns The RuntimeErrorPanel instance or null if not mounted
+   */
+  getRuntimeErrorPanel(): RuntimeErrorPanel | null {
+    return this.runtimeErrorPanel;
+  }
+
+  /**
+   * Handle "View in Circuit" button click from RuntimeErrorPanel (Story 5.10).
+   * Placeholder - circuit visualization is implemented in Epic 6.
+   * Code Review Fix #8: Removed console.log noise.
+   * @returns void
+   */
+  private handleViewInCircuit(): void {
+    // Placeholder - circuit panel not yet implemented (Epic 6)
+    // Button is disabled in RuntimeErrorPanel, so this is a no-op for now
+  }
+
+  /**
+   * Handle "View in Code" button click from RuntimeErrorPanel (Story 5.10).
+   * Highlights the error line in the editor.
+   * Code Review Fix #2/#3: Access error context via getter instead of DOM parsing.
+   * @returns void
+   */
+  private handleViewInCode(): void {
+    // Get the current error PC from component state (not DOM)
+    const errorContext = this.runtimeErrorPanel?.currentError;
+    if (!errorContext) return;
+
+    const pc = errorContext.pc;
+
+    // Find the source line for this PC address
+    if (!this.sourceMap) {
+      // Code Review Fix #7: Provide feedback when source map unavailable
+      this.statusBar?.updateState({
+        loadStatus: 'Cannot navigate: no source map available',
+      });
+      return;
+    }
+
+    const line = this.sourceMap.addressToLine.get(pc);
+    if (line !== undefined && this.editor) {
+      // Scroll to and highlight the error line
+      this.editor.highlightLine(line);
+    }
+  }
+
+  /**
+   * Handle "Reset" button click from RuntimeErrorPanel (Story 5.10).
+   * Resets the emulator and clears the error panel.
+   * @returns void
+   */
+  private handleRuntimeErrorReset(): void {
+    // Reset emulator
+    this.emulatorBridge?.reset().catch((err) => {
+      console.error('Failed to reset emulator:', err);
+    });
+
+    // Clear the runtime error panel
+    this.runtimeErrorPanel?.clearError();
+
+    // Clear error panel (assembler errors)
+    this.errorPanel?.clearErrors();
+
+    // Update toolbar
+    this.toolbar?.updateState({
+      isRunning: false,
+      canRun: this.hasValidAssembly,
+      canPause: false,
+      canStep: this.hasValidAssembly,
+    });
+
+    // Update status bar
+    this.statusBar?.updateState({
+      speed: null,
+      loadStatus: this.hasValidAssembly ? 'Ready' : 'Not assembled',
+    });
+  }
+
+  /**
    * Handle breakpoint toggle from editor gutter click (Story 5.8).
    * Toggles breakpoint at the given line number.
    * @param lineNumber - The 1-based line number clicked
@@ -1196,6 +1312,9 @@ export class App {
       speed: this.executionSpeed,
       breakpointHitAddress: null,
     });
+
+    // Story 5.10: Clear any previous runtime error when starting new run
+    this.runtimeErrorPanel?.clearError();
   }
 
   /**
@@ -1409,6 +1528,9 @@ export class App {
 
       // Story 5.2: Enable Step Back button if history exists
       this.toolbar?.updateState({ canStepBack: this.stateHistory.length > 0 });
+
+      // Story 5.10: Clear any previous runtime error on successful step
+      this.runtimeErrorPanel?.clearError();
 
     } catch (error) {
       console.error('Failed to step:', error);
@@ -1747,11 +1869,15 @@ export class App {
   }
 
   /**
-   * Handle execution error event (Story 4.5).
-   * @param error - Error details from the emulator
+   * Handle execution error event (Story 4.5, enhanced in Story 5.10).
+   * @param error - Error details from the emulator, including optional rich context (Story 5.10)
    * @returns void
    */
-  private handleExecutionError(error: { message: string; address?: number }): void {
+  private handleExecutionError(error: {
+    message: string;
+    address?: number;
+    context?: RuntimeErrorContext;
+  }): void {
     this.isRunning = false;
     this.cleanupEmulatorSubscriptions();
 
@@ -1763,13 +1889,18 @@ export class App {
       canStep: true,
     });
 
-    // Display error in error panel
+    // Display error in error panel (keep for backward compatibility)
     // Use line 1 as fallback when address is unknown (line 0 is invalid for editor navigation)
     this.errorPanel?.setErrors([{
       line: error.address !== undefined ? error.address : 1,
       message: `Runtime error: ${error.message}`,
       type: 'RUNTIME_ERROR',
     }]);
+
+    // Display rich error in RuntimeErrorPanel (Story 5.10)
+    if (error.context) {
+      this.runtimeErrorPanel?.setError(error.context, error.message);
+    }
 
     // Update status bar
     this.statusBar?.updateState({
@@ -2442,6 +2573,9 @@ export class App {
 
     // Destroy BreakpointsView (Story 5.8)
     this.destroyBreakpointsView();
+
+    // Destroy RuntimeErrorPanel (Story 5.10)
+    this.destroyRuntimeErrorPanel();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

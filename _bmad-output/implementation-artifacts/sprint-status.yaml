@@ -88,7 +88,7 @@ development_status:
   epic-4-retrospective: done
 
   # Epic 5: Debugging & State Inspection
-  epic-5: in-progress
+  epic-5: done
   5-1-implement-step-execution: done
   5-2-implement-step-back: done
   5-3-create-register-view-panel: done
@@ -98,7 +98,7 @@ development_status:
   5-7-highlight-current-instruction-in-editor: done
   5-8-implement-breakpoint-toggle: done
   5-9-implement-run-to-breakpoint: done
-  5-10-display-rich-runtime-errors: backlog
+  5-10-display-rich-runtime-errors: done
   epic-5-retrospective: optional
 
   # Epic 6: Circuit Visualization

@@ -41,6 +41,10 @@ export type {
   EmulatorReadyEvent,
   EmulatorEvent,
   EmulatorValidationError,
+  // Story 5.10: Rich runtime error types
+  RuntimeErrorType,
+  RuntimeErrorContext,
+  SignalValue,
 } from './types';
 
 // Runtime exports (validation helpers)

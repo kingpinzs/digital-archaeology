@@ -12,3 +12,10 @@ export type { MemoryViewState, MemoryViewOptions } from './MemoryView';
 
 export { BreakpointsView } from './BreakpointsView';
 export type { BreakpointsViewState, BreakpointsViewOptions, BreakpointEntry } from './BreakpointsView';
+
+// Story 5.10: Rich runtime error display
+export { RuntimeErrorPanel } from './RuntimeErrorPanel';
+export type { RuntimeErrorPanelState, RuntimeErrorPanelOptions } from './RuntimeErrorPanel';
+
+// Re-export RuntimeErrorContext from emulator module for convenience
+export type { RuntimeErrorContext } from '@emulator/index';

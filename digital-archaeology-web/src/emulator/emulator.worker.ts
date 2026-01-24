@@ -17,6 +17,8 @@ import type {
   BreakpointHitEvent,
   EmulatorReadyEvent,
   BreakpointsListEvent,
+  RuntimeErrorType,
+  RuntimeErrorContext,
 } from './types';
 import { validateEmulatorModule } from './types';
 
@@ -42,6 +44,113 @@ let runIntervalId: number | null = null;
  * Breakpoints set by the user (addresses to stop at).
  */
 const breakpoints: Set<number> = new Set();
+
+/**
+ * Micro4 instruction mnemonics by opcode (Story 5.10).
+ * Used for rich error context display.
+ */
+const INSTRUCTION_MNEMONICS: Record<number, string> = {
+  0x0: 'NOP',
+  0x1: 'ADD',
+  0x2: 'SUB',
+  0x3: 'AND',
+  0x4: 'LDA',
+  0x5: 'LDI',
+  0x6: 'STO',
+  0x7: 'JMP',
+  0x8: 'JZ',
+  0x9: 'JC',
+  0xa: 'OUT',
+  0xb: 'IN',
+  0xc: 'RES', // Reserved - Code Review Fix #4
+  0xd: 'RES', // Reserved - Code Review Fix #4
+  0xe: 'RES', // Reserved - Code Review Fix #4
+  0xf: 'HLT',
+};
+
+/**
+ * Map opcode to circuit component name (Story 5.10).
+ * Used for linking errors to circuit visualization (Epic 6).
+ */
+function getComponentForOpcode(opcode: number): string {
+  // ALU operations: ADD, SUB, AND
+  if (opcode >= 0x1 && opcode <= 0x3) {
+    return 'ALU';
+  }
+  // Memory operations: LDA, LDI, STO
+  if (opcode >= 0x4 && opcode <= 0x6) {
+    return 'Memory Controller';
+  }
+  // Control flow: JMP, JZ, JC
+  if (opcode >= 0x7 && opcode <= 0x9) {
+    return 'Control Unit';
+  }
+  // I/O operations: OUT, IN
+  if (opcode >= 0xa && opcode <= 0xb) {
+    return 'I/O Controller';
+  }
+  // Default for NOP, HLT, reserved
+  return 'Control Unit';
+}
+
+/**
+ * Classify error message into RuntimeErrorType (Story 5.10).
+ * Parses error message content to determine error category.
+ * Note: Order matters - check more specific patterns first.
+ */
+export function classifyError(message: string): RuntimeErrorType {
+  const lowerMessage = message.toLowerCase();
+
+  // Check stack first since "stack overflow" contains "overflow"
+  if (lowerMessage.includes('stack')) {
+    return 'STACK_OVERFLOW';
+  }
+  if (lowerMessage.includes('memory') || lowerMessage.includes('address')) {
+    return 'MEMORY_ERROR';
+  }
+  if (
+    lowerMessage.includes('overflow') ||
+    lowerMessage.includes('divide') ||
+    lowerMessage.includes('division') ||
+    lowerMessage.includes('arithmetic')
+  ) {
+    return 'ARITHMETIC_WARNING';
+  }
+  if (
+    lowerMessage.includes('opcode') ||
+    lowerMessage.includes('instruction') ||
+    lowerMessage.includes('unknown')
+  ) {
+    return 'INVALID_OPCODE';
+  }
+  return 'UNKNOWN_ERROR';
+}
+
+/**
+ * Build rich error context from current CPU state (Story 5.10).
+ * Extracts PC, instruction, opcode, and component name for error display.
+ */
+export function buildErrorContext(
+  module: EmulatorModule,
+  message: string
+): RuntimeErrorContext {
+  const pc = module._get_pc();
+  const ir = module._get_ir();
+  // Micro4 opcodes are the high nibble of the IR (upper 4 bits)
+  const opcode = (ir >> 4) & 0xf;
+  const instruction = INSTRUCTION_MNEMONICS[opcode] ?? 'UNK';
+  const componentName = getComponentForOpcode(opcode);
+
+  return {
+    errorType: classifyError(message),
+    pc,
+    instruction,
+    opcode,
+    componentName,
+    // Signal values will be populated when Epic 6 (Circuit Visualization) is implemented
+    signalValues: undefined,
+  };
+}
 
 /**
  * Type guard for EmulatorCommand messages.
@@ -241,11 +350,13 @@ export function handleStep(module: EmulatorModule): void {
 
   // Check for error
   if (module._has_error() === 1) {
+    const errorMessage = module.UTF8ToString(module._get_error_message());
     self.postMessage({
       type: 'ERROR',
       payload: {
-        message: module.UTF8ToString(module._get_error_message()),
+        message: errorMessage,
         address: module._get_pc(),
+        context: buildErrorContext(module, errorMessage),
       },
     } satisfies EmulatorErrorEvent);
     return;
@@ -294,11 +405,13 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
       // Check for error
       if (module._has_error() === 1) {
         handleStop();
+        const errorMessage = module.UTF8ToString(module._get_error_message());
         self.postMessage({
           type: 'ERROR',
           payload: {
-            message: module.UTF8ToString(module._get_error_message()),
+            message: errorMessage,
             address: module._get_pc(),
+            context: buildErrorContext(module, errorMessage),
           },
         } satisfies EmulatorErrorEvent);
         return;

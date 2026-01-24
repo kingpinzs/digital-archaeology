@@ -16,6 +16,8 @@ import {
   handleReset,
   handleGetState,
   handleSetSpeed,
+  classifyError,
+  buildErrorContext,
 } from './emulator.worker';
 import type { EmulatorModule, EmulatorCommand, CPUState } from './types';
 
@@ -996,12 +998,163 @@ describe('Emulator Worker', () => {
       expect(mockPostMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'ERROR',
-          payload: {
+          payload: expect.objectContaining({
             message: 'Runtime error',
             address: 10,
-          },
+            context: expect.objectContaining({
+              errorType: 'UNKNOWN_ERROR',
+              pc: 10,
+            }),
+          }),
         })
       );
+    });
+
+    it('should include rich error context with instruction details (Story 5.10)', () => {
+      let hasErrorCallCount = 0;
+      const module = createMockModule({
+        _is_halted: vi.fn(() => 0),
+        _has_error: vi.fn(() => {
+          hasErrorCallCount++;
+          // No error initially, error after step
+          return hasErrorCallCount > 1 ? 1 : 0;
+        }),
+        _get_error_message: vi.fn(() => 100),
+        UTF8ToString: vi.fn(() => 'Invalid memory address'),
+        _get_pc: vi.fn(() => 0x05),
+        _get_ir: vi.fn(() => 0x6a), // STO instruction (opcode 0x6)
+      });
+
+      handleStep(module);
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'ERROR',
+          payload: expect.objectContaining({
+            message: 'Invalid memory address',
+            address: 0x05,
+            context: expect.objectContaining({
+              errorType: 'MEMORY_ERROR',
+              pc: 0x05,
+              instruction: 'STO',
+              opcode: 0x6,
+              componentName: 'Memory Controller',
+            }),
+          }),
+        })
+      );
+    });
+  });
+
+  describe('classifyError (Story 5.10)', () => {
+    it('should classify memory-related errors as MEMORY_ERROR', () => {
+      expect(classifyError('Invalid memory access')).toBe('MEMORY_ERROR');
+      expect(classifyError('Bad address 0xFF')).toBe('MEMORY_ERROR');
+      expect(classifyError('Memory out of bounds')).toBe('MEMORY_ERROR');
+    });
+
+    it('should classify arithmetic errors as ARITHMETIC_WARNING', () => {
+      expect(classifyError('Arithmetic overflow')).toBe('ARITHMETIC_WARNING');
+      expect(classifyError('Division by zero')).toBe('ARITHMETIC_WARNING');
+      expect(classifyError('Overflow detected')).toBe('ARITHMETIC_WARNING');
+    });
+
+    it('should classify instruction errors as INVALID_OPCODE', () => {
+      expect(classifyError('Unknown opcode 0xF')).toBe('INVALID_OPCODE');
+      expect(classifyError('Invalid instruction')).toBe('INVALID_OPCODE');
+      expect(classifyError('Unrecognized opcode')).toBe('INVALID_OPCODE');
+    });
+
+    // Code Review Fix #6: Test for standalone "unknown" keyword
+    it('should classify errors containing "unknown" as INVALID_OPCODE', () => {
+      expect(classifyError('Unknown error type')).toBe('INVALID_OPCODE');
+      expect(classifyError('unknown')).toBe('INVALID_OPCODE');
+    });
+
+    it('should classify stack errors as STACK_OVERFLOW', () => {
+      expect(classifyError('Stack overflow')).toBe('STACK_OVERFLOW');
+      expect(classifyError('Stack underflow')).toBe('STACK_OVERFLOW');
+    });
+
+    it('should return UNKNOWN_ERROR for unclassified messages', () => {
+      expect(classifyError('Something went wrong')).toBe('UNKNOWN_ERROR');
+      expect(classifyError('')).toBe('UNKNOWN_ERROR');
+      expect(classifyError('Runtime error')).toBe('UNKNOWN_ERROR');
+    });
+
+    it('should be case-insensitive', () => {
+      expect(classifyError('MEMORY ERROR')).toBe('MEMORY_ERROR');
+      expect(classifyError('Stack OVERFLOW')).toBe('STACK_OVERFLOW');
+    });
+  });
+
+  describe('buildErrorContext (Story 5.10)', () => {
+    it('should build context with all required fields', () => {
+      const module = createMockModule({
+        _get_pc: vi.fn(() => 0x10),
+        _get_ir: vi.fn(() => 0x4a), // LDA instruction (opcode 0x4)
+      });
+
+      const context = buildErrorContext(module, 'Memory error');
+
+      expect(context.errorType).toBe('MEMORY_ERROR');
+      expect(context.pc).toBe(0x10);
+      expect(context.instruction).toBe('LDA');
+      expect(context.opcode).toBe(0x4);
+      expect(context.componentName).toBe('Memory Controller');
+    });
+
+    it('should map ALU opcodes to ALU component', () => {
+      const module = createMockModule({
+        _get_pc: vi.fn(() => 0x00),
+        _get_ir: vi.fn(() => 0x1a), // ADD instruction (opcode 0x1)
+      });
+
+      const context = buildErrorContext(module, 'Overflow');
+
+      expect(context.instruction).toBe('ADD');
+      expect(context.opcode).toBe(0x1);
+      expect(context.componentName).toBe('ALU');
+    });
+
+    it('should map control flow opcodes to Control Unit', () => {
+      const module = createMockModule({
+        _get_pc: vi.fn(() => 0x08),
+        _get_ir: vi.fn(() => 0x70), // JMP instruction (opcode 0x7)
+      });
+
+      const context = buildErrorContext(module, 'Bad jump');
+
+      expect(context.instruction).toBe('JMP');
+      expect(context.opcode).toBe(0x7);
+      expect(context.componentName).toBe('Control Unit');
+    });
+
+    it('should map I/O opcodes to I/O Controller', () => {
+      const module = createMockModule({
+        _get_pc: vi.fn(() => 0x0c),
+        _get_ir: vi.fn(() => 0xa0), // OUT instruction (opcode 0xa)
+      });
+
+      const context = buildErrorContext(module, 'I/O error');
+
+      expect(context.instruction).toBe('OUT');
+      expect(context.opcode).toBe(0xa);
+      expect(context.componentName).toBe('I/O Controller');
+    });
+
+    it('should handle reserved opcodes gracefully', () => {
+      const module = createMockModule({
+        _get_pc: vi.fn(() => 0x00),
+        _get_ir: vi.fn(() => 0xc0), // Reserved opcode 0xc
+      });
+
+      const context = buildErrorContext(module, 'Unknown error');
+
+      // Code Review Fix #4: Reserved opcodes now show 'RES' instead of 'NOP'
+      expect(context.instruction).toBe('RES');
+      expect(context.opcode).toBe(0xc);
+      expect(context.componentName).toBe('Control Unit');
     });
   });
 });

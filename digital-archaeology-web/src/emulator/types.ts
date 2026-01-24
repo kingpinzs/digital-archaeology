@@ -724,6 +724,47 @@ export interface HaltedEvent {
 }
 
 /**
+ * Runtime error type classification (Story 5.10).
+ * Used to categorize errors for visual display and circuit component linking.
+ */
+export type RuntimeErrorType =
+  | 'MEMORY_ERROR'
+  | 'ARITHMETIC_WARNING'
+  | 'INVALID_OPCODE'
+  | 'STACK_OVERFLOW'
+  | 'UNKNOWN_ERROR';
+
+/**
+ * Signal value for circuit visualization (Story 5.10).
+ * Represents a signal name and its current value.
+ */
+export interface SignalValue {
+  /** Signal name (e.g., "ALU_OUT", "MEM_ADDR") */
+  name: string;
+  /** Signal value (typically 0 or 1, or a numeric value) */
+  value: number;
+}
+
+/**
+ * Rich context for runtime errors (Story 5.10).
+ * Provides detailed information for debugging and circuit visualization.
+ */
+export interface RuntimeErrorContext {
+  /** Classified error type for visual display */
+  errorType: RuntimeErrorType;
+  /** Program counter at error */
+  pc: number;
+  /** Instruction mnemonic (e.g., "LDA", "STO", "ADD") */
+  instruction: string;
+  /** Raw opcode value */
+  opcode: number;
+  /** Circuit component name (e.g., "ALU", "Memory Controller") */
+  componentName?: string;
+  /** Relevant signal values at time of error */
+  signalValues?: SignalValue[];
+}
+
+/**
  * Event indicating a runtime error occurred.
  */
 export interface EmulatorErrorEvent {
@@ -733,6 +774,8 @@ export interface EmulatorErrorEvent {
     message: string;
     /** Address where error occurred */
     address?: number;
+    /** Rich error context for debugging (Story 5.10) */
+    context?: RuntimeErrorContext;
   };
 }
 

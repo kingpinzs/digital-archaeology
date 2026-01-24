@@ -1,10 +1,11 @@
 // src/story/StoryContent.ts
 // Main scrollable content area for Story Mode
 // Story 10.2: Create Story Mode Layout
+// Story 10.17: Wire Story Mode Integration - Add dynamic scene rendering
 
 /**
  * StoryContent is the main scrollable content area for Story Mode.
- * Contains chapter headers, narrative text, character cards, dialogue, choices, etc.
+ * Contains dynamically rendered story content via SceneRenderer.
  *
  * Layout specification (from UX design):
  * - padding-top: 72px (48px nav + 24px gap)
@@ -15,6 +16,7 @@
 export class StoryContent {
   private element: HTMLElement | null = null;
   private container: HTMLElement | null = null;
+  private sceneMount: HTMLElement | null = null;
 
   /**
    * Mount the content area to a DOM element.
@@ -27,6 +29,14 @@ export class StoryContent {
   }
 
   /**
+   * Get the scene mount point for SceneRenderer.
+   * @returns The mount element for scene rendering
+   */
+  getSceneMount(): HTMLElement | null {
+    return this.sceneMount;
+  }
+
+  /**
    * Render the story content area structure.
    * @returns The rendered main element
    */
@@ -35,77 +45,19 @@ export class StoryContent {
     content.className = 'da-story-content';
     // Note: <main> has implicit role="main" - no need to set explicitly
     content.setAttribute('aria-label', 'Story content');
+    content.setAttribute('aria-live', 'polite');
 
     // Inner wrapper for max-width and centering
     const wrapper = document.createElement('div');
     wrapper.className = 'da-story-content-wrapper';
 
-    // Placeholder content showing future component areas
-    const placeholder = document.createElement('div');
-    placeholder.className = 'da-story-content-placeholder';
+    // Scene mount point for dynamic content
+    const sceneMount = document.createElement('div');
+    sceneMount.className = 'da-story-scene-mount';
+    sceneMount.setAttribute('data-story-component', 'scene');
+    this.sceneMount = sceneMount;
 
-    // Chapter header placeholder
-    const chapterHeader = document.createElement('div');
-    chapterHeader.className = 'da-story-chapter-header-placeholder';
-
-    const chapterEra = document.createElement('span');
-    chapterEra.className = 'da-story-chapter-era';
-    chapterEra.textContent = 'The Dawn of Silicon • 1971';
-
-    const chapterTitle = document.createElement('h1');
-    chapterTitle.className = 'da-story-chapter-title';
-    chapterTitle.textContent = 'Chapter 1: First Day';
-
-    const chapterSubtitle = document.createElement('p');
-    chapterSubtitle.className = 'da-story-chapter-subtitle';
-    chapterSubtitle.textContent = 'Your journey begins at Fairchild Semiconductor';
-
-    chapterHeader.appendChild(chapterEra);
-    chapterHeader.appendChild(chapterTitle);
-    chapterHeader.appendChild(chapterSubtitle);
-
-    // Scene setting placeholder
-    const sceneSetting = document.createElement('div');
-    sceneSetting.className = 'da-story-scene-setting';
-
-    const sceneText = document.createElement('p');
-    sceneText.className = 'da-story-scene-text';
-    sceneText.textContent = 'The fluorescent lights hum overhead as you step onto the production floor. ' +
-      'Rows of equipment stretch into the distance, each station a battlefield ' +
-      'in the war against entropy and impurity. This is where the future is made.';
-
-    sceneSetting.appendChild(sceneText);
-
-    // Narrative placeholder
-    const narrative = document.createElement('div');
-    narrative.className = 'da-story-narrative';
-
-    const narrativeText = document.createElement('p');
-    narrativeText.className = 'da-story-narrative-text';
-    narrativeText.textContent = 'Story content will appear here. Character cards, dialogue blocks, ' +
-      'choice options, and technical notes will be rendered by future Story Mode components.';
-
-    narrative.appendChild(narrativeText);
-
-    // Enter the Lab placeholder
-    const labButton = document.createElement('div');
-    labButton.className = 'da-story-lab-button-area';
-
-    const enterLabBtn = document.createElement('button');
-    enterLabBtn.type = 'button';
-    enterLabBtn.className = 'da-story-enter-lab-btn';
-    enterLabBtn.textContent = 'Enter the Lab';
-    enterLabBtn.setAttribute('aria-label', 'Switch to Lab Mode');
-
-    labButton.appendChild(enterLabBtn);
-
-    // Assemble the placeholder
-    placeholder.appendChild(chapterHeader);
-    placeholder.appendChild(sceneSetting);
-    placeholder.appendChild(narrative);
-    placeholder.appendChild(labButton);
-
-    wrapper.appendChild(placeholder);
+    wrapper.appendChild(sceneMount);
     content.appendChild(wrapper);
 
     return content;
@@ -151,5 +103,6 @@ export class StoryContent {
       this.element = null;
     }
     this.container = null;
+    this.sceneMount = null;
   }
 }

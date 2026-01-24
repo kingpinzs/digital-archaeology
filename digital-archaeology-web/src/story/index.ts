@@ -35,3 +35,9 @@ export { EraBadge } from './EraBadge';
 export { ProgressDots } from './ProgressDots';
 export type { ActProgress, ProgressDisplayData } from './ProgressDisplay';
 export { createProgressDisplayData } from './ProgressDisplay';
+
+// Story 10.17: Story Mode integration
+export { StoryController } from './StoryController';
+export type { StoryControllerCallbacks } from './StoryController';
+export { SceneRenderer } from './SceneRenderer';
+export type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';

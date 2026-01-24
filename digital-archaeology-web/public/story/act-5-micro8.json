@@ -1,0 +1,580 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-5",
+      "number": 5,
+      "title": "The 8-bit Era",
+      "description": "Four bits weren't enough. The 4004 could calculate, but it couldn't run real programs, couldn't address real memory, couldn't become a real computer. The 8-bit processors—8080, Z80, 6502—changed everything. Suddenly, a complete computer could cost less than a used car. The personal computer revolution was about to begin.",
+      "era": "1974 - 1978",
+      "cpuStage": "micro8",
+      "chapters": [
+        {
+          "id": "chapter-5-1",
+          "number": 1,
+          "title": "More Bits, More Power",
+          "subtitle": "Intel Corporation, Santa Clara",
+          "year": "1974",
+          "scenes": [
+            {
+              "id": "scene-5-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, 1974. The 4004 has been a modest success, but its limitations are painfully clear. Four bits at a time. Tiny address space. Primitive instruction set. The calculator market is saturated. Something bigger is needed."
+              },
+              "narrative": [
+                "The 4004 proved that a CPU could fit on a single chip. But four bits isn't enough for real computing. You can address 4KB of memory. You can handle numbers up to 15. Every operation requires multiple instructions.",
+                "What if you doubled the data width? Eight bits gives you 256 values per byte. 64KB of addressable memory. Enough to run real programs, store real text, become a real computer.",
+                "Intel is designing the 8008—eight bits, but still limited. And then the 8080: eight bits done right."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍💻",
+                  "name": "Federico Faggin",
+                  "title": "Lead Designer, Intel",
+                  "bio": "The chip designer who made the 4004 work now tackles the 8080. Faggin knows that success means more than just more bits—it means a complete, usable architecture that programmers can love.",
+                  "stats": [
+                    { "label": "Goal", "value": "Real computer on a chip" },
+                    { "label": "Challenge", "value": "Make 8 bits feel limitless" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "The 4004 was a calculator chip that happened to be programmable. The 8080 must be a computer chip—capable of anything a minicomputer can do, at a fraction of the cost."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The jump from 4 to 8 bits was transformative: 2^4 = 16 values becomes 2^8 = 256 values. ASCII text becomes natural (one byte per character). The address bus expands to 16 bits, addressing 64KB—enough for substantial programs. Most importantly, 8 bits matches the byte, establishing the fundamental unit of computing.",
+                  "codeSnippet": "// 4-bit vs 8-bit comparison\n// \n// 4-bit (4004):\n//   Data range: 0-15\n//   Address space: 4KB (12-bit)\n//   Registers: 16 × 4-bit\n// \n// 8-bit (8080):\n//   Data range: 0-255\n//   Address space: 64KB (16-bit)\n//   Registers: 7 × 8-bit + 16-bit pairs\n// \n// One byte = one ASCII character\n// Foundation of modern computing"
+                }
+              ],
+              "nextScene": "scene-5-1-2"
+            },
+            {
+              "id": "scene-5-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The 8080 design meeting. Engineers debate register counts, instruction formats, addressing modes. Every transistor matters—the chip must fit on affordable silicon."
+              },
+              "narrative": [
+                "The 8080 will have seven 8-bit registers: A (accumulator), B, C, D, E, H, and L. But clever design lets you pair them: BC, DE, and HL become 16-bit register pairs for addressing.",
+                "The instruction set expands dramatically: 78 different instructions, handling arithmetic, logic, data movement, branching, and I/O. A real computer's worth of operations.",
+                "And critically: a hardware stack. The stack pointer tracks a region of memory for subroutine calls and returns. Programs can be modular, calling functions and returning cleanly."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8080's register architecture was influential: seven general registers that could be paired for 16-bit operations. The stack pointer enabled structured programming with CALL/RET. These patterns persisted through Z80, 8086, and even influenced the x86 architecture we use today.",
+                  "codeSnippet": "// 8080 register architecture\n// \n// 8-bit registers: A, B, C, D, E, H, L\n// 16-bit pairs:    BC, DE, HL\n// Special:         SP (stack pointer)\n//                  PC (program counter)\n// \n// The stack enables:\n// CALL addr   ; Push PC, jump to addr\n// RET         ; Pop PC, return\n// PUSH BC     ; Save register pair\n// POP BC      ; Restore register pair"
+                }
+              ],
+              "nextScene": "scene-5-1-3"
+            },
+            {
+              "id": "scene-5-1-3",
+              "type": "choice",
+              "setting": {
+                "text": "The 8080 is announced. But Intel isn't alone. At Zilog, former Intel engineers are designing the Z80. At MOS Technology, Chuck Peddle is creating the 6502. The 8-bit wars are beginning."
+              },
+              "narrative": [
+                "Three philosophies emerge. Intel's 8080: powerful but complex, $360 per chip. Zilog's Z80: 8080-compatible but enhanced, with index registers and more instructions. MOS Technology's 6502: stripped-down simplicity at $25—one-fourteenth the price.",
+                "Which approach will win? The answer: all of them. Different markets need different tradeoffs."
+              ],
+              "characters": [
+                {
+                  "avatar": "💡",
+                  "name": "Chuck Peddle",
+                  "title": "Chief Architect, 6502",
+                  "bio": "The engineer who bet everything on simplicity and low cost. Peddle's 6502 had fewer registers, fewer transistors, but a $25 price that enabled the personal computer revolution.",
+                  "stats": [
+                    { "label": "Philosophy", "value": "Simple is better" },
+                    { "label": "Impact", "value": "Apple II, Commodore, Nintendo" }
+                  ]
+                }
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-8080",
+                  "icon": "🔷",
+                  "title": "Master the Intel 8080",
+                  "description": "The industry standard. Complex but powerful. The foundation for CP/M and early business computing."
+                },
+                {
+                  "id": "choice-study-z80",
+                  "icon": "🔶",
+                  "title": "Explore the Zilog Z80",
+                  "description": "The enhanced 8080. Index registers, more instructions, better interrupt handling. Powers countless systems."
+                },
+                {
+                  "id": "choice-study-6502",
+                  "icon": "🟢",
+                  "title": "Embrace the MOS 6502",
+                  "description": "The people's processor. Simple, cheap, elegant. The heart of the Apple II and Commodore 64."
+                }
+              ],
+              "nextScene": "scene-5-1-4"
+            },
+            {
+              "id": "scene-5-1-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab bench configures for 8-bit development. Choose your architecture and build your first significant program."
+              },
+              "narrative": [
+                "The Micro8 combines the best ideas from this era: eight registers, a hardware stack, expanded addressing, and a complete instruction set.",
+                "Build the Micro8. Experience the power of true 8-bit computing."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO8 CPU",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement 8 general-purpose 8-bit registers", "completed": false },
+                  { "id": "obj-2", "text": "Add register pairing for 16-bit addresses", "completed": false },
+                  { "id": "obj-3", "text": "Create a hardware stack with SP register", "completed": false },
+                  { "id": "obj-4", "text": "Implement CALL/RET for subroutines", "completed": false },
+                  { "id": "obj-5", "text": "Add PUSH/POP for register preservation", "completed": false },
+                  { "id": "obj-6", "text": "Execute a program with subroutine calls", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The stack revolutionized programming. Before hardware stacks, subroutine calls required storing return addresses in fixed memory locations—making recursion impossible and code reuse difficult. With a stack, programs could call functions within functions, save and restore state naturally, and become truly modular.",
+                  "codeSnippet": "// Stack operations\n// \n// CALL multiply     ; Push PC, jump to multiply\n//   ... work ...    ; Function does its job\n//   RET             ; Pop PC, return to caller\n// \n// Inside the function:\n//   PUSH BC         ; Save registers we'll use\n//   PUSH DE\n//   ... compute ... \n//   POP DE          ; Restore in reverse order\n//   POP BC\n//   RET"
+                }
+              ],
+              "nextScene": "scene-5-1-5"
+            },
+            {
+              "id": "scene-5-1-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your Micro8 runs its first program: a subroutine that multiplies two 8-bit numbers. The stack holds the return address perfectly."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "You see? The stack changes everything. Now programs can be structured—functions calling functions, each with its own local state. This is how real software is built."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But the 4004 could do subroutines too, with its 3-level hardware stack..."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "Three levels! Try nesting more than three function calls and you overflow. The 8080's stack is limited only by memory. You can recurse, you can nest, you can build complex systems."
+                }
+              ],
+              "narrative": [
+                "The subroutine completes. The stack pointer moves up and down as functions call and return. For the first time, you can write code that feels like modern programming.",
+                "But there's more to explore. The 8-bit era isn't just about registers and stacks—it's about an explosion of systems that put computing into ordinary hands."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-5-2",
+          "number": 2,
+          "title": "The Altair Moment",
+          "subtitle": "MITS, Albuquerque, New Mexico",
+          "year": "1975",
+          "scenes": [
+            {
+              "id": "scene-5-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "January 1975. The cover of Popular Electronics announces 'Project Breakthrough! World's First Minicomputer Kit to Rival Commercial Models.' The Altair 8800, powered by the Intel 8080, costs $439 in kit form."
+              },
+              "narrative": [
+                "Ed Roberts is desperate. His company, MITS, is hemorrhaging money on failed calculator kits. The Altair is a last-ditch gamble: a real computer, based on Intel's 8080, sold as a kit to hobbyists.",
+                "Roberts expects to sell maybe 400 units over the product's lifetime. MITS receives 400 orders in the first month. Then 1,000. Then 10,000.",
+                "The personal computer revolution has begun—in a strip mall in Albuquerque."
+              ],
+              "characters": [
+                {
+                  "avatar": "🚀",
+                  "name": "Ed Roberts",
+                  "title": "Founder, MITS",
+                  "bio": "The man who built the machine that started it all. Roberts bet his failing company on the idea that ordinary people wanted computers. He was spectacularly right.",
+                  "stats": [
+                    { "label": "Risk", "value": "Company on the line" },
+                    { "label": "Reward", "value": "Launched an industry" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Roberts",
+                  "text": "Everyone said I was crazy. A computer kit? Who would buy that? The answer is: everyone who ever dreamed of having their own computer."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Altair 8800 had no keyboard, no display, no storage in its base configuration. Users programmed it by flipping switches on the front panel and read results from blinking lights. Yet it was a real computer—programmable, expandable, and owned by its user.",
+                  "codeSnippet": "// Altair 8800 programming\n// No keyboard! Program via front panel switches:\n// \n// 1. Set address switches to location\n// 2. Press DEPOSIT\n// 3. Set data switches to opcode/data\n// 4. Press DEPOSIT NEXT\n// 5. Repeat for entire program\n// 6. Reset address to start\n// 7. Press RUN\n// \n// Read output from front panel LEDs"
+                }
+              ],
+              "nextScene": "scene-5-2-2"
+            },
+            {
+              "id": "scene-5-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "A Harvard dormitory, late at night. Two students see the Popular Electronics cover and realize: someone needs to write software for this machine."
+              },
+              "narrative": [
+                "Bill Gates and Paul Allen have been programming since high school. They see the Altair and immediately understand: the hardware is coming. Someone needs to build the software.",
+                "They call Ed Roberts and claim to have a BASIC interpreter ready. They don't—not yet. But they have eight weeks to write one before their demo appointment.",
+                "Working around the clock, Allen creates an 8080 simulator that runs on a PDP-10. Gates writes BASIC in assembly language, testing it on the simulator. They've never touched actual Altair hardware."
+              ],
+              "characters": [
+                {
+                  "avatar": "💼",
+                  "name": "Bill Gates",
+                  "title": "Harvard Student",
+                  "bio": "A driven programmer who saw that software would be the key to computing's future. Gates wrote Altair BASIC with Paul Allen, then dropped out of Harvard to found Microsoft.",
+                  "stats": [
+                    { "label": "Age", "value": "19" },
+                    { "label": "Hours coding", "value": "Virtually all of them" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "Paul Allen",
+                  "title": "Programmer, MITS",
+                  "bio": "Gates' partner and the architect of Microsoft BASIC's 8080 implementation. Allen built the simulator that let them develop without hardware, then flew to Albuquerque for the demo.",
+                  "stats": [
+                    { "label": "Innovation", "value": "8080 simulator on PDP-10" },
+                    { "label": "Role", "value": "First Microsoft employee at MITS" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Allen",
+                  "text": "I've never actually seen an Altair. But my simulator should be cycle-accurate. If the code runs on the simulator, it should run on the real hardware. In theory."
+                }
+              ],
+              "nextScene": "scene-5-2-3"
+            },
+            {
+              "id": "scene-5-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "March 1975. Paul Allen boards a plane to Albuquerque with a paper tape of their BASIC interpreter. He realizes on the flight that they forgot to write the bootstrap loader."
+              },
+              "narrative": [
+                "The bootstrap loader—a tiny program that loads the main program into memory. Without it, the Altair can't load BASIC from paper tape.",
+                "Allen writes the loader in 8080 machine code during the flight. By hand. From memory. Twenty-one bytes that will determine whether Microsoft exists.",
+                "At MITS, he feeds the paper tape into the Altair. The lights blink. The teletype hums. And then: 'READY.' Altair BASIC works—on the first try, on hardware they'd never touched."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Altair BASIC fit in 4KB of RAM—an incredible feat of optimization. Gates squeezed a complete BASIC interpreter, including floating-point math, into what wouldn't hold a single icon today. This extreme efficiency was necessary when memory cost $400 per kilobyte.",
+                  "codeSnippet": "// Altair BASIC specifications\n// Memory: 4KB minimum\n// Features: Variables, loops, conditionals\n// Math: Floating-point in software\n// I/O: Teletype interface\n// \n// Famous first session:\n// MEMORY SIZE? 7168 (bytes available)\n// READY\n// PRINT 2+2\n// 4"
+                }
+              ],
+              "nextScene": "scene-5-2-4"
+            },
+            {
+              "id": "scene-5-2-4",
+              "type": "choice",
+              "setting": {
+                "text": "The Homebrew Computer Club meets in a Menlo Park garage. Engineers, hobbyists, and dreamers gather to share designs, swap software, and imagine the future."
+              },
+              "narrative": [
+                "Not everyone believes in paying for software. At Homebrew, paper tapes circulate freely. Someone has a copy of Altair BASIC. Soon everyone does.",
+                "Gates writes an angry 'Open Letter to Hobbyists' accusing them of theft. The hackers argue that software wants to be free.",
+                "Two philosophies collide. Both will shape the industry."
+              ],
+              "choices": [
+                {
+                  "id": "choice-explore-homebrew",
+                  "icon": "🔧",
+                  "title": "Join the Homebrew Culture",
+                  "description": "Open hardware, shared software, community innovation. The spirit that will lead to Linux and open source."
+                },
+                {
+                  "id": "choice-commercial-path",
+                  "icon": "💰",
+                  "title": "Understand the Commercial Path",
+                  "description": "Software as product, intellectual property, the business model that will create trillion-dollar companies."
+                },
+                {
+                  "id": "choice-program-basic",
+                  "icon": "📝",
+                  "title": "Write BASIC Programs",
+                  "description": "Experience the first personal computer programming. What could you build with 4KB of memory?"
+                }
+              ],
+              "nextScene": "scene-5-2-5"
+            },
+            {
+              "id": "scene-5-2-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab simulates the Homebrew experience. An 8-bit machine with limited memory. What can you create?"
+              },
+              "narrative": [
+                "The constraints of early personal computing were severe. 4KB of RAM. No disk storage. Character-based displays. Every byte precious.",
+                "Yet within these constraints, programmers created games, business software, and utilities that launched an industry."
+              ],
+              "challenge": {
+                "title": "PROGRAM IN LIMITED MEMORY",
+                "objectives": [
+                  { "id": "obj-1", "text": "Write a program that fits in 256 bytes", "completed": false },
+                  { "id": "obj-2", "text": "Implement string handling without string types", "completed": false },
+                  { "id": "obj-3", "text": "Create a number guessing game", "completed": false },
+                  { "id": "obj-4", "text": "Optimize for space, not speed", "completed": false },
+                  { "id": "obj-5", "text": "Add self-modifying code to save bytes", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Early programmers used every trick to save bytes: self-modifying code, overlapping instructions, encoding data in unused opcode bits. The discipline of extreme optimization created masters who could make machines sing within severe constraints.",
+                  "codeSnippet": "// Space-saving tricks (8080)\n// \n// Use register pairs as pointers:\n// LXI H, data    ; HL = address\n// MOV A, M       ; A = memory[HL]\n// INX H          ; HL++ (no need for separate counter)\n// \n// Self-modifying code:\n// addr: LDA 0000h  ; Address modified at runtime\n// ...later...\n// SHLD addr+1      ; Store new address into instruction"
+              }
+              ],
+              "nextScene": "scene-5-2-6"
+            },
+            {
+              "id": "scene-5-2-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your tiny program runs. It's simple—but it's yours, running on your simulated machine."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Homebrew Member",
+                  "text": "That's the magic, isn't it? You wrote something. It runs. It does what you told it to. No timesharing, no batch processing. Instant feedback."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But it's so limited. 4KB barely holds anything useful."
+                },
+                {
+                  "speaker": "Homebrew Member",
+                  "text": "Today, yes. But Moore's Law is relentless. Next year we'll have 8KB. Then 16KB. Then 64KB. The constraints will relax, but the skills you learn now—efficiency, optimization, understanding the machine—those last forever."
+                }
+              ],
+              "narrative": [
+                "The Homebrew era established principles that persist: the joy of personal computing, the value of community, the tension between open and proprietary.",
+                "But home-built machines from kits couldn't scale. The next step required something polished: complete systems that ordinary people could use."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-5-3",
+          "number": 3,
+          "title": "The Trinity",
+          "subtitle": "Consumer Electronics Show, 1977",
+          "year": "1977",
+          "scenes": [
+            {
+              "id": "scene-5-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Consumer Electronics Show, Chicago, January 1977. Three companies—Apple, Commodore, and Tandy—unveil complete personal computers. Not kits. Not for engineers. Machines anyone can use."
+              },
+              "narrative": [
+                "The Apple II has color graphics—a first for personal computers. Wozniak's design is elegant: minimal chips, maximum capability. It looks like something you'd want in your home.",
+                "The Commodore PET integrates everything: computer, keyboard, monitor, cassette drive. All-in-one simplicity.",
+                "The TRS-80 has Radio Shack's 3,000 stores behind it. Walk into any mall and buy a computer.",
+                "This is the moment personal computing becomes real."
+              ],
+              "characters": [
+                {
+                  "avatar": "🍎",
+                  "name": "Steve Wozniak",
+                  "title": "Co-founder, Apple Computer",
+                  "bio": "The engineering genius behind the Apple II. Wozniak designed an entire computer with fewer chips than anyone thought possible, then added color graphics because he wanted to play Breakout.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Color graphics, disk controller" },
+                    { "label": "Philosophy", "value": "Elegant engineering" }
+                  ]
+                },
+                {
+                  "avatar": "💼",
+                  "name": "Steve Jobs",
+                  "title": "Co-founder, Apple Computer",
+                  "bio": "The visionary who understood that computers needed to be beautiful, not just functional. Jobs pushed for a complete product: case, keyboard, power supply—something you'd be proud to own.",
+                  "stats": [
+                    { "label": "Role", "value": "Vision, marketing, business" },
+                    { "label": "Insight", "value": "Computers for the rest of us" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Wozniak",
+                  "text": "The 6502 costs $25. The 8080 costs $360. I can build a complete computer for the price of the other guy's CPU chip alone."
+                },
+                {
+                  "speaker": "Jobs",
+                  "text": "People don't care about chips. They care about what they can do. Games. Learning. Home finances. The computer has to be approachable, not intimidating."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 'Trinity of 1977' established the personal computer market. Apple II's open architecture invited expansion. PET's integration simplified setup. TRS-80's retail presence enabled discovery. Each approach found its audience.",
+                  "codeSnippet": "// The 1977 Trinity specs\n// \n// Apple II (6502, $1,298)\n//   RAM: 4KB-48KB\n//   Color: 6 colors, lo-res graphics\n//   Sound: Built-in speaker\n//   Expansion: 8 slots\n// \n// Commodore PET (6502, $795)\n//   RAM: 4KB-8KB\n//   Display: Built-in 9\" monitor\n//   Storage: Built-in cassette\n// \n// TRS-80 (Z80, $600)\n//   RAM: 4KB-16KB\n//   Display: Separate monitor\n//   Distribution: 3,000 Radio Shack stores"
+                }
+              ],
+              "nextScene": "scene-5-3-2"
+            },
+            {
+              "id": "scene-5-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "An Apple II sits in a suburban garage. A young girl is learning to program, typing BASIC commands and watching the screen respond."
+              },
+              "narrative": [
+                "This is what Jobs envisioned: a computer in every home, used by ordinary people for ordinary tasks. Homework. Recipe organization. Budgeting.",
+                "But software makes the hardware sing. And the killer app—the program that justifies the purchase—hasn't arrived yet.",
+                "That changes in 1979, when VisiCalc transforms the Apple II from a hobby toy into a business tool."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Girl",
+                  "text": "Look, Dad! I typed 'PRINT 10+20' and it said '30'! The computer does math!"
+                },
+                {
+                  "speaker": "Father",
+                  "text": "That's great, honey. But I still don't see what I'd use it for..."
+                }
+              ],
+              "nextScene": "scene-5-3-3"
+            },
+            {
+              "id": "scene-5-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "1979. Dan Bricklin has an idea: a visible calculator. A grid of numbers that recalculates automatically when you change any value."
+              },
+              "narrative": [
+                "Bricklin is an MBA student at Harvard. He watches his professor laboriously recalculate a financial model, erasing and rewriting numbers on the blackboard.",
+                "What if the blackboard could calculate itself? What if changing one number automatically updated all the numbers that depended on it?",
+                "VisiCalc—the visible calculator—creates the spreadsheet. Suddenly, the Apple II isn't a toy. It's a business machine that pays for itself."
+              ],
+              "characters": [
+                {
+                  "avatar": "📊",
+                  "name": "Dan Bricklin",
+                  "title": "Co-creator, VisiCalc",
+                  "bio": "The MBA student who invented the spreadsheet. Bricklin's insight—that computers could automate the tedious recalculation of financial models—created a new category of software and justified personal computer purchases.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Electronic spreadsheet" },
+                    { "label": "Impact", "value": "The first 'killer app'" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "VisiCalc ran on an Apple II with 32KB of RAM. The maximum spreadsheet was 63 columns × 254 rows. It calculated in real-time as you typed, automatically propagating changes through dependent cells. This real-time feedback, enabled by the Apple II's immediate-mode BASIC and fast display, made spreadsheets intuitive.",
+                  "codeSnippet": "// VisiCalc fundamentals\n// \n// Cell reference: A1, B2, C3, etc.\n// Formula: +A1+B1 (add two cells)\n// Automatic recalculation\n// \n// Business example:\n// A1: Revenue    = 100000\n// A2: Costs      = 60000\n// A3: Profit     = +A1-A2 (automatically = 40000)\n// \n// Change A1 → A3 updates instantly"
+                }
+              ],
+              "nextScene": "scene-5-3-4"
+            },
+            {
+              "id": "scene-5-3-4",
+              "type": "choice",
+              "setting": {
+                "text": "The personal computer era is in full swing. Different machines, different communities, different possibilities. Where do you focus?"
+              },
+              "narrative": [
+                "The Apple II dominates education and business. CP/M machines rule professional computing. Game consoles and home computers blur together.",
+                "Each ecosystem has its strengths. Each teaches different lessons."
+              ],
+              "choices": [
+                {
+                  "id": "choice-apple-ecosystem",
+                  "icon": "🍎",
+                  "title": "Explore the Apple Ecosystem",
+                  "description": "Color graphics, game programming, Applesoft BASIC. The visual, creative side of personal computing."
+                },
+                {
+                  "id": "choice-cpm-world",
+                  "icon": "💾",
+                  "title": "Enter the CP/M World",
+                  "description": "WordStar, dBASE, business software. The professional, productivity-focused path."
+                },
+                {
+                  "id": "choice-game-machines",
+                  "icon": "🎮",
+                  "title": "Master Game Machine Programming",
+                  "description": "Atari 2600, ColecoVision, pushing hardware to its limits for entertainment."
+                }
+              ],
+              "nextScene": "scene-5-3-5"
+            },
+            {
+              "id": "scene-5-3-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Your final 8-bit challenge: build a complete application that demonstrates the Micro8's capabilities."
+              },
+              "narrative": [
+                "The 8-bit era proved that personal computers were viable. Now, build something that showcases everything you've learned: registers, stack, subroutines, memory management."
+              ],
+              "challenge": {
+                "title": "BUILD A COMPLETE 8-BIT APPLICATION",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement a simple text editor or calculator", "completed": false },
+                  { "id": "obj-2", "text": "Use subroutines for modular code organization", "completed": false },
+                  { "id": "obj-3", "text": "Handle user input through a loop", "completed": false },
+                  { "id": "obj-4", "text": "Format output for display", "completed": false },
+                  { "id": "obj-5", "text": "Add at least one 'feature' beyond the minimum", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Complete applications in the 8-bit era required careful architecture: main loop, input handling, command parsing, output formatting, and error recovery—all in limited memory. The discipline of building complete, usable software in constraints shaped a generation of programmers.",
+                  "codeSnippet": "// Typical 8-bit application structure\n// \n// INIT:\n//   Initialize hardware\n//   Clear memory\n//   Display welcome\n// \n// MAINLOOP:\n//   CALL get_input\n//   CALL parse_command\n//   CALL execute_command\n//   CALL display_result\n//   JMP MAINLOOP\n// \n// Subroutines maintain their own state\n// Stack enables clean call/return"
+                }
+              ],
+              "nextScene": "scene-5-3-6"
+            },
+            {
+              "id": "scene-5-3-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your application runs. It's simple, but complete—a real program that does something useful."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Wozniak",
+                  "text": "You've graduated from the 8-bit school. You understand registers, stacks, subroutines, memory. You can make these machines dance."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But 64KB still feels limiting. What happens when programs grow larger?"
+                },
+                {
+                  "speaker": "Wozniak",
+                  "text": "Then we need bigger addresses. Sixteen bits of address gives you 64KB. What if we use twenty bits? A megabyte of address space. The 16-bit era is coming."
+                },
+                {
+                  "speaker": "Jobs",
+                  "text": "And with more memory comes more possibility. Word processors that handle real documents. Spreadsheets that model entire businesses. Graphics that look like photographs."
+                }
+              ],
+              "narrative": [
+                "The 8-bit era democratized computing. For the first time, individuals could own computers—not rent time on shared mainframes, not submit batch jobs, but sit at a keyboard and interact directly.",
+                "The Apple II, Commodore PET, TRS-80: the trinity of 1977. Each powered by an 8-bit processor, each costing less than a few thousand dollars. The personal computer revolution had begun.",
+                "But 64KB wasn't enough. As programs grew, as data accumulated, the 16-bit address space became a prison. The solution was clear: more bits. Again.",
+                "Continue to Act 6: The 16-bit Era."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

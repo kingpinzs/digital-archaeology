@@ -1,6 +1,7 @@
 // src/story/StoryContent.test.ts
 // Tests for StoryContent component
 // Story 10.2: Create Story Mode Layout
+// Story 10.17: Wire Story Mode Integration - Updated for dynamic content
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StoryContent } from './StoryContent';
@@ -19,7 +20,7 @@ describe('StoryContent', () => {
     container.remove();
   });
 
-  describe('Task 4: Component Rendering', () => {
+  describe('Task 3: Component Rendering', () => {
     it('should render content area with correct class', () => {
       content = new StoryContent();
       content.mount(container);
@@ -53,6 +54,14 @@ describe('StoryContent', () => {
       expect(contentElement?.getAttribute('aria-label')).toBe('Story content');
     });
 
+    it('should have aria-live for screen reader announcements', () => {
+      content = new StoryContent();
+      content.mount(container);
+
+      const contentElement = container.querySelector('.da-story-content');
+      expect(contentElement?.getAttribute('aria-live')).toBe('polite');
+    });
+
     it('should render content wrapper for max-width', () => {
       content = new StoryContent();
       content.mount(container);
@@ -61,69 +70,48 @@ describe('StoryContent', () => {
       expect(wrapper).not.toBeNull();
     });
 
-    it('should render chapter header placeholder', () => {
+    it('should render scene mount point for dynamic content', () => {
       content = new StoryContent();
       content.mount(container);
 
-      const chapterHeader = container.querySelector('.da-story-chapter-header-placeholder');
-      expect(chapterHeader).not.toBeNull();
+      const sceneMount = container.querySelector('.da-story-scene-mount');
+      expect(sceneMount).not.toBeNull();
     });
 
-    it('should render chapter era text', () => {
+    it('should have data attribute on scene mount', () => {
       content = new StoryContent();
       content.mount(container);
 
-      const era = container.querySelector('.da-story-chapter-era');
-      expect(era?.textContent).toContain('1971');
-    });
-
-    it('should render chapter title "Chapter 1: First Day"', () => {
-      content = new StoryContent();
-      content.mount(container);
-
-      const title = container.querySelector('.da-story-chapter-title');
-      expect(title?.textContent).toBe('Chapter 1: First Day');
-    });
-
-    it('should render chapter subtitle', () => {
-      content = new StoryContent();
-      content.mount(container);
-
-      const subtitle = container.querySelector('.da-story-chapter-subtitle');
-      expect(subtitle?.textContent).toContain('Fairchild Semiconductor');
-    });
-
-    it('should render scene setting section', () => {
-      content = new StoryContent();
-      content.mount(container);
-
-      const sceneSetting = container.querySelector('.da-story-scene-setting');
-      expect(sceneSetting).not.toBeNull();
-
-      const sceneText = container.querySelector('.da-story-scene-text');
-      expect(sceneText?.textContent).toContain('fluorescent lights');
-    });
-
-    it('should render narrative section', () => {
-      content = new StoryContent();
-      content.mount(container);
-
-      const narrative = container.querySelector('.da-story-narrative');
-      expect(narrative).not.toBeNull();
-    });
-
-    it('should render "Enter the Lab" button', () => {
-      content = new StoryContent();
-      content.mount(container);
-
-      const labButton = container.querySelector('.da-story-enter-lab-btn');
-      expect(labButton).not.toBeNull();
-      expect(labButton?.textContent).toBe('Enter the Lab');
-      expect(labButton?.getAttribute('aria-label')).toBe('Switch to Lab Mode');
+      const sceneMount = container.querySelector('[data-story-component="scene"]');
+      expect(sceneMount).not.toBeNull();
     });
   });
 
-  describe('Task 4: Visibility Control', () => {
+  describe('Task 3: Scene Mount Point', () => {
+    it('should return scene mount via getSceneMount()', () => {
+      content = new StoryContent();
+      content.mount(container);
+
+      const sceneMount = content.getSceneMount();
+      expect(sceneMount).not.toBeNull();
+      expect(sceneMount?.classList.contains('da-story-scene-mount')).toBe(true);
+    });
+
+    it('should return null from getSceneMount() before mounting', () => {
+      content = new StoryContent();
+      expect(content.getSceneMount()).toBeNull();
+    });
+
+    it('should return null from getSceneMount() after destroy', () => {
+      content = new StoryContent();
+      content.mount(container);
+      content.destroy();
+
+      expect(content.getSceneMount()).toBeNull();
+    });
+  });
+
+  describe('Task 3: Visibility Control', () => {
     it('should be visible by default', () => {
       content = new StoryContent();
       content.mount(container);
@@ -155,7 +143,7 @@ describe('StoryContent', () => {
     });
   });
 
-  describe('Task 4: Element Access', () => {
+  describe('Task 3: Element Access', () => {
     it('should return element via getElement()', () => {
       content = new StoryContent();
       content.mount(container);
@@ -176,7 +164,7 @@ describe('StoryContent', () => {
     });
   });
 
-  describe('Task 4: Cleanup', () => {
+  describe('Task 3: Cleanup', () => {
     it('should remove element from DOM on destroy', () => {
       content = new StoryContent();
       content.mount(container);

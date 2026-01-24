@@ -1,0 +1,364 @@
+// src/story/SceneRenderer.ts
+// Dynamic scene rendering for Story Mode
+// Story 10.17: Wire Story Mode Integration
+
+import type { StoryScene, StoryChapter, StoryAct } from './content-types';
+import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData } from './types';
+import { ChapterHeader } from './ChapterHeader';
+import { SceneSetting } from './SceneSetting';
+import { CharacterCard } from './CharacterCard';
+import { DialogueBlock } from './DialogueBlock';
+import { ChoiceCard } from './ChoiceCard';
+import { TechnicalNote } from './TechnicalNote';
+import { EnterLabButton } from './EnterLabButton';
+import { StoryActionsFooter } from './StoryActionsFooter';
+
+/**
+ * Scene render context containing act and chapter information.
+ */
+export interface SceneRenderContext {
+  act: StoryAct;
+  chapter: StoryChapter;
+  scene: StoryScene;
+  isFirstSceneInChapter: boolean;
+}
+
+/**
+ * Callbacks for scene interactions.
+ */
+export interface SceneRendererCallbacks {
+  onChoiceSelect?: (choiceId: string) => void;
+  onContinue?: () => void;
+  onPrevious?: () => void;
+  onEnterLab?: () => void;
+}
+
+/**
+ * SceneRenderer dynamically renders story scenes using existing UI components.
+ * Maps scene data to appropriate components and manages their lifecycle.
+ */
+export class SceneRenderer {
+  private container: HTMLElement | null = null;
+  private callbacks: SceneRendererCallbacks = {};
+
+  // Active component instances (for cleanup)
+  private activeComponents: Array<{ destroy: () => void }> = [];
+
+  // Reusable structural elements
+  private sceneContainer: HTMLElement | null = null;
+  private footer: StoryActionsFooter | null = null;
+
+  /**
+   * Set callbacks for scene interactions.
+   */
+  setCallbacks(callbacks: SceneRendererCallbacks): void {
+    this.callbacks = callbacks;
+    // Update footer callbacks if already created
+    if (this.footer) {
+      this.wireFooterCallbacks();
+    }
+  }
+
+  /**
+   * Render a scene to the container.
+   * Clears existing content and renders new scene components.
+   */
+  renderScene(context: SceneRenderContext, container: HTMLElement): void {
+    this.container = container;
+
+    // Clean up previous scene components
+    this.cleanup();
+
+    // Create scene container
+    this.sceneContainer = document.createElement('div');
+    this.sceneContainer.className = 'da-scene-container';
+    this.sceneContainer.setAttribute('role', 'article');
+    this.sceneContainer.setAttribute('aria-label', 'Story scene');
+
+    // Render chapter header if first scene in chapter
+    if (context.isFirstSceneInChapter) {
+      this.renderChapterHeader(context);
+    }
+
+    // Render scene setting if present
+    if (context.scene.setting) {
+      this.renderSceneSetting(context.scene.setting);
+    }
+
+    // Render narrative paragraphs
+    if (context.scene.narrative && context.scene.narrative.length > 0) {
+      this.renderNarrative(context.scene.narrative);
+    }
+
+    // Render characters if present
+    if (context.scene.characters && context.scene.characters.length > 0) {
+      this.renderCharacters(context.scene.characters);
+    }
+
+    // Render dialogues if present
+    if (context.scene.dialogues && context.scene.dialogues.length > 0) {
+      this.renderDialogues(context.scene.dialogues);
+    }
+
+    // Render technical notes if present
+    if (context.scene.technicalNotes && context.scene.technicalNotes.length > 0) {
+      this.renderTechnicalNotes(context.scene.technicalNotes);
+    }
+
+    // Render choices if present (choice scene)
+    if (context.scene.choices && context.scene.choices.length > 0) {
+      this.renderChoices(context.scene.choices);
+    }
+
+    // Render challenge button if challenge scene
+    if (context.scene.type === 'challenge' && context.scene.challenge) {
+      this.renderEnterLabButton();
+    }
+
+    // Append scene container
+    this.container.appendChild(this.sceneContainer);
+
+    // Create footer
+    this.renderFooter(context);
+  }
+
+  /**
+   * Render chapter header component.
+   */
+  private renderChapterHeader(context: SceneRenderContext): void {
+    const header = new ChapterHeader();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-chapter-header-mount';
+    this.sceneContainer!.appendChild(mount);
+    header.mount(mount);
+    header.setChapterData({
+      actNumber: context.act.number,
+      year: context.chapter.year,
+      title: context.chapter.title,
+      subtitle: context.chapter.subtitle,
+    });
+    this.activeComponents.push(header);
+  }
+
+  /**
+   * Render scene setting component.
+   */
+  private renderSceneSetting(setting: { text: string }): void {
+    const sceneSetting = new SceneSetting();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-setting-mount';
+    this.sceneContainer!.appendChild(mount);
+    sceneSetting.mount(mount);
+    sceneSetting.setSettingData({ text: setting.text });
+    this.activeComponents.push(sceneSetting);
+  }
+
+  /**
+   * Render narrative paragraphs.
+   */
+  private renderNarrative(paragraphs: string[]): void {
+    const narrativeContainer = document.createElement('div');
+    narrativeContainer.className = 'da-scene-narrative';
+
+    for (const paragraph of paragraphs) {
+      const p = document.createElement('p');
+      p.className = 'da-scene-narrative-text';
+      p.textContent = paragraph;
+      narrativeContainer.appendChild(p);
+    }
+
+    this.sceneContainer!.appendChild(narrativeContainer);
+  }
+
+  /**
+   * Render character cards.
+   */
+  private renderCharacters(characters: CharacterData[]): void {
+    const charactersContainer = document.createElement('div');
+    charactersContainer.className = 'da-scene-characters';
+
+    for (const character of characters) {
+      const card = new CharacterCard();
+      const mount = document.createElement('div');
+      mount.className = 'da-scene-character-mount';
+      charactersContainer.appendChild(mount);
+      card.mount(mount);
+      card.setCharacterData(character);
+      this.activeComponents.push(card);
+    }
+
+    this.sceneContainer!.appendChild(charactersContainer);
+  }
+
+  /**
+   * Render dialogue blocks.
+   */
+  private renderDialogues(dialogues: DialogueData[]): void {
+    const dialogueContainer = document.createElement('div');
+    dialogueContainer.className = 'da-scene-dialogues';
+
+    for (const dialogue of dialogues) {
+      const block = new DialogueBlock();
+      const mount = document.createElement('div');
+      mount.className = 'da-scene-dialogue-mount';
+      dialogueContainer.appendChild(mount);
+      block.mount(mount);
+      block.setDialogueData(dialogue);
+      this.activeComponents.push(block);
+    }
+
+    this.sceneContainer!.appendChild(dialogueContainer);
+  }
+
+  /**
+   * Render technical notes.
+   */
+  private renderTechnicalNotes(notes: TechnicalNoteData[]): void {
+    const notesContainer = document.createElement('div');
+    notesContainer.className = 'da-scene-technical-notes';
+
+    for (const note of notes) {
+      const technicalNote = new TechnicalNote();
+      const mount = document.createElement('div');
+      mount.className = 'da-scene-technical-note-mount';
+      notesContainer.appendChild(mount);
+      technicalNote.mount(mount);
+      technicalNote.setNoteData(note);
+      this.activeComponents.push(technicalNote);
+    }
+
+    this.sceneContainer!.appendChild(notesContainer);
+  }
+
+  /**
+   * Render choice cards.
+   */
+  private renderChoices(choices: ChoiceData[]): void {
+    const choicesContainer = document.createElement('div');
+    choicesContainer.className = 'da-scene-choices';
+
+    for (const choice of choices) {
+      const card = new ChoiceCard();
+      const mount = document.createElement('div');
+      mount.className = 'da-scene-choice-mount';
+      choicesContainer.appendChild(mount);
+      card.mount(mount);
+      card.setChoiceData(choice);
+      card.onSelect((choiceId) => {
+        if (this.callbacks.onChoiceSelect) {
+          this.callbacks.onChoiceSelect(choiceId);
+        }
+      });
+      this.activeComponents.push(card);
+    }
+
+    this.sceneContainer!.appendChild(choicesContainer);
+  }
+
+  /**
+   * Render Enter Lab button for challenge scenes.
+   */
+  private renderEnterLabButton(): void {
+    const labButton = new EnterLabButton();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-enter-lab-mount';
+    this.sceneContainer!.appendChild(mount);
+    labButton.mount(mount);
+    labButton.onEnterLab(() => {
+      if (this.callbacks.onEnterLab) {
+        this.callbacks.onEnterLab();
+      }
+    });
+    this.activeComponents.push(labButton);
+  }
+
+  /**
+   * Render story actions footer.
+   */
+  private renderFooter(context: SceneRenderContext): void {
+    // Create footer container
+    const footerMount = document.createElement('div');
+    footerMount.className = 'da-scene-footer-mount';
+    this.container!.appendChild(footerMount);
+
+    this.footer = new StoryActionsFooter();
+    this.footer.mount(footerMount);
+    this.wireFooterCallbacks();
+
+    // Configure footer state based on scene
+    const hasNextScene = !!context.scene.nextScene;
+    const hasChoices = context.scene.choices && context.scene.choices.length > 0;
+    const isChallenge = context.scene.type === 'challenge';
+
+    // Disable continue if no next scene or if choices/challenge present
+    this.footer.setContinueEnabled(hasNextScene && !hasChoices);
+
+    // Show Enter Lab button only for challenge scenes
+    this.footer.setEnterLabVisible(isChallenge);
+
+    this.activeComponents.push(this.footer);
+  }
+
+  /**
+   * Wire footer button callbacks.
+   */
+  private wireFooterCallbacks(): void {
+    if (!this.footer) return;
+
+    this.footer.onContinue(() => {
+      if (this.callbacks.onContinue) {
+        this.callbacks.onContinue();
+      }
+    });
+
+    this.footer.onPrevious(() => {
+      if (this.callbacks.onPrevious) {
+        this.callbacks.onPrevious();
+      }
+    });
+
+    this.footer.onEnterLab(() => {
+      if (this.callbacks.onEnterLab) {
+        this.callbacks.onEnterLab();
+      }
+    });
+  }
+
+  /**
+   * Update footer state (e.g., after navigation).
+   */
+  updateFooterState(hasPrevious: boolean, hasNext: boolean): void {
+    if (this.footer) {
+      this.footer.setPreviousEnabled(hasPrevious);
+      this.footer.setContinueEnabled(hasNext);
+    }
+  }
+
+  /**
+   * Clean up all active components.
+   */
+  private cleanup(): void {
+    for (const component of this.activeComponents) {
+      component.destroy();
+    }
+    this.activeComponents = [];
+    this.footer = null;
+
+    // Clear container contents
+    if (this.container) {
+      while (this.container.firstChild) {
+        this.container.removeChild(this.container.firstChild);
+      }
+    }
+    this.sceneContainer = null;
+  }
+
+  /**
+   * Destroy the renderer and clean up resources.
+   */
+  destroy(): void {
+    this.cleanup();
+    this.container = null;
+    this.callbacks = {};
+  }
+}

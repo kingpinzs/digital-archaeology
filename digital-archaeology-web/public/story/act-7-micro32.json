@@ -1,0 +1,481 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-7",
+      "number": 7,
+      "title": "The 32-bit Era",
+      "description": "Segmentation was a prison. Programmers spent more time managing memory segments than solving problems. The 80386 broke free: 32-bit registers, 32-bit addresses, 4GB of flat address space. Protected mode isolated programs from each other. Paging enabled virtual memory. This was the architecture that would run the world—and still does.",
+      "era": "1985 - 1995",
+      "cpuStage": "micro32",
+      "chapters": [
+        {
+          "id": "chapter-7-1",
+          "number": 1,
+          "title": "Flat Land",
+          "subtitle": "Intel Corporation, Santa Clara",
+          "year": "1985",
+          "scenes": [
+            {
+              "id": "scene-7-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, 1985. The 80286 has been a disappointment—it has protected mode, but switching between real and protected mode requires a system reset. Programmers call it 'brain-dead.' The 386 must do better."
+              },
+              "narrative": [
+                "The problem with segmentation is fundamental: you're always thinking about segments. Near pointers. Far pointers. Segment limits. It's complexity that serves the hardware, not the programmer.",
+                "The 386 will change everything. True 32-bit operation. Flat memory model—a single address space from 0 to 4GB. Programs can pretend segments don't exist.",
+                "And protected mode done right. Programs isolated from each other. A crash in one application doesn't bring down the system. Real operating systems become possible."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎯",
+                  "name": "John Crawford",
+                  "title": "Chief Architect, 80386",
+                  "bio": "The engineer who freed x86 from its segmented past. Crawford's 386 design maintained backwards compatibility while enabling a completely flat 32-bit programming model. His architecture runs most computers today.",
+                  "stats": [
+                    { "label": "Achievement", "value": "Flat 32-bit addressing" },
+                    { "label": "Legacy", "value": "Still the basis of x86-64" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 386's flat model set all segment bases to 0 and limits to 4GB, effectively hiding segmentation. Programs could use 32-bit pointers without thinking about segments. This simplification enabled the development of modern operating systems like Windows NT and Linux.",
+                  "codeSnippet": "// Flat model setup (simplified)\n// Set all segment bases to 0\n// Set all limits to 0xFFFFFFFF (4GB)\n// \n// Now pointers are simple:\n// mov eax, [0x12345678]  ; Just an address\n// \n// No more:\n// mov ax, SEGMENT\n// mov ds, ax\n// mov al, [OFFSET]"
+                }
+              ],
+              "nextScene": "scene-7-1-2"
+            },
+            {
+              "id": "scene-7-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The 386 introduces paging—a second layer of memory management that enables virtual memory. Programs can use more memory than physically exists."
+              },
+              "narrative": [
+                "Paging divides memory into 4KB pages. Each page can be present in RAM or swapped to disk. The CPU handles the translation automatically.",
+                "A program thinks it has a contiguous 4GB address space. In reality, its pages might be scattered across RAM, or temporarily stored on disk. The magic is invisible.",
+                "But paging enables more than virtual memory. It enables protection at page granularity. Read-only pages. Execute-disable. The foundations of modern security."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Crawford",
+                  "text": "Paging gives us two things: more memory than we physically have, and isolation between programs. A bug in one program can't corrupt another—the page tables prevent it."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 386 used two-level page tables: a page directory (1024 entries) pointing to page tables (1024 entries each), each entry pointing to a 4KB page. This structure could map 4GB with 4KB granularity while only allocating tables for memory actually used.",
+                  "codeSnippet": "// Page table structure\n// \n// Page Directory (1024 × 4 bytes)\n//   → Page Table 0 (1024 × 4 bytes)\n//       → Page 0 (4KB)\n//       → Page 1 (4KB)\n//       ...\n//   → Page Table 1\n//       → Page 1024\n//       → Page 1025\n//       ...\n// \n// 1024 × 1024 × 4KB = 4GB addressable"
+                }
+              ],
+              "nextScene": "scene-7-1-3"
+            },
+            {
+              "id": "scene-7-1-3",
+              "type": "choice",
+              "setting": {
+                "text": "October 1985. The 80386 ships. 275,000 transistors. Full 32-bit architecture. But the software to use it is years away."
+              },
+              "narrative": [
+                "DOS doesn't need 32 bits. Windows 3.0 won't arrive until 1990. The 386's power will go unused for years as the software world catches up.",
+                "But those who understand the potential begin building. Windows NT. Linux. The operating systems that will define computing."
+              ],
+              "choices": [
+                {
+                  "id": "choice-flat-model",
+                  "icon": "📐",
+                  "title": "Master Flat Memory Model",
+                  "description": "Program without segments. Experience the freedom of simple, linear addressing."
+                },
+                {
+                  "id": "choice-protected-mode",
+                  "icon": "🛡️",
+                  "title": "Explore Protected Mode",
+                  "description": "Understand privilege levels, descriptor tables, and how the OS controls user programs."
+                },
+                {
+                  "id": "choice-paging",
+                  "icon": "📄",
+                  "title": "Implement Paging",
+                  "description": "Build page tables. Map virtual to physical. Enable demand paging and memory protection."
+                }
+              ],
+              "nextScene": "scene-7-1-4"
+            },
+            {
+              "id": "scene-7-1-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab transforms into a 32-bit development environment. Build the Micro32: flat addressing, protected mode, paging."
+              },
+              "narrative": [
+                "This is the architecture that runs the world. Build it. Understand it. Own it."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO32 CPU",
+                "objectives": [
+                  { "id": "obj-1", "text": "Expand all registers to 32 bits (EAX, EBX, etc.)", "completed": false },
+                  { "id": "obj-2", "text": "Implement flat memory model (4GB address space)", "completed": false },
+                  { "id": "obj-3", "text": "Add protected mode with privilege levels (ring 0-3)", "completed": false },
+                  { "id": "obj-4", "text": "Implement two-level paging", "completed": false },
+                  { "id": "obj-5", "text": "Add page fault handling", "completed": false },
+                  { "id": "obj-6", "text": "Execute a program in user mode (ring 3)", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The four privilege rings (0-3) provide layered protection: Ring 0 (kernel) has full access, Ring 3 (user) is restricted. System calls transition from Ring 3 to Ring 0 through controlled gates. This architecture enables secure multitasking operating systems.",
+                  "codeSnippet": "// Privilege levels\n// Ring 0: Kernel - all access\n// Ring 1-2: Drivers (rarely used)\n// Ring 3: User applications - restricted\n// \n// System call flow:\n// User code (Ring 3) → INT 0x80\n// → CPU checks gate → Ring 0\n// → Kernel handles request\n// → IRET → back to Ring 3"
+                }
+              ],
+              "nextScene": "scene-7-1-5"
+            },
+            {
+              "id": "scene-7-1-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your Micro32 runs its first protected-mode program. The page tables translate addresses. The privilege levels enforce boundaries."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Crawford",
+                  "text": "You've built a modern processor. Flat addressing. Memory protection. Virtual memory. Every computer you'll ever use runs on these principles."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about the old software? DOS programs?"
+                },
+                {
+                  "speaker": "Crawford",
+                  "text": "Virtual 8086 mode. The 386 can emulate an 8086 inside protected mode. Run DOS programs as guests, isolated and controlled. The past and future coexist."
+                }
+              ],
+              "narrative": [
+                "The 386's Virtual 8086 mode was crucial for the transition. Old software could run, but safely—unable to crash the system or corrupt other programs.",
+                "This backwards compatibility would define x86 for decades: always carrying the past forward, never breaking what came before."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-7-2",
+          "number": 2,
+          "title": "The Operating System Revolution",
+          "subtitle": "Windows NT and Linux",
+          "year": "1991",
+          "scenes": [
+            {
+              "id": "scene-7-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "1991. Two operating systems emerge that will dominate the 32-bit era. In Redmond, Microsoft builds Windows NT. In Helsinki, a student named Linus Torvalds releases his 'hobby' operating system."
+              },
+              "narrative": [
+                "Windows NT is Microsoft's clean-slate design: true 32-bit, preemptive multitasking, memory protection. It abandons DOS entirely, built from scratch by Dave Cutler, the legendary VMS architect.",
+                "Linux is a different story. A Finnish student, frustrated with the limitations of MINIX, builds a Unix-like kernel. 'I'm doing a (free) operating system (just a hobby, won't be big and professional).'",
+                "Both exploit the 386's capabilities fully: flat addressing, protected mode, paging. Both will reshape computing."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏢",
+                  "name": "Dave Cutler",
+                  "title": "Lead Architect, Windows NT",
+                  "bio": "The legendary engineer who built VMS at DEC, then Windows NT at Microsoft. Known for his technical brilliance and fierce temper. NT's architecture still powers Windows today.",
+                  "stats": [
+                    { "label": "Previous work", "value": "VMS operating system" },
+                    { "label": "Obsession", "value": "Reliability, clean design" }
+                  ]
+                },
+                {
+                  "avatar": "🐧",
+                  "name": "Linus Torvalds",
+                  "title": "Creator, Linux Kernel",
+                  "bio": "A Helsinki student who wanted to understand operating systems. His 'hobby' project became the foundation of Android, cloud computing, and most of the internet's infrastructure.",
+                  "stats": [
+                    { "label": "Age when starting", "value": "21" },
+                    { "label": "Philosophy", "value": "Just for fun" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Torvalds",
+                  "text": "The 386's protected mode and paging make a real Unix possible on PC hardware. No more DOS limitations. True multitasking. Memory protection. It's what I always wanted to build."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Both NT and Linux used the 386's capabilities similarly: flat 4GB address space (2GB user, 2GB kernel in Linux), page-based virtual memory, ring 0/ring 3 privilege separation. The 386 defined what a 'modern OS' could be.",
+                  "codeSnippet": "// Typical 32-bit OS memory map\n// \n// 0x00000000-0x7FFFFFFF: User space (2GB)\n// 0x80000000-0xFFFFFFFF: Kernel space (2GB)\n// \n// User programs can't access kernel memory\n// Page tables mark kernel pages supervisor-only\n// Access attempt → Page fault → Segfault"
+                }
+              ],
+              "nextScene": "scene-7-2-2"
+            },
+            {
+              "id": "scene-7-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "1993. Windows NT 3.1 ships. Microsoft's big bet on the 32-bit future—even though most users still run Windows 3.1 on top of DOS."
+              },
+              "narrative": [
+                "NT is technically impressive: fully preemptive, POSIX-compatible, with a hardware abstraction layer that could theoretically run on any processor.",
+                "But it's demanding. 8MB of RAM minimum (most PCs have 4MB). Businesses hesitate. NT will take years to become mainstream.",
+                "Meanwhile, Linux grows organically. Free. Open source. Ported to more architectures than NT will ever support."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Cutler",
+                  "text": "NT is built right. Protected mode throughout. No legacy DOS code paths. When hardware catches up—and it will—NT will be ready."
+                }
+              ],
+              "nextScene": "scene-7-2-3"
+            },
+            {
+              "id": "scene-7-2-3",
+              "type": "choice",
+              "setting": {
+                "text": "The 32-bit operating system landscape takes shape. Different philosophies, different communities, but all exploiting the same hardware capabilities."
+              },
+              "narrative": [
+                "Windows NT targets enterprise: reliability, security, centralized management. Linux targets hackers and servers: flexibility, transparency, community control.",
+                "Both need programmers who understand the underlying hardware. Both reward those who master protected mode and paging."
+              ],
+              "choices": [
+                {
+                  "id": "choice-nt-internals",
+                  "icon": "🪟",
+                  "title": "Explore Windows NT Internals",
+                  "description": "HAL, executive, subsystems. Microsoft's layered architecture for reliability and portability."
+                },
+                {
+                  "id": "choice-linux-kernel",
+                  "icon": "🐧",
+                  "title": "Study Linux Kernel Design",
+                  "description": "Monolithic kernel, loadable modules, the Unix philosophy. Open source operating system internals."
+                },
+                {
+                  "id": "choice-os-development",
+                  "icon": "💻",
+                  "title": "Build Your Own OS",
+                  "description": "Apply what you've learned. Create a simple operating system kernel using the Micro32."
+                }
+              ],
+              "nextScene": "scene-7-2-4"
+            },
+            {
+              "id": "scene-7-2-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab becomes an OS development environment. Build the core of an operating system on your Micro32."
+              },
+              "narrative": [
+                "Every operating system shares common foundations: interrupt handling, process management, memory allocation, system calls. Build them on your Micro32 architecture."
+              ],
+              "challenge": {
+                "title": "BUILD AN OS KERNEL",
+                "objectives": [
+                  { "id": "obj-1", "text": "Set up Interrupt Descriptor Table (IDT)", "completed": false },
+                  { "id": "obj-2", "text": "Implement timer interrupt for preemption", "completed": false },
+                  { "id": "obj-3", "text": "Create simple process/task structures", "completed": false },
+                  { "id": "obj-4", "text": "Implement context switching", "completed": false },
+                  { "id": "obj-5", "text": "Add system call interface (ring 3 → ring 0)", "completed": false },
+                  { "id": "obj-6", "text": "Run two processes in time-sliced multitasking", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "A minimal OS needs: boot code to set up protected mode, interrupt handlers for timer and system calls, a scheduler to switch between processes, and memory management to isolate address spaces. These components interact through the 386's hardware features.",
+                  "codeSnippet": "// Context switch (simplified)\n// \n// timer_interrupt:\n//   push all registers to current stack\n//   save current ESP to process control block\n//   call scheduler() to pick next process\n//   load new ESP from next process PCB\n//   pop all registers from new stack\n//   iret  ; return to new process"
+                }
+              ],
+              "nextScene": "scene-7-2-5"
+            },
+            {
+              "id": "scene-7-2-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your simple OS kernel runs. Two processes share the CPU, each believing it has the machine to itself."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Torvalds",
+                  "text": "That's the magic of operating systems. Each program thinks it's alone. The kernel maintains the illusion—scheduling, memory protection, resource management."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But what about performance? All this protection, all this switching—doesn't it slow things down?"
+                },
+                {
+                  "speaker": "Torvalds",
+                  "text": "Somewhat. But the 386's designers knew this. Protected mode was designed to be efficient. And with faster processors coming, the overhead becomes negligible."
+                }
+              ],
+              "narrative": [
+                "The 32-bit era established the operating system paradigms we still use. Preemptive multitasking. Virtual memory. Process isolation.",
+                "But single-threaded performance was hitting limits. Clock speeds could only increase so much. The next breakthrough would come from parallelism within the processor itself."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-7-3",
+          "number": 3,
+          "title": "The Clock Speed Wars",
+          "subtitle": "486, Pentium, and the Quest for Speed",
+          "year": "1993",
+          "scenes": [
+            {
+              "id": "scene-7-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "1993. Intel's Pentium processor launches with great fanfare. But something is wrong. An obscure division bug lurks in the floating-point unit."
+              },
+              "narrative": [
+                "The Pentium is Intel's biggest chip yet: 3.1 million transistors, superscalar execution, 60 MHz. It represents the pinnacle of 32-bit design.",
+                "Then Dr. Thomas Nicely, a math professor, notices that certain division results are wrong. Intel quietly acknowledges the bug—and triggers a firestorm.",
+                "The 'Pentium FDIV bug' becomes a lesson in corporate communication. Intel's initial dismissal backfires spectacularly. They eventually take a $475 million write-off to replace affected chips."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔬",
+                  "name": "Thomas Nicely",
+                  "title": "Professor of Mathematics, Lynchburg College",
+                  "bio": "The professor who discovered the Pentium floating-point division bug while calculating prime number reciprocals. His persistence forced Intel to acknowledge and fix the flaw.",
+                  "stats": [
+                    { "label": "Discovery", "value": "FDIV bug, October 1994" },
+                    { "label": "Impact", "value": "$475M Intel write-off" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Nicely",
+                  "text": "I kept getting different results depending on whether I used the Pentium or older 486 machines. At first I thought it was my code. Then I isolated it to a specific division operation."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The FDIV bug affected specific division operations due to a lookup table error in the Pentium's SRT divider. Only certain dividend/divisor combinations triggered it, with errors typically appearing in the 4th or 5th significant digit. The bug demonstrated that even simple operations can have subtle implementation errors.",
+                  "codeSnippet": "// FDIV bug example\n// \n// Correct: 4195835.0 / 3145727.0 = 1.333820449136241\n// Pentium: 4195835.0 / 3145727.0 = 1.333739068902037\n// \n// Error in 4th significant digit\n// Caused by missing entries in SRT lookup table\n// 5 out of 2048 table entries were wrong"
+                }
+              ],
+              "nextScene": "scene-7-3-2"
+            },
+            {
+              "id": "scene-7-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The FDIV controversy fades, but the clock speed race intensifies. 100 MHz. 200 MHz. AMD enters the fray with the K5 and K6."
+              },
+              "narrative": [
+                "Intel and AMD wage war through gigahertz. Each generation runs faster, hotter, and more power-hungry than the last.",
+                "The 486's 1.2 million transistors become the Pentium's 3.1 million, then the Pentium II's 7.5 million. Moore's Law marches on.",
+                "But raw clock speed isn't everything. The real gains come from architectural improvements: deeper pipelines, more cache, better branch prediction."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "Clock speed is a marketing number. What matters is instructions per clock. A well-designed 200 MHz processor beats a poorly designed 300 MHz one."
+                }
+              ],
+              "nextScene": "scene-7-3-3"
+            },
+            {
+              "id": "scene-7-3-3",
+              "type": "choice",
+              "setting": {
+                "text": "The late 32-bit era becomes a study in microarchitectural optimization. How do you make a processor faster without just cranking up the clock?"
+              },
+              "narrative": [
+                "Cache memory keeps frequently used data close to the CPU. Branch prediction guesses which way conditional jumps will go. Out-of-order execution finds work to do while waiting for memory.",
+                "These optimizations are invisible to programmers but transformative to performance. The 32-bit ISA stays the same; the implementation evolves dramatically."
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-cache",
+                  "icon": "💾",
+                  "title": "Understand Cache Memory",
+                  "description": "Why is cache so important? How do cache hits and misses affect performance?"
+                },
+                {
+                  "id": "choice-branch-prediction",
+                  "icon": "🔮",
+                  "title": "Explore Branch Prediction",
+                  "description": "How does the CPU guess which way a branch will go? What happens when it guesses wrong?"
+                },
+                {
+                  "id": "choice-prepare-pipeline",
+                  "icon": "⚡",
+                  "title": "Prepare for Pipelining",
+                  "description": "The next leap in performance. Understand how instruction pipelines multiply throughput."
+                }
+              ],
+              "nextScene": "scene-7-3-4"
+            },
+            {
+              "id": "scene-7-3-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your Micro32 needs optimization. Add cache memory and experience the dramatic impact on performance."
+              },
+              "narrative": [
+                "Without cache, every memory access takes dozens of cycles. With cache, frequently-used data is available almost instantly. The difference is transformative."
+              ],
+              "challenge": {
+                "title": "ADD CACHE TO THE MICRO32",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement a direct-mapped instruction cache", "completed": false },
+                  { "id": "obj-2", "text": "Add cache tags and valid bits", "completed": false },
+                  { "id": "obj-3", "text": "Implement cache hit/miss detection", "completed": false },
+                  { "id": "obj-4", "text": "Handle cache misses (stall and fill)", "completed": false },
+                  { "id": "obj-5", "text": "Measure cache hit rate on a benchmark", "completed": false },
+                  { "id": "obj-6", "text": "Observe the speedup from cached vs. uncached", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Cache exploits locality: programs tend to access nearby memory locations (spatial locality) and recently-used locations (temporal locality). A small, fast cache captures most accesses; only misses pay the full memory latency. Hit rates above 90% are typical.",
+                  "codeSnippet": "// Cache structure (direct-mapped)\n// \n// Address: [Tag | Index | Offset]\n// \n// Index selects cache line\n// Tag compared to stored tag\n// Match + Valid = HIT → return data\n// Mismatch or Invalid = MISS → fetch from memory\n// \n// Example: 4KB cache, 16B lines, 32-bit addr\n// Offset: 4 bits (16 bytes per line)\n// Index: 8 bits (256 lines)\n// Tag: 20 bits (remaining)"
+                }
+              ],
+              "nextScene": "scene-7-3-5"
+            },
+            {
+              "id": "scene-7-3-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your cached Micro32 runs the same benchmark that previously crawled. The difference is stunning."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Crawford",
+                  "text": "Cache is the first great lie of computer architecture. We tell programmers they have fast, uniform memory. In reality, they have a slow main memory hidden behind fast caches."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What's next? Where does CPU design go from here?"
+                },
+                {
+                  "speaker": "Crawford",
+                  "text": "Pipelining. Instead of executing one instruction at a time, overlap them. Start the next instruction before the current one finishes. Five instructions in flight at once."
+                }
+              ],
+              "narrative": [
+                "The 32-bit era established the architecture we still use. Flat addressing. Protected mode. Paging. These innovations from 1985 remain the foundation of x86-64 today.",
+                "But one instruction at a time wasn't enough. Processor speeds plateaued against physical limits. The solution: work smarter, not just faster. Execute multiple instructions simultaneously through pipelining.",
+                "Continue to Act 8: The Pipeline."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

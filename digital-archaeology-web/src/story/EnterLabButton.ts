@@ -44,6 +44,14 @@ export class EnterLabButton {
   }
 
   /**
+   * Alias for onClick - semantic method name for entering lab.
+   * @param callback - Function called when button is clicked
+   */
+  onEnterLab(callback: () => void): void {
+    this.onClick(callback);
+  }
+
+  /**
    * Handle click events on the button.
    */
   private handleClick(_e: MouseEvent): void {

@@ -8,6 +8,9 @@ import { createAliases } from './vite.aliases';
 const monacoEditorPlugin = (monacoEditorPluginModule as unknown as { default: typeof monacoEditorPluginModule }).default || monacoEditorPluginModule;
 
 export default defineConfig({
+  // Base path for GitHub Pages deployment
+  // Set to '/' for custom domain or root deployment
+  base: process.env.GITHUB_ACTIONS ? '/digital-archaeology/' : '/',
   plugins: [
     wasm(),
     topLevelAwait(),

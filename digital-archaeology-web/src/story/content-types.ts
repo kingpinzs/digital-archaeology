@@ -72,17 +72,45 @@ export interface StoryChapter {
   scenes: StoryScene[];
 }
 
-/** Valid CPU stages corresponding to the 6-stage CPU evolution */
-export type CpuStage = 'micro4' | 'micro8' | 'micro16' | 'micro32' | 'micro32p' | 'micro32s';
+/**
+ * Valid CPU stages corresponding to the 11-act computing evolution.
+ * Pre-microprocessor era (Acts 0-3):
+ *   - mechanical: Act 0 - Abacus through Babbage (3000 BC - 1840s)
+ *   - relay: Act 1 - Electromechanical era (1890s - 1945)
+ *   - vacuum: Act 2 - Vacuum tube computers (1945 - 1955)
+ *   - transistor: Act 3 - Semiconductor revolution (1955 - 1970)
+ * Microprocessor era (Acts 4-9):
+ *   - micro4: Act 4 - First microprocessor (1971)
+ *   - micro8: Act 5 - 8-bit era (1974-1978)
+ *   - micro16: Act 6 - 16-bit era (1978-1985)
+ *   - micro32: Act 7 - 32-bit era (1985-1995)
+ *   - micro32p: Act 8 - Pipelined (1989-1995)
+ *   - micro32s: Act 9 - Superscalar (1995+)
+ * Future computing era (Act 10):
+ *   - future: Act 10 - Chiplets, Quantum, Neuromorphic, TPUs, RISC-V (2015+)
+ */
+export type CpuStage =
+  | 'mechanical'
+  | 'relay'
+  | 'vacuum'
+  | 'transistor'
+  | 'micro4'
+  | 'micro8'
+  | 'micro16'
+  | 'micro32'
+  | 'micro32p'
+  | 'micro32s'
+  | 'future';
 
 /**
  * Represents an act in the story.
- * Acts are major story divisions corresponding to CPU stages.
+ * Acts are major story divisions corresponding to computing eras.
+ * The story spans 10 acts from 3000 BC (abacus) to modern superscalar CPUs.
  */
 export interface StoryAct {
-  /** Unique identifier (e.g., "act-1") */
+  /** Unique identifier (e.g., "act-0", "act-4") */
   id: string;
-  /** Act number (1-5) */
+  /** Act number (0-9) */
   number: number;
   /** Act title (e.g., "The Humbling Beginning") */
   title: string;

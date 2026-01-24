@@ -1,0 +1,689 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-4",
+      "number": 4,
+      "title": "The Chip",
+      "description": "In 1969, a Japanese calculator company approaches a small Silicon Valley startup with an impossible request. What emerges will transform computing forever: the microprocessor. At Intel, you'll witness the birth of the computer-on-a-chip.",
+      "era": "1969-1971",
+      "cpuStage": "micro4",
+      "chapters": [
+        {
+          "id": "chapter-4-1",
+          "number": 1,
+          "title": "The Calculator Crisis",
+          "subtitle": "Busicom's Impossible Request",
+          "year": "1969",
+          "scenes": [
+            {
+              "id": "scene-4-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, Santa Clara, California. April 1969. The company is barely a year old, founded by Robert Noyce and Gordon Moore after leaving Fairchild. Their focus: semiconductor memory chips. But a visitor from Japan is about to change everything."
+              },
+              "narrative": [
+                "Intel's small office buzzes with the energy of a startup. Engineers work elbow-to-elbow, designing the memory chips that Noyce and Moore believe will be the future of computing.",
+                "Today, a delegation from Busicom, a Japanese calculator company, has arrived with an unusual request. They need custom chips for a new line of programmable calculators.",
+                "You're a junior engineer at Intel, recently hired from Fairchild. Your supervisor asks you to sit in on the meeting."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔬",
+                  "name": "Robert Noyce",
+                  "title": "Intel Co-Founder",
+                  "bio": "Co-inventor of the integrated circuit, Noyce left Fairchild to start Intel with Gordon Moore. Known as the 'Mayor of Silicon Valley' for his charisma and vision. His leadership style emphasizes flat hierarchies and empowering engineers.",
+                  "stats": [
+                    { "label": "Era", "value": "1927-1990" },
+                    { "label": "Achievement", "value": "Co-invented the IC" },
+                    { "label": "Company", "value": "Intel Co-Founder (1968)" }
+                  ]
+                },
+                {
+                  "avatar": "📊",
+                  "name": "Gordon Moore",
+                  "title": "Intel Co-Founder",
+                  "bio": "The chemist and physicist who predicted that transistor density would double every two years - 'Moore's Law.' At Intel, he focuses on the manufacturing process while Noyce handles business development.",
+                  "stats": [
+                    { "label": "Era", "value": "1929-2023" },
+                    { "label": "Famous for", "value": "Moore's Law (1965)" },
+                    { "label": "Background", "value": "Caltech PhD, Chemistry" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-4-1-2"
+            },
+            {
+              "id": "scene-4-1-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "Intel's conference room. The Busicom engineers have spread blueprints across the table. The scope of their request becomes clear - and alarming."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Masatoshi Shima",
+                  "text": "We need a chipset for our new 141-PF calculator. We have designed the logic - twelve custom integrated circuits. We need Intel to manufacture them."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "Twelve chips? That's... ambitious. Can you walk us through the design?"
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "Here are the specifications. ROM for program storage. RAM for working memory. Shift registers for the display. Arithmetic logic unit. Timing and control circuits. Keyboard scanner. Each function requires its own custom chip."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "This is incredibly complex. And you need different custom chips for each calculator model? The engineering costs alone would be enormous."
+                }
+              ],
+              "narrative": [
+                "You study the blueprints. The design is clever but inflexible. Every new calculator model would need redesigned chips. The time and cost are staggering."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧮",
+                  "name": "Masatoshi Shima",
+                  "title": "Busicom Engineer",
+                  "bio": "A brilliant young engineer who designed Busicom's calculator logic. Shima's detailed specifications will become crucial to the 4004's development. He will later join Intel to help complete the chip.",
+                  "stats": [
+                    { "label": "Role", "value": "Calculator Logic Designer" },
+                    { "label": "Company", "value": "Busicom (Japan)" },
+                    { "label": "Later", "value": "Joined Intel, then Zilog" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-4-1-3"
+            },
+            {
+              "id": "scene-4-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "After the Busicom delegation leaves, the Intel engineers gather in the break room. The mood is uncertain."
+              },
+              "narrative": [
+                "Intel needs the contract - the company is burning through capital. But twelve custom chips for a single customer? The engineering resources would be overwhelming.",
+                "A young engineer named Ted Hoff has been quiet throughout the meeting. Now he speaks up.",
+                "'There might be another way,' he says. 'What if instead of twelve specialized chips, we build one general-purpose chip?'"
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Senior Engineer",
+                  "text": "One chip to replace twelve? That's not how calculators work, Ted."
+                },
+                {
+                  "speaker": "Ted Hoff",
+                  "text": "No, listen. I've been thinking about the PDP-8. It's a general-purpose minicomputer - one design that can run any program. What if we made a tiny computer on a chip? The calculator functions would just be software."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "💡",
+                  "name": "Ted Hoff",
+                  "title": "Intel Application Engineer",
+                  "bio": "A Stanford PhD who joined Intel to explore new applications for semiconductor technology. His insight - replacing custom hardware with a programmable processor - will define the future of computing. He's not a chip designer, but a systems thinker.",
+                  "stats": [
+                    { "label": "Background", "value": "Stanford PhD, EE" },
+                    { "label": "Role", "value": "Application Engineer" },
+                    { "label": "Key Insight", "value": "General-purpose CPU concept" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-4-1-4"
+            },
+            {
+              "id": "scene-4-1-4",
+              "type": "choice",
+              "setting": {
+                "text": "The break room falls silent as the engineers consider Hoff's radical proposal."
+              },
+              "narrative": [
+                "Hoff continues: 'The PDP-8 has 4K words of memory. This calculator only needs a few hundred. We could build something much simpler - just enough computing power for basic arithmetic and program control.'",
+                "The idea is revolutionary. Instead of hardware that does one thing, build hardware that can do anything - determined by software. The calculator is just the first application."
+              ],
+              "choices": [
+                {
+                  "id": "choice-explore-concept",
+                  "icon": "🔍",
+                  "title": "Explore the Concept",
+                  "description": "Ask Hoff to explain how a general-purpose chip would work for a calculator."
+                },
+                {
+                  "id": "choice-challenge-idea",
+                  "icon": "⚠️",
+                  "title": "Challenge the Idea",
+                  "description": "Point out the risks: Will Busicom accept this? Can it even be built?"
+                },
+                {
+                  "id": "choice-support-vision",
+                  "icon": "🚀",
+                  "title": "Support the Vision",
+                  "description": "Recognize the potential: This could change more than just calculators."
+                }
+              ],
+              "nextScene": "scene-4-1-5"
+            },
+            {
+              "id": "scene-4-1-5",
+              "type": "narrative",
+              "setting": {
+                "text": "Over the following weeks, Hoff develops his concept. You assist with preliminary architecture sketches."
+              },
+              "narrative": [
+                "Hoff's design takes shape on whiteboards and data sheets. A 4-bit processor - enough for BCD arithmetic. A separate ROM chip for program storage. RAM for working data. An I/O chip for keyboard and display.",
+                "Four chips instead of twelve. And the processor chip could be reused in other products - different software, same hardware.",
+                "But there's a problem: Hoff is an architect, not a chip designer. He knows what to build, not how to build it."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Hoff's architecture used 4-bit data paths because calculators work in BCD (Binary-Coded Decimal) - each digit 0-9 needs 4 bits. The instruction set had 46 instructions, including arithmetic, logic, and program control operations.",
+                  "codeSnippet": "// Hoff's 4-bit architecture concept\n// \n// CPU (4004): 4-bit ALU, 16 registers, 3-level stack\n// ROM (4001): 256 bytes program storage\n// RAM (4002): 40 nibbles data storage\n// I/O (4003): Keyboard/display interface\n// \n// 4 chips instead of 12\n// Same hardware, different software = different products"
+                }
+              ],
+              "nextScene": "scene-4-1-6"
+            },
+            {
+              "id": "scene-4-1-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Noyce's office. The proposal meeting with Busicom is tomorrow. The tension is palpable."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Moore",
+                  "text": "We're asking them to throw away months of their own design work. They won't like it."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "But it's better for them too. One chip design, multiple products. Lower costs in the long run."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "The real question is whether we can actually build it. I've sketched the architecture, but turning it into silicon... that's beyond my expertise."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "We'll worry about that after Busicom agrees. First, let's sell them on the vision."
+                }
+              ],
+              "narrative": [
+                "The meeting with Busicom is set for June. Everything depends on convincing them that a general-purpose chip is better than their custom design.",
+                "And if they say yes, Intel will need to find someone who can actually make it work."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-4-2",
+          "number": 2,
+          "title": "The General-Purpose Vision",
+          "subtitle": "Convincing Busicom",
+          "year": "1969-1970",
+          "scenes": [
+            {
+              "id": "scene-4-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel conference room. June 1969. The Busicom delegation has returned, and Hoff is presenting his alternative proposal."
+              },
+              "narrative": [
+                "Hoff stands at the whiteboard, sketching his four-chip architecture. The Busicom engineers listen with skeptical expressions.",
+                "Masatoshi Shima studies every diagram intensely. He designed the original twelve-chip system. Now a young American is telling him there's a better way."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hoff",
+                  "text": "Your design is elegant, but inflexible. Every new calculator requires new chips. With a general-purpose processor, the same hardware can become any calculator - just change the software."
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "But will it be fast enough? A custom chip is optimized for its function. A general-purpose chip must compromise."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "For a calculator? The processor only needs to keep up with human typing speed. A few thousand operations per second is plenty."
+                }
+              ],
+              "nextScene": "scene-4-2-2"
+            },
+            {
+              "id": "scene-4-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The debate continues for hours. Numbers are crunched. Architectures are compared."
+              },
+              "narrative": [
+                "Shima is reluctant but thorough. He walks through every calculator function, asking how the general-purpose chip would handle it. Hoff has answers for everything.",
+                "Finally, the Busicom executives confer in Japanese. The room falls silent.",
+                "After what feels like an eternity, they announce their decision: they will accept Hoff's proposal. But there's a condition."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Busicom Executive",
+                  "text": "We agree to try your approach. But Shima-san will work with your engineers to ensure the design meets our requirements. He knows our calculators better than anyone."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "We would welcome his expertise. When can he start?"
+                }
+              ],
+              "nextScene": "scene-4-2-3"
+            },
+            {
+              "id": "scene-4-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel engineering floor. September 1970. A new arrival is about to transform the project."
+              },
+              "narrative": [
+                "Months have passed. Hoff refined his architecture, but progress on the actual chip design has stalled. The assigned engineer, Stan Mazor, documented the instruction set, but the chip layout remains incomplete.",
+                "Then Federico Faggin arrives from Fairchild Semiconductor.",
+                "Faggin is a silicon wizard - he invented the silicon gate MOS process that makes high-density chips possible. Intel hired him specifically to rescue the floundering 4004 project."
+              ],
+              "characters": [
+                {
+                  "avatar": "⚙️",
+                  "name": "Federico Faggin",
+                  "title": "Project Lead, 4004",
+                  "bio": "An Italian physicist who invented silicon gate technology at Fairchild. Faggin combines theoretical brilliance with hands-on chip design skills. He will personally design every transistor of the 4004, working 16-hour days to meet the deadline.",
+                  "stats": [
+                    { "label": "Background", "value": "University of Padua, Physics" },
+                    { "label": "Invention", "value": "Silicon Gate MOS Process" },
+                    { "label": "Work ethic", "value": "Legendary (16-hour days)" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-4-2-4"
+            },
+            {
+              "id": "scene-4-2-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "Faggin reviews the existing work on the 4004 project. What he finds is concerning."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "The architecture is good - Hoff's concept is solid. But there is no chip design. No transistor layouts. No timing analysis. We are starting from almost zero."
+                },
+                {
+                  "speaker": "You",
+                  "text": "The deadline is April 1971. That's only seven months."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "Then we have no time to waste. I will need help. Shima knows the calculator requirements. You know the logic design. Together, we can do this."
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "I am ready. Show me what to do."
+                }
+              ],
+              "narrative": [
+                "Faggin takes command of the project. His energy is infectious. Within days, the pace of work accelerates dramatically.",
+                "He introduces new design techniques - random logic minimization, careful timing analysis, innovative layout tricks to fit everything on the tiny die."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Faggin's silicon gate process allowed transistors to be smaller and faster than metal gate MOS. The 4004 used approximately 2,300 transistors on a die just 3mm × 4mm - an incredible density for 1970.",
+                  "codeSnippet": "// 4004 Specifications (Final)\n// \n// Transistors: 2,300\n// Die size: 3mm × 4mm (12 mm²)\n// Process: 10 micron\n// Clock speed: 740 kHz\n// Instructions: 46\n// Registers: 16 × 4-bit\n// Stack: 3 levels\n// Performance: 92,000 ops/sec"
+                }
+              ],
+              "nextScene": "scene-4-2-5"
+            },
+            {
+              "id": "scene-4-2-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Intel design lab. Late nights become routine as the team races toward the deadline."
+              },
+              "narrative": [
+                "Faggin assigns you a critical task: design the 4-bit ALU that forms the heart of the processor. It must perform addition, subtraction, and logical operations - all in minimal silicon area.",
+                "Work with the Micro4 HDL to build the arithmetic core of the world's first microprocessor."
+              ],
+              "challenge": {
+                "title": "BUILD THE 4004 ALU",
+                "objectives": [
+                  { "id": "obj-1", "text": "Create 4-bit adder with carry chain", "completed": false },
+                  { "id": "obj-2", "text": "Implement subtraction using complement", "completed": false },
+                  { "id": "obj-3", "text": "Add AND/OR logic operations", "completed": false },
+                  { "id": "obj-4", "text": "Connect to accumulator register", "completed": false },
+                  { "id": "obj-5", "text": "Test with BCD arithmetic (0-9)", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The 4004 ALU used a novel design where subtraction was performed by adding the complement. Decimal adjust circuitry corrected results for BCD arithmetic - crucial for calculators that display base-10 numbers.",
+                  "codeSnippet": "// 4-bit ALU operations\n// \n// ADD: A + B + Carry\n// SUB: A + ~B + 1 (two's complement)\n// AND: A & B\n// OR:  A | B\n// XOR: A ^ B\n// \n// BCD correction:\n// If result > 9, add 6 to wrap to next digit\n// Example: 7 + 5 = 12 → add 6 → 18 (carry 1, digit 8)"
+                }
+              ],
+              "nextScene": "scene-4-2-6"
+            },
+            {
+              "id": "scene-4-2-6",
+              "type": "narrative",
+              "setting": {
+                "text": "January 1971. The chip design is nearly complete. Faggin hand-draws the final transistor layouts."
+              },
+              "narrative": [
+                "Every night, Faggin stays late, hunched over drafting paper with rulers and colored pencils. Each transistor is placed by hand. Each wire is routed around obstacles.",
+                "Modern chips use computer-aided design. In 1971, it's art - patient, meticulous, utterly dependent on the designer's skill and vision.",
+                "Shima reviews every decision against his calculator requirements. You verify the logic, testing each function against Mazor's instruction set documentation."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "We are pushing the limits of what's possible. 2,300 transistors in 12 square millimeters. Every micron counts."
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "Will it work? On paper, it should. But we won't know until we see working silicon."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-4-3",
+          "number": 3,
+          "title": "Making It Real",
+          "subtitle": "Silicon Dreams",
+          "year": "1971",
+          "scenes": [
+            {
+              "id": "scene-4-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel fabrication facility. March 1971. The first 4004 wafers emerge from the production line."
+              },
+              "narrative": [
+                "The masks have been made. The wafers have been processed. Hundreds of identical chips sit on each silicon disc, waiting to be tested.",
+                "Faggin carries the first wafer to the probe station like a father cradling a newborn. Months of work have led to this moment.",
+                "Will the chips function? Or will some subtle design error send the team back to the drawing board, months behind schedule?"
+              ],
+              "technicalNotes": [
+                {
+                  "content": "First silicon 'bring-up' is the most nerve-wracking moment in chip development. Design errors might not appear until the physical chips are tested. In 1971, there was no simulation - you had to build it to know if it worked.",
+                  "codeSnippet": "// First Silicon Testing Process\n// \n// 1. Wafer probe: test chips before cutting\n// 2. Basic functions: clock, reset, power\n// 3. Instruction tests: does ADD work?\n// 4. Integration tests: run real programs\n// 5. Speed tests: timing margins OK?\n// \n// If any fail → redesign → 6-8 weeks lost"
+                }
+              ],
+              "nextScene": "scene-4-3-2"
+            },
+            {
+              "id": "scene-4-3-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "The probe station. Faggin positions the needle probes on the first chip's pads."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "Applying power now. Watch the current draw - if it spikes, we have a short."
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "Current is stable. Good sign."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "Now the clock. Starting at low frequency... oscilloscope shows activity. The chip is alive!"
+                },
+                {
+                  "speaker": "You",
+                  "text": "But does it compute? Let's try a simple instruction."
+                }
+              ],
+              "narrative": [
+                "Faggin feeds a simple program into the ROM: load a number, add another number, store the result.",
+                "The logic analyzer traces the instruction execution. Fetch. Decode. Execute. Write back.",
+                "It works. The first microprocessor is alive."
+              ],
+              "nextScene": "scene-4-3-3"
+            },
+            {
+              "id": "scene-4-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel lab. Over the following weeks, the team tests every function of the 4004."
+              },
+              "narrative": [
+                "Not everything works perfectly. Some chips fail timing tests. Others have logic errors in rarely-used instructions. But the core design is sound.",
+                "Faggin identifies each bug, traces it to the transistor level, and prepares mask revisions. By April, the second revision fixes all known issues.",
+                "Meanwhile, Shima programs the calculator application. His software runs on Intel's hardware. The partnership between Japanese precision and American innovation has created something unprecedented."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 4004 chipset included four chips: the 4004 CPU, 4001 ROM (256 bytes), 4002 RAM (40 nibbles), and 4003 I/O expander. Together they formed the MCS-4 (Micro Computer Set 4-bit).",
+                  "codeSnippet": "// MCS-4 System Architecture\n// \n// 4004 CPU\n//  ├── Address bus (12-bit, multiplexed)\n//  ├── Data bus (4-bit)\n//  └── Control signals\n// \n// Connected to:\n//  ├── 4001 ROM × 2 (512 bytes program)\n//  ├── 4002 RAM × 4 (160 nibbles data)\n//  └── 4003 I/O × 1 (keyboard/display)"
+                }
+              ],
+              "nextScene": "scene-4-3-4"
+            },
+            {
+              "id": "scene-4-3-4",
+              "type": "choice",
+              "setting": {
+                "text": "Intel executive conference room. May 1971. A crucial decision must be made."
+              },
+              "narrative": [
+                "The 4004 works. Busicom's calculators are ready for production. But Intel management faces a question with enormous implications.",
+                "Under the original contract, Busicom owns exclusive rights to the 4004 design. No one else can use it. But Hoff, Faggin, and others believe the microprocessor could have applications far beyond calculators."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hoff",
+                  "text": "This chip could control traffic lights. Industrial equipment. Scientific instruments. We're not just building calculators - we've invented a new kind of computer."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "But Busicom paid for the development. We can't just sell their design to competitors."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "What if we bought back the rights? Busicom is struggling financially. They might accept a reduced price in exchange for giving up exclusivity."
+                }
+              ],
+              "choices": [
+                {
+                  "id": "choice-support-buyback",
+                  "icon": "💰",
+                  "title": "Support the Buyback",
+                  "description": "Argue that the microprocessor's potential justifies the cost of regaining the rights."
+                },
+                {
+                  "id": "choice-honor-contract",
+                  "icon": "📜",
+                  "title": "Honor the Contract",
+                  "description": "Point out the ethical issues with pressuring a struggling partner to give up their rights."
+                },
+                {
+                  "id": "choice-seek-compromise",
+                  "icon": "🤝",
+                  "title": "Seek Compromise",
+                  "description": "Suggest a deal where Busicom keeps calculator rights but Intel can sell to non-competing markets."
+                }
+              ],
+              "nextScene": "scene-4-3-5"
+            },
+            {
+              "id": "scene-4-3-5",
+              "type": "narrative",
+              "setting": {
+                "text": "Summer 1971. Negotiations with Busicom conclude."
+              },
+              "narrative": [
+                "Busicom, facing financial difficulties from Japan's economic downturn, agrees to Intel's proposal. In exchange for a reduced price on the chips, they give up exclusivity.",
+                "Intel is now free to sell the 4004 to anyone. The microprocessor industry is about to be born.",
+                "But first, Intel needs to tell the world what they've created."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Noyce",
+                  "text": "We'll announce in November. 'A microprogrammable computer on a chip.' The engineers will understand the significance. The market will follow."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "I want to initial the chip. Every designer should leave their mark. 'F.F.' in the corner of the die - so history knows who built it."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Faggin's initials 'F.F.' were etched into the corner of every 4004 die - a tradition that continues in chip design today. The buyback from Busicom cost Intel about $60,000 in reduced chip prices.",
+                  "codeSnippet": "// The Business Deal\n// \n// Original contract: Busicom exclusive rights\n// Problem: Busicom financial troubles\n// Solution: Reduce chip price, Intel keeps rights\n// \n// Result:\n// - Busicom gets cheaper chips\n// - Intel can sell to anyone\n// - Microprocessor industry born\n// \n// Cost: ~$60,000 in discounts\n// Value: Trillions of dollars of industry created"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-4-4",
+          "number": 4,
+          "title": "The Announcement",
+          "subtitle": "A New Era Begins",
+          "year": "1971",
+          "scenes": [
+            {
+              "id": "scene-4-4-1",
+              "type": "narrative",
+              "setting": {
+                "text": "November 15, 1971. Intel's advertisement appears in Electronic News: 'Announcing A New Era Of Integrated Electronics.'"
+              },
+              "narrative": [
+                "The ad is modest by modern standards - a single page in a trade publication. But its claims are revolutionary.",
+                "'A microprogrammable computer on a chip!' The 4004 delivers 'the same computing power as the first electronic computer, ENIAC, which filled a large room.'",
+                "For $200, anyone can buy a complete computer brain. The implications ripple outward like waves from a stone dropped in still water."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The comparison to ENIAC was marketing poetry - the 4004 had different capabilities than ENIAC. But the point was clear: room-filling computers could now fit in your hand. The price was $200 for the development kit, $60 for the CPU alone.",
+                  "codeSnippet": "// November 15, 1971 - Intel Advertisement\n// \n// 'A New Era of Integrated Electronics'\n// \n// Intel 4004:\n// - 4-bit parallel CPU\n// - 45 instructions\n// - 740 kHz clock\n// - BCD arithmetic\n// - 'Computing power comparable to ENIAC'\n// \n// Price: $200 (dev kit), $60 (CPU only)"
+                }
+              ],
+              "nextScene": "scene-4-4-2"
+            },
+            {
+              "id": "scene-4-4-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "Intel cafeteria. The team gathers to celebrate, but reflections are mixed."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Shima",
+                  "text": "Busicom will use this in their calculators. But calculators are just the beginning, aren't they?"
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "We've created a universal building block. A computer that costs hundreds of dollars instead of thousands. Someone will find applications we never imagined."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "Already I'm thinking about the next generation. Eight bits instead of four. More memory. Faster clock. The 4004 is a foundation, not a destination."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "Gentlemen, you've changed the world. Not with a single brilliant invention, but with a system - architecture, logic, silicon, software - all working together. That's the real breakthrough."
+                }
+              ],
+              "nextScene": "scene-4-4-3"
+            },
+            {
+              "id": "scene-4-4-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Looking forward: The microprocessor revolution begins."
+              },
+              "narrative": [
+                "Within months, the 4004 appears in products no one predicted: traffic light controllers, elevator systems, cash registers, pinball machines.",
+                "Intel rushes the 8008 into development - an 8-bit version for data processing applications. Then the 8080, which will become the heart of the Altair personal computer.",
+                "The age of the microprocessor has dawned. Every electronic device will eventually contain one - or dozens. The world is about to be transformed."
+              ],
+              "characters": [
+                {
+                  "avatar": "🌅",
+                  "name": "The Future",
+                  "title": "What Comes Next",
+                  "bio": "The 4004 was just the beginning. Its descendants - the 8008, 8080, 8086, and beyond - will create industries worth trillions of dollars. Every smartphone, laptop, car, and smart device traces its lineage to this moment.",
+                  "stats": [
+                    { "label": "4004 (1971)", "value": "2,300 transistors" },
+                    { "label": "8086 (1978)", "value": "29,000 transistors" },
+                    { "label": "Pentium (1993)", "value": "3.1 million transistors" },
+                    { "label": "Modern CPU (2025)", "value": "100+ billion transistors" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-4-4-4"
+            },
+            {
+              "id": "scene-4-4-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Intel design lab. Your final task: design a complete 4-bit processor."
+              },
+              "narrative": [
+                "You've witnessed the birth of the microprocessor. Now it's time to build one yourself.",
+                "Using the Micro4 HDL, create a functioning 4-bit CPU inspired by the 4004. Implement the core components: ALU, registers, program counter, instruction decoder, and control logic."
+              ],
+              "challenge": {
+                "title": "BUILD YOUR OWN MICROPROCESSOR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Create 4-bit ALU with add/subtract/logic", "completed": false },
+                  { "id": "obj-2", "text": "Implement 16-entry register file", "completed": false },
+                  { "id": "obj-3", "text": "Build program counter with branch support", "completed": false },
+                  { "id": "obj-4", "text": "Design instruction decoder for 8+ opcodes", "completed": false },
+                  { "id": "obj-5", "text": "Connect components with control FSM", "completed": false },
+                  { "id": "obj-6", "text": "Run test program: multiply two numbers", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "A minimal CPU needs: ALU (arithmetic), registers (storage), PC (program flow), decoder (instruction interpretation), and control (sequencing). The 4004 proved that all of this could fit on a single chip.",
+                  "codeSnippet": "// Minimal CPU Architecture\n// \n// Fetch:  instruction = ROM[PC]\n// Decode: opcode = instruction[7:4]\n//         operand = instruction[3:0]\n// Execute:\n//   if opcode == ADD: ACC = ACC + REG[operand]\n//   if opcode == JMP: PC = operand\n//   if opcode == LOAD: ACC = REG[operand]\n//   ...\n// Repeat"
+                }
+              ],
+              "nextScene": "scene-4-4-5"
+            },
+            {
+              "id": "scene-4-4-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Epilogue: December 1971. As the year ends, you reflect on what you've witnessed."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "You know what surprises me most? How simple it really is. A few thousand transistors, organized cleverly. Anyone could have done it."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But no one did. Not until now."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "The hard part wasn't the technology. It was the vision - seeing that a general-purpose chip was possible and useful. Hoff saw it. Busicom's problems forced the solution. And then it was just engineering."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What's next for you?"
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "The 8008. Eight bits - twice the power. And after that? Who knows. Maybe someday we'll put millions of transistors on a chip. Billions, even. The only limit is imagination."
+                }
+              ],
+              "narrative": [
+                "The 4004 was a beginning, not an ending. The story of the microprocessor is just starting - and you've been part of its first chapter.",
+                "Continue to Act 5 to witness the 8-bit revolution."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

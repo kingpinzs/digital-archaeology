@@ -147,7 +147,7 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: Story Mode Experience
-  epic-10: in-progress
+  epic-10: done
   10-1-implement-story-lab-mode-toggle: done
   10-2-create-story-mode-layout: done
   10-3-create-fixed-navigation-bar: done
@@ -164,7 +164,8 @@ development_status:
   10-14-implement-story-content-data-structure: done
   10-15-create-story-progression-engine: done
   10-16-display-era-badge-and-progress: done
-  epic-10-retrospective: optional
+  10-17-wire-story-mode-integration: done
+  epic-10-retrospective: done
 
   # Epic 11: Multi-Stage Architecture
   epic-11: backlog

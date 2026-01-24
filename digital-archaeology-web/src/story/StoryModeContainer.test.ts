@@ -226,22 +226,29 @@ describe('StoryModeContainer', () => {
     });
   });
 
-  // Legacy tests from Story 10.1 (backward compatibility)
-  describe('Legacy Story 10.1 Tests', () => {
-    it('should render chapter title in content', () => {
+  // Story 10.17: StoryController integration tests
+  describe('Story 10.17: StoryController Integration', () => {
+    it('should have getStoryController() method', () => {
       storyContainer = createStoryModeContainer();
       storyContainer.mount(container);
 
-      const title = container.querySelector('.da-story-chapter-title');
-      expect(title?.textContent).toContain('Chapter 1');
+      // getStoryController should exist (may be null before initialization completes)
+      expect(typeof storyContainer.getStoryController).toBe('function');
     });
 
-    it('should render "Enter the Lab" button', () => {
+    it('should render scene mount point for dynamic content', () => {
       storyContainer = createStoryModeContainer();
       storyContainer.mount(container);
 
-      const btn = container.querySelector('.da-story-enter-lab-btn');
-      expect(btn).not.toBeNull();
+      const sceneMount = container.querySelector('.da-story-scene-mount');
+      expect(sceneMount).not.toBeNull();
+    });
+
+    it('should have waitForInitialization method', () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      expect(typeof storyContainer.waitForInitialization).toBe('function');
     });
   });
 

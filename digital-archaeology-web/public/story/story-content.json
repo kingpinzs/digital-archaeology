@@ -1,0 +1,177 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "subtitle": "A Journey Through the History of Computing",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24",
+    "description": "Experience the complete history of computation from the abacus (3000 BC) to modern superscalar processors. Every invention exists because of a problem that demanded it."
+  },
+  "actIndex": [
+    {
+      "number": 0,
+      "id": "act-0",
+      "title": "The Dawn of Calculation",
+      "era": "3000 BC - 1840s",
+      "cpuStage": "mechanical",
+      "file": "act-0-mechanical.json",
+      "summary": "From Sumerian merchants to Babbage's vision: discover why humans needed to automate calculation."
+    },
+    {
+      "number": 1,
+      "id": "act-1",
+      "title": "Electrification",
+      "era": "1890s - 1945",
+      "cpuStage": "relay",
+      "file": "act-1-relay.json",
+      "summary": "Census crisis, world war, and the birth of programmable machines through electrical relays."
+    },
+    {
+      "number": 2,
+      "id": "act-2",
+      "title": "The Electronic Giants",
+      "era": "1945 - 1955",
+      "cpuStage": "vacuum",
+      "file": "act-2-vacuum.json",
+      "summary": "ENIAC, UNIVAC, and the vacuum tube era: electronic switching enables unprecedented speed."
+    },
+    {
+      "number": 3,
+      "id": "act-3",
+      "title": "The Solid State Revolution",
+      "era": "1947 - 1971",
+      "cpuStage": "transistor",
+      "file": "act-3-transistor.json",
+      "summary": "From Bell Labs to Silicon Valley: the transistor and integrated circuit change everything."
+    },
+    {
+      "number": 4,
+      "id": "act-4",
+      "title": "The Chip",
+      "era": "1971",
+      "cpuStage": "micro4",
+      "file": "act-4-micro4.json",
+      "summary": "The birth of the microprocessor: putting an entire computer on a single chip."
+    },
+    {
+      "number": 5,
+      "id": "act-5",
+      "title": "The 8-bit Era",
+      "era": "1974 - 1978",
+      "cpuStage": "micro8",
+      "file": "act-5-micro8.json",
+      "summary": "8080, Z80, 6502: the processors that launched the personal computer revolution."
+    },
+    {
+      "number": 6,
+      "id": "act-6",
+      "title": "The 16-bit Era",
+      "era": "1978 - 1985",
+      "cpuStage": "micro16",
+      "file": "act-6-micro16.json",
+      "summary": "Breaking the 64KB barrier: segmentation, hardware multiply, and the IBM PC."
+    },
+    {
+      "number": 7,
+      "id": "act-7",
+      "title": "The 32-bit Era",
+      "era": "1985 - 1995",
+      "cpuStage": "micro32",
+      "file": "act-7-micro32.json",
+      "summary": "Protected mode, paging, and flat 4GB addressing: the architecture that runs the world."
+    },
+    {
+      "number": 8,
+      "id": "act-8",
+      "title": "The Pipeline",
+      "era": "1989 - 1995",
+      "cpuStage": "micro32p",
+      "file": "act-8-micro32p.json",
+      "summary": "Five-stage pipelines, hazards, and forwarding: making every cycle count."
+    },
+    {
+      "number": 9,
+      "id": "act-9",
+      "title": "Superscalar",
+      "era": "1995 - 2020",
+      "cpuStage": "micro32s",
+      "file": "act-9-micro32s.json",
+      "summary": "Out-of-order execution, branch prediction, and modern CPU marvels."
+    },
+    {
+      "number": 10,
+      "id": "act-10",
+      "title": "The Future of Computing",
+      "era": "2015+",
+      "cpuStage": "future",
+      "file": "act-10-future.json",
+      "summary": "Chiplets, quantum computing, neuromorphic processors, TPUs, and RISC-V: the next chapter of computing awaits."
+    }
+  ],
+  "roadsNotTaken": [
+    {
+      "id": "babbage-analytical",
+      "visionary": "Charles Babbage",
+      "year": 1837,
+      "idea": "Analytical Engine",
+      "barrier": "Victorian-era machining couldn't achieve required precision",
+      "linkedAct": 0
+    },
+    {
+      "id": "lilienfeld-fet",
+      "visionary": "Julius Lilienfeld",
+      "year": 1926,
+      "idea": "Field-Effect Transistor",
+      "barrier": "No pure semiconductor materials available",
+      "linkedAct": 3
+    },
+    {
+      "id": "zuse-floating-point",
+      "visionary": "Konrad Zuse",
+      "year": 1936,
+      "idea": "Floating-Point Computer",
+      "barrier": "WWII destroyed his machines; work largely unknown",
+      "linkedAct": 1
+    },
+    {
+      "id": "turing-ace",
+      "visionary": "Alan Turing",
+      "year": 1945,
+      "idea": "ACE Design",
+      "barrier": "Too advanced for his team to build",
+      "linkedAct": 2
+    },
+    {
+      "id": "capability-machines",
+      "visionary": "Jack Dennis / CAP",
+      "year": 1968,
+      "idea": "Capability-Based Security",
+      "barrier": "Market chose backwards compatibility over security",
+      "linkedAct": 4
+    },
+    {
+      "id": "lisp-machines",
+      "visionary": "MIT AI Lab",
+      "year": 1975,
+      "idea": "Hardware Lisp Execution",
+      "barrier": "x86 won through economics, not elegance",
+      "linkedAct": 5
+    },
+    {
+      "id": "iapx-432",
+      "visionary": "Intel",
+      "year": 1981,
+      "idea": "Capability + OOP in Silicon",
+      "barrier": "Too slow, too complex; x86 continued instead",
+      "linkedAct": 6
+    },
+    {
+      "id": "itanium-vliw",
+      "visionary": "Intel/HP",
+      "year": 1994,
+      "idea": "EPIC/VLIW Architecture",
+      "barrier": "x86 backwards compatibility won",
+      "linkedAct": 8
+    }
+  ]
+}

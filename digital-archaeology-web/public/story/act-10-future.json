@@ -1,0 +1,740 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-10",
+      "number": 10,
+      "title": "The Future of Computing",
+      "description": "Moore's Law is slowing. Power walls block the path to higher frequencies. Classical computing approaches fundamental physical limits. But from these constraints, new paradigms emerge: chiplets that break monolithic dies into efficient modules, quantum processors that harness superposition, neuromorphic chips that mimic the brain, and specialized accelerators that abandon general-purpose for raw efficiency. The future isn't one technology—it's many.",
+      "era": "2015 - Beyond",
+      "cpuStage": "future",
+      "chapters": [
+        {
+          "id": "chapter-10-1",
+          "number": 1,
+          "title": "The Limits of Silicon",
+          "subtitle": "Chiplets and the Death of Moore's Law",
+          "year": "2015-2025",
+          "scenes": [
+            {
+              "id": "scene-10-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "AMD headquarters, Santa Clara, California, 2015. The company is in crisis. Their Bulldozer architecture has failed. Intel dominates every market. Lisa Su, the new CEO, faces an impossible challenge."
+              },
+              "narrative": [
+                "AMD is dying. Market share has collapsed. Engineers are leaving. The stock price hovers near historic lows. Conventional wisdom says AMD cannot compete—Intel's manufacturing lead is insurmountable.",
+                "But Lisa Su sees something others miss. Intel builds massive monolithic dies—single slabs of silicon with everything integrated. Bigger dies mean more transistors, but also more defects. Yields plummet as dies grow.",
+                "What if you didn't need one big die? What if you could build small, efficient dies and connect them together?"
+              ],
+              "characters": [
+                {
+                  "avatar": "👩‍💼",
+                  "name": "Lisa Su",
+                  "title": "CEO, AMD",
+                  "bio": "An MIT PhD in electrical engineering who took over AMD when it was nearly bankrupt. Su bet the company on a radical new architecture—Zen—and a revolutionary manufacturing approach: chiplets. Her gamble would transform AMD from also-ran to market leader.",
+                  "stats": [
+                    { "label": "Education", "value": "MIT PhD, EE" },
+                    { "label": "Became CEO", "value": "2014" },
+                    { "label": "Result", "value": "AMD market cap 50x increase" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Moore's Law predicted transistor density doubling every two years. By 2015, this was slowing dramatically. Below 10nm, quantum effects like tunneling cause leakage. The 'end of Moore's Law' forced new approaches to chip design.",
+                  "codeSnippet": "// Moore's Law Slowdown\n// \n// 1970s-2000s: Density doubles every 2 years\n// 2010s: Slowing to 2.5-3 years\n// 2020s: Physical limits approaching\n// \n// Problems below 10nm:\n// - Quantum tunneling → leakage current\n// - Heat density → thermal limits\n// - Manufacturing → exponential cost\n// \n// Solution: Stop making bigger dies\n//           Make smarter connections"
+                }
+              ],
+              "nextScene": "scene-10-1-2"
+            },
+            {
+              "id": "scene-10-1-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "AMD engineering war room. Su meets with her technical leadership to review the radical chiplet proposal."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Mark Papermaster",
+                  "text": "The yield problem is killing us. A 500mm² die at 7nm? Maybe 30% yield. We're throwing away 70% of every wafer."
+                },
+                {
+                  "speaker": "Lisa Su",
+                  "text": "So we don't build 500mm² dies. We build smaller ones and connect them."
+                },
+                {
+                  "speaker": "Papermaster",
+                  "text": "Chiplets. We've been prototyping it. Take the CPU cores—call them CCDs, Core Complex Dies. Build them small, maybe 80mm². Yields jump to 80% or better."
+                },
+                {
+                  "speaker": "Engineer",
+                  "text": "But then you need an interconnect. Die-to-die communication is slow compared to on-die wires."
+                },
+                {
+                  "speaker": "Papermaster",
+                  "text": "That's where Infinity Fabric comes in. We've designed an interconnect fast enough that software can't tell the difference. The operating system sees one processor. Under the hood, it's multiple chiplets talking at hundreds of gigabytes per second."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🔧",
+                  "name": "Mark Papermaster",
+                  "title": "CTO, AMD",
+                  "bio": "The chief technology officer who architected AMD's chiplet strategy. Papermaster led the development of Zen and Infinity Fabric, the technologies that enabled AMD's comeback. Previously worked at IBM on Power processors.",
+                  "stats": [
+                    { "label": "Role", "value": "CTO, AMD" },
+                    { "label": "Key innovation", "value": "Infinity Fabric" },
+                    { "label": "Previous", "value": "IBM Power Architecture" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-10-1-3"
+            },
+            {
+              "id": "scene-10-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "AMD fabrication partner TSMC, Taiwan, 2019. The first Zen 2 chiplets roll off the production line."
+              },
+              "narrative": [
+                "The gamble has paid off. AMD's Zen 2 processors use chiplets: small CPU dies connected to a larger I/O die. The CPU chiplets use cutting-edge 7nm technology. The I/O die uses cheaper, mature 12nm.",
+                "This mix-and-match approach is revolutionary. Put the transistors that need density on expensive new processes. Put everything else on cheaper old processes. Total cost plummets.",
+                "Intel, committed to monolithic designs, watches in disbelief as AMD's server chips outperform theirs at half the price."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AMD's Zen 2 architecture separated CPU cores (CCDs) from I/O functions (IOD). CCDs were 74mm² at 7nm with ~3.9B transistors. The IOD was 125mm² at 12nm. This let AMD build 64-core server chips that Intel couldn't match.",
+                  "codeSnippet": "// AMD EPYC Rome (Zen 2) Architecture\n// \n// +--------+  +--------+\n// | CCD 1  |  | CCD 2  |  ← 7nm, 8 cores each\n// +--------+  +--------+\n//      \\        /\n//       Infinity Fabric\n//      /        \\\n// +------------------+\n// |    I/O Die       |  ← 12nm, memory/PCIe\n// +------------------+\n// \n// Up to 8 CCDs = 64 cores\n// Intel's monolithic max: 28 cores"
+                }
+              ],
+              "nextScene": "scene-10-1-4"
+            },
+            {
+              "id": "scene-10-1-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel headquarters, Santa Clara, 2020. The industry giant scrambles to respond."
+              },
+              "narrative": [
+                "Intel had dismissed chiplets as a compromise—the fallback of a company that couldn't build big dies. Now they're racing to catch up.",
+                "Their answer: Foveros. Instead of placing chiplets side by side, stack them vertically. 3D integration. One die on top of another, connected by microscopic pillars of copper.",
+                "And EMIB—Embedded Multi-die Interconnect Bridge. A silicon interposer embedded in the package substrate, connecting chiplets at bandwidths approaching on-die wires."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏭",
+                  "name": "Ann Kelleher",
+                  "title": "SVP, Technology Development, Intel",
+                  "bio": "Leading Intel's advanced packaging and process technology development. Kelleher oversees Foveros 3D stacking and other technologies Intel hopes will leapfrog AMD's chiplet approach.",
+                  "stats": [
+                    { "label": "Focus", "value": "Advanced Packaging" },
+                    { "label": "Technologies", "value": "Foveros, EMIB" },
+                    { "label": "Goal", "value": "Heterogeneous integration" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kelleher",
+                  "text": "Chiplets were just the beginning. The future is heterogeneous integration—mixing different technologies, different process nodes, even different materials in one package. We call it 'tiles' not chiplets, but the principle is the same."
+                }
+              ],
+              "nextScene": "scene-10-1-5"
+            },
+            {
+              "id": "scene-10-1-5",
+              "type": "choice",
+              "setting": {
+                "text": "The packaging revolution transforms chip design. But which approach will dominate?"
+              },
+              "narrative": [
+                "TSMC introduces CoWoS—Chip on Wafer on Substrate—for high-bandwidth memory integration. Samsung develops their own 3D packaging. Even Apple joins the race, designing custom silicon with integrated components.",
+                "The era of the monolithic die is ending. The future belongs to creative combinations of specialized components."
+              ],
+              "choices": [
+                {
+                  "id": "choice-explore-3d",
+                  "icon": "🏗️",
+                  "title": "Explore 3D Stacking",
+                  "description": "Learn how dies are stacked vertically with through-silicon vias (TSVs)."
+                },
+                {
+                  "id": "choice-explore-interposer",
+                  "icon": "🔗",
+                  "title": "Explore Interposers",
+                  "description": "Understand silicon bridges that connect dies at high bandwidth."
+                },
+                {
+                  "id": "choice-explore-quantum",
+                  "icon": "⚛️",
+                  "title": "Continue to Quantum",
+                  "description": "Move beyond classical computing to quantum processors."
+                }
+              ],
+              "nextScene": "scene-10-1-6"
+            },
+            {
+              "id": "scene-10-1-6",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab: Design a chiplet-based processor."
+              },
+              "narrative": [
+                "Apply what you've learned about chiplet architecture. Design a multi-die processor that balances performance, yield, and cost.",
+                "Consider: How many chiplets? What interconnect topology? Which components on which process node?"
+              ],
+              "challenge": {
+                "title": "DESIGN A CHIPLET ARCHITECTURE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Partition CPU cores into compute chiplets (CCDs)", "completed": false },
+                  { "id": "obj-2", "text": "Design I/O die with memory controllers", "completed": false },
+                  { "id": "obj-3", "text": "Plan interconnect topology (ring, mesh, or crossbar)", "completed": false },
+                  { "id": "obj-4", "text": "Calculate yield improvement vs monolithic", "completed": false },
+                  { "id": "obj-5", "text": "Consider thermal and power distribution", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Chiplet design requires balancing many factors: die size affects yield, interconnect bandwidth affects performance, process mixing affects cost. The optimal design depends on the target market—servers favor more cores, clients favor integrated graphics.",
+                  "codeSnippet": "// Yield calculation example\n// \n// Defect density: 0.1 defects/cm²\n// \n// Monolithic 400mm² die:\n//   Yield = e^(-0.1 × 4) = 67%\n// \n// 4 × 100mm² chiplets:\n//   Per-chiplet yield = e^(-0.1 × 1) = 90%\n//   System yield = 0.9^4 = 66% (similar!)\n//   BUT: working chiplets can be mixed/matched\n//   Effective yield: ~85%"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-10-2",
+          "number": 2,
+          "title": "Beyond Classical",
+          "subtitle": "Quantum, Neuromorphic, and Photonic Computing",
+          "year": "2019-2030+",
+          "scenes": [
+            {
+              "id": "scene-10-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "IBM Quantum Lab, Yorktown Heights, New York, 2019. In a chamber cooled to near absolute zero, a processor unlike any other hums with quantum possibility."
+              },
+              "narrative": [
+                "Some problems are impossible for classical computers—not difficult, but mathematically impossible within the lifetime of the universe. Simulating molecules for drug discovery. Optimizing global logistics. Breaking modern encryption.",
+                "Quantum computers exploit the strange rules of quantum mechanics: superposition (a bit that's 0 AND 1 simultaneously) and entanglement (particles correlated across any distance).",
+                "A classical computer with n bits can be in one of 2^n states. A quantum computer with n qubits can be in ALL 2^n states at once. The computational space explodes exponentially."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔮",
+                  "name": "Jay Gambetta",
+                  "title": "VP, IBM Quantum",
+                  "bio": "Leading IBM's quantum computing program toward practical applications. Gambetta's roadmap aims for 100,000+ qubit systems by 2033, the scale needed for useful quantum advantage in real-world problems.",
+                  "stats": [
+                    { "label": "Current system", "value": "1,000+ qubits (2023)" },
+                    { "label": "2033 target", "value": "100,000+ qubits" },
+                    { "label": "Challenge", "value": "Error correction" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Qubits use quantum superposition to represent multiple states simultaneously. But they're fragile—any interaction with the environment causes 'decoherence,' collapsing the quantum state. Current quantum computers must operate at 15 millikelvin (-273.135°C) to minimize thermal noise.",
+                  "codeSnippet": "// Classical bit vs Qubit\n// \n// Classical bit: |0⟩ OR |1⟩\n// Qubit: α|0⟩ + β|1⟩ where |α|² + |β|² = 1\n// \n// 2 classical bits: one of {00, 01, 10, 11}\n// 2 qubits: ALL of {00, 01, 10, 11} simultaneously\n// \n// n classical bits: 1 state\n// n qubits: 2^n states superposed\n// \n// 50 qubits ≈ 2^50 ≈ 10^15 states\n// More than any classical computer can track"
+                }
+              ],
+              "nextScene": "scene-10-2-2"
+            },
+            {
+              "id": "scene-10-2-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "A quantum computing conference. Researchers debate what 'quantum supremacy' actually means."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Google Researcher",
+                  "text": "In 2019, our Sycamore processor performed a calculation in 200 seconds that would take the world's fastest supercomputer 10,000 years. That's quantum supremacy."
+                },
+                {
+                  "speaker": "IBM Researcher",
+                  "text": "We dispute that estimate. With better classical algorithms, a supercomputer could do it in days, not millennia. And your calculation had no practical use."
+                },
+                {
+                  "speaker": "Moderator",
+                  "text": "So when will quantum computers solve real problems?"
+                },
+                {
+                  "speaker": "Jay Gambetta",
+                  "text": "We're in the NISQ era—Noisy Intermediate-Scale Quantum. Current machines are too error-prone for most useful algorithms. We need error correction, which requires thousands of physical qubits per logical qubit. That's the mountain we're climbing."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🏆",
+                  "name": "John Preskill",
+                  "title": "Caltech Professor",
+                  "bio": "Theoretical physicist who coined 'quantum supremacy' and 'NISQ era.' Preskill provides a realistic assessment of quantum computing: transformative potential, but significant challenges remain before practical applications.",
+                  "stats": [
+                    { "label": "Coined", "value": "NISQ, Quantum Supremacy" },
+                    { "label": "Assessment", "value": "Promising but overhyped" },
+                    { "label": "Timeline", "value": "Useful applications: 10+ years" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-10-2-3"
+            },
+            {
+              "id": "scene-10-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Labs, Hillsboro, Oregon, 2020. A different approach to the limits of classical computing: mimic the brain."
+              },
+              "narrative": [
+                "The human brain recognizes faces, understands language, and navigates complex social situations—all on about 20 watts of power. A GPU training an AI model uses 300 watts and still can't match human flexibility.",
+                "What if we built hardware that worked like neurons instead of transistors? Not simulating neural networks on conventional hardware, but building actual silicon neurons?",
+                "This is neuromorphic computing. Intel's Loihi chip contains 128,000 artificial neurons, each capable of receiving spikes from thousands of others. Computation happens through spike patterns, not clock cycles."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧠",
+                  "name": "Mike Davies",
+                  "title": "Director, Neuromorphic Computing, Intel",
+                  "bio": "Leading Intel's Loihi neuromorphic research program. Davies believes brain-inspired computing could achieve AI capabilities at a fraction of current power consumption—crucial for edge devices and autonomous systems.",
+                  "stats": [
+                    { "label": "Chip", "value": "Loihi 2" },
+                    { "label": "Neurons", "value": "1 million per chip" },
+                    { "label": "Power advantage", "value": "Up to 1000x vs GPU" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Neuromorphic chips use spiking neural networks (SNNs) instead of artificial neural networks (ANNs). Neurons only 'fire' when their input exceeds a threshold, making computation event-driven and highly efficient. Information is encoded in spike timing, not continuous values.",
+                  "codeSnippet": "// Spiking vs Traditional Neural Networks\n// \n// Traditional (ANN):\n//   output = activation(weights · inputs)\n//   Computed every clock cycle\n//   Energy: proportional to operations\n// \n// Spiking (SNN):\n//   membrane += input_spikes\n//   if membrane > threshold: fire spike\n//   Computed only on spikes\n//   Energy: proportional to activity\n// \n// Sparse activity → massive energy savings"
+                }
+              ],
+              "nextScene": "scene-10-2-4"
+            },
+            {
+              "id": "scene-10-2-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Lightmatter headquarters, Boston, 2023. Light replaces electrons."
+              },
+              "narrative": [
+                "Electrons have served computing well for 80 years. But they generate heat, suffer resistance, and travel far slower than light. What if computation used photons instead?",
+                "Photonic computing sends light through optical components that perform mathematical operations. A beam splitter can add signals. A phase shifter can multiply. Arrays of these components can perform matrix multiplication—the heart of neural networks—at literally the speed of light.",
+                "Lightmatter's Envise chip does exactly this. Laser light enters, passes through programmable optical pathways, and emerges transformed. Matrix multiplication in nanoseconds, with minimal heat."
+              ],
+              "characters": [
+                {
+                  "avatar": "💡",
+                  "name": "Nick Harris",
+                  "title": "CEO, Lightmatter",
+                  "bio": "MIT PhD who co-founded Lightmatter to commercialize photonic computing. Harris believes optical matrix multiplication could transform AI inference, enabling real-time processing at the edge without massive power consumption.",
+                  "stats": [
+                    { "label": "Technology", "value": "Photonic AI accelerator" },
+                    { "label": "Speed", "value": "Speed of light" },
+                    { "label": "Efficiency", "value": "10x vs electronic" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Photonic computing uses Mach-Zehnder interferometers to perform linear algebra operations. Light intensity encodes values; interference patterns compute results. The technology is especially suited for matrix multiplication, making it ideal for AI inference.",
+                  "codeSnippet": "// Photonic Matrix Multiplication\n// \n// Electronic: read weights from memory\n//             multiply-accumulate sequentially\n//             ~100 ns for 256x256 matrix\n// \n// Photonic: encode inputs in light intensity\n//           pass through optical mesh\n//           interference computes result\n//           ~10 ns for 256x256 matrix\n// \n// Plus: No heat from switching transistors"
+                }
+              ],
+              "nextScene": "scene-10-2-5"
+            },
+            {
+              "id": "scene-10-2-5",
+              "type": "choice",
+              "setting": {
+                "text": "Three paradigms. Three paths beyond classical computing. Each solves different problems."
+              },
+              "narrative": [
+                "Quantum computing excels at optimization, simulation, and cryptography—problems with exponential solution spaces. Neuromorphic computing handles pattern recognition with extreme efficiency—ideal for sensors and edge AI. Photonic computing accelerates linear algebra at light speed—perfect for neural network inference.",
+                "None will replace classical computing entirely. The future is heterogeneous: the right tool for each problem."
+              ],
+              "choices": [
+                {
+                  "id": "choice-quantum-deep",
+                  "icon": "⚛️",
+                  "title": "Dive Into Quantum Algorithms",
+                  "description": "Explore Shor's algorithm for factoring and Grover's algorithm for search."
+                },
+                {
+                  "id": "choice-neuro-deep",
+                  "icon": "🧠",
+                  "title": "Explore Neuromorphic Architecture",
+                  "description": "Learn how spiking neural networks are implemented in silicon."
+                },
+                {
+                  "id": "choice-continue-ai",
+                  "icon": "🤖",
+                  "title": "Continue to AI Accelerators",
+                  "description": "See how specialized hardware is transforming machine learning."
+                }
+              ],
+              "nextScene": "scene-10-2-6"
+            },
+            {
+              "id": "scene-10-2-6",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab: Match problems to computing paradigms."
+              },
+              "narrative": [
+                "Understanding when to use each computing paradigm is crucial. Some problems map naturally to quantum mechanics. Others benefit from brain-like processing. Still others just need fast linear algebra.",
+                "For each problem, identify the best computing approach."
+              ],
+              "challenge": {
+                "title": "MATCH PROBLEMS TO PARADIGMS",
+                "objectives": [
+                  { "id": "obj-1", "text": "Drug molecule simulation → Quantum (simulates quantum systems)", "completed": false },
+                  { "id": "obj-2", "text": "Real-time object detection → Neuromorphic (sparse, event-driven)", "completed": false },
+                  { "id": "obj-3", "text": "Neural network inference → Photonic (fast matrix multiply)", "completed": false },
+                  { "id": "obj-4", "text": "Cryptographic factoring → Quantum (exponential speedup)", "completed": false },
+                  { "id": "obj-5", "text": "Autonomous vehicle sensing → Neuromorphic (low power, real-time)", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Quantum excels at: simulation, optimization, cryptography. Neuromorphic excels at: pattern recognition, sensory processing, edge AI. Photonic excels at: matrix multiplication, neural network inference. Classical still wins for: general-purpose computing, precise numerical work, complex branching logic.",
+                  "codeSnippet": "// Computing Paradigm Selection Guide\n// \n// Classical: branching logic, precise math\n// Quantum: exponential search spaces, simulation\n// Neuromorphic: sparse patterns, low power\n// Photonic: dense linear algebra, speed\n// \n// Future systems will combine all four:\n// Classical orchestrates\n// Quantum solves hard subproblems\n// Neuromorphic handles perception\n// Photonic accelerates inference"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-10-3",
+          "number": 3,
+          "title": "The Specialized Age",
+          "subtitle": "TPUs, RISC-V, and the End of General-Purpose",
+          "year": "2016-2030+",
+          "scenes": [
+            {
+              "id": "scene-10-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Google data center, The Dalles, Oregon, 2016. A crisis is brewing. Training neural networks is consuming more compute than Google can provide."
+              },
+              "narrative": [
+                "AlphaGo has just defeated the world Go champion. The victory made headlines, but inside Google, engineers know the dirty secret: training AlphaGo required thousands of GPUs running for months. The electricity bill alone was staggering.",
+                "Neural networks are transforming AI, but they're built on matrix multiplication—billions of multiply-accumulate operations. CPUs are too general. GPUs are better but still inefficient. What if you built hardware that did nothing BUT matrix multiplication?",
+                "Google has been quietly developing exactly that. They call it the Tensor Processing Unit—TPU."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧮",
+                  "name": "Norm Jouppi",
+                  "title": "Distinguished Engineer, Google",
+                  "bio": "The architect of Google's TPU. Jouppi designed a systolic array processor optimized for neural network inference—matrix multiplication at unprecedented efficiency. The TPU outperformed contemporary GPUs by 15-30x per watt.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Systolic array for ML" },
+                    { "label": "TPU v1 performance", "value": "92 TOPS" },
+                    { "label": "Efficiency", "value": "15-30x vs GPU/watt" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The TPU v1 used an 8-bit systolic array for matrix multiplication. Systolic arrays flow data through a grid of processing elements, minimizing memory access. TPU v1 had a 256x256 array, performing 65,536 multiply-accumulates per cycle.",
+                  "codeSnippet": "// TPU Systolic Array\n// \n// Data flows through processing elements:\n// \n// →[PE]→[PE]→[PE]→  weights flow right\n//   ↓    ↓    ↓\n// →[PE]→[PE]→[PE]→  activations flow down\n//   ↓    ↓    ↓\n// →[PE]→[PE]→[PE]→  results accumulate\n// \n// Each PE: multiply-accumulate\n// 256x256 array = 65,536 MACs/cycle\n// No memory access between operations"
+                }
+              ],
+              "nextScene": "scene-10-3-2"
+            },
+            {
+              "id": "scene-10-3-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "Google's TPU design review. The team debates precision versus efficiency."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Jouppi",
+                  "text": "Neural networks are surprisingly tolerant of low precision. Training needs 16 or 32-bit floats, but inference? 8-bit integers are often enough. Sometimes even less."
+                },
+                {
+                  "speaker": "ML Engineer",
+                  "text": "Quantizing to 8 bits loses accuracy though."
+                },
+                {
+                  "speaker": "Jouppi",
+                  "text": "A few percent at most. But the efficiency gain is 4x or more. And we can fit four times as many operations on chip. For inference at scale, that tradeoff is worth it."
+                },
+                {
+                  "speaker": "Jeff Dean",
+                  "text": "The real insight is specialization. A GPU is a compromise—good at graphics AND compute. The TPU does one thing: matrix multiply. It does that one thing better than anything else on Earth."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🌐",
+                  "name": "Jeff Dean",
+                  "title": "SVP, Google AI",
+                  "bio": "One of Google's most legendary engineers, co-creator of MapReduce, TensorFlow, and the TPU program. Dean has been instrumental in scaling machine learning from research curiosity to production infrastructure.",
+                  "stats": [
+                    { "label": "Creations", "value": "MapReduce, TensorFlow" },
+                    { "label": "Role", "value": "SVP, Google AI" },
+                    { "label": "Impact", "value": "Scaled ML to billions of users" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-10-3-3"
+            },
+            {
+              "id": "scene-10-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Apple Park, Cupertino, 2017. The A11 Bionic chip introduces the Neural Engine."
+              },
+              "narrative": [
+                "Google's TPUs live in data centers. But Apple sees a different opportunity: what if you put AI acceleration in every phone?",
+                "The A11 Bionic includes a dedicated Neural Engine—hardware specifically designed for machine learning inference. It enables Face ID, computational photography, and real-time language processing, all running locally on the device.",
+                "Suddenly, AI isn't just a cloud service. It's personal, private, instant."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Johny Srouji",
+                  "text": "Every year, machine learning demands more compute. We can't keep scaling GPUs—the power budget won't allow it. The Neural Engine does ML operations at a fraction of the energy."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🍎",
+                  "name": "Johny Srouji",
+                  "title": "SVP, Hardware Technologies, Apple",
+                  "bio": "The architect of Apple's custom silicon strategy. Srouji built the team that created the A-series chips for iPhone and eventually the M-series chips for Mac. His Neural Engine brought on-device AI to billions of users.",
+                  "stats": [
+                    { "label": "Role", "value": "SVP, Hardware Technologies" },
+                    { "label": "Created", "value": "A-series, M-series chips" },
+                    { "label": "Impact", "value": "AI in every Apple device" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-10-3-4"
+            },
+            {
+              "id": "scene-10-3-4",
+              "type": "narrative",
+              "setting": {
+                "text": "UC Berkeley, 2010. A quiet revolution begins in a university lab."
+              },
+              "narrative": [
+                "While companies build proprietary accelerators, a group at Berkeley asks a different question: why are instruction set architectures proprietary at all?",
+                "ARM charges license fees. x86 is controlled by Intel and AMD. Building a new chip means paying tribute to established players. What if there was an open alternative?",
+                "RISC-V is born: a clean, modern, open-source instruction set architecture. Anyone can implement it. No fees. No restrictions. No permission needed."
+              ],
+              "characters": [
+                {
+                  "avatar": "📖",
+                  "name": "Krste Asanovic",
+                  "title": "Professor, UC Berkeley",
+                  "bio": "Co-creator of RISC-V, the open-source instruction set architecture. Asanovic and his colleagues designed RISC-V as a teaching tool, but it has grown into a global movement challenging ARM and x86 dominance.",
+                  "stats": [
+                    { "label": "Created", "value": "RISC-V (2010)" },
+                    { "label": "Adoption", "value": "Billions of cores shipped" },
+                    { "label": "Philosophy", "value": "ISAs should be free" }
+                  ]
+                },
+                {
+                  "avatar": "🏆",
+                  "name": "David Patterson",
+                  "title": "Professor Emeritus, UC Berkeley",
+                  "bio": "Turing Award winner, co-inventor of RISC architecture, and co-creator of RISC-V. Patterson's career spans the entire history of modern processors, from RISC revolution to open instruction sets.",
+                  "stats": [
+                    { "label": "Awards", "value": "Turing Award (2017)" },
+                    { "label": "Created", "value": "RISC, RISC-V" },
+                    { "label": "Books", "value": "Computer Architecture standard texts" }
+                  ]
+                }
+              ],
+              "nextScene": "scene-10-3-5"
+            },
+            {
+              "id": "scene-10-3-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "A RISC-V summit. The open architecture has gone global."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Patterson",
+                  "text": "When we started RISC-V, we thought it would be useful for teaching. Now it's in everything from IoT sensors to supercomputers. Billions of cores have shipped."
+                },
+                {
+                  "speaker": "Industry Executive",
+                  "text": "The geopolitical angle matters too. Countries that can't license ARM or x86 can build RISC-V. It's semiconductor independence."
+                },
+                {
+                  "speaker": "Asanovic",
+                  "text": "But the real power is modularity. RISC-V isn't one architecture—it's a family. Base integer instructions, then extensions: multiply, floating point, vectors, whatever you need. You can build exactly the processor your application requires."
+                },
+                {
+                  "speaker": "Patterson",
+                  "text": "We proved something important: instruction sets should be open infrastructure, like roads or the internet. No one should have to pay rent to compute."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "RISC-V uses a modular approach: RV32I (base 32-bit integer) can be extended with M (multiply), A (atomic), F (float), D (double), C (compressed), V (vector), and more. This lets designers build exactly what they need—from tiny microcontrollers to supercomputer cores.",
+                  "codeSnippet": "// RISC-V Modularity\n// \n// Base: RV32I or RV64I (integer operations)\n// \n// Extensions:\n//   M - Integer multiply/divide\n//   A - Atomic operations\n//   F - Single-precision float\n//   D - Double-precision float\n//   C - Compressed instructions (16-bit)\n//   V - Vector operations\n// \n// Common profiles:\n//   RV32IMC   - Embedded microcontrollers\n//   RV64GC    - Application processors\n//   RV64GCV   - High-performance computing"
+                }
+              ],
+              "nextScene": "scene-10-3-6"
+            },
+            {
+              "id": "scene-10-3-6",
+              "type": "narrative",
+              "setting": {
+                "text": "The edge: where data is born and decisions must be instant."
+              },
+              "narrative": [
+                "A self-driving car generates 4 terabytes of sensor data per hour. Sending that to the cloud, processing it, and returning a decision takes too long. At 70 mph, a 100-millisecond delay means 10 feet of travel.",
+                "Edge computing moves processing to where data originates. The car's onboard computers must recognize pedestrians, interpret traffic signals, and plan paths—all in real time, all locally.",
+                "This demands specialized hardware: neural network accelerators for perception, classical CPUs for planning, and DSPs for sensor processing. The edge is where heterogeneous computing becomes essential."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Edge computing combines low power, real-time response, and local processing. A typical edge AI system might include: ARM or RISC-V CPU for orchestration, NPU for neural network inference, DSP for signal processing, and custom accelerators for specific algorithms.",
+                  "codeSnippet": "// Self-Driving Car Compute Stack\n// \n// Sensors: cameras, lidar, radar, ultrasonics\n//   → 4 TB/hour raw data\n// \n// Processing pipeline:\n//   1. DSP: sensor fusion, filtering\n//   2. NPU: object detection, segmentation\n//   3. CPU: path planning, decision making\n//   4. MCU: actuator control\n// \n// Latency budget: <50ms sensor to actuator\n// Power budget: <500W total\n// \n// Cloud round-trip: 100ms+ (too slow!)"
+                }
+              ],
+              "nextScene": "scene-10-3-7"
+            },
+            {
+              "id": "scene-10-3-7",
+              "type": "narrative",
+              "setting": {
+                "text": "The heterogeneous future: every workload gets its own accelerator."
+              },
+              "narrative": [
+                "The general-purpose CPU isn't dead. But it's no longer alone.",
+                "Modern systems combine classical CPUs for general control, GPUs for parallel graphics and compute, NPUs for machine learning, DSPs for signal processing, and specialized accelerators for cryptography, video encoding, and more.",
+                "Apple's M-series chips integrate all of these on a single package. AMD and Intel are following suit. The monolithic CPU gives way to the system-on-chip—a heterogeneous collection of specialized engines."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "The CPU used to be 90% of a system's compute. Now it might be 20%. The rest is accelerators, each doing what it does best."
+                }
+              ],
+              "nextScene": "scene-10-3-8"
+            },
+            {
+              "id": "scene-10-3-8",
+              "type": "choice",
+              "setting": {
+                "text": "The computing landscape has transformed. Where do you go next?"
+              },
+              "narrative": [
+                "You've journeyed from ancient abacuses to quantum processors, from vacuum tubes to photonic chips. Computing has evolved from centralized mainframes to personal computers to ubiquitous devices to specialized accelerators.",
+                "The story continues. AI demands ever more compute. Quantum promises exponential breakthroughs. New paradigms wait to be discovered."
+              ],
+              "choices": [
+                {
+                  "id": "choice-build-tpu",
+                  "icon": "🔲",
+                  "title": "Design a TPU-style Accelerator",
+                  "description": "Build a systolic array for matrix multiplication in the lab."
+                },
+                {
+                  "id": "choice-build-riscv",
+                  "icon": "⚡",
+                  "title": "Implement a RISC-V Core",
+                  "description": "Create your own open-source processor implementation."
+                },
+                {
+                  "id": "choice-reflect",
+                  "icon": "🌅",
+                  "title": "Reflect on the Journey",
+                  "description": "Consider how far computing has come—and where it might go."
+                }
+              ],
+              "nextScene": "scene-10-3-9"
+            },
+            {
+              "id": "scene-10-3-9",
+              "type": "challenge",
+              "setting": {
+                "text": "Your final challenge: design a heterogeneous system-on-chip."
+              },
+              "narrative": [
+                "Combine everything you've learned. Design a complete system-on-chip that integrates multiple specialized processors for a real-world application.",
+                "Consider: What workloads must it handle? Which accelerators does it need? How do they communicate? What are the power and performance tradeoffs?"
+              ],
+              "challenge": {
+                "title": "DESIGN A HETEROGENEOUS SOC",
+                "objectives": [
+                  { "id": "obj-1", "text": "Select CPU cores (ARM, RISC-V, or x86)", "completed": false },
+                  { "id": "obj-2", "text": "Add GPU for graphics/parallel compute", "completed": false },
+                  { "id": "obj-3", "text": "Include NPU for machine learning inference", "completed": false },
+                  { "id": "obj-4", "text": "Design memory hierarchy (caches, unified memory)", "completed": false },
+                  { "id": "obj-5", "text": "Plan interconnect (bus, NoC, or hybrid)", "completed": false },
+                  { "id": "obj-6", "text": "Estimate power budget and performance", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Modern SoCs like Apple M-series integrate: high-performance CPU cores, efficiency CPU cores, GPU, Neural Engine, media encoders/decoders, secure enclave, and memory controller—all on one die with unified memory architecture.",
+                  "codeSnippet": "// Apple M2 SoC Architecture (example)\n// \n// CPU: 8 cores (4 performance + 4 efficiency)\n// GPU: 10 cores\n// Neural Engine: 16 cores, 15.8 TOPS\n// Media Engine: H.264, HEVC, ProRes\n// Secure Enclave: encryption, biometrics\n// \n// Unified Memory: 8-24 GB LPDDR5\n// Memory Bandwidth: 100 GB/s\n// \n// Total transistors: 20 billion\n// Process: 5nm\n// TDP: 15-35W"
+                }
+              ],
+              "nextScene": "scene-10-3-10"
+            },
+            {
+              "id": "scene-10-3-10",
+              "type": "dialogue",
+              "setting": {
+                "text": "Epilogue: The story continues."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Narrator",
+                  "text": "You've traveled through 5,000 years of computational history. From tally marks on bone to quantum qubits in supercooled chambers. From Babylonian counting boards to photonic matrix multipliers."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "Every innovation solved a problem that demanded it. Manual counting was slow—so we invented the abacus. Vacuum tubes were unreliable—so we invented the transistor. General-purpose CPUs were inefficient for AI—so we invented TPUs and NPUs."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "The pattern repeats. Today's solutions become tomorrow's limitations. Tomorrow's breakthroughs are being conceived right now, in labs and garages and university offices around the world."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "You've learned not just what was built, but why it was built. The problems that drove invention. The constraints that shaped design. The tradeoffs that haunt every decision."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "That understanding is rare. Most people use computers without knowing how they work. You now know not just how, but why. You understand the history that shapes the present—and the principles that will shape the future."
+                }
+              ],
+              "narrative": [
+                "The story of computing is still being written. Quantum computers may crack problems we thought unsolvable. Neuromorphic chips may achieve artificial general intelligence. Photonic processors may make today's supercomputers seem primitive.",
+                "Or perhaps the next revolution will come from something no one has imagined yet. That's the nature of progress: it's only obvious in retrospect.",
+                "What's certain is this: computation will continue to transform human civilization. And now you understand the foundations on which that transformation rests.",
+                "From abacus to quantum. From mechanical gears to photonic light. From room-sized ENIAC to chips in every device.",
+                "The journey continues.",
+                "THE END... and THE BEGINNING."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Computing has followed a consistent pattern: each paradigm solves problems until it hits fundamental limits, then a new paradigm emerges. Mechanical → electrical → electronic → integrated → distributed → specialized → quantum? The next chapter awaits.",
+                  "codeSnippet": "// The Computing Timeline\n// \n// 3000 BC: Abacus (mechanical memory)\n// 1642 AD: Pascal (mechanical calculation)\n// 1890: Hollerith (electromechanical)\n// 1945: ENIAC (electronic)\n// 1947: Transistor (solid state)\n// 1958: Integrated circuit\n// 1971: Microprocessor\n// 2010s: Heterogeneous computing\n// 2020s: Quantum, neuromorphic, photonic\n// \n// What comes next? That's up to you."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

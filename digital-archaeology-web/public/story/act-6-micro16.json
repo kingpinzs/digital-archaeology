@@ -1,0 +1,565 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-6",
+      "number": 6,
+      "title": "The 16-bit Era",
+      "description": "64KB ran out. Programs grew. Data accumulated. The 8-bit ceiling became a barrier to ambition. The 16-bit processors—8086, 68000—broke through with larger address spaces, hardware multiply, and the architectural foundations that would define computing for decades. But with power came complexity: segmentation, protected modes, and the eternal tension between backwards compatibility and clean design.",
+      "era": "1978 - 1985",
+      "cpuStage": "micro16",
+      "chapters": [
+        {
+          "id": "chapter-6-1",
+          "number": 1,
+          "title": "The 64KB Barrier",
+          "subtitle": "Intel Corporation, Santa Clara",
+          "year": "1978",
+          "scenes": [
+            {
+              "id": "scene-6-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, 1978. The 8080 dominates the market, but its success reveals its limitations. Programmers are running out of memory. Applications are getting complex. 64KB isn't enough anymore."
+              },
+              "narrative": [
+                "The problem is fundamental: 16 address bits can only address 65,536 bytes. No matter how clever you are, you can't fit more than 64KB of code and data in that space.",
+                "But customers want more. They want spreadsheets with thousands of rows. Word processors with large documents. Databases with real capacity.",
+                "Intel faces a choice: design a completely new architecture (clean but incompatible), or extend the 8080 architecture (messy but backwards compatible)."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏛️",
+                  "name": "Stephen Morse",
+                  "title": "Chief Architect, 8086",
+                  "bio": "The engineer who designed the 8086's architecture. Morse faced an impossible mandate: stay compatible with 8080 software while breaking the 64KB barrier. His solution—segmented memory—was elegant but would haunt programmers for decades.",
+                  "stats": [
+                    { "label": "Constraint", "value": "8080 compatibility required" },
+                    { "label": "Innovation", "value": "Segment:Offset addressing" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Morse",
+                  "text": "We can't abandon our customers' software investments. But we can't stay at 64KB either. The solution is segments—overlapping windows into a larger address space."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8086 used segmented memory: four 16-bit segment registers (CS, DS, SS, ES) combined with 16-bit offsets to create 20-bit addresses, accessing 1MB of memory. The formula: physical_address = (segment × 16) + offset. This created infamous complexities like overlapping segments and the 640KB conventional memory limit.",
+                  "codeSnippet": "// Segmented addressing\n// \n// Physical = Segment × 16 + Offset\n// \n// Example:\n// DS = 0x1000, Offset = 0x0234\n// Physical = 0x10000 + 0x0234 = 0x10234\n// \n// Same address, different segment:offset:\n// DS = 0x1020, Offset = 0x0034 → 0x10234\n// \n// This overlap caused endless confusion"
+                }
+              ],
+              "nextScene": "scene-6-1-2"
+            },
+            {
+              "id": "scene-6-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The 8086 design room. Whiteboards covered with register layouts, instruction encodings, and segment diagrams."
+              },
+              "narrative": [
+                "The 8086 extends the 8080 in every dimension. Eight 16-bit general registers: AX, BX, CX, DX, SI, DI, BP, SP. But each can be split into 8-bit halves (AH/AL, BH/BL) for 8080 compatibility.",
+                "Hardware multiply and divide—operations that took loops of code on 8-bit machines now execute in single instructions.",
+                "String operations: MOVS, CMPS, SCAS. Move entire blocks of memory with single instructions. These will dominate performance-critical code for decades."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8086's string instructions were revolutionary: REP MOVSB could copy thousands of bytes with a single three-byte instruction. This efficiency came from eliminating loop overhead and allowing the CPU to optimize the transfer. Modern memcpy implementations still use descendants of these instructions.",
+                  "codeSnippet": "// 8086 register layout\n// 16-bit  8-bit halves\n// AX   =  AH:AL  (Accumulator)\n// BX   =  BH:BL  (Base)\n// CX   =  CH:CL  (Count)\n// DX   =  DH:DL  (Data)\n// SI        -    (Source Index)\n// DI        -    (Destination Index)\n// BP        -    (Base Pointer)\n// SP        -    (Stack Pointer)\n// \n// Segment registers: CS, DS, SS, ES"
+                }
+              ],
+              "nextScene": "scene-6-1-3"
+            },
+            {
+              "id": "scene-6-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Meanwhile, in Arizona, Motorola takes a different path. Their 68000 will have a clean 32-bit internal design with a 24-bit address bus. No segments. No compatibility baggage."
+              },
+              "narrative": [
+                "The 68000 is beautiful. Sixteen 32-bit registers. Linear address space up to 16MB. Orthogonal instruction set—any operation can use any addressing mode.",
+                "Engineers love it. The Macintosh, Amiga, and Atari ST will run on 68000s. It's how processors should be designed.",
+                "But IBM chooses the 8088 (an 8-bit bus version of the 8086) for their PC. The reason? Cost. Compatibility with existing peripheral chips. And the network effects begin."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔷",
+                  "name": "Tom Gunter",
+                  "title": "68000 Design Lead, Motorola",
+                  "bio": "Leader of the team that created one of the most elegant processors ever designed. The 68000's clean architecture influenced CPU design for generations, even as it lost the market to x86.",
+                  "stats": [
+                    { "label": "Philosophy", "value": "Clean design over compatibility" },
+                    { "label": "Registers", "value": "16 × 32-bit" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 68000 had eight 32-bit data registers (D0-D7) and eight 32-bit address registers (A0-A7, with A7 as stack pointer). Its orthogonal instruction set meant any instruction could use any addressing mode with any register—unlike the 8086 where specific operations required specific registers.",
+                  "codeSnippet": "// 68000 vs 8086 comparison\n// \n// 68000: MOVE.L D0, D1    ; Any register to any\n//        ADD.L  (A0), D3  ; Any addressing mode\n// \n// 8086:  MUL BX           ; Result MUST go to DX:AX\n//        DIV CX           ; Dividend MUST be in DX:AX\n//        LODS             ; MUST use SI\n// \n// 68000 was orthogonal; 8086 was not"
+                }
+              ],
+              "nextScene": "scene-6-1-4"
+            },
+            {
+              "id": "scene-6-1-4",
+              "type": "choice",
+              "setting": {
+                "text": "Two architectures, two philosophies. The market will choose, but the choice will shape computing for decades."
+              },
+              "narrative": [
+                "Intel's approach: compatibility above all. Extend the existing architecture. Let old software run. Accept the complexity.",
+                "Motorola's approach: elegance above all. Start fresh. Design it right. Let the superior architecture win.",
+                "History will judge which was right. (Spoiler: both approaches found success, but x86's installed base proved unassailable.)"
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-8086",
+                  "icon": "📐",
+                  "title": "Master the Intel 8086",
+                  "description": "The market winner. Segmented memory, 8080 compatibility, and the foundation of the PC revolution."
+                },
+                {
+                  "id": "choice-study-68000",
+                  "icon": "✨",
+                  "title": "Explore the Motorola 68000",
+                  "description": "The engineer's choice. Clean architecture, 32-bit internals, and linear addressing."
+                },
+                {
+                  "id": "choice-roads-not-taken",
+                  "icon": "🔮",
+                  "title": "Roads Not Taken: What If 68000 Won?",
+                  "description": "Return to your lab and build what computing might have looked like without segmentation."
+                }
+              ],
+              "nextScene": "scene-6-1-5"
+            },
+            {
+              "id": "scene-6-1-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab configures for 16-bit development. The Micro16 combines lessons from both architectures: expanded addressing without sacrificing usability."
+              },
+              "narrative": [
+                "Build the Micro16. Address more than 64KB. Add hardware multiply. Experience the power and the pitfalls of 16-bit computing."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO16 CPU",
+                "objectives": [
+                  { "id": "obj-1", "text": "Expand data path to 16 bits", "completed": false },
+                  { "id": "obj-2", "text": "Implement segmented addressing (1MB address space)", "completed": false },
+                  { "id": "obj-3", "text": "Add segment registers (CS, DS, SS, ES)", "completed": false },
+                  { "id": "obj-4", "text": "Implement hardware MUL/DIV instructions", "completed": false },
+                  { "id": "obj-5", "text": "Add string operations (MOVS, CMPS)", "completed": false },
+                  { "id": "obj-6", "text": "Execute a program using far pointers", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Hardware multiply was revolutionary. On the 8080, multiplying two 8-bit numbers required a loop of shifts and adds—dozens of cycles. The 8086's MUL instruction did it in hardware, taking just 70-133 cycles. This enabled practical graphics, cryptography, and numerical computing on microprocessors.",
+                  "codeSnippet": "// Software multiply (8-bit era)\n// ~100+ cycles\nMULTIPLY:\n  XOR result\n  LOOP 8 times:\n    if (multiplier bit set)\n      ADD multiplicand to result\n    SHIFT multiplicand left\n    SHIFT multiplier right\n\n// Hardware multiply (16-bit era)\n// MUL BX   ; AX = AX × BX\n// ~70-133 cycles, single instruction"
+                }
+              ],
+              "nextScene": "scene-6-1-6"
+            },
+            {
+              "id": "scene-6-1-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your Micro16 executes its first far call—jumping between segments, preserving both CS and IP on the stack."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Morse",
+                  "text": "You've experienced segmentation. The power and the pain. More address space, but more complexity."
+                },
+                {
+                  "speaker": "You",
+                  "text": "It feels... awkward. Near pointers, far pointers, huge pointers. Why not just have 32-bit addresses?"
+                },
+                {
+                  "speaker": "Morse",
+                  "text": "Because 32-bit addresses need 32-bit buses, 32-bit registers, 32-bit ALUs. That's expensive silicon. Segmentation was a compromise—more address space without redesigning everything."
+                }
+              ],
+              "narrative": [
+                "Segmentation was Intel's bridge from 16 to 32 bits. It worked—millions of PCs ran on it—but programmers cursed it for a decade.",
+                "The solution would come with the 80386: true 32-bit registers, flat addressing, and a way to escape the segment maze forever."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-6-2",
+          "number": 2,
+          "title": "The IBM PC",
+          "subtitle": "Boca Raton, Florida",
+          "year": "1981",
+          "scenes": [
+            {
+              "id": "scene-6-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "IBM Entry Systems Division, Boca Raton, Florida. August 1981. A team of twelve engineers is about to change computing forever—by building a computer entirely from off-the-shelf parts."
+              },
+              "narrative": [
+                "IBM doesn't build computers this way. Big Blue designs proprietary hardware, proprietary software, proprietary everything. Control is paramount.",
+                "But the personal computer market is exploding, and IBM is missing it. The solution: Project Chess—build a PC in one year using commodity parts. No custom IBM silicon. No multi-year development.",
+                "The result: the IBM Personal Computer. Intel 8088. Microsoft DOS. Open architecture. A machine anyone can clone."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏢",
+                  "name": "Don Estridge",
+                  "title": "Director, Entry Systems Division",
+                  "bio": "The man who led IBM's PC project. Estridge broke every IBM rule: open architecture, outside software, commodity chips. His unconventional approach created the PC industry—and ultimately made IBM irrelevant to it.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Open PC architecture" },
+                    { "label": "Tragedy", "value": "Died in plane crash, 1985" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Estridge",
+                  "text": "We can't compete with Apple by doing things the IBM way. We need to move fast, use what's available, and get to market. The IBM name will do the rest."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The IBM PC used an Intel 8088 (8-bit external bus, 16-bit internal), 16-64KB RAM, cassette or floppy storage, and an open bus architecture. By publishing the bus specifications and BIOS source code, IBM invited clones—a decision that commoditized the hardware and made Microsoft wealthy.",
+                  "codeSnippet": "// IBM PC specifications (1981)\n// CPU: Intel 8088, 4.77 MHz\n// RAM: 16KB-256KB\n// ROM: 8KB BIOS\n// Storage: Cassette, 160KB floppy\n// Price: $1,565 (base), $3,005 (typical)\n// \n// Key decision: Published bus architecture\n// Result: Compaq, Dell, HP clones\n// Unintended: IBM lost the PC market"
+                }
+              ],
+              "nextScene": "scene-6-2-2"
+            },
+            {
+              "id": "scene-6-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "A meeting in Seattle. IBM needs an operating system. They go to Digital Research—creators of CP/M. Gary Kildall isn't home. IBM goes elsewhere."
+              },
+              "narrative": [
+                "The legend goes: Gary Kildall was flying his plane when IBM came calling. His wife refused to sign IBM's NDA. IBM left and went to Microsoft.",
+                "The truth is more complex, but the outcome was decisive: Microsoft bought QDOS for $50,000, renamed it MS-DOS, and licensed it to IBM non-exclusively.",
+                "That non-exclusive license was the most valuable contract in computing history. When clones emerged, they needed DOS. Microsoft was there to sell it."
+              ],
+              "characters": [
+                {
+                  "avatar": "💻",
+                  "name": "Gary Kildall",
+                  "title": "Founder, Digital Research",
+                  "bio": "Creator of CP/M, the dominant operating system before DOS. Kildall invented the BIOS concept and pioneered many OS features. His missed IBM meeting became computing's greatest 'what if.'",
+                  "stats": [
+                    { "label": "Created", "value": "CP/M, BIOS concept" },
+                    { "label": "Lost", "value": "The PC OS market" }
+                  ]
+                },
+                {
+                  "avatar": "💼",
+                  "name": "Bill Gates",
+                  "title": "CEO, Microsoft",
+                  "bio": "The negotiator who saw what IBM missed: the value wasn't in one computer, but in every computer. By keeping DOS rights, Gates positioned Microsoft to dominate the clone market.",
+                  "stats": [
+                    { "label": "Key deal", "value": "Non-exclusive DOS license" },
+                    { "label": "Result", "value": "Microsoft dominance" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Gates",
+                  "text": "IBM thinks they're licensing an operating system. They're actually licensing a standard. Every clone that ships, ships with our software."
+                }
+              ],
+              "nextScene": "scene-6-2-3"
+            },
+            {
+              "id": "scene-6-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "1983. Compaq ships the first IBM PC compatible. It's not an IBM, but it runs IBM software. The clone wars have begun."
+              },
+              "narrative": [
+                "Rod Canion and his team reverse-engineered the IBM BIOS in a 'clean room'—one team documented what the BIOS did, another team implemented it without seeing IBM's code.",
+                "The result: legal compatibility. Software that ran on IBM ran on Compaq. The hardware was commoditized.",
+                "IBM fought back with proprietary features—the PS/2, MCA bus—but the genie was out of the bottle. The 'IBM PC compatible' became simply 'PC.'"
+              ],
+              "characters": [
+                {
+                  "avatar": "🔧",
+                  "name": "Rod Canion",
+                  "title": "Co-founder, Compaq",
+                  "bio": "The engineer who made IBM compatibles respectable. Canion's portable PC matched IBM quality while beating IBM prices. Compaq proved that compatibility, not the IBM name, drove purchasing decisions.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Clean-room BIOS" },
+                    { "label": "Product", "value": "Compaq Portable" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Clean-room reverse engineering became essential to the clone industry. Two teams: 'dirty room' engineers studied the original and wrote specifications; 'clean room' engineers implemented from specifications without seeing original code. Courts accepted this as legal.",
+                  "codeSnippet": "// Clean room process\n// \n// Team A (dirty room):\n// - Study IBM BIOS behavior\n// - Document: \"INT 10h, AH=0Eh prints char\"\n// - NO implementation details\n// \n// Team B (clean room):\n// - Implement from Team A's specs\n// - Never see IBM code\n// - Different implementation, same behavior\n// \n// Result: Legal compatibility"
+                }
+              ],
+              "nextScene": "scene-6-2-4"
+            },
+            {
+              "id": "scene-6-2-4",
+              "type": "choice",
+              "setting": {
+                "text": "The PC industry explodes. Every clone needs software, peripherals, expansion cards. Opportunity is everywhere."
+              },
+              "narrative": [
+                "The open architecture that IBM created—and Microsoft exploited—enabled an entire ecosystem. Lotus 1-2-3 makes spreadsheets essential. WordPerfect dominates word processing. dBASE handles databases.",
+                "This is the killer app era. Software drives hardware purchases. The 'IBM compatible' label becomes the key to success."
+              ],
+              "choices": [
+                {
+                  "id": "choice-explore-dos",
+                  "icon": "💾",
+                  "title": "Master MS-DOS",
+                  "description": "Learn the operating system that runs the PC world. Batch files, memory management, interrupt handling."
+                },
+                {
+                  "id": "choice-study-bios",
+                  "icon": "🔌",
+                  "title": "Understand the BIOS",
+                  "description": "The firmware that makes PCs tick. Hardware abstraction, boot process, interrupt vectors."
+                },
+                {
+                  "id": "choice-write-apps",
+                  "icon": "📊",
+                  "title": "Write PC Applications",
+                  "description": "Join the software gold rush. Build applications for the platform everyone is buying."
+                }
+              ],
+              "nextScene": "scene-6-2-5"
+            },
+            {
+              "id": "scene-6-2-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Your workbench becomes a PC development environment. Real mode. 640KB. The constraints that defined an era."
+              },
+              "narrative": [
+                "MS-DOS runs in real mode: no memory protection, no multitasking, no isolation between programs. Every program has direct hardware access.",
+                "This freedom is power—and danger. A bug in one program can crash the entire system. But it also means maximum performance and minimum overhead."
+              ],
+              "challenge": {
+                "title": "PROGRAM THE IBM PC",
+                "objectives": [
+                  { "id": "obj-1", "text": "Write a program that runs under DOS", "completed": false },
+                  { "id": "obj-2", "text": "Use BIOS interrupts for screen output", "completed": false },
+                  { "id": "obj-3", "text": "Access memory directly (video RAM)", "completed": false },
+                  { "id": "obj-4", "text": "Handle the 640KB conventional memory limit", "completed": false },
+                  { "id": "obj-5", "text": "Create a TSR (terminate-stay-resident) program", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The 640KB limit came from IBM's memory map: 0-640KB for programs, 640KB-1MB for video memory, ROM, and adapters. This seemed generous in 1981 but became a painful constraint by 1985. Programmers invented elaborate schemes (EMS, XMS) to access memory beyond 640KB.",
+                  "codeSnippet": "// DOS memory map\n// \n// 0x00000-0x003FF: Interrupt vectors\n// 0x00400-0x00500: BIOS data area\n// 0x00500-0x9FFFF: Program memory (~640KB)\n// 0xA0000-0xBFFFF: Video memory\n// 0xC0000-0xFFFFF: ROM, adapters\n// \n// \"640K ought to be enough for anybody\"\n// (Gates denies saying this)"
+                }
+              ],
+              "nextScene": "scene-6-2-6"
+            },
+            {
+              "id": "scene-6-2-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your DOS program runs. It uses only 60KB, but you can see how quickly 640KB would fill up."
+              },
+              "dialogues": [
+                {
+                  "speaker": "IBM Engineer",
+                  "text": "We thought 640KB was enormous. Four times what Apple offered. Who could possibly need more?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "But Lotus 1-2-3 alone uses 256KB. Add DOS, drivers, TSRs... there's barely room left."
+                },
+                {
+                  "speaker": "IBM Engineer",
+                  "text": "That's why we're building the AT. The 80286 has protected mode—16MB of address space. The future is bigger."
+                }
+              ],
+              "narrative": [
+                "The IBM PC established the architecture that would dominate for decades. Open hardware. Microsoft software. Intel processors.",
+                "But the 8088's limits were already showing. The 80286 promised more—protected mode, 16MB addressing—but it had its own problems.",
+                "True relief would require the 80386: 32-bit registers, 4GB addressing, and the flat memory model programmers craved."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-6-3",
+          "number": 3,
+          "title": "The Protected Mode Promise",
+          "subtitle": "Intel 80286 and Its Discontents",
+          "year": "1984",
+          "scenes": [
+            {
+              "id": "scene-6-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "1984. IBM ships the PC AT with the Intel 80286. More speed, more memory, and a new mode that promises real multitasking and protection."
+              },
+              "narrative": [
+                "The 80286 introduces protected mode: 16MB of addressable memory, memory protection between processes, and privilege levels for operating system security.",
+                "On paper, it's everything programmers want. In practice, it's a nightmare.",
+                "The fatal flaw: once you enter protected mode, you can't return to real mode without resetting the processor. All that DOS software? Unusable in protected mode."
+              ],
+              "characters": [
+                {
+                  "avatar": "😤",
+                  "name": "Frustrated Programmer",
+                  "title": "PC Developer",
+                  "bio": "Represents every developer who tried to use the 286's protected mode and hit its limitations. The inability to switch modes made the 286 'brain-dead' for practical use.",
+                  "stats": [
+                    { "label": "Feeling", "value": "Betrayed by Intel" },
+                    { "label": "Quote", "value": "The 286 is brain-dead" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Frustrated Programmer",
+                  "text": "Protected mode is beautiful in theory. But I can't run DOS programs. I can't call BIOS. I can't switch back. What good is 16MB if I can't use my existing software?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 286's protected mode required a complete reset to return to real mode. IBM's workaround: the AT had a keyboard controller that could reset the CPU, preserving register state. This hack became standard, but it was slow and ugly. Programmers waited for the 386.",
+                  "codeSnippet": "// 286 mode switching nightmare\n// \n// Enter protected mode:\n// MOV AX, protected_gdt\n// LGDT [GDT_descriptor]\n// SMSW AX\n// OR AX, 1\n// LMSW AX            ; Now in protected mode\n// \n// Return to real mode:\n// ??? No instruction exists!\n// Workaround: Reset CPU via keyboard controller\n// JMP 0xFFFF:0x0000  ; Triple fault → reset"
+                }
+              ],
+              "nextScene": "scene-6-3-2"
+            },
+            {
+              "id": "scene-6-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Operating system developers struggle with the 286. Microsoft's OS/2 tries to make protected mode work. It's painful."
+              },
+              "narrative": [
+                "IBM and Microsoft team up to create OS/2: a true protected mode operating system for the 286. It will have real multitasking, memory protection, and a graphical interface.",
+                "But OS/2 is slow. The 286's 16-bit segments limit data structures. The mode-switching hack makes DOS compatibility painful.",
+                "Meanwhile, Apple's Macintosh—running on the elegant 68000—shows what a clean architecture can do. Motorola's chip has none of these problems."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Microsoft Developer",
+                  "text": "We're spending more time working around the 286's limitations than writing actual features. Every data structure that crosses a 64KB boundary is a nightmare."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 286's protected mode still used 16-bit segments. Each segment could only be 64KB, so large data structures required 'huge' pointers that spanned segments. Array access became complex: every index had to check for segment boundaries.",
+                  "codeSnippet": "// Huge pointer arithmetic (286)\n// \n// To access array[i] where array > 64KB:\n// 1. Calculate byte offset = i × element_size\n// 2. Divide by 65536 to get segment increment\n// 3. Get remainder for offset within segment\n// 4. Add to base segment\n// 5. Load segment register\n// 6. Access memory\n// \n// vs. 68000: MOVE.L (A0,D0), D1\n// One instruction. Done."
+                }
+              ],
+              "nextScene": "scene-6-3-3"
+            },
+            {
+              "id": "scene-6-3-3",
+              "type": "choice",
+              "setting": {
+                "text": "The 16-bit era reaches its limits. The 286 promised too much and delivered too little. Something better is needed."
+              },
+              "narrative": [
+                "Intel is already designing the 80386: true 32-bit operation, flat memory model, hardware virtual 8086 mode for DOS compatibility.",
+                "But the 386 is a year away. For now, developers must choose: struggle with 286 protected mode, stay in real mode and hit the 640KB wall, or switch to Macintosh."
+              ],
+              "choices": [
+                {
+                  "id": "choice-master-286",
+                  "icon": "🔧",
+                  "title": "Master 286 Protected Mode",
+                  "description": "Learn the segment descriptors, privilege levels, and gate mechanisms. Painful but educational."
+                },
+                {
+                  "id": "choice-wait-386",
+                  "icon": "⏳",
+                  "title": "Prepare for the 386",
+                  "description": "Study what's coming: 32-bit flat model, paging, virtual 8086 mode. The future is almost here."
+                },
+                {
+                  "id": "choice-explore-alternatives",
+                  "icon": "🖥️",
+                  "title": "Explore the Macintosh",
+                  "description": "See what the 68000 offers: clean architecture, no segments, toolbox ROM."
+                }
+              ],
+              "nextScene": "scene-6-3-4"
+            },
+            {
+              "id": "scene-6-3-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab presents the full 16-bit challenge: implement protected mode with all its complexity."
+              },
+              "narrative": [
+                "Experience protected mode firsthand. Set up segment descriptors. Configure privilege levels. Create a task state segment.",
+                "This is the foundation for modern operating systems—even if the 286's version was flawed."
+              ],
+              "challenge": {
+                "title": "IMPLEMENT PROTECTED MODE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Create a Global Descriptor Table (GDT)", "completed": false },
+                  { "id": "obj-2", "text": "Define code and data segment descriptors", "completed": false },
+                  { "id": "obj-3", "text": "Switch the CPU to protected mode", "completed": false },
+                  { "id": "obj-4", "text": "Implement privilege levels (ring 0 and ring 3)", "completed": false },
+                  { "id": "obj-5", "text": "Create a call gate for system calls", "completed": false },
+                  { "id": "obj-6", "text": "Handle a protection fault", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The GDT (Global Descriptor Table) defines memory segments: base address, limit, type (code/data), and privilege level. Each segment selector points to a GDT entry. This indirection enabled memory protection and virtual memory—foundations of modern OS design.",
+                  "codeSnippet": "// GDT entry structure (8 bytes)\n// Bits 0-15:   Segment limit (low)\n// Bits 16-39:  Base address (low 24 bits)\n// Bits 40-47:  Access byte (type, privilege)\n// Bits 48-51:  Limit (high) + flags\n// Bits 52-55:  Flags (granularity, 32-bit)\n// Bits 56-63:  Base address (high 8 bits)\n// \n// Access byte:\n// Bit 7: Present\n// Bits 5-6: Privilege level (0-3)\n// Bit 4: Descriptor type\n// Bits 0-3: Type flags"
+                }
+              ],
+              "nextScene": "scene-6-3-5"
+            },
+            {
+              "id": "scene-6-3-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "August 12, 1981 is long past. The PC AT has proven the 286's limits. But news arrives: the 80386 is coming."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Intel Executive",
+                  "text": "The 386 fixes everything. True 32-bit registers. Flat 4GB address space. Virtual 8086 mode for DOS. It's what the 286 should have been."
+                },
+                {
+                  "speaker": "You",
+                  "text": "When can we get it?"
+                },
+                {
+                  "speaker": "Intel Executive",
+                  "text": "1985. And this time, we won't repeat the 286's mistakes. Switching between modes will be seamless. Programmers will finally have the architecture they deserve."
+                }
+              ],
+              "narrative": [
+                "IBM's choice determined computing history. The 8088/8086 architecture—with all its quirks and limitations—became the standard. The 68000, for all its elegance, would remain a niche player.",
+                "Segmented memory would frustrate programmers for a decade. The 640KB limit would become infamous. But compatibility won, and the IBM PC compatible market exploded.",
+                "Eventually, even Intel would want to escape their own architecture's limitations. The solution would require another doubling: 32 bits, flat addressing, and protected mode done right.",
+                "Continue to Act 7: The 32-bit Era."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

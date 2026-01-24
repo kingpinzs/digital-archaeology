@@ -2,11 +2,14 @@
 // Container component for Story Mode - composes layout components
 // Story 10.1: Initial stub, Story 10.2: Full layout integration
 // Story 10.3: Add options pattern for mode change callbacks
+// Story 10.17: Wire Story Mode Integration - Add StoryController
 
 import { StoryNav } from './StoryNav';
 import { YourRolePanel } from './YourRolePanel';
 import { StoryContent } from './StoryContent';
+import { StoryController } from './StoryController';
 import type { ThemeMode } from '@ui/theme';
+import type { RoleData } from './types';
 
 /**
  * Configuration options for the StoryModeContainer component.
@@ -24,6 +27,7 @@ export interface StoryModeContainerOptions {
  * - StoryNav: Fixed 48px navigation bar at top
  * - YourRolePanel: Fixed 220px panel on left (desktop only)
  * - StoryContent: Main scrollable content area
+ * - StoryController: Integration orchestrator
  *
  * Layout specification (from UX design):
  * - Background: warm dark (#0a0a12)
@@ -40,6 +44,10 @@ export class StoryModeContainer {
   private yourRolePanel: YourRolePanel | null = null;
   private storyContent: StoryContent | null = null;
 
+  // Story integration
+  private storyController: StoryController | null = null;
+  private initializationPromise: Promise<void> | null = null;
+
   constructor(options: StoryModeContainerOptions) {
     this.options = options;
   }
@@ -55,6 +63,9 @@ export class StoryModeContainer {
 
     // Mount child components
     this.mountChildren();
+
+    // Initialize story controller
+    this.initializeStoryController();
   }
 
   /**
@@ -99,6 +110,9 @@ export class StoryModeContainer {
       this.storyNav = new StoryNav({
         currentMode: this.options.currentMode,
         onModeChange: this.options.onModeChange,
+        getEraForAct: (actNumber: number) => {
+          return this.storyController?.getEraForAct(actNumber) ?? 'Unknown';
+        },
       });
       this.storyNav.mount(navMount as HTMLElement);
     }
@@ -111,6 +125,91 @@ export class StoryModeContainer {
     if (contentMount) {
       this.storyContent = new StoryContent();
       this.storyContent.mount(contentMount as HTMLElement);
+    }
+  }
+
+  /**
+   * Initialize the story controller and wire up components.
+   */
+  private initializeStoryController(): void {
+    this.storyController = new StoryController();
+
+    // Set up controller callbacks
+    this.storyController.setCallbacks({
+      onEnterLab: () => {
+        // Switch to lab mode
+        this.options.onModeChange('lab');
+      },
+      onEraChange: (_era: string) => {
+        // StoryNav updates via story-state-changed event
+        // This callback is for additional handling if needed
+      },
+      onRoleUpdate: (roleData: RoleData) => {
+        this.yourRolePanel?.setRoleData(roleData);
+      },
+    });
+
+    // Set the render container
+    const sceneMount = this.storyContent?.getSceneMount();
+    if (sceneMount) {
+      this.storyController.setRenderContainer(sceneMount);
+    }
+
+    // Initialize asynchronously
+    this.initializationPromise = this.storyController.initialize()
+      .then(() => {
+        // Update YourRolePanel with initial role data
+        const roleData = this.storyController?.getRoleData();
+        if (roleData) {
+          this.yourRolePanel?.setRoleData(roleData);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to initialize story:', error);
+        this.showErrorState(error);
+      });
+  }
+
+  /**
+   * Show error state when story fails to load.
+   */
+  private showErrorState(error: unknown): void {
+    const sceneMount = this.storyContent?.getSceneMount();
+    if (!sceneMount) return;
+
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'da-story-error';
+    errorContainer.setAttribute('role', 'alert');
+
+    const errorTitle = document.createElement('h2');
+    errorTitle.textContent = 'Failed to Load Story';
+
+    const errorMessage = document.createElement('p');
+    errorMessage.textContent = error instanceof Error
+      ? error.message
+      : 'An unexpected error occurred.';
+
+    const retryButton = document.createElement('button');
+    retryButton.type = 'button';
+    retryButton.className = 'da-story-error-retry';
+    retryButton.textContent = 'Retry';
+    retryButton.addEventListener('click', () => {
+      errorContainer.remove();
+      this.initializeStoryController();
+    });
+
+    errorContainer.appendChild(errorTitle);
+    errorContainer.appendChild(errorMessage);
+    errorContainer.appendChild(retryButton);
+    sceneMount.appendChild(errorContainer);
+  }
+
+  /**
+   * Wait for story controller to be fully initialized.
+   */
+  async waitForInitialization(): Promise<void> {
+    if (this.initializationPromise) {
+      await this.initializationPromise;
     }
   }
 
@@ -167,6 +266,14 @@ export class StoryModeContainer {
   }
 
   /**
+   * Get the StoryController instance.
+   * @returns The StoryController or null if not initialized
+   */
+  getStoryController(): StoryController | null {
+    return this.storyController;
+  }
+
+  /**
    * Update the current mode and sync StoryNav's ModeToggle state.
    * @param mode - The new active mode
    */
@@ -178,7 +285,12 @@ export class StoryModeContainer {
    * Destroy the component and clean up resources.
    */
   destroy(): void {
-    // Destroy child components first
+    // Destroy story controller first
+    this.storyController?.destroy();
+    this.storyController = null;
+    this.initializationPromise = null;
+
+    // Destroy child components
     this.storyNav?.destroy();
     this.storyNav = null;
 

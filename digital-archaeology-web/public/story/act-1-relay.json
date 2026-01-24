@@ -1,0 +1,535 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-1",
+      "number": 1,
+      "title": "Electrification",
+      "description": "The mechanical age couldn't scale. Gears were slow, expensive, and imprecise. But electricity changed everything. With the click of a relay, signals could travel at the speed of light, and calculations that took hours could be done in seconds. From the 1890 census crisis to WWII's desperate need for computation, electricity would transform calculation into computing.",
+      "era": "1890 - 1945",
+      "cpuStage": "relay",
+      "chapters": [
+        {
+          "id": "chapter-1-1",
+          "number": 1,
+          "title": "The Census Crisis",
+          "subtitle": "United States Census Bureau, Washington D.C.",
+          "year": "1890",
+          "scenes": [
+            {
+              "id": "scene-1-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "The Census Bureau building in Washington D.C., 1888. Mountains of paper forms overflow from every desk, every shelf, every corner. The air is thick with dust and desperation. The 1880 census took eight years to tabulate—and America is growing faster than ever."
+              },
+              "narrative": [
+                "You've been assigned to the Census Bureau's statistics division. Your job: help tabulate the nation's population. By hand. One card at a time.",
+                "The 1880 census counted 50 million Americans. The 1890 census will count over 62 million. At the current pace, the tabulation won't be finished before the 1900 census begins.",
+                "Something has to change. But what?"
+              ],
+              "characters": [
+                {
+                  "avatar": "📊",
+                  "name": "Robert Porter",
+                  "title": "Superintendent of the Census",
+                  "bio": "A man caught between political pressure and mathematical reality. The Constitution requires a census every ten years. The math says it's impossible. Porter needs a miracle—or a machine.",
+                  "stats": [
+                    { "label": "Problem", "value": "10-year deadline, 12-year workload" },
+                    { "label": "Budget", "value": "Insufficient for the scale" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Porter",
+                  "text": "At our current rate, we'll still be counting 1890 when it's time to start 1900. Congress won't accept that. The Constitution won't accept that. We need a new approach."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 1880 census employed 1,500 clerks working full-time for eight years to tabulate 50 million people. Each person's data had to be manually transferred to tally sheets, cross-checked, and aggregated—a process prone to errors and utterly unscalable.",
+                  "codeSnippet": "// Census tabulation bottleneck\n// 1880 census: 50 million people\n// Clerks: 1,500\n// Time: 8 years\n// Cost: $5.8 million\n// \n// 1890 projection: 62 million people\n// At same rate: 10+ years\n// Problem: Census must complete in <10 years"
+                }
+              ],
+              "nextScene": "scene-1-1-2"
+            },
+            {
+              "id": "scene-1-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "A competition has been announced: invent a machine that can tabulate the census faster. The prize: a government contract worth millions. The deadline: demonstrate results before the enumeration begins."
+              },
+              "narrative": [
+                "Three inventors have entered the competition. One of them—a young engineer named Herman Hollerith—has an idea inspired by train conductors.",
+                "On trains, conductors punch holes in tickets to encode passenger information: gender, hair color, height. Why not encode census data the same way—on cards that machines can read?"
+              ],
+              "characters": [
+                {
+                  "avatar": "🔧",
+                  "name": "Herman Hollerith",
+                  "title": "Inventor & Engineer",
+                  "bio": "German-American inventor who worked briefly at the Census Bureau and saw the tabulation nightmare firsthand. His solution combines punch cards (borrowed from Jacquard looms) with electrical sensing—a machine that can 'read' data.",
+                  "stats": [
+                    { "label": "Inspiration", "value": "Train conductor tickets" },
+                    { "label": "Key Insight", "value": "Electricity can detect holes" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hollerith",
+                  "text": "Each person becomes a card. Each fact about them—age, sex, birthplace, occupation—becomes a hole in a specific position. The machine reads the holes by passing electricity through them."
+                },
+                {
+                  "speaker": "Porter",
+                  "text": "Electricity? Through paper cards? Can it really work?"
+                },
+                {
+                  "speaker": "Hollerith",
+                  "text": "Watch."
+                }
+              ],
+              "nextScene": "scene-1-1-3"
+            },
+            {
+              "id": "scene-1-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Hollerith's workshop. The tabulating machine stands ready: a wooden cabinet with a card reader, a bank of clock-like dials, and a sorting box with dozens of compartments."
+              },
+              "narrative": [
+                "The punch card sits in a press. Metal pins descend onto the card—where there's a hole, the pin passes through into a cup of mercury below, completing an electrical circuit.",
+                "That circuit increments a counter. Sort a thousand cards and you have a thousand tallies, categorized automatically.",
+                "But the real magic is in the sorter. Based on which holes are punched, the machine opens one of forty compartments. Cards sort themselves by state, by age, by occupation—whatever categories you need."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Hollerith's tabulator used mercury cups as electrical contacts. When a pin found a hole, it dipped into mercury, completing a circuit that advanced an electromechanical counter. The sorting mechanism used electromagnets to open specific compartment doors. This was the first practical electromechanical data processing system.",
+                  "codeSnippet": "// Hollerith tabulator operation\n// Input: Punch card (45 columns)\n// \n// For each card:\n//   1. Press pins down onto card\n//   2. Pins through holes contact mercury\n//   3. Completed circuits increment counters\n//   4. Sorting electromagnets open correct bin\n//   5. Card drops into sorted compartment\n// \n// Speed: ~80 cards/minute\n// Accuracy: Near-perfect (electrical, not human)"
+                }
+              ],
+              "nextScene": "scene-1-1-4"
+            },
+            {
+              "id": "scene-1-1-4",
+              "type": "choice",
+              "setting": {
+                "text": "The competition results are in. Hollerith's machine is ten times faster than the second-place entry. The Census Bureau has found its miracle."
+              },
+              "narrative": [
+                "But success brings new questions. Hollerith's machine can count—but can it calculate? Can it cross-tabulate? Can it find correlations that no human would notice?",
+                "The data is there, encoded in holes. The question is: what can we do with it?"
+              ],
+              "choices": [
+                {
+                  "id": "choice-learn-operation",
+                  "icon": "⚙️",
+                  "title": "Learn to Operate the Tabulator",
+                  "description": "Master the Hollerith machine. Understand punch cards, pin readers, and electromechanical counters."
+                },
+                {
+                  "id": "choice-design-cards",
+                  "icon": "🎴",
+                  "title": "Design a Punch Card System",
+                  "description": "Create your own encoding scheme. Decide what data to capture and how to represent it in holes."
+                },
+                {
+                  "id": "choice-understand-implications",
+                  "icon": "💭",
+                  "title": "Consider the Implications",
+                  "description": "Machines that process data about people. What does this mean for privacy, for government power, for society?"
+                }
+              ],
+              "nextScene": "scene-1-1-5"
+            },
+            {
+              "id": "scene-1-1-5",
+              "type": "challenge",
+              "setting": {
+                "text": "The tabulating room. Rows of machines await, each attended by an operator. Your task: design an encoding scheme and process a batch of census records."
+              },
+              "narrative": [
+                "Each punch card has positions for different data fields. You must decide: which positions encode age? Which encode birthplace? How do you handle the 50 states and territories?",
+                "The encoding is the first step. Then comes the tabulation—setting up the counters to answer specific questions about the population."
+              ],
+              "challenge": {
+                "title": "DESIGN AND RUN A TABULATION",
+                "objectives": [
+                  { "id": "obj-1", "text": "Design a punch card encoding for census data", "completed": false },
+                  { "id": "obj-2", "text": "Understand binary representation (hole = 1, no hole = 0)", "completed": false },
+                  { "id": "obj-3", "text": "Configure counters for specific queries", "completed": false },
+                  { "id": "obj-4", "text": "Process a batch of cards through the tabulator", "completed": false },
+                  { "id": "obj-5", "text": "Generate a cross-tabulation report", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Punch card encoding is the ancestor of all data representation. A hole represents 1, no hole represents 0—pure binary. The Hollerith system used 12 rows and up to 80 columns, giving 960 potential bits per card. This format survived until the 1970s.",
+                  "codeSnippet": "// Punch card encoding (simplified)\n// Column 1-2: Age (00-99)\n// Column 3: Sex (M/F = 1/0)\n// Column 4-5: State code (01-50)\n// Column 6-8: Occupation code\n// ...\n// \n// Binary principle:\n// Hole punched = 1 (circuit complete)\n// No hole = 0 (circuit open)\n// \n// This IS binary data storage!"
+                }
+              ],
+              "nextScene": "scene-1-1-6"
+            },
+            {
+              "id": "scene-1-1-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Six weeks later. The preliminary census results are ready—years ahead of schedule. The nation is stunned."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Porter",
+                  "text": "The count is complete: 62,979,766 Americans. We've finished the rough count in six weeks. Six weeks! The 1880 census took eight years!"
+                },
+                {
+                  "speaker": "Hollerith",
+                  "text": "The machines work. But this is just the beginning. We can cross-tabulate any combination of factors. Age by state. Occupation by birthplace. Anything you can encode, we can count."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What's next? More censuses?"
+                },
+                {
+                  "speaker": "Hollerith",
+                  "text": "Railroads. Insurance companies. Banks. Anyone with data to process. I'm founding a company to build these machines. In fifty years, every business in America will have one."
+                }
+              ],
+              "narrative": [
+                "Hollerith's company would eventually become IBM. The punch card would dominate data processing for eighty years. And the principle—encoding information as patterns that machines can read—would become the foundation of all digital computing.",
+                "But electromechanical counters had limits. They could count, but they couldn't truly calculate. They couldn't make decisions. They couldn't be programmed.",
+                "For that, the world would need a different kind of machine—and a different kind of war."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-1-2",
+          "number": 2,
+          "title": "The Berlin Apartment",
+          "subtitle": "Konrad Zuse's Living Room Workshop",
+          "year": "1936",
+          "scenes": [
+            {
+              "id": "scene-1-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Berlin, Germany. 1936. While Hitler prepares for the Olympics, a young civil engineer works alone in his parents' apartment, surrounded by telephone relays, metal strips, and hand-drawn schematics. His name is Konrad Zuse."
+              },
+              "narrative": [
+                "Zuse's job designing aircraft structures requires endless calculations: stress analysis, load distributions, structural dynamics. Each calculation takes hours of tedious arithmetic.",
+                "\"There has to be a better way,\" he mutters, staring at yet another page of hand calculations. \"What if a machine could do this?\"",
+                "He doesn't know about Babbage. He doesn't know about the Hollerith machines. He's reinventing computation from scratch—and he's about to leapfrog everyone."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "Konrad Zuse",
+                  "title": "Civil Engineer & Inventor",
+                  "bio": "A practical engineer who hated tedious calculation so much that he invented the programmable computer to avoid it. Working in isolation, Zuse independently developed binary arithmetic, floating-point numbers, and stored-program concepts.",
+                  "stats": [
+                    { "label": "Motivation", "value": "Laziness (his own word)" },
+                    { "label": "Innovation", "value": "Binary, floating-point, programs" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "The calculating machines I've seen use decimal—ten positions per digit. That's wasteful. A switch has only two states: on and off. Why not compute in binary?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Zuse independently invented binary computation, believing it more natural for machines. He also developed floating-point arithmetic and a notation for programs (Plankalkül) decades before these ideas became mainstream. His isolation—both geographical and due to the war—meant his work was largely unknown until the 1960s.",
+                  "codeSnippet": "// Zuse's key innovations\n// \n// Binary arithmetic:\n//   Why use 10 states when 2 will do?\n//   Relays are naturally binary (on/off)\n// \n// Floating-point:\n//   Separate mantissa and exponent\n//   Handle very large and very small numbers\n//   (Standard IEEE 754 wouldn't exist until 1985)\n// \n// Stored programs:\n//   Instructions on punched film\n//   The machine reads what to do next"
+                }
+              ],
+              "nextScene": "scene-1-2-2"
+            },
+            {
+              "id": "scene-1-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The apartment is transformed into a workshop. Zuse's mother tolerates the mess; his father funds the components. Old telephone relays click and clatter as prototypes evolve."
+              },
+              "narrative": [
+                "The Z1 takes shape: mechanical memory using slotted metal plates, a mechanical arithmetic unit, and a program reader using punched film from discarded movie reels.",
+                "It's brilliant. It's innovative. And it barely works—the mechanical parts jam constantly, the tolerances too tight for hand-built components.",
+                "But Zuse learns from failure. The Z2 replaces mechanical logic with telephone relays. The Z3 will be fully relay-based—and fully programmable."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "The mechanical system is too fragile. But telephone relays... they're designed for millions of operations. Reliable. Fast. Perfect for computation."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Z1 (1938) was purely mechanical—and constantly jammed. The Z2 (1940) used relay-based arithmetic but mechanical memory. The Z3 (1941) was fully relay-based: 2,600 relays, binary floating-point arithmetic, and program control. It was the world's first programmable, automatic digital computer.",
+                  "codeSnippet": "// Z3 specifications (1941)\n// Relays: 2,600\n// Memory: 64 × 22-bit words\n// Arithmetic: Binary floating-point\n// Clock: 5-10 Hz (slow by modern standards)\n// Operations: +, -, ×, ÷, sqrt\n// \n// First to implement:\n// - Binary arithmetic in hardware\n// - Floating-point in hardware\n// - Programmable operation sequence"
+                }
+              ],
+              "nextScene": "scene-1-2-3"
+            },
+            {
+              "id": "scene-1-2-3",
+              "type": "choice",
+              "setting": {
+                "text": "May 1941. The Z3 is complete. It fills Zuse's workshop with clicking relays, punched film looping through the reader. The world's first working programmable computer."
+              },
+              "narrative": [
+                "But the war is escalating. The German government shows little interest in Zuse's \"thinking machine.\" Resources go to tanks and rockets, not computational abstractions.",
+                "Zuse dreams of a more powerful machine—the Z4—with more memory, faster operation. But can he build it before the war catches up?"
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-z3",
+                  "icon": "🔧",
+                  "title": "Study the Z3 Architecture",
+                  "description": "Examine the world's first programmable computer. Understand relay logic, binary arithmetic, and program control."
+                },
+                {
+                  "id": "choice-understand-floating-point",
+                  "icon": "🔢",
+                  "title": "Master Floating-Point",
+                  "description": "Learn Zuse's floating-point format. Understand why separating exponent and mantissa enables vast numeric ranges."
+                },
+                {
+                  "id": "choice-roads-not-taken",
+                  "icon": "🔮",
+                  "title": "Roads Not Taken: What If Germany Had Invested?",
+                  "description": "If the Nazis had funded Zuse fully, computing history might look very different. Explore this alternate path."
+                }
+              ],
+              "nextScene": "scene-1-2-4"
+            },
+            {
+              "id": "scene-1-2-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your workshop bench is configured as a relay computer simulator. Build the core of Zuse's Z3: binary arithmetic using relay logic."
+              },
+              "narrative": [
+                "A relay is a switch controlled by an electromagnet. When current flows through the coil, the switch closes. When current stops, the switch opens. On or off. 1 or 0.",
+                "Chain relays together and you can compute: AND gates, OR gates, adders, multipliers. The clicking becomes thinking."
+              ],
+              "challenge": {
+                "title": "BUILD RELAY-BASED BINARY ARITHMETIC",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement AND/OR/NOT using relays", "completed": false },
+                  { "id": "obj-2", "text": "Build a half-adder from relay logic", "completed": false },
+                  { "id": "obj-3", "text": "Chain half-adders into a full adder", "completed": false },
+                  { "id": "obj-4", "text": "Create a 4-bit binary adder", "completed": false },
+                  { "id": "obj-5", "text": "Demonstrate: 0101 + 0011 = 1000 (5 + 3 = 8)", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Relay logic directly implements Boolean algebra. A relay in series = AND (both must be energized). Relays in parallel = OR (either can complete the circuit). A normally-closed relay = NOT (energizing opens it). These are the fundamental operations of all digital computers.",
+                  "codeSnippet": "// Relay logic gates\n// \n// AND: Two relays in series\n//   A ──[R1]──[R2]── OUT\n//   Both must close for current to flow\n// \n// OR: Two relays in parallel\n//   A ──[R1]──┬── OUT\n//   B ──[R2]──┘\n//   Either closes for current to flow\n// \n// NOT: Normally-closed relay\n//   A ──[R1]── OUT (opens when A is high)"
+                }
+              ],
+              "nextScene": "scene-1-2-5"
+            },
+            {
+              "id": "scene-1-2-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "April 1945. Berlin burns. The Z3 was destroyed in a bombing raid in 1943. But Zuse escaped with the Z4, hidden in a village in Bavaria. The war ends."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "The Z3 is gone. But the Z4 survives. And the ideas... the ideas cannot be bombed."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Did the government ever realize what you'd built?"
+                },
+                {
+                  "speaker": "Zuse",
+                  "text": "No. They wanted weapons, not mathematics. If they had understood... but perhaps it's better they didn't. This technology should serve humanity, not destroy it."
+                }
+              ],
+              "narrative": [
+                "After the war, Zuse would found a computer company that built Germany's first commercial computers. But by then, American and British machines had taken the lead—developed with military funding he never received.",
+                "Still, Zuse's legacy endures: binary arithmetic, floating-point computation, and the stored-program concept. He proved that relay computers could think.",
+                "But relays were slow. Thousands of operations per second, not millions. The next breakthrough would require something faster—something with no moving parts at all."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-1-3",
+          "number": 3,
+          "title": "The Code Breakers",
+          "subtitle": "Bletchley Park, England",
+          "year": "1943",
+          "scenes": [
+            {
+              "id": "scene-1-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Bletchley Park, Buckinghamshire, England. 1943. A country estate transformed into Britain's top-secret codebreaking center. Huts scattered across the grounds house mathematicians, linguists, and engineers working to crack German ciphers."
+              },
+              "narrative": [
+                "The German Enigma machine encrypts military communications. The British have broken it—but the higher-level Lorenz cipher, used for Hitler's strategic communications, remains impenetrable.",
+                "The Lorenz machine generates pseudo-random bits that obscure the message. To break it, the codebreakers need to test billions of possible settings. By hand, it would take years. Years they don't have.",
+                "Enter Tommy Flowers, a Post Office engineer who proposes something radical: a machine that uses vacuum tubes instead of relays. Electronic, not electromechanical. Thousands of times faster."
+              ],
+              "characters": [
+                {
+                  "avatar": "👷",
+                  "name": "Tommy Flowers",
+                  "title": "Engineer, General Post Office",
+                  "bio": "A telephone engineer who believed vacuum tubes could be reliable if used correctly—running continuously rather than being switched on and off. His Colossus would be the world's first electronic digital computer.",
+                  "stats": [
+                    { "label": "Key Insight", "value": "Tubes fail when switched, not when running" },
+                    { "label": "Opposition", "value": "Everyone thought it was impossible" }
+                  ]
+                },
+                {
+                  "avatar": "🔐",
+                  "name": "Alan Turing",
+                  "title": "Mathematician, Codebreaker",
+                  "bio": "The genius who laid the theoretical foundations of computation. His 1936 paper described a universal computing machine. At Bletchley, he applied that theory to break Enigma.",
+                  "stats": [
+                    { "label": "Contribution", "value": "Bombe machine, universal computation theory" },
+                    { "label": "Tragedy", "value": "Persecuted for homosexuality after the war" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Lorenz cipher was far more complex than Enigma. It used 12 wheels to generate pseudo-random bits, creating a key space of billions of possibilities. Colossus was designed specifically to find the wheel settings by statistical analysis—counting patterns at electronic speed.",
+                  "codeSnippet": "// Lorenz cipher structure\n// 12 wheels with varying pin patterns\n// Chi wheels: 5 (mixing)\n// Psi wheels: 5 (stepping)\n// Motor wheels: 2 (controlling)\n// \n// Key space: ~10^19 combinations\n// Brute force by hand: Impossible\n// Statistical analysis: Possible with speed\n// \n// Colossus solution:\n// Read intercepted tape at 5,000 chars/sec\n// Compare against generated patterns\n// Count statistical matches electronically"
+                }
+              ],
+              "nextScene": "scene-1-3-2"
+            },
+            {
+              "id": "scene-1-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "December 1943. Colossus Mark I arrives at Bletchley Park. The largest vacuum tube machine ever built: 1,500 valves humming with electronic life."
+              },
+              "narrative": [
+                "The skeptics were wrong. Flowers designed Colossus to run continuously—and tubes that never switch off rarely fail. The machine processes 5,000 characters per second, reading punched tape at 30 miles per hour.",
+                "But Colossus isn't a general-purpose computer. It's a specialized cryptanalysis engine, hardwired for one task: breaking Lorenz. The switches and plugboards configure it for different attacks, but the basic operation is fixed."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Flowers",
+                  "text": "They said vacuum tubes couldn't be reliable in such numbers. They were wrong. The secret is to never turn them off. A tube fails when it's heated and cooled. Keep it warm and it runs forever."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Colossus used 1,500 vacuum tubes (Colossus Mark II used 2,400). By leaving them powered continuously and using high-quality components, Flowers achieved unprecedented reliability. The machine operated 24 hours a day with minimal failures—a feat many thought impossible.",
+                  "codeSnippet": "// Colossus Mark I specifications\n// Vacuum tubes: 1,500\n// Paper tape speed: 5,000 chars/second\n// Operations: Boolean logic, counting\n// Programmability: Switch/plugboard configuration\n// \n// Key innovation:\n// Electronic speed + reliability\n// Proved vacuum tubes could work at scale"
+                }
+              ],
+              "nextScene": "scene-1-3-3"
+            },
+            {
+              "id": "scene-1-3-3",
+              "type": "choice",
+              "setting": {
+                "text": "The Colossus room glows with the orange light of heated vacuum tubes. Wires snake across every surface. The machine hums with purpose—breaking codes that change the course of the war."
+              },
+              "narrative": [
+                "By war's end, ten Colossus machines will be operating at Bletchley Park. Their work contributes to D-Day planning, reveals German troop movements, and saves countless lives.",
+                "But Colossus is a secret. After the war, Churchill orders most of the machines destroyed. Tommy Flowers burns his blueprints. The electronic computer, as far as the public knows, hasn't been invented yet."
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-colossus",
+                  "icon": "💡",
+                  "title": "Study Colossus Architecture",
+                  "description": "Examine the first electronic digital machine. Understand how vacuum tubes implement Boolean logic at electronic speed."
+                },
+                {
+                  "id": "choice-breaking-codes",
+                  "icon": "🔓",
+                  "title": "Break a Lorenz Message",
+                  "description": "Experience the cryptanalysis process. Use statistical methods to find the cipher wheel settings."
+                },
+                {
+                  "id": "choice-turing-vision",
+                  "icon": "🔮",
+                  "title": "Roads Not Taken: Turing's ACE",
+                  "description": "Turing's post-war ACE design was more advanced than anything built until the 1960s. Return to your lab to construct his vision."
+                }
+              ],
+              "nextScene": "scene-1-3-4"
+            },
+            {
+              "id": "scene-1-3-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your simulation bench configures to mimic electronic logic. Build the core of Colossus: vacuum tube gates running at electronic speed."
+              },
+              "narrative": [
+                "A vacuum tube triode can amplify signals—small input, large output. But it can also switch: grid voltage controls plate current, on or off.",
+                "Two triodes in series: AND gate. Two triodes in parallel: OR gate. Add an inverting output: NOT gate. The building blocks of digital logic, now running at megahertz instead of hertz."
+              ],
+              "challenge": {
+                "title": "BUILD VACUUM TUBE LOGIC",
+                "objectives": [
+                  { "id": "obj-1", "text": "Understand triode operation (grid, cathode, plate)", "completed": false },
+                  { "id": "obj-2", "text": "Implement NOT gate using triode cutoff", "completed": false },
+                  { "id": "obj-3", "text": "Build NAND gate from triodes", "completed": false },
+                  { "id": "obj-4", "text": "Create a counting circuit (flip-flop)", "completed": false },
+                  { "id": "obj-5", "text": "Demonstrate electronic-speed switching", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Vacuum tubes operate by thermionic emission: a heated cathode releases electrons, which flow to the plate if not blocked by negative voltage on the grid. Switching speed is limited by electron transit time and capacitance—microseconds instead of relay milliseconds.",
+                  "codeSnippet": "// Vacuum tube vs relay speed\n// \n// Relay: 10-100 ms switching\n// Vacuum tube: 1-10 μs switching\n// Improvement: 1,000-10,000×\n// \n// Colossus: 5,000 chars/second\n// Zuse Z3: 3 operations/second\n// Speed ratio: >1,000×"
+                }
+              ],
+              "nextScene": "scene-1-3-5"
+            },
+            {
+              "id": "scene-1-3-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "May 1945. The war in Europe ends. Colossus has served its purpose. Soon, most will be dismantled, their secrets locked away for decades."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Turing",
+                  "text": "Colossus proved that electronic computation works. But it's specialized—hardwired for cryptanalysis. I want to build a universal machine. A machine that can be programmed to do anything."
+                },
+                {
+                  "speaker": "Flowers",
+                  "text": "The technology is ready. We know vacuum tubes can be reliable. We know electronic logic can be fast. The question is: what do we build next?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about the Americans? Are they building electronic computers too?"
+                },
+                {
+                  "speaker": "Turing",
+                  "text": "I've heard rumors. Something at the University of Pennsylvania. Artillery calculations. They're calling it ENIAC."
+                }
+              ],
+              "narrative": [
+                "The relay era ends here. Zuse proved that programmable machines could work. Colossus proved that electronic speed was achievable.",
+                "But the next step—a general-purpose electronic computer, stored-program control, the architecture that would define computing for decades—awaits across the Atlantic.",
+                "The Electronic Numerical Integrator and Computer is about to change everything.",
+                "Continue to Act 2: The Electronic Giants."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

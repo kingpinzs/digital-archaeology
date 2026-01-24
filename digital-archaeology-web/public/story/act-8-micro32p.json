@@ -1,0 +1,828 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-8",
+      "number": 8,
+      "title": "The Pipeline",
+      "description": "One instruction at a time was too slow. While one instruction executed, the rest of the processor sat idle. The solution: pipelining. Divide execution into stages. Start a new instruction every cycle. Five instructions in flight simultaneously. But with power came peril: hazards, stalls, and the branches that could flush everything away.",
+      "era": "1985 - 1995",
+      "cpuStage": "micro32p",
+      "chapters": [
+        {
+          "id": "chapter-8-1",
+          "number": 1,
+          "title": "The Assembly Line",
+          "subtitle": "Intel i486 Development",
+          "year": "1989",
+          "scenes": [
+            {
+              "id": "scene-8-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, Santa Clara, 1987. The 386 dominates the PC market, but engineers see a looming problem. Clock speeds are plateauing. Power consumption is rising. Simply making transistors switch faster isn't enough anymore."
+              },
+              "narrative": [
+                "You walk through Intel's fabrication facility, past humming machines etching circuits into silicon wafers. The 386 was a triumph—full 32-bit computing, virtual memory, protected mode. But performance demands never stop.",
+                "The problem: each instruction takes multiple clock cycles. While the CPU executes one instruction, all other circuitry sits idle. It's like a car factory where only one worker moves at a time.",
+                "The solution came from an unlikely source: Henry Ford's assembly line. Instead of one worker building an entire car, divide the work into stages. Each worker does one step, passes it on. Multiple cars in progress simultaneously."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏭",
+                  "name": "Pat Gelsinger",
+                  "title": "Lead Architect, i486",
+                  "bio": "At just 32, Gelsinger led the design of Intel's most ambitious processor yet. The i486 would integrate pipelining, cache, and floating-point unit on a single chip—1.2 million transistors. He would later become Intel's CEO.",
+                  "stats": [
+                    { "label": "Age", "value": "32 during i486 design" },
+                    { "label": "Innovation", "value": "Integrated x86 pipeline" },
+                    { "label": "Later role", "value": "Intel CEO (2021+)" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 386 was 'multicycle'—each instruction took 4-40 cycles depending on complexity. A simple MOV might take 4 cycles, while a complex addressing mode could take 12+. The CPU spent most of its time waiting for one operation to complete before starting the next.",
+                  "codeSnippet": "// 386 execution (non-pipelined)\n// Cycle:  1  2  3  4  5  6  7  8  9 10 11 12\n// MOV:   [  FETCH  |DECODE|EXECUTE|WRITE]\n// ADD:                              [  FETCH  | ...\n// \n// Total: 8 cycles for 2 instructions\n// Average: 4 cycles per instruction (CPI = 4)"
+                }
+              ],
+              "nextScene": "scene-8-1-2"
+            },
+            {
+              "id": "scene-8-1-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "A whiteboard session in Intel's design center. Gelsinger sketches the five-stage pipeline that will define the i486."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Gelsinger",
+                  "text": "Think about what happens when you execute an instruction. First, you fetch it from memory. Then decode it—figure out what operation it is. Execute the operation. Access memory if needed. Finally, write the result back."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Five distinct steps. And right now, each instruction waits for the previous one to finish all five?"
+                },
+                {
+                  "speaker": "Gelsinger",
+                  "text": "Exactly! But here's the insight: while instruction 1 is being decoded, instruction 2 can be fetched. While instruction 1 executes, instruction 2 decodes, and instruction 3 fetches. We overlap them."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Like an assembly line. Five instructions in flight at once."
+                },
+                {
+                  "speaker": "Gelsinger",
+                  "text": "When the pipeline is full, we complete one instruction every cycle—not every four or five cycles. Same transistors, same clock speed, but twice the throughput."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The classic 5-stage RISC pipeline: IF (Instruction Fetch), ID (Instruction Decode), EX (Execute), MEM (Memory Access), WB (Write Back). Each stage handles one aspect of instruction processing. When full, the pipeline produces one result per cycle despite each instruction taking 5 cycles to complete.",
+                  "codeSnippet": "// 5-stage pipeline\n// Cycle:     1  2  3  4  5  6  7  8  9\n// Instr 1: [IF|ID|EX|MM|WB]\n// Instr 2:    [IF|ID|EX|MM|WB]\n// Instr 3:       [IF|ID|EX|MM|WB]\n// Instr 4:          [IF|ID|EX|MM|WB]\n// Instr 5:             [IF|ID|EX|MM|WB]\n// \n// After filling (cycle 5+):\n// One instruction completes per cycle\n// Throughput: ~1 IPC (ideal)"
+                }
+              ],
+              "nextScene": "scene-8-1-3"
+            },
+            {
+              "id": "scene-8-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "The pipeline design meeting. Euphoria gives way to concern as engineers discover the serpent in Eden: hazards."
+              },
+              "narrative": [
+                "The pipeline assumes each instruction is independent. But they're not. Consider this code: ADD R1, R2, R3 followed by SUB R4, R1, R5. The second instruction needs R1—but it's still being computed in the first instruction.",
+                "This is a data hazard. The pipeline must stall, inserting 'bubbles' of wasted cycles. Or the hardware can 'forward' the result directly from one stage to another, bypassing the normal register write.",
+                "But there's a worse hazard: control flow. Branch instructions. The pipeline has fetched the next three instructions, but if the branch is taken, those instructions are wrong. The pipeline must flush and restart—wasting all that work."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Engineer",
+                  "text": "Our benchmarks show 30% of instructions are branches. If each costs us 3-4 cycles of flush penalty..."
+                },
+                {
+                  "speaker": "Gelsinger",
+                  "text": "Then we lose most of our pipelining gains. We need branch prediction—guess which way the branch will go, fetch speculatively. If we're right, no penalty. If wrong, we flush."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How do you guess?"
+                },
+                {
+                  "speaker": "Gelsinger",
+                  "text": "Start simple: backward branches are usually taken—they're loops. Forward branches usually not—they're error handling. We can do better with history tables, but even simple prediction helps enormously."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Three types of hazards: Data hazards (RAW: read-after-write, WAR, WAW), Control hazards (branches), and Structural hazards (two instructions need the same hardware). Solutions include stalling, forwarding (bypassing), branch prediction, and delayed branches.",
+                  "codeSnippet": "// Data hazard example (RAW = Read After Write)\n// ADD R1, R2, R3    ; R1 = R2 + R3  (writes R1)\n// SUB R4, R1, R5    ; R4 = R1 - R5  (reads R1!)\n// \n// Without forwarding: stall 2 cycles\n//    ADD: [IF|ID|EX|MM|WB]\n//    SUB:    [IF|ID|--stall--|EX|MM|WB]\n// \n// With forwarding: route R1 from EX→EX\n//    ADD: [IF|ID|EX|MM|WB]\n//    SUB:    [IF|ID|EX|MM|WB]  (forward from ADD's EX)"
+                }
+              ],
+              "nextScene": "scene-8-1-4"
+            },
+            {
+              "id": "scene-8-1-4",
+              "type": "narrative",
+              "setting": {
+                "text": "The cache integration debate. Gelsinger makes a controversial decision: put the cache on the CPU die itself."
+              },
+              "narrative": [
+                "Pipelining exposes another problem: memory speed. The pipeline can process an instruction every cycle, but if memory takes 10 cycles to respond, the pipeline stalls constantly.",
+                "The solution is cache—fast memory close to the processor that holds recently-used data. But in previous designs, cache was on separate chips. Gelsinger wants to integrate 8KB directly onto the CPU die.",
+                "Critics call it wasteful—transistors used for memory instead of logic. But Gelsinger knows the pipeline needs data NOW. The on-die cache will hit in one cycle, keeping the pipeline flowing."
+              ],
+              "characters": [
+                {
+                  "avatar": "💾",
+                  "name": "Gene Hill",
+                  "title": "Cache Architect, i486",
+                  "bio": "Hill designed the 8KB unified cache that made the i486's pipeline practical. This 'Level 1' cache concept would become standard in all future processors.",
+                  "stats": [
+                    { "label": "Cache size", "value": "8KB unified" },
+                    { "label": "Hit rate", "value": "~95% for typical code" },
+                    { "label": "Access time", "value": "1 cycle (vs 10+ for main memory)" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The i486's 8KB unified cache held both instructions and data. With typical programs, 95% of memory accesses hit in cache (1 cycle) rather than main memory (10+ cycles). This cache integration was essential—without it, the pipeline would stall on nearly every memory access.",
+                  "codeSnippet": "// Memory access timing\n// Without cache:\n//   LDR R1, [mem]  ; 10-15 cycles to main memory\n//   ADD R2, R1, R3 ; stall waiting for R1\n//   (pipeline bubbles for 10+ cycles)\n// \n// With on-die cache (hit):\n//   LDR R1, [mem]  ; 1 cycle from L1 cache\n//   ADD R2, R1, R3 ; still needs forwarding, but data ready\n//   (minimal stall with forwarding)"
+                }
+              ],
+              "nextScene": "scene-8-1-5"
+            },
+            {
+              "id": "scene-8-1-5",
+              "type": "choice",
+              "setting": {
+                "text": "The i486 takes shape: 1.2 million transistors, 5-stage pipeline, 8KB cache, integrated FPU. But the team faces a critical decision about branch handling."
+              },
+              "narrative": [
+                "Static prediction is simple: backward branches taken, forward not. It works for loops but fails on irregular code.",
+                "Dynamic prediction is complex: remember what each branch did last time. A branch history table with thousands of entries. More transistors, more power, but better accuracy.",
+                "Or delayed branches: the MIPS approach. Execute the instruction AFTER the branch regardless. Let the compiler fill that 'delay slot' with useful work. Simpler hardware, but harder programming."
+              ],
+              "choices": [
+                {
+                  "id": "choice-static-prediction",
+                  "icon": "📐",
+                  "title": "Implement Static Prediction",
+                  "description": "Use simple direction-based prediction: backward branches taken, forward branches not taken. Simple and deterministic."
+                },
+                {
+                  "id": "choice-dynamic-prediction",
+                  "icon": "🧠",
+                  "title": "Design Dynamic Prediction",
+                  "description": "Build a Branch History Table that remembers each branch's past behavior. Complex but adaptive."
+                },
+                {
+                  "id": "choice-understand-hazards",
+                  "icon": "⚠️",
+                  "title": "Master Pipeline Hazards",
+                  "description": "Deep dive into all hazard types: RAW, WAR, WAW, control, structural. Understand when and why pipelines stall."
+                },
+                {
+                  "id": "choice-implement-forwarding",
+                  "icon": "➡️",
+                  "title": "Build Forwarding Paths",
+                  "description": "Implement bypass paths that route results directly between pipeline stages, eliminating data hazard stalls."
+                }
+              ],
+              "nextScene": "scene-8-1-6"
+            },
+            {
+              "id": "scene-8-1-6",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab configures for pipelined processor development. Build the Micro32-P: a 5-stage pipeline with hazard detection and forwarding."
+              },
+              "narrative": [
+                "Experience the power and peril of pipelining. Build it right and instructions flow smoothly at one per cycle. Make a mistake and hazards destroy performance—or worse, produce wrong results."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO32-P PIPELINE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement 5 pipeline stages (IF/ID/EX/MEM/WB)", "completed": false },
+                  { "id": "obj-2", "text": "Add pipeline registers between stages", "completed": false },
+                  { "id": "obj-3", "text": "Detect data hazards (RAW dependencies)", "completed": false },
+                  { "id": "obj-4", "text": "Implement forwarding paths (EX→EX, MEM→EX)", "completed": false },
+                  { "id": "obj-5", "text": "Handle load-use hazards with stalling", "completed": false },
+                  { "id": "obj-6", "text": "Implement branch prediction (static or dynamic)", "completed": false },
+                  { "id": "obj-7", "text": "Run a benchmark and measure actual IPC", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Pipeline registers separate stages, holding the instruction and its data as it moves through. Hazard detection compares source registers of the current instruction with destination registers of instructions ahead in the pipeline. Forwarding multiplexers select between register file outputs and bypassed values.",
+                  "codeSnippet": "// Pipeline register contents\n// IF/ID:  instruction, PC+4\n// ID/EX:  control signals, read data, immediates, Rs1, Rs2, Rd\n// EX/MEM: ALU result, write data, Rd, control signals\n// MEM/WB: memory data or ALU result, Rd\n// \n// Forwarding conditions:\n// if (EX/MEM.RegWrite && EX/MEM.Rd != 0)\n//   if (EX/MEM.Rd == ID/EX.Rs1) ForwardA = EX/MEM.ALUout\n//   if (EX/MEM.Rd == ID/EX.Rs2) ForwardB = EX/MEM.ALUout"
+                }
+              ],
+              "nextScene": "scene-8-1-7"
+            },
+            {
+              "id": "scene-8-1-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "April 1989. The i486 launches to critical acclaim. 25 MHz, 1.2 million transistors, integrated everything. But across the country, a different philosophy is taking hold."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "The i486 is impressive, but it's still fundamentally a CISC processor. Complex instructions, variable lengths, lots of microcode. There's a growing movement that says we've been doing it all wrong."
+                },
+                {
+                  "speaker": "You",
+                  "text": "RISC? I've heard the term."
+                },
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "Reduced Instruction Set Computer. The idea is: simple instructions execute faster. Instead of one complex instruction, use several simple ones. The pipeline loves it—no variable-length decode, no microcode, clean execution."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Who's pushing this?"
+                },
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "Two universities changed everything: Stanford created MIPS, Berkeley created SPARC. Their students and professors founded companies. Sun, MIPS Computer Systems, ARM. The RISC revolution is underway."
+                }
+              ],
+              "narrative": [
+                "The i486 proved pipelining could work for complex x86 instructions. But the RISC advocates argued that simpler instruction sets made pipelining easier, faster, and more efficient.",
+                "A philosophical war was brewing: CISC vs RISC. Complex instructions favored by Intel versus simple instructions favored by academia and workstation vendors.",
+                "Continue to Chapter 2: The RISC Revolution."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-8-2",
+          "number": 2,
+          "title": "The RISC Revolution",
+          "subtitle": "Stanford, Berkeley, and the Simple Path",
+          "year": "1981-1991",
+          "scenes": [
+            {
+              "id": "scene-8-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Stanford University, 1981. Professor John Hennessy stares at performance data that challenges everything the industry believes. Complex instructions aren't helping—they're hurting."
+              },
+              "narrative": [
+                "The prevailing wisdom: make instructions do more. A single instruction that copies a string, or searches an array, or does complex addressing. Compilers can use these powerful instructions for efficiency.",
+                "But Hennessy's measurements tell a different story. Compilers rarely use the complex instructions. And when they do, the microcode that implements them is slower than equivalent simple instructions.",
+                "The insight is radical: simpler is faster. A small set of simple instructions, each executing in one cycle, outperforms complex instructions that take many cycles. The key is the pipeline."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎓",
+                  "name": "John Hennessy",
+                  "title": "Professor, Stanford University",
+                  "bio": "Co-creator of the MIPS architecture and author of the definitive textbook 'Computer Architecture: A Quantitative Approach.' His work on RISC would earn him the Turing Award and lead to founding MIPS Computer Systems. Later became Stanford's president.",
+                  "stats": [
+                    { "label": "Creation", "value": "MIPS architecture" },
+                    { "label": "Awards", "value": "Turing Award 2017" },
+                    { "label": "Legacy", "value": "RISC foundation for ARM, etc." }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Studies showed that 80% of execution time was spent in 20% of instructions—all simple operations. Complex instructions like ENTER, LEAVE, string moves were rarely generated by compilers. The microcode implementing them was often slower than equivalent sequences of simple instructions.",
+                  "codeSnippet": "// CISC approach: One complex instruction\n// MOVSB          ; Move string byte\n//                ; Internally: load, store, dec, branch\n//                ; 5-20 cycles depending on microcode\n// \n// RISC approach: Simple instruction sequence\n// LDR R1, [SI]   ; 1 cycle\n// STR R1, [DI]   ; 1 cycle  \n// ADD SI, SI, #1 ; 1 cycle\n// ADD DI, DI, #1 ; 1 cycle\n// BNE loop       ; 1 cycle (if predicted)\n// Total: 5 cycles, fully pipelined"
+                }
+              ],
+              "nextScene": "scene-8-2-2"
+            },
+            {
+              "id": "scene-8-2-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "Berkeley, California, 1980. Across the bay, Professor David Patterson reaches the same conclusions independently. RISC is being born in stereo."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Patterson",
+                  "text": "I call it RISC—Reduced Instruction Set Computer. The idea is counterintuitive: do LESS per instruction, but do it FASTER. One instruction, one cycle. Fill the pipeline. Let the compiler optimize."
+                },
+                {
+                  "speaker": "Student",
+                  "text": "But won't programs need more instructions?"
+                },
+                {
+                  "speaker": "Patterson",
+                  "text": "Yes! RISC programs are typically 30% larger in instruction count. But each instruction executes 5-10 times faster. Net result: 3-7x better performance."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What makes simple instructions so much faster?"
+                },
+                {
+                  "speaker": "Patterson",
+                  "text": "Pipelining! Fixed-length instructions mean simple decode. No microcode means the execute stage is pure hardware—fast. Load/store architecture means the memory stage is predictable. Every stage runs at full speed."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🔬",
+                  "name": "David Patterson",
+                  "title": "Professor, UC Berkeley",
+                  "bio": "Co-creator of RISC and the SPARC architecture. Patterson coined the term 'RISC' and later led the RAID project. His textbook with Hennessy defined computer architecture education. Also received the Turing Award in 2017.",
+                  "stats": [
+                    { "label": "Creation", "value": "SPARC architecture" },
+                    { "label": "Coined", "value": "The term 'RISC'" },
+                    { "label": "Later work", "value": "RISC-V open architecture" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "RISC principles: (1) Simple instructions, one cycle each, (2) Fixed instruction length, (3) Load/store architecture—only loads and stores access memory, (4) Many registers, (5) Compiler-optimized instruction scheduling. These properties make pipelining natural and efficient.",
+                  "codeSnippet": "// RISC design principles\n// \n// 1. Fixed-length instructions (32 bits)\n//    Easy decode: bits 0-5 = opcode always\n// \n// 2. Load/store architecture  \n//    ADD R1, R2, R3   ; Registers only\n//    LDR R1, [R4]     ; Explicit memory access\n// \n// 3. Many registers (32 typical)\n//    Reduce memory traffic\n//    Compiler can optimize register allocation\n// \n// 4. Simple addressing modes\n//    Register + offset only\n//    No complex memory-to-memory operations"
+                }
+              ],
+              "nextScene": "scene-8-2-3"
+            },
+            {
+              "id": "scene-8-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Sun Microsystems, 1985. The SPARC processor—Berkeley's RISC vision made silicon—powers a new generation of workstations that outperform everything from the PC world."
+              },
+              "narrative": [
+                "Sun's engineers take Berkeley's SPARC design and commercialize it. The result: workstations that run circles around 386 PCs. Scientific computing, graphics, networking—SPARC handles it all.",
+                "The secret weapon: register windows. SPARC has 120 registers, but each procedure sees only 32. When you call a function, the window 'slides'—the caller's output registers become the callee's input registers. Zero-overhead function calls.",
+                "Meanwhile, MIPS Computer Systems commercializes Stanford's architecture. Silicon Graphics uses MIPS for revolutionary graphics workstations. The movies you'll see in the '90s—Jurassic Park, Toy Story—will be rendered on MIPS machines."
+              ],
+              "characters": [
+                {
+                  "avatar": "☀️",
+                  "name": "Bill Joy",
+                  "title": "Co-founder, Sun Microsystems",
+                  "bio": "A Berkeley PhD student who created BSD Unix and the vi editor, Joy co-founded Sun to commercialize university innovations. Sun's 'The Network is the Computer' vision and SPARC architecture defined enterprise computing for a decade.",
+                  "stats": [
+                    { "label": "Creations", "value": "BSD Unix, vi, SPARC" },
+                    { "label": "Role", "value": "Sun Chief Scientist" },
+                    { "label": "Impact", "value": "Workstation revolution" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "SPARC's register windows: 8 global registers + rotating windows of 24 registers each (8 in, 8 local, 8 out). A function call rotates the window—caller's 'out' becomes callee's 'in'. No register save/restore on calls. Made function-heavy code extremely fast.",
+                  "codeSnippet": "// SPARC register windows\n// Window 0:  [in0-7|local0-7|out0-7] + globals\n// Window 1:     [in0-7|local0-7|out0-7] + globals\n//                ↑\n//          (out of W0 = in of W1)\n// \n// CALL function:\n//   SAVE - rotate window (1 cycle)\n//   (out regs become in regs automatically)\n// \n// RETURN:\n//   RESTORE - rotate back (1 cycle)\n//   (no register save/restore needed)"
+                }
+              ],
+              "nextScene": "scene-8-2-4"
+            },
+            {
+              "id": "scene-8-2-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Digital Equipment Corporation, Maynard, 1988. DEC, maker of the legendary VAX, faces an existential crisis. Their CISC flagship is falling behind RISC workstations. The response will be historic."
+              },
+              "narrative": [
+                "The VAX was a CISC masterpiece—elegant, powerful, beloved by programmers. But its complex architecture couldn't pipeline efficiently. DEC is losing the performance race to Sun and SGI.",
+                "A skunkworks team gets a radical mandate: design the fastest processor in the world. No backward compatibility. No compromises. Pure performance.",
+                "The result is Alpha, and it's a monster. 64-bit architecture when everyone else is 32-bit. 200 MHz when Pentiums run at 60 MHz. The Alpha 21064 is three times faster than anything else on the planet."
+              ],
+              "characters": [
+                {
+                  "avatar": "⚡",
+                  "name": "Daniel Dobberpuhl",
+                  "title": "Lead Designer, Alpha 21064",
+                  "bio": "The engineer who created the fastest processor of its era. Dobberpuhl's Alpha 21064 ran at 200 MHz when competitors struggled to reach 66 MHz. His aggressive design philosophy influenced processor design for decades.",
+                  "stats": [
+                    { "label": "Clock speed", "value": "200 MHz (1992)" },
+                    { "label": "Architecture", "value": "64-bit RISC" },
+                    { "label": "Performance", "value": "3x faster than competition" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Alpha's secret: aggressive frequency. Simple pipeline stages meant each could complete in less time. The 21064's 200 MHz clock was possible because each pipeline stage did very little work. It sacrificed instruction throughput efficiency for raw speed.",
+                  "codeSnippet": "// Alpha design philosophy\n// \n// Goal: Maximize frequency\n// Method: Simple pipeline stages, aggressive clocking\n// \n// Comparison (1992):\n// Processor   Clock    IPC    Performance\n// i486DX2     66 MHz   0.8    53 MIPS\n// Pentium     60 MHz   1.5    90 MIPS  \n// Alpha 21064 200 MHz  0.8    160 MIPS\n// \n// Alpha: Lower IPC, but 3x clock = 3x performance"
+                }
+              ],
+              "nextScene": "scene-8-2-5"
+            },
+            {
+              "id": "scene-8-2-5",
+              "type": "choice",
+              "setting": {
+                "text": "The RISC vs CISC debate reaches fever pitch. Trade magazines run heated editorials. Fortunes hang in the balance. Which philosophy is correct?"
+              },
+              "narrative": [
+                "Intel argues: compatibility matters. Billions of dollars of software runs on x86. Recompiling for RISC means rewriting. Most businesses won't switch.",
+                "RISC advocates counter: performance matters more. Workstations are 5x faster. The Mac has switched to PowerPC. Windows NT runs on MIPS and Alpha. The future is RISC.",
+                "The truth will prove more nuanced than either side admits. But in 1992, the battle lines are drawn."
+              ],
+              "choices": [
+                {
+                  "id": "choice-risc-deep-dive",
+                  "icon": "🎓",
+                  "title": "Explore RISC Architecture",
+                  "description": "Build a clean RISC pipeline: fixed-length instructions, load/store architecture, register windows, delay slots."
+                },
+                {
+                  "id": "choice-cisc-optimization",
+                  "icon": "🏗️",
+                  "title": "Optimize CISC Pipeline",
+                  "description": "See how Intel makes complex x86 instructions work in a pipeline through microcode and internal RISC translation."
+                },
+                {
+                  "id": "choice-alpha-speed",
+                  "icon": "⚡",
+                  "title": "Study Alpha's Speed",
+                  "description": "Understand how Alpha achieved 200 MHz through aggressive pipeline design and frequency optimization."
+                },
+                {
+                  "id": "choice-compare-architectures",
+                  "icon": "⚖️",
+                  "title": "Compare RISC vs CISC",
+                  "description": "Run the same algorithm on both architectures. Measure clock cycles, instruction counts, and total performance."
+                }
+              ],
+              "nextScene": "scene-8-2-6"
+            },
+            {
+              "id": "scene-8-2-6",
+              "type": "narrative",
+              "setting": {
+                "text": "Acorn Computers, Cambridge, UK, 1985. While American giants battle, a small British company designs a RISC chip for a modest computer. They call it ARM—and it will conquer the world."
+              },
+              "narrative": [
+                "Acorn needs a processor for their new BBC Micro successor. Nothing on the market fits—too power-hungry, too expensive. Sophie Wilson and Steve Furber decide to design their own.",
+                "They study Berkeley's RISC papers and design something elegant: ARM, the Acorn RISC Machine. Low power, simple design, cheap to manufacture. It's meant for home computers.",
+                "No one imagines that this modest chip will become the most manufactured processor in history. ARM's descendants will power billions of phones, tablets, and embedded devices. Simple, efficient, everywhere."
+              ],
+              "characters": [
+                {
+                  "avatar": "🇬🇧",
+                  "name": "Sophie Wilson",
+                  "title": "Designer, ARM Architecture",
+                  "bio": "The architect who designed the ARM instruction set—the most widely-used processor architecture in history. Wilson's elegant design prioritized simplicity and power efficiency, principles that would make ARM essential for mobile computing.",
+                  "stats": [
+                    { "label": "Design", "value": "ARM instruction set" },
+                    { "label": "Principle", "value": "Power efficiency first" },
+                    { "label": "Impact", "value": "200+ billion ARM chips" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "Steve Furber",
+                  "title": "Designer, ARM Hardware",
+                  "bio": "Co-designer of the ARM processor who implemented Wilson's architecture in silicon. Furber's hardware design was remarkably simple—just 25,000 transistors—yet outperformed Intel's 386 on many tasks.",
+                  "stats": [
+                    { "label": "Transistors", "value": "25,000 (vs 275K for 386)" },
+                    { "label": "Power", "value": "0.1 watts" },
+                    { "label": "Later work", "value": "SpiNNaker neural computer" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "ARM's secret: conditional execution. Every instruction can be conditionally executed based on flags. This eliminates most branches—and their pipeline penalties. A technique that seemed like a gimmick would prove transformative for battery-powered devices.",
+                  "codeSnippet": "// ARM conditional execution\n// No branch needed for simple conditions!\n// \n// Traditional (branch-based):\n//   CMP R0, #0\n//   BEQ skip\n//   ADD R1, R1, #1\n// skip:\n// \n// ARM (conditional):\n//   CMP R0, #0\n//   ADDNE R1, R1, #1   ; ADD if Not Equal\n// \n// No branch = no pipeline flush\n// Huge win for simple conditions"
+                }
+              ],
+              "nextScene": "scene-8-2-7"
+            },
+            {
+              "id": "scene-8-2-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "1995. The RISC revolution seems victorious. But Intel has been working on something that will change everything: the P6 architecture."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "Everyone says CISC can't compete with RISC. We're going to prove them wrong. The Pentium Pro translates x86 into micro-ops—simple RISC-like operations."
+                },
+                {
+                  "speaker": "You",
+                  "text": "You're turning CISC into RISC internally?"
+                },
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "Exactly. The front-end decodes complex x86 into simple micro-ops. The back-end is a high-performance RISC core that executes those micro-ops out of order. Best of both worlds."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the RISC vs CISC debate..."
+                },
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "Is over. The answer is RISC internally, CISC externally. We keep compatibility AND get performance. The software investment is preserved. The hardware does the translation."
+                }
+              ],
+              "narrative": [
+                "The RISC revolution's greatest triumph was also its integration. Intel's Pentium Pro would execute x86 code by translating it to RISC-like micro-operations internally.",
+                "RISC didn't win by replacing CISC. It won by infiltrating it. Every modern x86 processor is a RISC core in disguise, translating complex instructions to simple operations.",
+                "Continue to Chapter 3: The Pentium Wars."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-8-3",
+          "number": 3,
+          "title": "The Pentium Wars",
+          "subtitle": "Intel vs AMD vs The World",
+          "year": "1993-1997",
+          "scenes": [
+            {
+              "id": "scene-8-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, March 1993. The Pentium launches with unprecedented marketing: a $500 million campaign, including the famous Intel Inside program. The processor wars are about to get vicious."
+              },
+              "narrative": [
+                "The Pentium is Intel's response to RISC competition. Dual pipelines—the 'U' and 'V' pipes—can execute two integer instructions simultaneously. Superscalar execution on x86.",
+                "But there's a catch: instruction pairing is finicky. Only certain combinations can run in parallel. Complex rules about which pipe can handle which instruction. Optimizing code for Pentium becomes an art form.",
+                "The name 'Pentium' itself is revolutionary. Previous chips were numbered: 8086, 80286, 80386, 80486. But you can't trademark a number. 'Pentium'—from Greek 'pente' for five—is defensible against AMD's clones."
+              ],
+              "characters": [
+                {
+                  "avatar": "💻",
+                  "name": "Vinod Dham",
+                  "title": "Lead Developer, Pentium",
+                  "bio": "Known as the 'Father of the Pentium,' Dham led the development of the dual-pipeline architecture that defined a generation of PCs. His work on superscalar x86 proved that CISC could compete with RISC.",
+                  "stats": [
+                    { "label": "Pipelines", "value": "Dual (U + V pipe)" },
+                    { "label": "Transistors", "value": "3.1 million" },
+                    { "label": "Clock speed", "value": "60-200 MHz" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Pentium's dual pipelines had strict pairing rules. The U-pipe could handle any instruction; the V-pipe was more limited. Instructions could only pair if they didn't have dependencies and the V-pipe supported the second instruction. Getting good pairing required careful assembly optimization.",
+                  "codeSnippet": "// Pentium instruction pairing\n// U-pipe: full x86 instruction set\n// V-pipe: simple instructions only (ADD, SUB, MOV, CMP...)\n// \n// Good pairing (2 IPC):\n//   ADD EAX, EBX    ; U-pipe\n//   MOV ECX, EDX    ; V-pipe (parallel)\n// \n// Bad pairing (1 IPC):\n//   ADD EAX, EBX    ; U-pipe\n//   MUL ECX         ; Can't pair (MUL is U-pipe only)\n// \n// Compiler and hand optimization crucial for performance"
+                }
+              ],
+              "nextScene": "scene-8-3-2"
+            },
+            {
+              "id": "scene-8-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "AMD Headquarters, Sunnyvale, 1993. The scrappy competitor watches Intel's Pentium launch. They've been making 386 and 486 clones. Now they need something original."
+              },
+              "narrative": [
+                "AMD has survived by cloning Intel—making compatible chips that run Intel's software at lower prices. But Intel's legal pressure is mounting. The Pentium is trademarked. The x86 patents are expiring but the designs aren't.",
+                "AMD's answer is the K5: an independent design that runs x86 code by translating it to RISC-like operations internally. Sound familiar? AMD figures out the same trick Intel will use in the Pentium Pro.",
+                "The K5 is ambitious—maybe too ambitious. It's late, and when it arrives, it underperforms. But AMD learns crucial lessons. Their next chip, the K6, will challenge Intel seriously."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔴",
+                  "name": "Jerry Sanders",
+                  "title": "CEO, AMD",
+                  "bio": "The flamboyant founder of AMD who took on Intel's monopoly. Sanders' famous quote: 'Real men have fabs.' His aggressive competition forced Intel to innovate faster and kept PC prices affordable.",
+                  "stats": [
+                    { "label": "Founded AMD", "value": "1969" },
+                    { "label": "Strategy", "value": "Competitive x86 clones" },
+                    { "label": "Famous quote", "value": "\"Real men have fabs\"" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AMD K5's internal architecture was called 'RISC86'—x86 instructions were translated to RISC operations called 'ROPs' (RISC Operations). This decoupled the external x86 interface from the internal execution engine, similar to what Intel would do with micro-ops in the Pentium Pro.",
+                  "codeSnippet": "// K5/Pentium Pro approach: x86 → RISC translation\n// \n// External (programmer sees):\n//   ADD [EBX+4], EAX   ; Complex CISC instruction\n// \n// Internal (hardware executes):\n//   load  tmp, [EBX+4]  ; RISC op 1\n//   add   tmp, tmp, EAX ; RISC op 2  \n//   store [EBX+4], tmp  ; RISC op 3\n// \n// Simple ops can execute out-of-order\n// Complex instruction is just a sequence of simple ops"
+                }
+              ],
+              "nextScene": "scene-8-3-3"
+            },
+            {
+              "id": "scene-8-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Cyrix offices, Richardson, Texas, 1995. A third competitor emerges—a fabless semiconductor company that designs x86 chips manufactured by others. Their 6x86 is unexpectedly competitive."
+              },
+              "narrative": [
+                "Cyrix doesn't own factories. They license designs to IBM's fabs and later National Semiconductor. It's a radical business model—design without manufacturing.",
+                "Their 6x86 chip is clever: it runs at lower clock speeds than Pentium but does more work per cycle. Cyrix invents the 'PR rating'—a Pentium Rating that compares real performance rather than raw MHz.",
+                "A 6x86 PR200 runs at 150 MHz but performs like a 200 MHz Pentium. The clock speed wars have begun, and marketing will matter as much as engineering."
+              ],
+              "characters": [
+                {
+                  "avatar": "🌀",
+                  "name": "Tom Brightman",
+                  "title": "CPU Architect, Cyrix",
+                  "bio": "Lead architect of the Cyrix 6x86, the chip that proved you could beat Intel on performance per clock. Cyrix's PR rating system exposed the fallacy of pure MHz comparisons.",
+                  "stats": [
+                    { "label": "Design", "value": "Higher IPC, lower MHz" },
+                    { "label": "Innovation", "value": "PR (Performance Rating) system" },
+                    { "label": "Business model", "value": "Fabless design" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The MHz myth: clock speed alone doesn't determine performance. Cyrix's 6x86 had higher IPC (instructions per clock) than Pentium. A 150 MHz 6x86 could match a 200 MHz Pentium on real applications. This led to the PR rating—comparing performance, not megahertz.",
+                  "codeSnippet": "// The MHz vs IPC tradeoff\n// \n// Performance = Clock Speed × IPC\n// \n// Pentium at 200 MHz, IPC = 1.0\n//   200 × 1.0 = 200 effective ops/cycle\n// \n// Cyrix 6x86 at 150 MHz, IPC = 1.33\n//   150 × 1.33 = 200 effective ops/cycle\n// \n// Same real-world performance, different specs\n// Marketing: \"6x86-PR200\" = performs like P200"
+                }
+              ],
+              "nextScene": "scene-8-3-4"
+            },
+            {
+              "id": "scene-8-3-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "Intel's P6 design center, 1995. The Pentium Pro is nearly complete. It will change everything—again."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Bob Colwell",
+                  "text": "The Pentium is superscalar—two instructions at once. The Pentium Pro goes further. Out-of-order execution. We don't execute instructions in program order anymore."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How does that work? Don't later instructions depend on earlier ones?"
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "Often they don't! If instruction 3 doesn't need the result of instruction 2, why wait? We track dependencies with a structure called the reorder buffer. Execute whenever inputs are ready. Commit in order."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And the x86 translation?"
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "Every x86 instruction becomes one or more micro-ops—simple RISC-like operations. The decoder handles the complex CISC interface. The execution engine sees only simple operations. It's a clean RISC core executing a CISC instruction set."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🚀",
+                  "name": "Bob Colwell",
+                  "title": "Chief Architect, Pentium Pro",
+                  "bio": "The architect who made out-of-order execution work for x86. Colwell's Pentium Pro (P6) design would become the foundation for Intel's processors for over two decades, including the Core series.",
+                  "stats": [
+                    { "label": "Architecture", "value": "P6 / Pentium Pro" },
+                    { "label": "Innovation", "value": "x86 out-of-order execution" },
+                    { "label": "Legacy", "value": "Core architecture foundation" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Pentium Pro's out-of-order engine: Decode x86 → micro-ops. Register rename to eliminate false dependencies. Issue to reservation stations. Execute when operands ready. Retire in order via reorder buffer. This design persists in modern Intel cores.",
+                  "codeSnippet": "// Pentium Pro out-of-order execution\n// \n// Original program:\n//   1: LOAD  R1, [mem]   ; cache miss - slow!\n//   2: ADD   R2, R1, R3  ; depends on R1\n//   3: MUL   R4, R5, R6  ; independent!\n//   4: SUB   R7, R8, R9  ; independent!\n// \n// Out-of-order execution:\n//   Cycle 1: issue LOAD, issue MUL, issue SUB\n//   Cycle 2: MUL executes, SUB executes\n//   Cycle 3-10: waiting for LOAD...\n//   Cycle 11: LOAD completes, issue ADD\n//   Cycle 12: ADD executes\n// \n// Instructions 3,4 complete before 2!"
+                }
+              ],
+              "nextScene": "scene-8-3-5"
+            },
+            {
+              "id": "scene-8-3-5",
+              "type": "narrative",
+              "setting": {
+                "text": "January 1997. Intel launches the Pentium MMX with great fanfare. Suddenly, every PC advertisement mentions 'MMX technology.' But what is it?"
+              },
+              "narrative": [
+                "MMX—MultiMedia eXtensions—adds 57 new instructions for processing multiple data elements at once. SIMD: Single Instruction, Multiple Data. Process 8 bytes in parallel with one instruction.",
+                "The marketing makes it sound like magic for games and video. The reality is more nuanced—software must be rewritten to use MMX. But it's a preview of the future: specialized instructions for specific workloads.",
+                "Intel's MMX campaign is brilliant marketing. 'MMX' appears in every PC ad. Bunny-suited dancers in TV commercials. The tech industry learns that perception matters as much as performance."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎮",
+                  "name": "Alex Peleg",
+                  "title": "MMX Chief Architect",
+                  "bio": "The engineer who brought SIMD to the masses. Peleg's MMX technology was the first step toward the SSE, AVX, and GPU-style parallel processing that dominates modern computing.",
+                  "stats": [
+                    { "label": "New instructions", "value": "57 SIMD operations" },
+                    { "label": "Data parallelism", "value": "8 bytes at once" },
+                    { "label": "Legacy", "value": "Foundation for SSE/AVX" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "MMX operated on 64-bit packed data: 8 bytes, 4 words, or 2 doublewords processed in parallel. This SIMD approach—same operation on multiple data elements—would evolve into SSE (128-bit), AVX (256-bit), and AVX-512 (512-bit) in later processors.",
+                  "codeSnippet": "// MMX SIMD example\n// Traditional: process 8 pixels one at a time\n//   for i = 0 to 7:\n//     pixel[i] = pixel[i] + brightness\n//   (8 separate ADD operations)\n// \n// MMX: process all 8 in parallel\n//   PADDB mm0, mm1   ; Packed ADD Bytes\n//   (1 instruction does 8 ADDs)\n// \n// 8x throughput for parallel operations\n// Key insight: multimedia data is naturally parallel"
+                }
+              ],
+              "nextScene": "scene-8-3-6"
+            },
+            {
+              "id": "scene-8-3-6",
+              "type": "choice",
+              "setting": {
+                "text": "The pipeline era reaches its zenith. Processors execute instructions out of order, speculatively, in parallel. But the complexity is exploding."
+              },
+              "narrative": [
+                "Modern processors predict branch outcomes, speculatively execute instructions, rename registers to eliminate dependencies, and reorder execution for maximum parallelism. Thousands of instructions may be in flight.",
+                "The programmer sees a simple sequential machine. Inside, it's a prediction engine constantly gambling on the future and unwinding when wrong.",
+                "Power consumption rises with complexity. Clock speeds approach physical limits. The single-thread performance race is nearing its end—but no one knows it yet."
+              ],
+              "choices": [
+                {
+                  "id": "choice-branch-predictor",
+                  "icon": "🔮",
+                  "title": "Build a Branch Predictor",
+                  "description": "Implement static, 1-bit, 2-bit saturating, or correlating predictors. Measure prediction accuracy on real code."
+                },
+                {
+                  "id": "choice-out-of-order",
+                  "icon": "🔀",
+                  "title": "Implement Out-of-Order Execution",
+                  "description": "Build a reorder buffer and reservation stations. See how instructions execute in data-flow order."
+                },
+                {
+                  "id": "choice-register-renaming",
+                  "icon": "📝",
+                  "title": "Design Register Renaming",
+                  "description": "Eliminate false dependencies by mapping architectural registers to a larger physical register file."
+                },
+                {
+                  "id": "choice-simd-unit",
+                  "icon": "⚡",
+                  "title": "Build an MMX/SIMD Unit",
+                  "description": "Process multiple data elements in parallel. Experience the power of data-level parallelism."
+                }
+              ],
+              "nextScene": "scene-8-3-7"
+            },
+            {
+              "id": "scene-8-3-7",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab configures for advanced pipelined processor development. It's time to put everything together."
+              },
+              "narrative": [
+                "Build a processor that embodies the lessons of the pipeline era: deep pipelines, hazard detection, forwarding, branch prediction, and the foundations of out-of-order execution."
+              ],
+              "challenge": {
+                "title": "ADVANCED PIPELINED PROCESSOR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement a 5+ stage pipeline with all registers", "completed": false },
+                  { "id": "obj-2", "text": "Add full forwarding (EX→EX, MEM→EX, MEM→MEM)", "completed": false },
+                  { "id": "obj-3", "text": "Implement branch prediction (at least 2-bit saturating)", "completed": false },
+                  { "id": "obj-4", "text": "Add speculative fetch based on predictions", "completed": false },
+                  { "id": "obj-5", "text": "Handle misprediction with pipeline flush", "completed": false },
+                  { "id": "obj-6", "text": "Measure branch prediction accuracy", "completed": false },
+                  { "id": "obj-7", "text": "Optimize a program for your pipeline", "completed": false },
+                  { "id": "obj-8", "text": "Achieve IPC > 0.8 on a benchmark", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Real-world IPC is always less than ideal due to hazards, cache misses, and branch mispredictions. A well-designed single-issue pipeline typically achieves 0.5-0.8 IPC. Superscalar processors can exceed 1.0 IPC by issuing multiple instructions per cycle.",
+                  "codeSnippet": "// IPC breakdown for real code\n// \n// Ideal: 1.0 IPC (one instruction/cycle)\n// \n// Losses:\n//   Data hazards (stalls):     -0.10\n//   Load-use stalls:           -0.05\n//   Branch mispredictions:     -0.15\n//   Cache misses:              -0.10\n//   Structural hazards:        -0.05\n// \n// Typical achieved: ~0.55 IPC\n// \n// Superscalar (2-issue) can reach ~1.5 IPC\n// Out-of-order helps hide latencies"
+                }
+              ],
+              "nextScene": "scene-8-3-8"
+            },
+            {
+              "id": "scene-8-3-8",
+              "type": "dialogue",
+              "setting": {
+                "text": "1997. The Pentium II launches, bringing the P6 architecture to consumers. AMD responds with the K6. The stage is set for a new decade of processor wars."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "The Pentium II is essentially a Pentium Pro with MMX and a new package. But the out-of-order engine is the real story. Every x86 chip going forward will use this approach."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So RISC won, but through absorption rather than replacement?"
+                },
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "Exactly. Modern x86 processors are RISC internally. The x86 instruction set is just a compatibility layer. Decode it, translate it, execute it on a clean RISC-like core."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What comes next?"
+                },
+                {
+                  "speaker": "Industry Analyst",
+                  "text": "Deeper pipelines, wider issue, more speculation. The Pentium 4 will have 20 pipeline stages. Clock speeds will hit 3 GHz. And then... we'll hit a wall. But that's a story for another day."
+                }
+              ],
+              "narrative": [
+                "The pipeline era transformed processors from simple sequential machines into prediction engines that speculate on the future while maintaining the illusion of ordered execution.",
+                "Every technique built on the last: pipelining enabled higher throughput, which exposed hazards, which drove forwarding and prediction, which enabled out-of-order execution, which demanded register renaming.",
+                "But one instruction per cycle was still a limit for in-order designs. The next step: issue multiple instructions per cycle, execute them in parallel, reorder them dynamically. The superscalar era beckoned.",
+                "Continue to Act 9: Superscalar—where processors become true prediction machines."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

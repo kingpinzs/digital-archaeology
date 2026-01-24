@@ -1,0 +1,543 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-2",
+      "number": 2,
+      "title": "The Electronic Giants",
+      "description": "The vacuum tube unlocked electronic speed—but ENIAC, the first general-purpose electronic computer, filled a room and consumed enough power to dim the lights of Philadelphia. From hardwired programs to stored instructions, from military secrets to commercial products, the electronic giants would define what a computer could be.",
+      "era": "1945 - 1955",
+      "cpuStage": "vacuum",
+      "chapters": [
+        {
+          "id": "chapter-2-1",
+          "number": 1,
+          "title": "The Firing Tables",
+          "subtitle": "Moore School of Electrical Engineering, Philadelphia",
+          "year": "1945",
+          "scenes": [
+            {
+              "id": "scene-2-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Moore School of Electrical Engineering, University of Pennsylvania. Summer 1945. In a sealed room, eighteen thousand vacuum tubes glow orange. The air shimmers with heat. The noise is deafening. ENIAC—the Electronic Numerical Integrator and Computer—is coming to life."
+              },
+              "narrative": [
+                "You've been assigned to the ENIAC project as a junior technician. The machine sprawls across an entire room: forty panels, each eight feet tall, connected by miles of wiring. The heat output equals that of a small furnace.",
+                "The purpose: calculate artillery firing tables. A single trajectory, computed by hand, takes a human 'computer' forty hours. ENIAC will do it in thirty seconds.",
+                "But first, it has to work. And right now, tubes are failing faster than they can be replaced."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "John Mauchly",
+                  "title": "Principal Consultant, ENIAC Project",
+                  "bio": "A physics professor who dreamed of electronic computation after working with weather data. Mauchly saw that electronic switching could revolutionize calculation. He proposed ENIAC to the Army, partnering with engineer Presper Eckert to build it.",
+                  "stats": [
+                    { "label": "Vision", "value": "Electronic computation for science" },
+                    { "label": "Challenge", "value": "Convincing skeptics it would work" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "J. Presper Eckert",
+                  "title": "Chief Engineer, ENIAC Project",
+                  "bio": "The engineering genius who made ENIAC possible. Eckert solved the reliability problem by running tubes below their rated voltages and designing fault-tolerant circuits. His attention to detail turned an impossible dream into working hardware.",
+                  "stats": [
+                    { "label": "Genius", "value": "Electronic circuit design" },
+                    { "label": "Obsession", "value": "Reliability through over-engineering" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "ENIAC was truly massive: 30 tons, 150 kilowatts of power, 18,000 vacuum tubes, 7,200 crystal diodes, 1,500 relays, 70,000 resistors, 10,000 capacitors, and 6,000 manual switches. It could perform 5,000 additions or 357 multiplications per second—revolutionary speed at the time.",
+                  "codeSnippet": "// ENIAC specifications\n// Tubes: 17,468\n// Weight: 30 tons\n// Power: 150 kW\n// Floor space: 1,800 sq ft\n// Speed: 5,000 ops/second\n// \n// Comparison:\n// Human computer: 40 hours per trajectory\n// ENIAC: 30 seconds per trajectory\n// Speedup: ~5,000×"
+                }
+              ],
+              "nextScene": "scene-2-1-2"
+            },
+            {
+              "id": "scene-2-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The tube racks stretch into the distance. Each panel handles a specific function: accumulator, multiplier, divider, function table. Patch cables crisscross like a telephone switchboard gone mad."
+              },
+              "narrative": [
+                "ENIAC isn't programmed with punched cards or stored instructions. It's programmed by physically rewiring the machine. Thousands of switches must be set. Hundreds of cables must be plugged into the correct sockets.",
+                "Changing the program takes days. The 'setup' for a new calculation is itself a massive engineering effort.",
+                "A team of six women—mathematicians all—handle most of the programming. They've learned ENIAC's architecture more deeply than anyone, turning mathematical problems into switch settings and cable connections."
+              ],
+              "characters": [
+                {
+                  "avatar": "👩‍💻",
+                  "name": "Jean Jennings",
+                  "title": "Programmer, ENIAC Project",
+                  "bio": "One of the six original ENIAC programmers. Jean and her colleagues learned the machine by studying its logical diagrams—no programming manual existed. They invented debugging techniques, created subroutines, and established the foundations of software engineering.",
+                  "stats": [
+                    { "label": "Role", "value": "Lead programmer, problem decomposition" },
+                    { "label": "Innovation", "value": "Debugging, modular programming" }
+                  ]
+                },
+                {
+                  "avatar": "👩‍🔬",
+                  "name": "Betty Snyder",
+                  "title": "Programmer, ENIAC Project",
+                  "bio": "Co-programmer who would later become Betty Holberton. Known for her work on ENIAC's Master Programmer and for proposing the breakpoint debugging technique. She later helped design COBOL and FORTRAN.",
+                  "stats": [
+                    { "label": "Invention", "value": "Breakpoints for debugging" },
+                    { "label": "Later work", "value": "COBOL, FORTRAN standards" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Jennings",
+                  "text": "The men built the hardware. We figure out how to make it solve problems. Every switch, every cable—they're the instructions. The machine does what we wire it to do."
+                },
+                {
+                  "speaker": "Snyder",
+                  "text": "It's like writing a program in physical form. Except when you make a mistake, you have to trace cables through forty panels to find it."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "ENIAC's programming was entirely manual: switches and cables formed a 'hardwired' program. Changing the computation meant physically reconfiguring the machine—a process that could take days. This motivated the development of stored-program computers, where instructions live in memory alongside data.",
+                  "codeSnippet": "// ENIAC programming model\n// No stored program!\n// \n// To compute a trajectory:\n// 1. Plug cables to connect accumulators\n// 2. Set switches for constant values\n// 3. Configure function tables for ballistic data\n// 4. Test the configuration\n// 5. Run the computation\n// \n// Setup time: Days\n// Run time: Seconds"
+                }
+              ],
+              "nextScene": "scene-2-1-3"
+            },
+            {
+              "id": "scene-2-1-3",
+              "type": "choice",
+              "setting": {
+                "text": "A new visitor arrives at the Moore School: John von Neumann, the legendary mathematician. He's come to see ENIAC—but he's already thinking about what comes next."
+              },
+              "narrative": [
+                "Von Neumann watches the programmers work, asking endless questions. Why is the program hardwired? Why can't instructions be stored in memory like data?",
+                "The question will reshape computing forever. But for now, ENIAC must be made to work."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧠",
+                  "name": "John von Neumann",
+                  "title": "Mathematician, Consultant",
+                  "bio": "Possibly the greatest mathematical genius of the 20th century. Von Neumann made fundamental contributions to quantum mechanics, game theory, nuclear physics, and computer science. His 'First Draft of a Report on EDVAC' defined the stored-program architecture.",
+                  "stats": [
+                    { "label": "Legend", "value": "Photographic memory, instant insight" },
+                    { "label": "Contribution", "value": "Von Neumann architecture" }
+                  ]
+                }
+              ],
+              "choices": [
+                {
+                  "id": "choice-learn-architecture",
+                  "icon": "🔌",
+                  "title": "Learn ENIAC's Architecture",
+                  "description": "Study the accumulators, multipliers, and function tables. Understand how plug boards create programs."
+                },
+                {
+                  "id": "choice-program-eniac",
+                  "icon": "📐",
+                  "title": "Program a Calculation",
+                  "description": "Work with the programmers to set up a trajectory computation. Experience hardwired programming firsthand."
+                },
+                {
+                  "id": "choice-von-neumann-insight",
+                  "icon": "💡",
+                  "title": "Discuss the Future with von Neumann",
+                  "description": "What if programs lived in memory? Explore the stored-program concept that will define all future computers."
+                }
+              ],
+              "nextScene": "scene-2-1-4"
+            },
+            {
+              "id": "scene-2-1-4",
+              "type": "challenge",
+              "setting": {
+                "text": "The ENIAC simulator awaits. Experience the challenge of vacuum tube logic: incredible speed, incredible heat, incredible unreliability."
+              },
+              "narrative": [
+                "Build a simple computation unit using vacuum tube logic. Feel the power—and the limitations—of the first electronic computers.",
+                "Each tube consumes power, generates heat, and might fail at any moment. This is computing in the heroic age."
+              ],
+              "challenge": {
+                "title": "BUILD A VACUUM TUBE ACCUMULATOR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement a flip-flop (bistable circuit) from tubes", "completed": false },
+                  { "id": "obj-2", "text": "Chain flip-flops into a 4-bit register", "completed": false },
+                  { "id": "obj-3", "text": "Add increment logic (counting circuit)", "completed": false },
+                  { "id": "obj-4", "text": "Add a pulse input for parallel loading", "completed": false },
+                  { "id": "obj-5", "text": "Demonstrate: store, increment, clear operations", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "ENIAC used decimal arithmetic, with each digit stored in a 10-state ring counter (10 flip-flops, one hot). This was inefficient compared to binary but matched the decimal calculations humans were used to. Later machines would switch to binary for simplicity and density.",
+                  "codeSnippet": "// ENIAC digit storage\n// Ring counter: 10 flip-flops per digit\n// Only one flip-flop 'on' at a time\n// Value 0: First flip-flop on\n// Value 9: Tenth flip-flop on\n// \n// Binary alternative:\n// 4 flip-flops store 0-15\n// More efficient, less intuitive\n// \n// ENIAC used decimal because\n// humans think in decimal"
+                }
+              ],
+              "nextScene": "scene-2-1-5"
+            },
+            {
+              "id": "scene-2-1-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "February 14, 1946. ENIAC is unveiled to the public. Reporters crowd the Moore School, watching in amazement as the machine calculates a trajectory faster than the shell itself could fly."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Mauchly",
+                  "text": "ENIAC computes in thirty seconds what takes a human forty hours. This is the dawn of a new age—the electronic age."
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "It's magnificent. But limited. Every new problem requires rewiring the machine. We need to store the program in memory—make the machine truly flexible."
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "That's EDVAC. We're already designing it. Stored program. Mercury delay-line memory. Everything in binary."
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "The program becomes data. The machine can modify its own instructions. The implications... the implications are staggering."
+                }
+              ],
+              "narrative": [
+                "ENIAC would operate for ten years, solving problems from hydrogen bomb calculations to weather prediction. But its architecture—hardwired programs—was already obsolete at its unveiling.",
+                "The future belonged to stored-program computers: machines that could switch from task to task by loading new instructions from memory. Machines that could modify their own behavior. Machines that were truly universal.",
+                "Von Neumann's architecture would define computing for the next eighty years. And it started here, watching ENIAC's tubes glow in the Philadelphia night."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-2-2",
+          "number": 2,
+          "title": "The First Draft",
+          "subtitle": "The Birth of the Stored Program",
+          "year": "1945",
+          "scenes": [
+            {
+              "id": "scene-2-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "A train from Los Alamos to Philadelphia. John von Neumann sits with a notepad, sketching diagrams. The Manhattan Project is winding down, and his mind turns to a different kind of explosion: computational power."
+              },
+              "narrative": [
+                "Von Neumann has been thinking about ENIAC's limitations. The hardwired programming is elegant for single problems but hopeless for flexibility. What if the program itself was stored in memory?",
+                "On this train ride, he begins writing what will become the most influential document in computer history: 'First Draft of a Report on the EDVAC.'",
+                "EDVAC—the Electronic Discrete Variable Automatic Computer—will be ENIAC's successor. And it will change everything."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 'First Draft' described a computer with five logical components: input, output, memory, arithmetic unit, and control unit. Programs and data share the same memory. Instructions are fetched, decoded, and executed in sequence. This 'von Neumann architecture' remains the foundation of virtually all computers today.",
+                  "codeSnippet": "// Von Neumann Architecture\n// \n// ┌─────────┐\n// │ Memory  │ ← Programs AND data\n// └────┬────┘\n//      │\n// ┌────┴────┐    ┌─────────┐\n// │ Control │ ←→ │  ALU    │\n// └────┬────┘    └─────────┘\n//      │\n// ┌────┴────┐    ┌─────────┐\n// │  Input  │    │ Output  │\n// └─────────┘    └─────────┘"
+                }
+              ],
+              "nextScene": "scene-2-2-2"
+            },
+            {
+              "id": "scene-2-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The Moore School seminar room. Engineers, mathematicians, and physicists crowd in to hear von Neumann explain the stored-program concept."
+              },
+              "narrative": [
+                "Von Neumann stands at the chalkboard, drawing boxes and arrows. 'The program,' he says, 'is just another kind of data. Store it in memory. Fetch instructions like you fetch numbers. The machine becomes universal.'",
+                "The audience is stunned. Programs that modify themselves. Loops, branches, subroutines—all flow naturally from this insight.",
+                "But there's a problem: where do you store all this data and code? ENIAC's accumulators hold only twenty ten-digit numbers. EDVAC will need thousands of words of memory."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Von Neumann",
+                  "text": "The memory is the key. Fast, cheap, reliable memory. With enough memory, a simple processor can do anything. Without it, the fastest processor is useless."
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "Mercury delay lines. Sound pulses cycling through tubes of mercury. A thousand words of memory, refreshed continuously."
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "Elegant. The data exists as waves in transit, renewed each millisecond. A memory that remembers by constantly repeating."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Mercury delay-line memory stored data as acoustic pulses traveling through tubes of mercury. A pulse took about 1ms to traverse the tube, was detected, amplified, and re-injected—creating a circulating memory. Slow, but cheap and reliable compared to alternatives.",
+                  "codeSnippet": "// Mercury delay line memory\n// \n// Transducer → [Mercury tube] → Transducer\n//      ↑                            ↓\n//      └────── Amplifier ←──────────┘\n// \n// Data circulates continuously\n// Access time: Variable (wait for bit to arrive)\n// Typical: 1024 bits per line\n// EDVAC: 128 lines = 1024 words"
+                }
+              ],
+              "nextScene": "scene-2-2-3"
+            },
+            {
+              "id": "scene-2-2-3",
+              "type": "choice",
+              "setting": {
+                "text": "The design takes shape. EDVAC will have memory, arithmetic, control, input, output. But the details—the instruction set, the addressing modes, the control flow—are still debated."
+              },
+              "narrative": [
+                "You've been asked to help design EDVAC's instruction set. What operations should the machine support? How many bits per instruction? How should memory be addressed?",
+                "Every choice has consequences. More instructions mean more complex control logic. Longer words mean more memory but slower access. The art of computer architecture is beginning."
+              ],
+              "choices": [
+                {
+                  "id": "choice-instruction-design",
+                  "icon": "📋",
+                  "title": "Design the Instruction Set",
+                  "description": "Define what operations EDVAC will support. Balance power against complexity."
+                },
+                {
+                  "id": "choice-memory-architecture",
+                  "icon": "🧠",
+                  "title": "Explore Memory Architecture",
+                  "description": "Understand mercury delay lines, Williams tubes, and the memory technologies of the era."
+                },
+                {
+                  "id": "choice-fetch-execute",
+                  "icon": "🔄",
+                  "title": "Implement the Fetch-Execute Cycle",
+                  "description": "Build the core loop of all stored-program computers: fetch, decode, execute, repeat."
+                }
+              ],
+              "nextScene": "scene-2-2-4"
+            },
+            {
+              "id": "scene-2-2-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your simulation bench transforms into an EDVAC-style stored-program computer. Build the control unit—the heart of the von Neumann architecture."
+              },
+              "narrative": [
+                "The control unit orchestrates everything: fetching instructions from memory, decoding them, signaling the ALU, updating the program counter. It's the conductor of the electronic orchestra.",
+                "Build the fetch-execute cycle. This is the fundamental rhythm of all computation."
+              ],
+              "challenge": {
+                "title": "BUILD THE FETCH-EXECUTE CYCLE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement the program counter (PC) register", "completed": false },
+                  { "id": "obj-2", "text": "Fetch instruction from memory at address PC", "completed": false },
+                  { "id": "obj-3", "text": "Decode instruction into operation and operands", "completed": false },
+                  { "id": "obj-4", "text": "Execute the operation (load, store, add, jump)", "completed": false },
+                  { "id": "obj-5", "text": "Update PC and repeat", "completed": false },
+                  { "id": "obj-6", "text": "Run a simple program: add two numbers in memory", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The fetch-execute cycle is the heartbeat of computing: 1) Fetch the instruction at the address in PC. 2) Increment PC. 3) Decode the instruction. 4) Execute it (possibly modifying PC for jumps). 5) Repeat. Every computer from EDVAC to the latest smartphone follows this basic pattern.",
+                  "codeSnippet": "// Fetch-Execute Cycle\n// \nwhile (running) {\n  instruction = memory[PC];\n  PC = PC + 1;\n  \n  opcode = decode(instruction);\n  operands = extract_operands(instruction);\n  \n  switch (opcode) {\n    case LOAD: ACC = memory[operands];\n    case STORE: memory[operands] = ACC;\n    case ADD: ACC = ACC + memory[operands];\n    case JUMP: PC = operands;\n    // ...\n  }\n}"
+                }
+              ],
+              "nextScene": "scene-2-2-5"
+            },
+            {
+              "id": "scene-2-2-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "1949. EDVAC finally runs its first programs—delayed by disputes, departures, and the challenges of a radically new architecture. But the idea spreads faster than the machine itself."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Von Neumann",
+                  "text": "EDVAC is one machine. But the architecture—the stored-program concept—that's universal. Already Cambridge is building EDSAC. Manchester has the Baby. The idea is spreading."
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "We're leaving academia. Mauchly and I are starting a company. We're going to build computers for business, not just science."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Computers for business? Who would buy them?"
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "Anyone who processes data. Insurance companies. Banks. The Census Bureau. We're calling it UNIVAC—Universal Automatic Computer."
+                }
+              ],
+              "narrative": [
+                "The stored-program concept was the key that unlocked general-purpose computing. No longer hardwired to a single task, computers could now be reprogrammed simply by loading new instructions into memory.",
+                "But vacuum tube computers were still massive, expensive, and power-hungry. They were tools for governments and giant corporations, not ordinary people.",
+                "That would change. But first, the vacuum tube era would reach its peak—and its limit."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-2-3",
+          "number": 3,
+          "title": "The Electronic Brain",
+          "subtitle": "UNIVAC and the Dawn of Commercial Computing",
+          "year": "1951",
+          "scenes": [
+            {
+              "id": "scene-2-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Eckert-Mauchly Computer Corporation, Philadelphia. 1951. The first UNIVAC I gleams under the lights, ready for delivery to the Census Bureau—the same agency that launched the mechanical tabulating era sixty years ago."
+              },
+              "narrative": [
+                "UNIVAC is different from its predecessors. It's not a one-off research project—it's a product. Designed to be manufactured, sold, and operated by customers who aren't computer scientists.",
+                "The machine uses magnetic tape for input and output, not punch cards. It has metal memory—mercury delay lines holding 1,000 twelve-digit words. It can process 1,905 instructions per second.",
+                "And it costs half a million dollars. Who could possibly afford such a machine?"
+              ],
+              "characters": [
+                {
+                  "avatar": "💼",
+                  "name": "James Rand",
+                  "title": "CEO, Remington Rand",
+                  "bio": "The businessman who saved UNIVAC. When Eckert and Mauchly's company ran out of money, Rand bought it, providing the resources to complete UNIVAC. He saw computers as the future of data processing.",
+                  "stats": [
+                    { "label": "Vision", "value": "Computers as business machines" },
+                    { "label": "Investment", "value": "Millions in unproven technology" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Eckert",
+                  "text": "The Census Bureau is just the first customer. General Electric wants one for payroll. The Army wants one for logistics. Every large organization that processes data will eventually need a computer."
+                },
+                {
+                  "speaker": "Rand",
+                  "text": "Half a million dollars is nothing compared to the cost of human clerks. One UNIVAC replaces dozens of tabulating machines and hundreds of workers."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "UNIVAC I was the first commercially successful computer. 46 units were sold, each running reliably for years. It used 5,200 vacuum tubes, consumed 125 kW, and weighed 13 tons. But it was maintainable, documented, and—crucially—worked consistently enough for business use.",
+                  "codeSnippet": "// UNIVAC I specifications\n// Vacuum tubes: 5,200\n// Memory: 1,000 words × 12 characters\n// Speed: 1,905 operations/second\n// Price: ~$1.5M (with peripherals)\n// Units sold: 46\n// \n// Key innovation:\n// First computer designed for\n// production and commercial sale"
+                }
+              ],
+              "nextScene": "scene-2-3-2"
+            },
+            {
+              "id": "scene-2-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "November 4, 1952. Election night. CBS News has borrowed a UNIVAC to predict the presidential race between Eisenhower and Stevenson."
+              },
+              "narrative": [
+                "The polls say it's too close to call. The pundits predict a long night. But UNIVAC, fed early returns from a few states, makes a bold prediction: Eisenhower will win in a landslide.",
+                "The CBS staff don't believe it. The numbers are too decisive, too different from the polls. They adjust UNIVAC's parameters to show a closer race.",
+                "By midnight, Eisenhower has won 442 electoral votes to Stevenson's 89. UNIVAC's original prediction was nearly perfect. The staff had been wrong to doubt the machine."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Walter Cronkite",
+                  "text": "The electronic brain has spoken. And it was right all along. We humans were the ones who didn't believe it."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "UNIVAC's 1952 election prediction was a public relations triumph. Based on returns from just 5% of precincts, it predicted Eisenhower would win with 438 electoral votes (actual: 442). The prediction demonstrated that computers could find patterns humans missed—a foreshadowing of data science.",
+                  "codeSnippet": "// UNIVAC's election algorithm\n// \n// Input: Early returns from selected precincts\n// Historical data: Previous election patterns\n// Method: Statistical regression\n// \n// At 5% returns counted:\n// UNIVAC prediction: Eisenhower 438 EVs\n// Human experts: \"Too close to call\"\n// Actual result: Eisenhower 442 EVs"
+                }
+              ],
+              "nextScene": "scene-2-3-3"
+            },
+            {
+              "id": "scene-2-3-3",
+              "type": "choice",
+              "setting": {
+                "text": "The 'Electronic Brain' has captured the public imagination. Computers are no longer just military secrets—they're front-page news."
+              },
+              "narrative": [
+                "UNIVAC's election prediction demonstrated something profound: computers can process information in ways humans cannot. Not just faster, but different—finding patterns invisible to the human mind.",
+                "But the vacuum tube era is reaching its limits. UNIVAC is reliable, but it still fills a room, consumes a small factory's worth of power, and requires constant maintenance.",
+                "Something smaller, cooler, more reliable is needed. Something solid."
+              ],
+              "choices": [
+                {
+                  "id": "choice-operate-univac",
+                  "icon": "🖥️",
+                  "title": "Operate UNIVAC",
+                  "description": "Experience the first commercial computer. Load magnetic tapes, run programs, interpret results."
+                },
+                {
+                  "id": "choice-program-univac",
+                  "icon": "📝",
+                  "title": "Program in UNIVAC Assembly",
+                  "description": "Write code for the UNIVAC I. Learn its instruction set and programming conventions."
+                },
+                {
+                  "id": "choice-understand-limits",
+                  "icon": "⚠️",
+                  "title": "Understand the Limits",
+                  "description": "Why can't vacuum tube computers scale further? Explore the heat, power, and reliability barriers that demand a new technology."
+                }
+              ],
+              "nextScene": "scene-2-3-4"
+            },
+            {
+              "id": "scene-2-3-4",
+              "type": "challenge",
+              "setting": {
+                "text": "The UNIVAC console awaits. Magnetic tape drives hum. The operator's typewriter stands ready for commands."
+              },
+              "narrative": [
+                "Experience the pinnacle of vacuum tube computing. UNIVAC combines everything learned from ENIAC and EDVAC: stored programs, mercury delay-line memory, magnetic tape I/O, and a complete instruction set.",
+                "But this is also the end of an era. The next revolution—solid-state electronics—is already brewing at Bell Labs."
+              ],
+              "challenge": {
+                "title": "OPERATE THE UNIVAC",
+                "objectives": [
+                  { "id": "obj-1", "text": "Load a program from magnetic tape", "completed": false },
+                  { "id": "obj-2", "text": "Set initial values in memory", "completed": false },
+                  { "id": "obj-3", "text": "Execute the program", "completed": false },
+                  { "id": "obj-4", "text": "Interpret the output", "completed": false },
+                  { "id": "obj-5", "text": "Debug a simple error", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "UNIVAC operators interacted through a supervisory typewriter and console switches. Programs were loaded from magnetic tape—a revolutionary storage medium that replaced punch cards. A single tape reel held more data than 60,000 punch cards.",
+                  "codeSnippet": "// UNIVAC I programming\n// Instructions: 44 basic operations\n// Word size: 12 characters (72 bits)\n// Memory addressing: 0-999 decimal\n// \n// Sample instruction types:\n// A  (Add)\n// S  (Subtract)\n// M  (Multiply)\n// D  (Divide)\n// B  (Branch)\n// U  (Unconditional transfer)"
+                }
+              ],
+              "nextScene": "scene-2-3-5"
+            },
+            {
+              "id": "scene-2-3-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "The UNIVAC hums steadily, its tubes glowing orange. But in the corner, a small device sits in a glass case: a transistor from Bell Labs. The future in miniature."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Eckert",
+                  "text": "We've pushed vacuum tubes as far as they can go. UNIVAC II will be faster, more reliable—but still hot, still power-hungry, still fragile."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about that transistor I keep hearing about? Solid-state switching?"
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "The transistor? It's promising, but unproven at scale. Can you build a computer from thousands of transistors? Can they be made reliably enough? We'll see."
+                },
+                {
+                  "speaker": "Mauchly",
+                  "text": "If transistors work... if they really work at scale... everything changes. No heat. No vacuum. A computer that fits on a desk instead of filling a room."
+                }
+              ],
+              "narrative": [
+                "The vacuum tube era reached its zenith with UNIVAC. These electronic giants proved that computers could be useful, reliable, and commercially successful.",
+                "But they were giants—massive, power-hungry, and expensive. The tubes that gave them speed also gave them their limitations: heat that required cooling systems, power bills that dwarfed salaries, and failure rates that demanded constant maintenance.",
+                "The solution was already in hand. In 1947, at Bell Labs, Bardeen, Brattain, and Shockley had invented the transistor. Small, cool, reliable—everything the vacuum tube was not.",
+                "The solid-state revolution was about to begin.",
+                "Continue to Act 3: The Solid State Revolution."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

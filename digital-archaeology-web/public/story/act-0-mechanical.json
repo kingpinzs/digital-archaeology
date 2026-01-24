@@ -1,0 +1,1295 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-0",
+      "number": 0,
+      "title": "The Dawn of Calculation",
+      "description": "From ancient Mesopotamia to Victorian England, humanity struggled to automate calculation. Every merchant who made a counting error, every navigator who miscalculated position, every tax collector drowning in ledgers—they all dreamed of a machine that could think in numbers.",
+      "era": "3000 BC - 1840s",
+      "cpuStage": "mechanical",
+      "chapters": [
+        {
+          "id": "chapter-0-1",
+          "number": 1,
+          "title": "Before Numbers Had Names",
+          "subtitle": "The First Counters",
+          "year": "35,000 BC - 3000 BC",
+          "scenes": [
+            {
+              "id": "scene-0-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "A cave in the Lebombo Mountains, southern Africa. Firelight flickers against walls painted with ochre animals. Outside, the African night is alive with sounds. Inside, a lone figure works by the flames, scratching marks into a baboon's leg bone."
+              },
+              "narrative": [
+                "Who was the first human to count? We will never know their name. But 35,000 years ago, someone in these mountains had an idea that would change everything.",
+                "You watch through the veil of time as weathered hands carve notches into bone. One mark. Another. Another. Twenty-nine marks in total—one for each night the moon has waxed since new.",
+                "This is the Lebombo Bone. The oldest known mathematical artifact. Before writing, before cities, before agriculture—humans were counting."
+              ],
+              "characters": [
+                {
+                  "avatar": "🌙",
+                  "name": "Unknown",
+                  "title": "The First Counter",
+                  "bio": "We know nothing about them—not their name, not their language, not even their gender. Only that they carved 29 marks into a bone, and those marks survived for 35,000 years. They are the ancestor of all accountants, all mathematicians, all programmers.",
+                  "stats": [
+                    { "label": "Era", "value": "~35,000 BC" },
+                    { "label": "Location", "value": "Lebombo Mountains, Swaziland" },
+                    { "label": "Legacy", "value": "Oldest mathematical artifact" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Lebombo Bone, discovered in 1970, contains 29 notches—matching the lunar cycle. Similar 'tally sticks' have been found across prehistoric sites. This unary counting (one mark = one thing) is the simplest possible number system, and it persists today in prison wall scratches and sports scoring.",
+                  "codeSnippet": "// Unary (tally) counting system\n// |||| = 4\n// |||| |||| = 9\n// |||| |||| |||| |||| |||| |||| ||| = 29\n// \n// Problem: scales terribly\n// 1,000 sheep = 1,000 marks\n// Need: positional notation"
+                }
+              ],
+              "nextScene": "scene-0-1-2"
+            },
+            {
+              "id": "scene-0-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Time shifts. You find yourself in the foothills of the Zagros Mountains, 8,000 BC. A Neolithic village clusters around mud-brick houses. The agricultural revolution is underway—and with it, a crisis of accounting."
+              },
+              "narrative": [
+                "Tally marks worked when tracking a few kills per moon. But now there are granaries to manage, livestock to count, debts to track across seasons.",
+                "A village elder sits before a collection of small clay objects: cones, spheres, disks, each shape representing a different quantity of a different good. These are 'tokens'—the next leap in counting technology.",
+                "One cone equals one measure of grain. One sphere equals one jar of oil. The elder places them in a clay envelope, seals it, then presses the tokens into the wet surface to show the contents without breaking the seal."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏺",
+                  "name": "Unknown",
+                  "title": "Token Keeper of the Zagros",
+                  "bio": "The shepherds and farmers of the Fertile Crescent invented token-based accounting around 8000 BC. Each shape encoded both quantity and type—a separate 'data type' for grain, oil, livestock. This abstraction would evolve into writing itself.",
+                  "stats": [
+                    { "label": "Era", "value": "~8,000 BC" },
+                    { "label": "Innovation", "value": "Clay tokens for accounting" },
+                    { "label": "Insight", "value": "Shape encodes meaning" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Archaeological evidence shows clay tokens were used across the Near East from 8000-3000 BC. Different shapes meant different things: cones for grain, spheres for oil, cylinders for livestock. This is arguably the first 'data encoding'—shape as information.",
+                  "codeSnippet": "// Clay token encoding (~8000 BC)\n// ▲ (cone) = 1 measure of grain\n// ● (sphere) = 1 jar of oil  \n// ■ (cylinder) = 1 animal\n// ◆ (disk) = 1 unit of cloth\n// \n// Envelope contents:\n// ▲▲▲●●■■■■■ = 3 grain, 2 oil, 5 animals\n// \n// First 'data types' in history!"
+                }
+              ],
+              "nextScene": "scene-0-1-3"
+            },
+            {
+              "id": "scene-0-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "The city of Uruk rises from the Mesopotamian plain, 3100 BC. The world's first true city—40,000 people, massive temples, and an administrative crisis that will give birth to writing itself."
+              },
+              "narrative": [
+                "You stand in the temple complex of Inanna, goddess of love and war. Around you, scribes struggle with an impossible task: tracking the temple's vast wealth using tokens and memory alone.",
+                "The high priestess has demanded an accounting of all offerings received this year. Thousands of transactions. Hundreds of donors. The token system is breaking down—there are simply too many tokens to manage.",
+                "A young scribe named Kushim stares at a wet clay tablet, stylus in hand. He has an idea. Instead of pressing tokens into clay, why not draw the token shapes directly? And instead of many small marks, use a single symbol to represent 'ten' or 'sixty'..."
+              ],
+              "characters": [
+                {
+                  "avatar": "✍️",
+                  "name": "Kushim",
+                  "title": "Temple Accountant of Uruk",
+                  "bio": "The earliest name recorded in writing belongs not to a king or god, but to an accountant. Around 3100 BC, Kushim signed clay tablets recording barley transactions. Writing was invented not for poetry or law—but for counting.",
+                  "stats": [
+                    { "label": "Era", "value": "~3100 BC" },
+                    { "label": "Claim to fame", "value": "First named person in history" },
+                    { "label": "Profession", "value": "Accountant" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kushim",
+                  "text": "Why carry a thousand tokens when I can make a thousand marks? And why make a thousand marks when one symbol can mean 'one thousand'?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Sumerians developed cuneiform (~3100 BC) to record economic transactions. They invented positional notation with base-60 (sexagesimal)—giving us 60 seconds/minute and 360 degrees. The earliest known author's name, 'Kushim', appears on barley receipts.",
+                  "codeSnippet": "// Evolution: Tokens → Writing\n// \n// Token:    ▲▲▲▲▲▲▲▲▲▲ (10 cones)\n// Symbol:   𒌋 (cuneiform for '10 grain')\n// \n// Sumerian base-60 positional notation:\n// 𒐕 = 1, 𒌋 = 10, 𒐐 = 60\n// Example: 3,723 = 1×3600 + 2×60 + 3\n//        = 𒐕 𒐖 𒐗 in positional cuneiform"
+                }
+              ],
+              "nextScene": "scene-0-1-4"
+            },
+            {
+              "id": "scene-0-1-4",
+              "type": "choice",
+              "setting": {
+                "text": "The temple's central courtyard. Kushim demonstrates his innovation to the council of priests—writing that encodes quantities directly on clay."
+              },
+              "narrative": [
+                "But counting in your head is still exhausting. Even with written symbols, scribes must mentally track sums as they work through long calculations. Errors creep in. The priests grow impatient.",
+                "Kushim scratches his chin. 'What if the counting itself could be... physical? External to the mind?'",
+                "He draws lines in the dust of the courtyard floor. Parallel lines, like the strings of a lyre. He gathers pebbles—small stones, each representing a unit. He places them along the lines, moving them as he calculates."
+              ],
+              "choices": [
+                {
+                  "id": "choice-watch-counting-board",
+                  "icon": "📊",
+                  "title": "Watch the Counting Board",
+                  "description": "Observe as Kushim invents the first calculating device—lines in dust with movable stones."
+                },
+                {
+                  "id": "choice-try-yourself",
+                  "icon": "🖐️",
+                  "title": "Try It Yourself",
+                  "description": "Pick up the pebbles and attempt a calculation. Learn by doing."
+                },
+                {
+                  "id": "choice-question-method",
+                  "icon": "❓",
+                  "title": "Question the Method",
+                  "description": "Ask Kushim how this is better than counting on fingers or using tokens."
+                }
+              ],
+              "nextScene": "scene-0-1-5"
+            },
+            {
+              "id": "scene-0-1-5",
+              "type": "narrative",
+              "setting": {
+                "text": "Kushim's counting board takes shape—parallel lines scratched in a flat clay surface, with small stones arranged along them."
+              },
+              "narrative": [
+                "\"Each line is a position,\" Kushim explains. \"The rightmost line is ones. Next is tens—or sixties, in our temple system. A stone here—\" he places one on the second line \"—means sixty. Move it to the third line and it becomes thirty-six hundred.\"",
+                "He demonstrates: sixty-three sheep from one farmer, forty-seven from another. Stones slide along the lines. When a line accumulates ten (or sixty) stones, he sweeps them away and adds one stone to the next line.",
+                "\"The board remembers the count. My mind is free to watch the stones, not struggle to hold numbers in my head.\""
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The counting board (ancestor of the abacus) used lines on a surface with loose counters. The Latin word 'calculus' means 'small stone'—from the pebbles used for counting. The Greek 'abax' meant 'board' or 'table', giving us 'abacus'.",
+                  "codeSnippet": "// Mesopotamian counting board (~3000 BC)\n// \n// Lines:  |    |    |    |    |\n// Values: 3600  60   10    1\n//           ●    ●●   ●    ●●●\n// \n// This represents: 1×3600 + 2×60 + 1×10 + 3×1\n//                = 3600 + 120 + 10 + 3 = 3733\n// \n// Carry operation:\n// When column reaches base (60 or 10),\n// clear it and add 1 to next column"
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kushim",
+                  "text": "The stones are memory. The lines are positions. Together they form... a thinking tool. The mind proposes, the board calculates."
+                }
+              ],
+              "nextScene": "scene-0-1-6"
+            },
+            {
+              "id": "scene-0-1-6",
+              "type": "challenge",
+              "setting": {
+                "text": "The temple courtyard transforms into your lab. A Mesopotamian counting board materializes before you—smooth clay surface, parallel lines, pile of rounded pebbles."
+              },
+              "narrative": [
+                "Master the counting board—the ancestor of all calculating devices. Feel how external memory frees the mind.",
+                "Calculate the temple's grain surplus: 147 measures received, 89 distributed. What remains?"
+              ],
+              "challenge": {
+                "title": "MASTER THE COUNTING BOARD",
+                "objectives": [
+                  { "id": "obj-1", "text": "Understand positional lines (ones, tens, hundreds)", "completed": false },
+                  { "id": "obj-2", "text": "Represent 147 using pebbles on lines", "completed": false },
+                  { "id": "obj-3", "text": "Perform subtraction by removing pebbles", "completed": false },
+                  { "id": "obj-4", "text": "Handle borrowing when a column is empty", "completed": false },
+                  { "id": "obj-5", "text": "Calculate 147 - 89 = 58", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Borrowing on a counting board: when you can't subtract from a column (not enough pebbles), take one pebble from the next higher column and exchange it for ten (or sixty) pebbles in the current column. This is exactly how CPUs perform subtraction using the 'borrow' flag.",
+                  "codeSnippet": "// Subtraction with borrowing\n// 147 - 89 = ?\n// \n// Setup:   [1] [4] [7]  (hundreds, tens, ones)\n// Subtract 9 from 7: can't! Need to borrow.\n// Borrow:  [1] [3] [17] (take 1 from tens, add 10 to ones)\n// 17-9=8:  [1] [3] [8]\n// Subtract 8 from 3: can't! Borrow again.\n// Borrow:  [0] [13] [8]\n// 13-8=5:  [0] [5] [8]\n// Result:  58"
+                }
+              ],
+              "nextScene": "scene-0-1-7"
+            },
+            {
+              "id": "scene-0-1-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "The calculation complete, Kushim nods approvingly. But a distant look crosses his face—as if seeing across the centuries."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Kushim",
+                  "text": "This board is crude. Lines in dust, stones that scatter in the wind. Someday, someone will build something better—something permanent, portable, elegant."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What would that look like?"
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "Imagine the pebbles fixed to rods, sliding but not falling. The lines carved in wood or metal, lasting forever. A counting board you could carry in your hand, use in any market or court."
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "But that is a dream for another age, another people. Perhaps the merchants of the far west, where the Great Sea touches unknown shores. Or the silk-traders of the distant east, beyond the mountains where the sun rises."
+                }
+              ],
+              "narrative": [
+                "The counting board would spread across the ancient world—to Egypt, to Greece, to Rome, to Persia. Each culture would adapt it to their needs, their number systems, their materials.",
+                "But the leap from loose pebbles to fixed beads—the invention of the true abacus—would require a different civilization, a different millennium, a different genius whose name is also lost to time.",
+                "Continue to the next scene: Egypt and the counting tables of the pharaohs."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-1b",
+          "number": 1.5,
+          "title": "The Dust of Empires",
+          "subtitle": "From Egypt to Rome",
+          "year": "1500 BC - 100 BC",
+          "scenes": [
+            {
+              "id": "scene-0-1b-1",
+              "type": "narrative",
+              "setting": {
+                "text": "The Temple of Karnak, Egypt, 1400 BC. Massive columns carved with hieroglyphics tower overhead. In a shaded alcove, scribes manage the temple's accounts using a method unlike Mesopotamia's."
+              },
+              "narrative": [
+                "Egypt's counting tables are different—horizontal lines on stone slabs, with pebbles moved in the opposite direction from Sumerian boards. Here, they count from right to left, matching their writing.",
+                "The Greek historian Herodotus will later write, astonished: 'The Egyptians move their pebbles from right to left, while the Greeks move them from left to right. Yet both arrive at the same answer. How strange that truth has multiple paths!'",
+                "You watch the royal accountant calculate tribute from Nubia: gold rings, ebony logs, leopard skins. Each commodity has its own section of the table, its own pile of smooth river stones."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏛️",
+                  "name": "Amenhotep",
+                  "title": "Royal Accountant of Karnak",
+                  "bio": "Chief calculator for the Temple of Amun-Ra. Amenhotep oversees the tribute of a dozen conquered peoples, converting their varied goods into standardized units. His counting table has been in his family for six generations.",
+                  "stats": [
+                    { "label": "Era", "value": "~1400 BC (18th Dynasty)" },
+                    { "label": "System", "value": "Hieratic numerals, base-10" },
+                    { "label": "Direction", "value": "Right to left" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Egyptian counting tables used base-10 (like modern systems) rather than Mesopotamia's base-60. Herodotus (484-425 BC) noted the directional difference between Greek and Egyptian calculation. Both methods were valid—proving that notation is arbitrary but logic is universal.",
+                  "codeSnippet": "// Egyptian hieratic numerals\n// 𓏺 = 1    𓎆 = 10    𓍢 = 100   𓆼 = 1000\n// \n// Counting table (right to left):\n// |  1000  |  100  |  10  |  1  |\n// |   ●●   |  ●●●  | ●●●● | ●●  |\n//        = 2000 + 300 + 40 + 2 = 2342\n// \n// Same principle as Mesopotamia,\n// different direction, different base"
+                }
+              ],
+              "nextScene": "scene-0-1b-2"
+            },
+            {
+              "id": "scene-0-1b-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The Agora of Athens, 450 BC. Philosophers debate in columned stoas while merchants haggle in the marketplace. At a banker's table, something new catches your eye—a portable counting device."
+              },
+              "narrative": [
+                "The Greek trapezites (bankers) have refined the counting board into something more sophisticated. Grooves carved into wood or marble hold pebbles securely. No more chasing stones scattered by a careless gesture.",
+                "But the real innovation is size. These boards are small enough to carry, sturdy enough to use anywhere. The banker before you pulls one from his robes and begins calculating interest on a loan—right here in the crowded agora.",
+                "A young mathematician named Archimedes pauses to watch. 'The board is clever,' he muses, 'but limited. What if the pebbles could slide freely along wires? Gravity would hold them in place, and they could never be lost...'"
+              ],
+              "characters": [
+                {
+                  "avatar": "🇬🇷",
+                  "name": "Archimedes",
+                  "title": "Mathematician of Syracuse",
+                  "bio": "History's greatest ancient mathematician, Archimedes calculated pi, invented the screw pump, and designed war machines. Legend says he also contemplated improvements to the counting board—though his designs, if they existed, are lost.",
+                  "stats": [
+                    { "label": "Era", "value": "287-212 BC" },
+                    { "label": "Genius", "value": "Mathematics, Engineering, Physics" },
+                    { "label": "Famous for", "value": "\"Eureka!\" and defending Syracuse" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Greek word 'abax' (ἄβαξ) meant 'board' or 'table'—the origin of 'abacus'. Greek counting boards used grooves to prevent pebble movement. The transition from loose pebbles to fixed beads likely happened gradually, with grooved boards as an intermediate step.",
+                  "codeSnippet": "// Greek grooved counting board\n// Improvement over flat surface:\n// \n//  Loose pebbles:  ○ ○ ○    (can roll away)\n//  Grooved board:  ●—●—●    (held in channels)\n//  Beaded wire:    ●=●=●    (fixed, sliding)\n// \n// Each step reduces errors, increases speed"
+                }
+              ],
+              "nextScene": "scene-0-1b-3"
+            },
+            {
+              "id": "scene-0-1b-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Rome, 50 BC. The Republic is falling, but commerce thrives. In the Forum, money-changers and tax collectors use a device more sophisticated than any before—the Roman hand-abacus."
+              },
+              "narrative": [
+                "The Roman abacus is a masterpiece of miniaturization. A bronze plate the size of your hand, with parallel grooves containing sliding beads. No more loose pebbles—the beads are fixed, moving smoothly in their channels.",
+                "Each groove has a dividing bar. Below the bar: four beads, each worth one. Above the bar: one bead worth five. This 'bi-quinary' system (groups of 5 and 2) allows any digit 0-9 with minimal beads.",
+                "A tax collector demonstrates, calculating the tribute from a Gallic merchant. His fingers dance across the bronze surface. Click, click, slide. The answer emerges in seconds."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏛️",
+                  "name": "Marcus Aurelius Cotta",
+                  "title": "Tax Collector of Gallia",
+                  "bio": "Roman publicani (tax collectors) were notorious for efficiency—and greed. Their hand-held abaci allowed rapid calculation anywhere in the Empire. Cotta has assessed tribute from Britannia to Syria.",
+                  "stats": [
+                    { "label": "Era", "value": "~50 BC" },
+                    { "label": "Tool", "value": "Roman hand-abacus" },
+                    { "label": "System", "value": "Bi-quinary (5+2)" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Roman abacus used a bi-quinary system: each column had beads worth 1 (below bar) and 5 (above bar). To show 7, push up 2 unit-beads and 1 five-bead (2+5=7). This encoding minimizes bead count while allowing fast calculation.",
+                  "codeSnippet": "// Roman bi-quinary encoding\n// \n//  Above bar:  ○    (worth 5 if pushed down)\n//  ─────────────\n//  Below bar:  ●●●● (each worth 1 if pushed up)\n// \n// To show 7:   ●    (5 pushed down)\n//              ──\n//              ●●   (2 pushed up: 5+2=7)\n// \n// Range 0-9 with only 5 beads per column\n// Much more compact than 9 unit beads!"
+                }
+              ],
+              "nextScene": "scene-0-1b-4"
+            },
+            {
+              "id": "scene-0-1b-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "A Roman warehouse near the docks. Merchant ships from across the Mediterranean unload their goods. Among the amphorae and grain sacks, a conversation bridges civilizations."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Marcus",
+                  "text": "These hand-abaci are Roman ingenuity at its finest. Nowhere else in the world will you find such precision in bronze."
+                },
+                {
+                  "speaker": "Silk Trader",
+                  "text": "With respect, collector, I have seen something similar in the markets of Serica—the land of silk, far beyond Parthia. Their counting frames use beads on bamboo rods."
+                },
+                {
+                  "speaker": "Marcus",
+                  "text": "Bamboo? How primitive. Our bronze will last a thousand years."
+                },
+                {
+                  "speaker": "Silk Trader",
+                  "text": "Their bamboo breaks, yes. But they replace it easily. And their technique... I watched a silk merchant calculate faster than my eyes could follow. They have refined the art for centuries."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Has anyone traveled to this land of silk? Could the methods be learned?"
+                },
+                {
+                  "speaker": "Silk Trader",
+                  "text": "The journey takes two years. Across deserts, over mountains that touch the sky. Few Romans have made it. But the silk road carries more than cloth—it carries ideas. Someday, perhaps, their counting secrets will reach us."
+                }
+              ],
+              "narrative": [
+                "The Roman Empire would fall, but the abacus would survive. In the chaos of the dark ages, knowledge retreated to monasteries and distant lands.",
+                "Meanwhile, in China, the art of the counting frame was being perfected into something extraordinary—a design so elegant it would remain unchanged for two thousand years.",
+                "Continue to the next chapter: The Suanpan of Han China."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-1c",
+          "number": 1.7,
+          "title": "The Suanpan",
+          "subtitle": "Invention of the Bead Abacus",
+          "year": "200 BC - 200 AD",
+          "scenes": [
+            {
+              "id": "scene-0-1c-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Chang'an, capital of the Han Dynasty, 190 BC. The city is the largest in the world—a million people within walls stretching eight miles. In the market district, a new calculating device is causing a sensation."
+              },
+              "narrative": [
+                "For centuries, Chinese scholars have used counting rods—small bamboo sticks arranged in patterns on a cloth board. The system is powerful, allowing complex calculations, but slow. Rods must be carefully positioned, easily disturbed.",
+                "Now a craftsman in the western market offers something different: a rectangular wooden frame with bamboo rods running through it, each rod threaded with sliding wooden beads. He calls it 'suanpan'—the calculating tray.",
+                "You watch as merchants crowd around, skeptical but curious. The craftsman issues a challenge: any calculation they can do with rods, he can do faster with beads."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧮",
+                  "name": "Unknown Craftsman",
+                  "title": "Inventor of the Suanpan",
+                  "bio": "Like the inventor of the wheel or the discoverer of fire, the creator of the bead abacus is lost to history. Sometime between 200 BC and 200 AD, a Chinese craftsman combined counting rods, positional notation, and fixed beads into a device that would endure for millennia.",
+                  "stats": [
+                    { "label": "Era", "value": "~200 BC to 200 AD" },
+                    { "label": "Innovation", "value": "Beads on rods in frame" },
+                    { "label": "Legacy", "value": "2000+ years of continuous use" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Chinese counting rods (suanchou) date to ~500 BC. They were arranged in patterns on a grid: vertical for ones place, horizontal for tens, alternating. The suanpan (bead abacus) emerged around 200 BC-200 AD, combining rod principles with fixed, sliding beads.",
+                  "codeSnippet": "// Evolution: Counting Rods → Suanpan\n// \n// Counting rods (suanchou):\n//   | | | | | = 5    ─ = 10\n//   Placed on cloth, easily disturbed\n// \n// Suanpan (bead abacus):\n//   ●●  ← 2 'heaven' beads (worth 5 each)\n//   ══════════ (dividing bar)\n//   ●●●●● ← 5 'earth' beads (worth 1 each)\n// \n// Fixed beads can't be disturbed\n// Much faster operation"
+                }
+              ],
+              "nextScene": "scene-0-1c-2"
+            },
+            {
+              "id": "scene-0-1c-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The craftsman's demonstration draws a growing crowd. An imperial tax official pushes forward, calculation records in hand."
+              },
+              "narrative": [
+                "\"Rice tribute from Shu Province,\" the official announces. \"23,456 dan received. 18,789 dan distributed. What remains?\"",
+                "The official pulls out his counting rods, arranges them carefully on his cloth. The craftsman merely slides beads. His fingers blur.",
+                "Click-click-click. In the time it takes the official to set up his rods, the craftsman calls out: \"4,667 dan remain.\"",
+                "The official's face darkens. He verifies the calculation—slowly, methodically. The crowd waits. Finally, he looks up in amazement: \"It is correct. How is this possible?\""
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Craftsman",
+                  "text": "The beads are already positioned. I do not arrange—I only move. Each bead slides in its channel, returns to its place. My fingers learn the patterns until they move without thought."
+                },
+                {
+                  "speaker": "Tax Official",
+                  "text": "But the counting rods have served scholars for centuries!"
+                },
+                {
+                  "speaker": "Craftsman",
+                  "text": "And they will continue to serve for complex mathematics. But for commerce? For quick calculations? The suanpan is faster. The beads cannot be disturbed by wind or clumsy sleeves. The frame protects the calculation."
+                }
+              ],
+              "nextScene": "scene-0-1c-3"
+            },
+            {
+              "id": "scene-0-1c-3",
+              "type": "narrative",
+              "setting": {
+                "text": "The craftsman invites you behind his stall to see how the suanpan is made. Wood shavings litter the floor. Bamboo rods of varying lengths hang from the rafters."
+              },
+              "narrative": [
+                "\"The design seems simple,\" the craftsman explains, \"but every element matters. The frame must be rigid—any flex and the beads stick. The rods must be smooth—any roughness and the beads catch. The beads themselves must be uniform in size and weight.\"",
+                "He holds up a finished suanpan: thirteen rods, each with two beads above the bar and five below. \"The 2-5 design mirrors our currency: five zhu to a liang, two liang to a jin. A merchant can calculate in his mind without converting.\"",
+                "\"But the true secret is in the hands.\" He demonstrates a rapid series of movements. \"Each operation has a finger pattern. Addition, subtraction, multiplication, division—all reduced to muscle memory. A trained calculator does not think; his fingers remember.\""
+              ],
+              "characters": [
+                {
+                  "avatar": "🎎",
+                  "name": "Master Zhao",
+                  "title": "Suanpan Craftsman",
+                  "bio": "A second-generation suanpan maker. Zhao's father was among the first to manufacture the devices in quantity. Now his workshop supplies merchants across the empire. He has trained hundreds of students in the art of rapid calculation.",
+                  "stats": [
+                    { "label": "Craft", "value": "Suanpan construction" },
+                    { "label": "Standard design", "value": "2/5 beads, 13 rods" },
+                    { "label": "Philosophy", "value": "\"The fingers remember\"" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The classic Chinese suanpan uses 2 beads above the bar (each worth 5) and 5 beads below (each worth 1). This allows representing 0-15 per column—useful for hexadecimal-like calculations and for traditional Chinese weight systems.",
+                  "codeSnippet": "// Suanpan encoding (2/5 system)\n// \n// ●○   ← 2 heaven beads (each = 5)\n// ═══  ← dividing bar\n// ●●●●○ ← 5 earth beads (each = 1)\n// \n// To show 7:\n//   Push down 1 heaven bead (5)\n//   Push up 2 earth beads (2)\n//   5 + 2 = 7\n// \n// Maximum per column: 2×5 + 5×1 = 15\n// (Useful for intermediate calculations)"
+                }
+              ],
+              "nextScene": "scene-0-1c-4"
+            },
+            {
+              "id": "scene-0-1c-4",
+              "type": "choice",
+              "setting": {
+                "text": "Master Zhao offers to teach you the suanpan arts. But there are many paths to mastery."
+              },
+              "narrative": [
+                "\"The basic operations take a week to learn, a month to master,\" Zhao says. \"But the true adepts can perform calculations so fast they seem magical. Some say they no longer need the physical beads—they can visualize the suanpan in their minds and 'move' the imaginary beads.\"",
+                "He gestures to different training materials. \"Where would you like to begin?\""
+              ],
+              "choices": [
+                {
+                  "id": "choice-basic-operations",
+                  "icon": "📚",
+                  "title": "Learn Basic Operations",
+                  "description": "Master addition and subtraction with the suanpan. Understand the finger patterns for carrying and borrowing."
+                },
+                {
+                  "id": "choice-multiplication",
+                  "icon": "✖️",
+                  "title": "Study Multiplication",
+                  "description": "Learn how the suanpan handles multiplication using partial products—the ancestor of digital multiply circuits."
+                },
+                {
+                  "id": "choice-mental-abacus",
+                  "icon": "🧠",
+                  "title": "Explore Mental Abacus",
+                  "description": "Discover the technique of visualizing the suanpan internally—calculating without touching beads."
+                },
+                {
+                  "id": "choice-history",
+                  "icon": "📜",
+                  "title": "Ask About Origins",
+                  "description": "Learn what Master Zhao knows about how the suanpan came to be invented."
+                }
+              ],
+              "nextScene": "scene-0-1c-5"
+            },
+            {
+              "id": "scene-0-1c-5",
+              "type": "challenge",
+              "setting": {
+                "text": "The workshop transforms into your lab. A perfect suanpan materializes before you—smooth bamboo frame, polished wooden beads, the subtle smell of lacquer."
+              },
+              "narrative": [
+                "Master the suanpan—the calculating device that would spread across Asia and remain in daily use for over two thousand years. Even today, skilled operators can outperform electronic calculators for certain operations.",
+                "Calculate a merchant's accounts: 3,456 taels received, plus 2,789 taels from a second source, minus 4,123 taels paid out. What remains?"
+              ],
+              "challenge": {
+                "title": "MASTER THE SUANPAN",
+                "objectives": [
+                  { "id": "obj-1", "text": "Understand the 2/5 bead encoding system", "completed": false },
+                  { "id": "obj-2", "text": "Represent 3,456 on the suanpan", "completed": false },
+                  { "id": "obj-3", "text": "Add 2,789 using proper finger techniques", "completed": false },
+                  { "id": "obj-4", "text": "Subtract 4,123 with borrowing across columns", "completed": false },
+                  { "id": "obj-5", "text": "Verify final answer: 2,122 taels", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Suanpan finger techniques use specific movements for each operation. 'Clearing' resets all beads. 'Setting' places an initial value. 'Adding' and 'subtracting' use complementary patterns. Advanced users develop muscle memory that allows calculation at remarkable speed.",
+                  "codeSnippet": "// Suanpan calculation: 3456 + 2789 - 4123\n// \n// Set 3456:  [3] [4] [5] [6]\n// Add 2789:\n//   6+9=15: set 5, carry 1 → [3][4][6][5]\n//   5+8+1=14: set 4, carry 1 → [3][5][4][5]\n//   4+7+1=12: set 2, carry 1 → [4][2][4][5]\n//   3+2+1=6: → [6][2][4][5] = 6245\n// Subtract 4123:\n//   5-3=2 → [6][2][4][2]\n//   4-2=2 → [6][2][2][2]\n//   2-1=1 → [6][1][2][2]\n//   6-4=2 → [2][1][2][2] = 2122 ✓"
+                }
+              ],
+              "nextScene": "scene-0-1c-6"
+            },
+            {
+              "id": "scene-0-1c-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "The calculation complete, Master Zhao smiles with satisfaction. But there is a wistfulness in his eyes."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zhao",
+                  "text": "You learn quickly. The beads respond to your fingers as if they know your intent."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Master Zhao, you mentioned the origins of the suanpan. Do you know who invented it?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "That is the great mystery. No scroll records the inventor's name. No court document honors their achievement. The suanpan simply... appeared. Some say it evolved from counting rods over generations. Others say a single brilliant craftsman conceived it whole."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Does it matter who invented it?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "Perhaps not. The suanpan belongs to everyone now. Merchants in Canton, officials in Luoyang, monks in the mountain temples—all use the same device, the same techniques. Ideas do not need names to have power."
+                }
+              ],
+              "narrative": [
+                "The suanpan would spread across Asia with trade and empire. Japan would refine it into the soroban—a 1/4 bead design, more elegant, perhaps even faster. Korea, Vietnam, and Southeast Asia would adopt their own variations.",
+                "In Russia, the schoty would emerge—horizontal wires with ten beads each, perfect for their decimal currency. Even in the computer age, the abacus would remain a training tool, a cultural artifact, and in some hands, a calculating device that rivals electronic machines.",
+                "You've traveled from tally marks on bone to beads on rods. From unknown prehistoric genius to anonymous Han craftsman. The thread connecting them is simple: each innovation externalized thought, freeing the mind for higher things.",
+                "This same principle will drive every advance that follows—from Pascal's gears to Babbage's engines to the silicon chips of the future.",
+                "Continue to Chapter 2: The Invention of Nothing—the story of zero."
+              ]
+            },
+            {
+              "id": "scene-0-1c-7",
+              "type": "narrative",
+              "setting": {
+                "text": "Epilogue: The abacus endures."
+              },
+              "narrative": [
+                "In 1946, a contest was held in Tokyo. On one side: the newest electronic calculator from the United States. On the other: Kiyoshi Matsuzaki, a soroban champion.",
+                "The abacus won. Faster on addition, subtraction, and mixed operations. Only in multiplication did the electronic calculator prevail.",
+                "Even today, 'anzan' practitioners—mental abacus users—can perform calculations of astonishing complexity by visualizing beads moving in their minds. Children in Japan and China still learn the soroban and suanpan, training their brains with ancient techniques.",
+                "The first computing device has never been surpassed for what it does best: augmenting human thought with simple, reliable, physical memory.",
+                "You've witnessed the birth of an idea that would echo through millennia. From bone to clay to wood to silicon, the principle remains: externalize the work, free the mind.",
+                "Now the story continues with a different kind of machine—one made of metal gears instead of sliding beads. The age of mechanical calculation is about to begin."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 1946 abacus vs. calculator contest was held at the U.S. Army's offices in Tokyo. Private Thomas Nathan Wood operated the electric calculator; Kiyoshi Matsuzaki used a soroban. The abacus won 4-1 in events, losing only in multiplication.",
+                  "codeSnippet": "// 1946 Contest Results\n// \n// Addition: Soroban wins\n// Subtraction: Soroban wins\n// Multiplication: Calculator wins\n// Division: Soroban wins  \n// Mixed operations: Soroban wins\n// \n// Final score: Abacus 4, Calculator 1\n// \n// The ancient technology outperformed\n// the cutting-edge electronic device"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-zero",
+          "number": 2,
+          "title": "The Invention of Nothing",
+          "subtitle": "How Zero Changed Everything",
+          "year": "628 AD - 1202 AD",
+          "scenes": [
+            {
+              "id": "scene-0-zero-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Ujjain, India, 628 AD. In the ancient center of Hindu astronomy, a mathematician named Brahmagupta is about to revolutionize human thought—by defining nothing."
+              },
+              "narrative": [
+                "The observatory at Ujjain has stood for centuries, tracking the movements of celestial bodies across the Indian sky. Here, astronomers have developed mathematics of extraordinary sophistication—but something is missing.",
+                "When calculating the position of a planet, what happens when two numbers cancel each other? What is three minus three? The Babylonians had a placeholder symbol for 'no value in this column,' but they never treated it as a number itself.",
+                "Brahmagupta stares at his calculations. He has been working on a treatise called Brahmasphutasiddhanta—'The Correctly Established Doctrine of Brahma.' And today, he will write something unprecedented."
+              ],
+              "characters": [
+                {
+                  "avatar": "🕉️",
+                  "name": "Brahmagupta",
+                  "title": "Father of Zero",
+                  "bio": "Indian mathematician and astronomer who first defined zero as a number and established the rules for its arithmetic. His work laid the foundation for the positional number system that makes all modern computing possible.",
+                  "stats": [
+                    { "label": "Era", "value": "598-668 AD" },
+                    { "label": "Location", "value": "Ujjain, India" },
+                    { "label": "Legacy", "value": "Zero as a number" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Inside Brahmagupta's study. Scrolls cover every surface. A lamp flickers in the pre-dawn darkness."
+              },
+              "narrative": [
+                "Brahmagupta dips his stylus in ink and writes: 'When zero is added to a number or subtracted from a number, the number remains unchanged. A number multiplied by zero becomes zero.'",
+                "These seem obvious to us. But no one had ever written them down as formal rules. No one had treated 'nothing' as something that could be operated upon.",
+                "Then he writes something more daring: 'Zero divided by zero is zero.' Here, even Brahmagupta stumbles—this rule is actually undefined. But the attempt matters. He is treating zero as a full citizen of the number kingdom.",
+                "The concept has a Sanskrit name: 'śūnya,' meaning 'void' or 'empty.' It carries philosophical weight in Hindu and Buddhist thought—the idea that emptiness is not absence, but a state unto itself."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Brahmagupta's rules for zero (628 AD) include: n + 0 = n, n - 0 = n, n × 0 = 0. He incorrectly stated 0 ÷ 0 = 0 (actually undefined). The concept of zero as a number, not just a placeholder, enabled true positional notation—the basis of all modern computing.",
+                  "codeSnippet": "// Brahmagupta's Rules for Zero\n// \n// Addition:    n + 0 = n\n// Subtraction: n - 0 = n  \n// Multiplication: n × 0 = 0\n// \n// Without zero, no positional notation\n// Without positional notation, no binary\n// Without binary, no computers\n// \n// Zero is the foundation of computing"
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Baghdad, 820 AD. The House of Wisdom—Bayt al-Hikma—the greatest library since Alexandria. Here, scholars from across the Islamic world gather to translate and expand human knowledge."
+              },
+              "narrative": [
+                "Two centuries after Brahmagupta, his ideas have traveled west along the Silk Road. In Baghdad, the Abbasid Caliph al-Ma'mun has established a center of learning that draws mathematicians, astronomers, and philosophers from Persia, India, Greece, and beyond.",
+                "Among them is Muhammad ibn Musa al-Khwarizmi. His name will eventually give us the word 'algorithm.' Today, he is writing a book that will transform mathematics forever.",
+                "Al-Khwarizmi studies the Indian numerals brought by travelers: 1, 2, 3, 4, 5, 6, 7, 8, 9... and that strange symbol for nothing. In Arabic, they call it 'sifr'—the empty one."
+              ],
+              "characters": [
+                {
+                  "avatar": "📜",
+                  "name": "Al-Khwarizmi",
+                  "title": "Father of Algebra",
+                  "bio": "Persian mathematician whose works introduced Hindu-Arabic numerals and zero to the Islamic world. His name gives us 'algorithm'; his book title 'al-jabr' gives us 'algebra.' He bridged Indian and Western mathematics.",
+                  "stats": [
+                    { "label": "Era", "value": "780-850 AD" },
+                    { "label": "Location", "value": "Baghdad" },
+                    { "label": "Legacy", "value": "'Algorithm' and 'Algebra'" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-4",
+              "type": "narrative",
+              "setting": {
+                "text": "The House of Wisdom. Al-Khwarizmi demonstrates the power of the new numerals to a skeptical colleague."
+              },
+              "narrative": [
+                "'Watch,' al-Khwarizmi says. 'To multiply 23 by 47 using Roman numerals, you need a counting board and considerable patience. With these Indian symbols...'",
+                "He writes the numbers vertically, then performs the calculation with a series of simple steps. The answer emerges: 1081. 'The position of each digit tells you its value. The sifr holds empty positions so nothing is confused.'",
+                "'But surely,' his colleague objects, 'the numerals themselves don't matter? The Roman system has served for a thousand years.'",
+                "'Try to calculate 888 times 888 with Roman numerals,' al-Khwarizmi replies with a smile. 'DCCCLXXXVIII times DCCCLXXXVIII. Tell me when you finish. I'll be in the garden.'"
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The word 'zero' comes from Arabic 'sifr' (empty) → Italian 'zefiro' → contracted to 'zero'. The word 'cipher' (meaning code or secret writing) comes from the same root—because zero was so mystifying to medieval Europeans that they associated it with secret knowledge.",
+                  "codeSnippet": "// Etymology of Zero\n// \n// Sanskrit: śūnya (void, empty)\n// Arabic: sifr (empty)\n// Italian: zefiro, zevero, zero\n// \n// Also gives us 'cipher' - because zero\n// seemed like magic to medieval Europe"
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-5",
+              "type": "narrative",
+              "setting": {
+                "text": "Pisa, Italy, 1202 AD. A young merchant's son has just returned from North Africa with revolutionary ideas."
+              },
+              "narrative": [
+                "Leonardo Bonacci—later known as Fibonacci—grew up in Bugia (modern Algeria), where his father worked as a trade representative. There, he learned the Arabic number system from Moorish merchants.",
+                "Now back in Italy, he has written a book called Liber Abaci—'The Book of Calculation.' In it, he introduces Europe to the nine Indian figures: 1, 2, 3, 4, 5, 6, 7, 8, 9. And the tenth symbol that makes them powerful: 0, which he calls 'zephirum.'",
+                "'With these ten figures,' Fibonacci writes, 'and with the sign 0, which the Arabs call zephir, any number whatsoever may be written.'"
+              ],
+              "characters": [
+                {
+                  "avatar": "🇮🇹",
+                  "name": "Fibonacci",
+                  "title": "Leonardo Bonacci",
+                  "bio": "Italian mathematician who introduced Hindu-Arabic numerals to Europe through his 1202 book Liber Abaci. Though best known today for the Fibonacci sequence, his greater contribution was bringing zero to the West.",
+                  "stats": [
+                    { "label": "Era", "value": "1170-1250 AD" },
+                    { "label": "Location", "value": "Pisa, Italy" },
+                    { "label": "Legacy", "value": "Brought zero to Europe" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-6",
+              "type": "narrative",
+              "setting": {
+                "text": "The merchant quarters of Florence, 1299 AD. A city ordinance has just been passed—and it's about numbers."
+              },
+              "narrative": [
+                "The new numerals are spreading through Italian commerce like wildfire. Merchants love them—calculations that took hours with Roman numerals or counting boards now take minutes.",
+                "But not everyone is pleased. The city of Florence has just banned the use of Arabic numerals in official documents. The reason? Fraud. The symbol '0' can too easily be altered to '6' or '9'. A debt of 10 florins becomes 100 with a single stroke.",
+                "The Church is suspicious too. Zero represents 'nothing'—but only God can create something from nothing. Is this symbol... heretical?",
+                "Despite the resistance, the numerals cannot be stopped. By 1500, they will dominate European mathematics. The age of calculation is about to begin."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Florence banned Arabic numerals in 1299, citing fraud concerns. The Catholic Church was initially suspicious of zero for theological reasons. Despite resistance, the efficiency of positional notation won out. By the Renaissance, the 'Hindu-Arabic' system was universal in European commerce and science.",
+                  "codeSnippet": "// The Path of Zero\n// \n// 628 AD  - Brahmagupta defines zero (India)\n// 820 AD  - Al-Khwarizmi spreads it (Baghdad)\n// 1202 AD - Fibonacci brings it to Europe\n// 1299 AD - Florence bans it (fraud fears)\n// 1500 AD - Universal adoption in Europe\n// \n// Journey: ~900 years from invention to\n// widespread European use"
+                }
+              ]
+            },
+            {
+              "id": "scene-0-zero-7",
+              "type": "narrative",
+              "setting": {
+                "text": "Reflection: Why Zero Matters"
+              },
+              "narrative": [
+                "You've witnessed one of the most important inventions in human history—and one of the least celebrated. Zero is not just a symbol. It's a concept: the idea that nothing can be something.",
+                "Without zero, there is no positional notation. Without positional notation, you cannot write any number using just ten symbols. Without that, arithmetic remains painful, algebra nearly impossible.",
+                "And in the future you've seen? Computers speak in binary: 0 and 1. The presence and absence of electrical charge. On and off. Something and nothing. The entire digital age rests on Brahmagupta's insight from 628 AD.",
+                "Zero is the bridge between the ancient counting devices you've seen and the mechanical calculators yet to come. Pascal's gears will embody positional notation in metal. Babbage's engines will crunch numbers that could never have been written in Roman numerals.",
+                "The void is not empty. It is foundational."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Binary computing (0 and 1) is a direct descendant of positional notation with zero. Every bit in every computer is a choice between 0 and 1—presence and absence, on and off. Zero makes the digital world possible.",
+                  "codeSnippet": "// Why Zero Enables Computing\n// \n// Positional value: 101 = 1×100 + 0×10 + 1×1\n// Binary:          101 = 1×4 + 0×2 + 1×1 = 5\n// \n// Without zero as placeholder:\n//   - Can't distinguish 101 from 11 from 1001\n//   - Positional notation breaks\n//   - Binary is impossible\n// \n// Zero = the foundation of digital computing"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-2",
+          "number": 3,
+          "title": "The Age of Reason",
+          "subtitle": "Mechanical Minds in Paris",
+          "year": "1642",
+          "scenes": [
+            {
+              "id": "scene-0-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Paris, 1642. The Thirty Years' War rages across Europe, but in the study of a French tax collector, a nineteen-year-old prodigy wrestles with a different kind of battle: arithmetic."
+              },
+              "narrative": [
+                "Blaise Pascal watches his father, Étienne, labor over tax ledgers late into the night. Columns of numbers. Endless additions. Tedious verifications.",
+                "His father's eyes are failing. His fingers cramp from holding the quill. And still the numbers march on, demanding to be summed.",
+                "\"There must be a better way,\" young Blaise mutters. \"If only the numbers could add themselves...\""
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "Blaise Pascal",
+                  "title": "Mathematician & Inventor",
+                  "bio": "At 19, Blaise Pascal is already a mathematical prodigy who proved important theorems of geometry at 16. Watching his father struggle with tax calculations, he conceives of a machine that could automate addition.",
+                  "stats": [
+                    { "label": "Age", "value": "19" },
+                    { "label": "Genius", "value": "Mathematics, Physics, Philosophy" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Pascal's father was a tax commissioner in Rouen. Tax calculations in 17th-century France were notoriously complex, with different rates for different goods and regions. A single error could mean financial ruin—or accusations of corruption.",
+                  "codeSnippet": "// The problem Pascal faced:\n// Additions: ~500 per day\n// Error rate: ~2% human error\n// Consequence of error: Severe\n// Time spent checking: > Time spent calculating"
+                }
+              ],
+              "nextScene": "scene-0-2-2"
+            },
+            {
+              "id": "scene-0-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Pascal's workshop is cluttered with gears, springs, and half-assembled mechanisms. Sketches of toothed wheels cover every surface."
+              },
+              "narrative": [
+                "The core problem haunts him: how do you make one wheel's rotation trigger the next? When you add 1 to 9, you get 10—the ones wheel must reset to 0 while the tens wheel advances by 1.",
+                "This is the 'carry'—the same operation the ancient Sumerians performed on their abacus, but now it must happen automatically, mechanically.",
+                "Fifty prototypes have failed. The gears jam. The carries don't cascade. The precision required exceeds what any craftsman can achieve."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Pascal",
+                  "text": "The carry is everything. Without it, my machine is just a toy. With it... it becomes a mind of metal."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 'carry' mechanism is the heart of all addition hardware. Pascal's solution used a gravity-assisted ratchet: when a wheel passed from 9 to 0, a weighted lever would fall, advancing the next wheel. Modern CPUs use carry chains in their arithmetic logic units (ALUs).",
+                  "codeSnippet": "// Carry propagation in addition\n//   9 + 1 = 10\n//   ┌───────────┐\n//   │ 9 + 1 = 0 │ (ones place, with carry)\n//   │ 0 + 1 = 1 │ (tens place, from carry)\n//   └───────────┘"
+                }
+              ],
+              "nextScene": "scene-0-2-3"
+            },
+            {
+              "id": "scene-0-2-3",
+              "type": "choice",
+              "setting": {
+                "text": "A breakthrough is close. But the final design requires a decision about the fundamental mechanism."
+              },
+              "narrative": [
+                "Two approaches lie before Pascal. The first uses a stepped drum—gears with varying tooth counts that can add different values. The second uses a simpler wheel-and-ratchet that handles carries more reliably.",
+                "The stepped drum is more versatile but harder to manufacture. The wheel-and-ratchet is simpler but limited to addition."
+              ],
+              "choices": [
+                {
+                  "id": "choice-stepped-drum",
+                  "icon": "⚙️",
+                  "title": "Stepped Drum Design",
+                  "description": "Choose the more complex mechanism that can handle multiplication. Higher risk, higher reward."
+                },
+                {
+                  "id": "choice-simple-ratchet",
+                  "icon": "🔧",
+                  "title": "Simple Wheel-and-Ratchet",
+                  "description": "Choose reliability over versatility. Perfect addition is more useful than flawed multiplication."
+                },
+                {
+                  "id": "choice-consult-craftsman",
+                  "icon": "👷",
+                  "title": "Consult the Craftsman",
+                  "description": "Seek advice from the master clockmaker who builds your prototypes. Manufacturing limits design."
+                }
+              ],
+              "nextScene": "scene-0-2-4"
+            },
+            {
+              "id": "scene-0-2-4",
+              "type": "challenge",
+              "setting": {
+                "text": "The workshop is ready. Tools laid out, gears prepared. Time to build the Pascaline."
+              },
+              "narrative": [
+                "Pascal's design calls for six wheels, each with ten teeth. The carry mechanism uses a two-toothed 'sautoir' that trips when a wheel completes a rotation.",
+                "Build the machine. Prove that numbers can add themselves."
+              ],
+              "challenge": {
+                "title": "BUILD THE PASCALINE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Design a number wheel with 10 positions (0-9)", "completed": false },
+                  { "id": "obj-2", "text": "Implement the carry mechanism using a sautoir lever", "completed": false },
+                  { "id": "obj-3", "text": "Chain multiple wheels to handle larger numbers", "completed": false },
+                  { "id": "obj-4", "text": "Test: 00199 + 00001 should show 00200", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The Pascaline could add numbers up to 999,999. Subtraction was done by adding the nine's complement—a technique that foreshadows two's complement in binary arithmetic. Pascal built about 50 machines; fewer than 10 survive today."
+                }
+              ],
+              "nextScene": "scene-0-2-5"
+            },
+            {
+              "id": "scene-0-2-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "The machine sits on the desk, brass gears gleaming. Étienne Pascal examines his son's creation with tears in his eyes."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Étienne Pascal",
+                  "text": "You have built... a thinking machine. Metal that counts. I can scarcely believe it."
+                },
+                {
+                  "speaker": "Blaise Pascal",
+                  "text": "It does not think, Father. It merely follows rules, embedded in gears. But the rules... the rules are everything."
+                },
+                {
+                  "speaker": "Étienne Pascal",
+                  "text": "Will it replace us? The scribes, the accountants?"
+                },
+                {
+                  "speaker": "Blaise Pascal",
+                  "text": "It will free us. From drudgery, from error. Our minds can turn to higher things while the machine handles arithmetic."
+                }
+              ],
+              "narrative": [
+                "Pascal would go on to sell several Pascalines to wealthy patrons. But the machines were too expensive, too fragile, and too limited for widespread use.",
+                "Yet the seed was planted. Fifty years later, in Germany, a philosopher named Leibniz would dream bigger: a machine that could not just add, but multiply, divide, and perhaps... reason itself."
+              ],
+              "nextScene": "scene-0-2-6"
+            },
+            {
+              "id": "scene-0-2-6",
+              "type": "narrative",
+              "setting": {
+                "text": "Hanover, Germany, 1679. In the candlelit study of Gottfried Wilhelm Leibniz, mathematics meets philosophy. The polymath works on something that will wait 250 years to find its true purpose."
+              },
+              "narrative": [
+                "Leibniz is obsessed with simplicity. If all numbers could be reduced to their essence, what would remain? He writes: 'The binary is the simplest. Two symbols. On or off. True or false. Being or nothingness.'",
+                "He documents a system where any number can be written using only 1 and 0. Thirteen becomes 1101. One hundred becomes 1100100. It seems like a curiosity—a philosophical toy. Who would build a machine using only two states?",
+                "But Leibniz sees further. He dreams of a 'calculus ratiocinator'—a machine that could reason in logic, reducing all arguments to calculation. If thoughts could be encoded in symbols, and symbols manipulated by rules, could a machine think?"
+              ],
+              "characters": [
+                {
+                  "avatar": "🔢",
+                  "name": "Gottfried Wilhelm Leibniz",
+                  "title": "Philosopher & Mathematician",
+                  "bio": "Leibniz invented calculus (simultaneously with Newton), discovered binary arithmetic, built the Stepped Reckoner calculating machine, and dreamed of universal logical computation. His binary system would become the foundation of all digital computers.",
+                  "stats": [
+                    { "label": "Binary System", "value": "Invented 1679" },
+                    { "label": "Insight", "value": "Two symbols encode everything" },
+                    { "label": "Legacy", "value": "Foundation of digital computing" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Leibniz's binary system was inspired by the Chinese I Ching's yin-yang duality. He saw philosophical beauty in reducing numbers to 1 (existence) and 0 (void). Though impractical for human calculation, binary is perfect for electrical circuits: on/off, high/low, true/false.",
+                  "codeSnippet": "// Leibniz's binary (1679)\n// Decimal → Binary\n// 0  →  0\n// 1  →  1\n// 2  →  10\n// 3  →  11\n// 4  →  100\n// 13 →  1101\n// \n// Only TWO states needed!\n// Perfect for switches, relays, transistors"
+                }
+              ],
+              "nextScene": "scene-0-2-7"
+            },
+            {
+              "id": "scene-0-2-7",
+              "type": "narrative",
+              "setting": {
+                "text": "The same study, 1694. Fifteen years of work have produced something remarkable: the Stepped Reckoner."
+              },
+              "narrative": [
+                "Where Pascal's machine could only add, Leibniz has built a calculator that can multiply and divide directly. The secret is the 'stepped drum'—a cylinder with nine teeth of increasing length.",
+                "Turn the drum once, and one tooth engages. Turn it again from a different position, and three teeth engage. The same mechanism can add any digit from 1 to 9.",
+                "Leibniz demonstrates the machine to amazed nobles: 'Multiplication of a six-digit number in the time it takes to read a sentence!' But the machine is fragile, prone to jamming, and fiendishly expensive. Like Pascal's, it remains a curiosity rather than a revolution."
+              ],
+              "characters": [
+                {
+                  "avatar": "⚙️",
+                  "name": "The Stepped Reckoner",
+                  "title": "World's First Multiplying Calculator",
+                  "bio": "Leibniz's mechanical marvel used a stepped drum (Leibniz wheel) to perform all four arithmetic operations. The design was so clever that stepped drums remained in mechanical calculators until the 1970s.",
+                  "stats": [
+                    { "label": "Operations", "value": "+, -, ×, ÷" },
+                    { "label": "Digits", "value": "12-digit capacity" },
+                    { "label": "Legacy", "value": "Stepped drum used for 280 years" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The stepped drum (Leibniz wheel) uses a cylinder with teeth of lengths 1-9. Rotating the drum engages different numbers of teeth depending on axial position. This elegant mechanism was used in calculating machines from Leibniz's time through the 1970s Curta calculator.",
+                  "codeSnippet": "// Leibniz Stepped Drum\n// Drum teeth lengths: 1,2,3,4,5,6,7,8,9\n// \n// Position 0: rotate → 0 teeth engage\n// Position 5: rotate → 5 teeth engage\n// Position 9: rotate → 9 teeth engage\n// \n// Multiply 7 × 4:\n// Set drum to position 7\n// Rotate drum 4 times\n// Read result: 28"
+                }
+              ],
+              "nextScene": "scene-0-jac-1"
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-3",
+          "number": 3,
+          "title": "The Loom That Could Think",
+          "subtitle": "Jacquard's Punch Cards",
+          "year": "1804",
+          "scenes": [
+            {
+              "id": "scene-0-jac-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Lyon, France, 1804. The silk capital of Europe. Thousands of weavers produce the world's most intricate textiles—and each complex pattern requires a 'draw boy' to lift the right threads in the right sequence."
+              },
+              "narrative": [
+                "Joseph Marie Jacquard watches the draw boys work. Children, some as young as seven, crouch beneath the looms pulling cords to lift specific warp threads. For a single row of complex brocade, the sequence might be: lift threads 1, 3, 7, 12, 15... skip... lift 2, 5, 8...",
+                "Mistakes are inevitable. Exhaustion leads to errors. Errors ruin expensive silk. And the draw boys' small hands are mangled by the machinery with horrifying regularity.",
+                "But Jacquard has an idea. What if the pattern itself could control the loom? Not a human reading instructions—but the machine reading directly, mechanically, automatically?"
+              ],
+              "characters": [
+                {
+                  "avatar": "🧵",
+                  "name": "Joseph Marie Jacquard",
+                  "title": "Master Weaver & Inventor",
+                  "bio": "Son of a weaver, Jacquard spent years perfecting an automated loom that could weave any pattern. His punch card system was the first mechanical 'program'—and it would inspire Babbage, Hollerith, and early computer scientists.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Punch card programming" },
+                    { "label": "Loom adoption", "value": "11,000 by 1812" },
+                    { "label": "Legacy", "value": "Inspired all stored-program computing" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Before Jacquard, complex patterns required a skilled 'draw boy' to physically lift the correct warp threads for each row. A skilled team could produce only a few inches of complex brocade per day. Jacquard's loom automated this entirely.",
+                  "codeSnippet": "// Pre-Jacquard: Human 'program'\n// Draw boy reads pattern chart\n// Lift threads: 1,3,7,12,15 (row 1)\n// Lift threads: 2,5,8,11,14 (row 2)\n// ...\n// Error rate: ~3%\n// Speed: 2 inches/day (complex pattern)"
+                }
+              ],
+              "nextScene": "scene-0-jac-2"
+            },
+            {
+              "id": "scene-0-jac-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Jacquard's workshop. Stacks of stiff cardboard rectangles, each punched with a precise pattern of holes."
+              },
+              "narrative": [
+                "The solution is elegant: a chain of cards, each representing one row of the pattern. Where there's a hole, a hook can pass through and lift that warp thread. Where there's no hole, the hook is blocked.",
+                "The cards are linked together in sequence. As the loom operates, it advances through the cards automatically—one card per row, reading the pattern directly from the holes.",
+                "No draw boys needed. No human interpretation. The cards ARE the program, and the loom executes them mechanically, flawlessly, tirelessly."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎴",
+                  "name": "Punch Cards",
+                  "title": "The First Machine-Readable Programs",
+                  "bio": "Jacquard's punch cards were the first stored programs in history. Each hole encoded a binary decision: lift or don't lift. Linked in sequence, they could encode infinitely complex patterns—or, later, infinitely complex computations.",
+                  "stats": [
+                    { "label": "Encoding", "value": "Binary: hole or no hole" },
+                    { "label": "Typical card", "value": "~400 possible holes" },
+                    { "label": "Pattern storage", "value": "Thousands of cards linked" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Jacquard's cards encoded binary data: hole = 1 (lift thread), no hole = 0 (don't lift). Complex patterns required thousands of cards chained together. The same principle would drive computing for 150 years—IBM punch cards descended directly from Jacquard's design.",
+                  "codeSnippet": "// Jacquard Card Encoding\n// Card row for 8 threads:\n// ○●○●●○○● = 01011001\n// \n// ○ = hole (lift thread)\n// ● = solid (don't lift)\n// \n// Chain 10,000 cards for one tapestry\n// Same logic: IBM 80-column card (1928)"
+                }
+              ],
+              "nextScene": "scene-0-jac-3"
+            },
+            {
+              "id": "scene-0-jac-3",
+              "type": "narrative",
+              "setting": {
+                "text": "A Lyon textile mill, 1812. The Jacquard loom clacks rhythmically. Above it, a cascade of punch cards advances one by one."
+              },
+              "narrative": [
+                "The loom weaves a portrait of Jacquard himself—24,000 cards controlling every thread. The image is so fine that many mistake it for an engraving. This single fabric required 24,000 punch cards—24,000 rows of binary decisions.",
+                "The weavers of Lyon initially rioted against the Jacquard loom, burning machines in the streets. They saw their jobs vanishing. But the machines spread anyway—11,000 Jacquard looms operate in France by 1812.",
+                "Across the English Channel, a young mathematician named Charles Babbage will see one of these looms. He will realize that if cards can encode patterns for thread, they can encode patterns for NUMBERS. The Jacquard loom will become the soul of his Analytical Engine."
+              ],
+              "characters": [
+                {
+                  "avatar": "🖼️",
+                  "name": "Portrait of Jacquard",
+                  "title": "Programming Made Visible",
+                  "bio": "This famous woven portrait required 24,000 punch cards and demonstrated that punch card 'programs' could encode arbitrary complexity. Charles Babbage owned a copy and showed it to visitors as proof that machines could process complex information.",
+                  "stats": [
+                    { "label": "Cards used", "value": "24,000" },
+                    { "label": "Resolution", "value": "Mistaken for engraving" },
+                    { "label": "Impact", "value": "Inspired Babbage's design" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Jacquard portrait used 24,000 cards with ~1,000 holes each—roughly 24 million binary decisions. This demonstrated that punch cards could encode arbitrary complexity. When Babbage saw this, he realized the same principle could encode mathematical operations.",
+                  "codeSnippet": "// From Looms to Computers:\n// \n// 1804: Jacquard loom (patterns)\n// 1837: Babbage Analytical Engine (programs)\n// 1890: Hollerith Census (data)\n// 1928: IBM 80-column card (standard)\n// 1950s: FORTRAN punched onto cards\n// 1970s: Cards finally phased out\n// \n// 170 years of punch card computing!"
+                }
+              ],
+              "nextScene": "scene-0-3-1"
+            }
+          ]
+        },
+        {
+          "id": "chapter-0-4",
+          "number": 4,
+          "title": "The Victorian Visionary",
+          "subtitle": "Babbage's Impossible Dream",
+          "year": "1833",
+          "scenes": [
+            {
+              "id": "scene-0-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "London, 1833. The Industrial Revolution transforms England. Steam engines thunder, railways expand, and mathematical tables guide everything from navigation to artillery—tables riddled with errors."
+              },
+              "narrative": [
+                "Charles Babbage slams a book of logarithmic tables onto his desk. Another error. A ship lost because a navigator trusted a printed number that was wrong.",
+                "\"I wish to God these calculations had been executed by steam,\" he mutters. It's a joke, of course. Except... is it?",
+                "Babbage has already built the Difference Engine—a mechanical marvel that can tabulate polynomial functions. But it's not enough. He envisions something far more ambitious."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎩",
+                  "name": "Charles Babbage",
+                  "title": "Mathematician & Engineer",
+                  "bio": "Lucasian Professor of Mathematics at Cambridge (Newton's old chair), Babbage is brilliant, irascible, and obsessed with precision. He has already designed the Difference Engine; now he dreams of the Analytical Engine.",
+                  "stats": [
+                    { "label": "Obsession", "value": "Eliminating Error" },
+                    { "label": "Temperament", "value": "Genius, Difficult" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Mathematical tables (logarithms, trigonometry, astronomical data) were essential for navigation, engineering, and science. They were calculated by hand and typeset by hand—introducing errors at every step. A single wrong digit could sink a ship.",
+                  "codeSnippet": "// Error sources in 1830s mathematical tables:\n// 1. Calculation errors (human)\n// 2. Transcription errors (copying)\n// 3. Typesetting errors (printing)\n// 4. Proofreading misses (verification)\n// Result: ~1% of entries were wrong"
+                }
+              ],
+              "nextScene": "scene-0-3-2"
+            },
+            {
+              "id": "scene-0-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Babbage's workshop is a cathedral of gears. Thousands of precision-machined parts lie in organized chaos—the unfinished remains of the Difference Engine."
+              },
+              "narrative": [
+                "A young woman enters, notebook in hand. Ada Byron, daughter of the poet Lord Byron, has come to learn about Babbage's machines.",
+                "Unlike most visitors, she asks not how the machine works, but what it could do. Her questions push Babbage to articulate ideas he's barely formed himself."
+              ],
+              "characters": [
+                {
+                  "avatar": "👩‍💼",
+                  "name": "Ada Lovelace",
+                  "title": "Mathematician & Visionary",
+                  "bio": "Ada King, Countess of Lovelace, is the only legitimate child of Lord Byron. Her mother ensured she studied mathematics to counteract any inherited 'poetic' madness. Ada sees further than Babbage himself.",
+                  "stats": [
+                    { "label": "Insight", "value": "Pattern Recognition, Abstraction" },
+                    { "label": "Vision", "value": "The machine could compose music" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Ada Lovelace",
+                  "text": "Mr. Babbage, your Difference Engine calculates tables. But what if the same machine could calculate anything?"
+                },
+                {
+                  "speaker": "Babbage",
+                  "text": "That is precisely what haunts me, Lady Lovelace. I call it the Analytical Engine. It would have a 'mill' for calculation and a 'store' for numbers. Instructions would come from punched cards, like Jacquard's loom."
+                },
+                {
+                  "speaker": "Ada Lovelace",
+                  "text": "Punched cards... so the machine could be reprogrammed? Told to calculate different things?"
+                },
+                {
+                  "speaker": "Babbage",
+                  "text": "Yes! And it could loop, repeat, even make decisions based on intermediate results. It would be... general purpose."
+                }
+              ],
+              "nextScene": "scene-0-3-3"
+            },
+            {
+              "id": "scene-0-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Ada studies Babbage's plans with growing excitement. She begins to see implications that even he has missed."
+              },
+              "narrative": [
+                "\"The engine might compose elaborate pieces of music,\" she writes in her notes. \"Not because it understands music, but because music is mathematical—and the engine processes mathematics.\"",
+                "She grasps something profound: the Analytical Engine wouldn't just calculate numbers. It would manipulate symbols. Any symbols. Following any rules.",
+                "Ada writes the first algorithm intended for machine execution: a method for the engine to compute Bernoulli numbers. In doing so, she becomes history's first programmer."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Ada's insight was revolutionary: the Analytical Engine could operate on any symbols, not just numbers. 'The engine might compose music' foreshadows the digital revolution—computers that process text, images, sound, and video are all manipulating symbols according to rules.",
+                  "codeSnippet": "// Ada's Bernoulli algorithm (1843)\n// First published computer program\n// Key insight: loops and conditionals\n// \n// The algorithm used:\n// - Variables (stored in 'columns')\n// - Operations (performed by the 'mill')\n// - Iteration (repeat until done)\n// - Conditional branching (if/then)"
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Ada Lovelace",
+                  "text": "The Analytical Engine weaves algebraic patterns just as the Jacquard loom weaves flowers and leaves."
+                }
+              ],
+              "nextScene": "scene-0-3-4"
+            },
+            {
+              "id": "scene-0-3-4",
+              "type": "choice",
+              "setting": {
+                "text": "Babbage's design is complete on paper. But building it is another matter. The precision required exceeds Victorian manufacturing capabilities."
+              },
+              "narrative": [
+                "The government has already spent £17,000 on the Difference Engine with nothing to show. Babbage's relationship with his chief engineer has collapsed. The Analytical Engine exists only in plans.",
+                "You stand at a crossroads in history. The design is sound—but the technology to build it won't exist for another century."
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-design",
+                  "icon": "📐",
+                  "title": "Study Babbage's Design",
+                  "description": "Examine the Analytical Engine's architecture. Understand the mill, store, and control mechanisms."
+                },
+                {
+                  "id": "choice-roads-not-taken",
+                  "icon": "🔮",
+                  "title": "Return to Your Lab",
+                  "description": "What if Babbage's machine could have been built? Travel to your modern lab and construct what Victorian technology could not."
+                },
+                {
+                  "id": "choice-ada-notes",
+                  "icon": "📝",
+                  "title": "Read Ada's Notes",
+                  "description": "Study the first computer program ever written. Understand how algorithms were conceived before computers existed."
+                }
+              ],
+              "nextScene": "scene-0-3-5"
+            },
+            {
+              "id": "scene-0-3-5",
+              "type": "challenge",
+              "setting": {
+                "text": "The plans spread before you: the Analytical Engine in full mechanical glory. Mill, store, card reader, printer. A computer made of brass and steel."
+              },
+              "narrative": [
+                "Babbage's design anticipated nearly every component of modern computers:",
+                "• The 'Store' (memory): 1,000 numbers of 50 digits each",
+                "• The 'Mill' (CPU): arithmetic operations with carry propagation",
+                "• Punched cards (program): operation cards, variable cards, number cards",
+                "• Conditional branching: the mill could skip cards based on results",
+                "Build a simplified version of Babbage's dream. Prove that the design was sound."
+              ],
+              "challenge": {
+                "title": "BUILD THE ANALYTICAL ENGINE",
+                "objectives": [
+                  { "id": "obj-1", "text": "Design the Store: memory columns with gear-based digits", "completed": false },
+                  { "id": "obj-2", "text": "Design the Mill: arithmetic unit with carry chain", "completed": false },
+                  { "id": "obj-3", "text": "Implement card-based instruction input", "completed": false },
+                  { "id": "obj-4", "text": "Add conditional branching (skip cards if zero)", "completed": false },
+                  { "id": "obj-5", "text": "Execute Ada's Bernoulli algorithm", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The Analytical Engine was never built in Babbage's lifetime. Modern reconstructions have proven the design was sound—it would have worked. Computing was delayed by 100 years because Victorian machining couldn't achieve the required precision.",
+                  "codeSnippet": "// Analytical Engine architecture\n// Store: 1000 × 50-digit numbers (~167KB)\n// Mill: +, -, ×, ÷ operations\n// Speed: ~1 addition per second\n// Control: 3 types of punched cards\n//   - Operation cards (instructions)\n//   - Variable cards (memory addresses)\n//   - Number cards (constants)"
+                }
+              ],
+              "nextScene": "scene-0-3-6"
+            },
+            {
+              "id": "scene-0-3-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "The mechanical simulation completes. Gears turn, cards feed, and the output printer stamps its result. The Bernoulli numbers emerge, correct to fifty digits."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Babbage",
+                  "text": "You see? The design was sound. The vision was true. Only the execution... the cursed execution was beyond our reach."
+                },
+                {
+                  "speaker": "Ada Lovelace",
+                  "text": "But the ideas live on, Mr. Babbage. Someone will build this machine. Perhaps not in metal and steam—but the principles are eternal."
+                },
+                {
+                  "speaker": "Babbage",
+                  "text": "Electricity. Mark my words, Lady Lovelace. If this engine is ever built, it will run on lightning, not steam."
+                }
+              ],
+              "narrative": [
+                "Babbage died in 1871, his engine unfinished. Ada had died years earlier, at just 36. Neither would see the electronic age.",
+                "But their ideas—stored programs, conditional branching, the separation of memory and processor—would be rediscovered a century later by engineers who never knew their names.",
+                "The mechanical era ends here, with a vision too grand for its time. But a new force is rising: electricity. And with it, the ability to switch states not in seconds, but in millionths of a second.",
+                "The story continues in Act 1: Electrification."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

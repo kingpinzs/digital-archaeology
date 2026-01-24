@@ -7,12 +7,24 @@ import type {
   StoryAct,
   StoryChapter,
   StoryScene,
+  StoryMetadata,
   ValidationResult,
 } from './content-types';
 import { StoryLoadError, StoryValidationError } from './content-types';
 
 /** Valid CPU stages for type guard validation (must match CpuStage type) */
-const VALID_CPU_STAGES: readonly string[] = ['micro4', 'micro8', 'micro16', 'micro32', 'micro32p', 'micro32s'];
+const VALID_CPU_STAGES: readonly string[] = [
+  'mechanical',
+  'relay',
+  'vacuum',
+  'transistor',
+  'micro4',
+  'micro8',
+  'micro16',
+  'micro32',
+  'micro32p',
+  'micro32s',
+];
 
 /** Valid scene types for type guard validation (must match SceneType type) */
 const VALID_SCENE_TYPES: readonly string[] = ['narrative', 'dialogue', 'choice', 'challenge'];
@@ -229,6 +241,7 @@ export class StoryLoader {
 
   /**
    * Load complete story content (all acts).
+   * Loads the index file and then dynamically loads each act file.
    * @returns Promise resolving to the complete story content
    * @throws StoryLoadError if loading fails
    * @throws StoryValidationError if content is invalid
@@ -239,25 +252,70 @@ export class StoryLoader {
       return this.storyContentCache;
     }
 
-    const url = '/story/story-content.json';
+    const indexUrl = '/story/story-content.json';
 
     try {
-      const response = await fetch(url);
+      // Load the index file
+      const indexResponse = await fetch(indexUrl);
 
-      if (!response.ok) {
-        throw new StoryLoadError(`Failed to load story content: ${response.status} ${response.statusText}`);
+      if (!indexResponse.ok) {
+        throw new StoryLoadError(`Failed to load story index: ${indexResponse.status} ${indexResponse.statusText}`);
       }
 
-      const data = await response.json();
+      const indexData = await indexResponse.json();
 
-      // Validate the loaded content
-      const validation = validateStoryContent(data);
+      // Extract metadata and act index
+      const metadata = indexData.metadata as StoryMetadata;
+      const actIndex = indexData.actIndex as Array<{ number: number; file: string }>;
+      const version = indexData.version as string || '1.0.0';
+
+      if (!metadata || !actIndex || !Array.isArray(actIndex)) {
+        throw new StoryValidationError('Invalid story index structure', ['Missing metadata or actIndex']);
+      }
+
+      // Load all acts in parallel
+      const actPromises = actIndex.map(async (entry) => {
+        const actUrl = `/story/${entry.file}`;
+        const actResponse = await fetch(actUrl);
+
+        if (!actResponse.ok) {
+          throw new StoryLoadError(`Failed to load act ${entry.number}: ${actResponse.status}`);
+        }
+
+        const actData = await actResponse.json();
+
+        // Handle both formats: raw act or wrapped in {version, metadata, acts} structure
+        let act: unknown = actData;
+        if (actData && typeof actData === 'object' && Array.isArray(actData.acts) && actData.acts.length > 0) {
+          // Wrapped format: extract the act from the acts array
+          act = actData.acts[0];
+        }
+
+        // Validate act structure
+        if (!isStoryAct(act)) {
+          throw new StoryValidationError(`Invalid act structure for act ${entry.number}`, [`Act ${entry.number} failed validation`]);
+        }
+
+        return act as StoryAct;
+      });
+
+      const acts = await Promise.all(actPromises);
+
+      // Sort acts by number
+      acts.sort((a, b) => a.number - b.number);
+
+      // Build complete story content
+      const content: StoryContent = {
+        version,
+        metadata,
+        acts,
+      };
+
+      // Validate the combined content
+      const validation = validateStoryContent(content);
       if (!validation.valid) {
         throw new StoryValidationError('Invalid story content', validation.errors);
       }
-
-      // Type is now validated
-      const content = data as StoryContent;
 
       // Cache the result
       this.storyContentCache = content;

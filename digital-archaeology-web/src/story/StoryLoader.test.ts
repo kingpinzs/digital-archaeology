@@ -55,6 +55,19 @@ const createValidStoryContent = (): StoryContent => ({
   ],
 });
 
+// Factory function for creating index structure (for loadAllActs)
+const createStoryIndex = () => ({
+  version: '1.0.0',
+  metadata: {
+    title: 'Test Story',
+    author: 'Test Author',
+    lastUpdated: '2026-01-24',
+  },
+  actIndex: [
+    { number: 1, file: 'act-1.json' },
+  ],
+});
+
 const createValidStoryAct = (): StoryAct => ({
   id: 'act-1',
   number: 1,
@@ -173,27 +186,84 @@ describe('StoryLoader', () => {
   });
 
   describe('loadAllActs', () => {
-    it('should load complete story content', async () => {
-      const mockContent = createValidStoryContent();
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockContent),
-      });
+    it('should load complete story content from index', async () => {
+      const mockIndex = createStoryIndex();
+      const mockAct = createValidStoryAct();
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct) });
 
       const result = await loader.loadAllActs();
 
       expect(fetch).toHaveBeenCalledWith('/story/story-content.json');
+      expect(fetch).toHaveBeenCalledWith('/story/act-1.json');
       expect(result.version).toBe('1.0.0');
       expect(result.acts.length).toBe(1);
     });
 
-    it('should throw for invalid content structure', async () => {
+    it('should throw for invalid index structure', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ invalid: 'structure' }),
       });
 
-      await expect(loader.loadAllActs()).rejects.toThrow('Invalid story content');
+      await expect(loader.loadAllActs()).rejects.toThrow('Invalid story index structure');
+    });
+
+    it('should throw for missing actIndex', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ metadata: {}, version: '1.0.0' }),
+      });
+
+      await expect(loader.loadAllActs()).rejects.toThrow('Invalid story index structure');
+    });
+
+    it('should load multiple acts in parallel', async () => {
+      const mockIndex = {
+        ...createStoryIndex(),
+        actIndex: [
+          { number: 1, file: 'act-1.json' },
+          { number: 2, file: 'act-2.json' },
+        ],
+      };
+      const mockAct1 = createValidStoryAct();
+      const mockAct2 = { ...createValidStoryAct(), id: 'act-2', number: 2 };
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct1) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct2) });
+
+      const result = await loader.loadAllActs();
+
+      expect(result.acts.length).toBe(2);
+      expect(result.acts[0].number).toBe(1);
+      expect(result.acts[1].number).toBe(2);
+    });
+
+    it('should sort acts by number', async () => {
+      const mockIndex = {
+        ...createStoryIndex(),
+        actIndex: [
+          { number: 2, file: 'act-2.json' },
+          { number: 1, file: 'act-1.json' },
+        ],
+      };
+      const mockAct1 = createValidStoryAct();
+      const mockAct2 = { ...createValidStoryAct(), id: 'act-2', number: 2 };
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct2) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct1) });
+
+      const result = await loader.loadAllActs();
+
+      // Should be sorted by number regardless of fetch order
+      expect(result.acts[0].number).toBe(1);
+      expect(result.acts[1].number).toBe(2);
     });
   });
 
@@ -248,11 +318,12 @@ describe('StoryLoader', () => {
     });
 
     it('should search in storyContentCache if act cache misses', async () => {
-      const mockContent = createValidStoryContent();
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockContent),
-      });
+      const mockIndex = createStoryIndex();
+      const mockAct = createValidStoryAct();
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct) });
 
       await loader.loadAllActs();
       const scene = loader.getSceneById('scene-1-1-1');
@@ -269,11 +340,12 @@ describe('StoryLoader', () => {
     });
 
     it('should return first scene from storyContentCache', async () => {
-      const mockContent = createValidStoryContent();
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockContent),
-      });
+      const mockIndex = createStoryIndex();
+      const mockAct = createValidStoryAct();
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct) });
 
       await loader.loadAllActs();
       const scene = loader.getFirstScene();
@@ -304,11 +376,12 @@ describe('StoryLoader', () => {
     });
 
     it('should return acts from storyContentCache', async () => {
-      const mockContent = createValidStoryContent();
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockContent),
-      });
+      const mockIndex = createStoryIndex();
+      const mockAct = createValidStoryAct();
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockIndex) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct) });
 
       await loader.loadAllActs();
       const acts = loader.getCachedActs();
@@ -442,7 +515,10 @@ describe('Type Guards', () => {
     });
 
     it('should accept all valid cpuStage values', () => {
-      const stages = ['micro4', 'micro8', 'micro16', 'micro32', 'micro32p', 'micro32s'];
+      const stages = [
+        'mechanical', 'relay', 'vacuum', 'transistor',
+        'micro4', 'micro8', 'micro16', 'micro32', 'micro32p', 'micro32s',
+      ];
       for (const stage of stages) {
         const act = { ...createValidStoryAct(), cpuStage: stage };
         expect(isStoryAct(act)).toBe(true);

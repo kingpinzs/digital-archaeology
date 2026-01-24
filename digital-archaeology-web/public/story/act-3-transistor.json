@@ -1,0 +1,744 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-3",
+      "number": 3,
+      "title": "The Solid State Revolution",
+      "description": "From Bell Labs to Silicon Valley, trace the invention of the transistor and the integrated circuit—the discoveries that made modern computing possible. Every vacuum tube that burned out, every unreliable connection, every room-sized computer drove engineers toward a singular goal: solid-state switching.",
+      "era": "1947 - 1971",
+      "cpuStage": "transistor",
+      "chapters": [
+        {
+          "id": "chapter-3-1",
+          "number": 1,
+          "title": "The Tyranny of the Tube",
+          "subtitle": "Bell Labs, Murray Hill",
+          "year": "1947",
+          "scenes": [
+            {
+              "id": "scene-3-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Bell Telephone Laboratories, Murray Hill, New Jersey. December 1947. Snow blankets the manicured grounds of the research campus. Inside Building 1, the solid-state physics group is racing toward a breakthrough that will change history."
+              },
+              "narrative": [
+                "The telephone network is failing. Every switching station depends on vacuum tubes—hot, fragile, power-hungry tubes that burn out constantly. AT&T's continental network uses millions of them.",
+                "Somewhere, right now, a tube is failing. A call is dropping. A customer is complaining.",
+                "You've been assigned to William Shockley's solid-state physics group. The mandate is clear: find a replacement for the vacuum tube. Something solid. Something reliable. Something that doesn't burn out."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "William Shockley",
+                  "title": "Group Leader, Solid-State Physics",
+                  "bio": "Brilliant, ambitious, and difficult. Shockley leads the team with an iron will. His theoretical work on semiconductors is groundbreaking, but his personality alienates colleagues. He believes solid-state amplification is possible—he just can't make it work.",
+                  "stats": [
+                    { "label": "Expertise", "value": "Semiconductor Theory" },
+                    { "label": "Weakness", "value": "Cannot admit being wrong" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Vacuum tubes work by 'thermionic emission'—heating a metal cathode until electrons boil off, then controlling their flow with a grid. This requires a vacuum, high voltages, and significant power. A typical tube consumes 5-10 watts just to stay warm.",
+                  "codeSnippet": "// The tube reliability problem\n// ENIAC (1945): 17,468 vacuum tubes\n// Tube failure rate: ~1 per 2 days\n// MTBF (system): ~7 minutes between failures\n// \n// Bell System (1947):\n// Tubes in service: ~10 million\n// Replacement cost: $100M+ per year"
+                }
+              ],
+              "nextScene": "scene-3-1-2"
+            },
+            {
+              "id": "scene-3-1-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Shockley's laboratory. Benches cluttered with oscilloscopes, spectrometers, and chunks of germanium crystal. The air smells of solder and frustration."
+              },
+              "narrative": [
+                "Shockley's idea is elegant: use an electric field to control current flow through a semiconductor, just as the grid controls electron flow in a tube. He calls it the 'field-effect' approach.",
+                "The theory is sound. The math works out. But every experiment fails.",
+                "Something is blocking the field effect. The semiconductor surface seems to 'trap' charges, screening the external field. No one understands why."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧑‍🏫",
+                  "name": "John Bardeen",
+                  "title": "Theoretical Physicist",
+                  "bio": "Quiet, methodical, brilliant. Bardeen approaches problems with patient persistence. While Shockley demands results, Bardeen asks why the experiments fail. His surface-state theory will unlock the mystery.",
+                  "stats": [
+                    { "label": "Approach", "value": "Theory-First" },
+                    { "label": "Future", "value": "Only person to win 2 Nobel Prizes in Physics" }
+                  ]
+                },
+                {
+                  "avatar": "🔧",
+                  "name": "Walter Brattain",
+                  "title": "Experimental Physicist",
+                  "bio": "Hands-on genius. If Bardeen is the mind, Brattain is the hands. He builds the experiments, improvises solutions, and notices the anomalies that lead to breakthroughs. Practical to the core.",
+                  "stats": [
+                    { "label": "Approach", "value": "Build First, Think Later" },
+                    { "label": "Skill", "value": "Making Theory Work in Practice" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Shockley",
+                  "text": "The field effect should work. The mathematics is clear. Why does the experiment fail?"
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "The surface. Charges are getting trapped at the semiconductor surface. They're screening your external field before it can penetrate."
+                },
+                {
+                  "speaker": "Shockley",
+                  "text": "Then find a way around the surface."
+                }
+              ],
+              "nextScene": "scene-3-1-3"
+            },
+            {
+              "id": "scene-3-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "November 17, 1947. Brattain is running yet another failed experiment when he notices something unexpected."
+              },
+              "narrative": [
+                "The germanium sample sits in a water droplet—an accident, really. Brattain dips his probe into the electrolyte and... the signal amplifies.",
+                "Water? Why would water matter?",
+                "The electrolyte is neutralizing the surface charges. For the first time, the field effect works—weakly, erratically, but it works.",
+                "Bardeen realizes: if water can modify the surface, perhaps a different approach can too. What if instead of fighting the surface, they worked through it?"
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The surface-state problem plagued semiconductor research for years. Bardeen's insight was that electrons get trapped in 'dangling bonds' at the crystal surface, creating a barrier to field effects. This understanding eventually led to the MOS transistor—which uses a thin oxide layer to control surface states.",
+                  "codeSnippet": "// Surface states explained\n// Silicon crystal: atoms bonded in lattice\n// At surface: bonds have nothing to connect to\n// Result: 'dangling bonds' trap electrons\n// \n// Solution 1: Electrolyte (temporary)\n// Solution 2: Point contact (Brattain)\n// Solution 3: Oxide layer (future: MOSFET)"
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Brattain",
+                  "text": "John, come look at this. The water did something. I'm getting amplification—small, but real."
+                }
+              ],
+              "nextScene": "scene-3-1-4"
+            },
+            {
+              "id": "scene-3-1-4",
+              "type": "choice",
+              "setting": {
+                "text": "December 16, 1947. The laboratory is tense. Brattain has a new design: two gold contacts pressed into germanium, incredibly close together. If this works..."
+              },
+              "narrative": [
+                "Brattain's design bypasses the surface problem entirely. Instead of using a field through the surface, he injects current directly through one contact (the emitter) and modulates it with a second contact (the collector).",
+                "It's not Shockley's elegant field-effect design. It's a hack, really. But if it amplifies..."
+              ],
+              "choices": [
+                {
+                  "id": "choice-observe-experiment",
+                  "icon": "👁️",
+                  "title": "Observe the Experiment",
+                  "description": "Watch Brattain and Bardeen make history. See the moment the first transistor amplifies a signal."
+                },
+                {
+                  "id": "choice-understand-theory",
+                  "icon": "📚",
+                  "title": "Understand the Theory",
+                  "description": "Have Bardeen explain why the point-contact approach works where the field effect failed."
+                },
+                {
+                  "id": "choice-roads-not-taken",
+                  "icon": "🔮",
+                  "title": "Roads Not Taken: Lilienfeld's FET",
+                  "description": "In 1926, Julius Lilienfeld patented the field-effect transistor. It should have worked. Return to your lab and build what he envisioned."
+                }
+              ],
+              "nextScene": "scene-3-1-5"
+            },
+            {
+              "id": "scene-3-1-5",
+              "type": "challenge",
+              "setting": {
+                "text": "December 23, 1947. The moment that changed computing forever."
+              },
+              "narrative": [
+                "Brattain's apparatus looks almost comical: a triangle of plastic with gold foil contacts, pressed against a slab of germanium. A paper clip holds it in place.",
+                "But when current flows through the emitter contact, something miraculous happens: the collector current is amplified. A small signal in, a large signal out.",
+                "Solid-state amplification. No vacuum. No heated cathode. No moving parts."
+              ],
+              "challenge": {
+                "title": "BUILD THE FIRST TRANSISTOR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Understand p-type and n-type semiconductors", "completed": false },
+                  { "id": "obj-2", "text": "Create a germanium base with proper doping", "completed": false },
+                  { "id": "obj-3", "text": "Position emitter and collector contacts (<50μm apart)", "completed": false },
+                  { "id": "obj-4", "text": "Apply bias voltages for amplification mode", "completed": false },
+                  { "id": "obj-5", "text": "Achieve current gain > 1 (proof of amplification)", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The point-contact transistor worked by 'minority carrier injection.' The emitter contact injected holes into the n-type germanium base. These holes diffused to the collector contact, modulating its current. Gain depended on the geometry—contacts had to be incredibly close.",
+                  "codeSnippet": "// First transistor specifications\n// Germanium base: n-type, high purity\n// Contacts: Gold foil on plastic wedge\n// Spacing: ~50 micrometers\n// Gain: ~100 (current amplification)\n// \n// Compare to vacuum tube:\n// Tube: 5W power, 10cm³ volume\n// Transistor: 0.05W, 1mm³"
+                }
+              ],
+              "nextScene": "scene-3-1-6"
+            },
+            {
+              "id": "scene-3-1-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "The oscilloscope trace shows unmistakable amplification. Bardeen and Brattain look at each other in disbelief."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Brattain",
+                  "text": "John... it's working. We're getting gain. Real gain."
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "This changes everything. Solid-state amplification. No tubes. No vacuum."
+                },
+                {
+                  "speaker": "Brattain",
+                  "text": "Should we tell Shockley?"
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "We have to. But... this isn't his field-effect design. This is something different. He won't be happy."
+                }
+              ],
+              "narrative": [
+                "Shockley's reaction was complex. Pride in his team. Fury that he wasn't involved in the final breakthrough. Determination to find a better design.",
+                "Within weeks, Shockley invented the junction transistor—a more practical design that would dominate the industry. But the Nobel Prize would go to all three: Shockley, Bardeen, and Brattain.",
+                "The vacuum tube's days were numbered. The solid-state revolution had begun."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-3-2",
+          "number": 2,
+          "title": "From Lab to Fab",
+          "subtitle": "The Integrated Circuit Race",
+          "year": "1958",
+          "scenes": [
+            {
+              "id": "scene-3-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Texas Instruments, Dallas, Texas. Summer 1958. The semiconductor industry is booming—and struggling. Transistors work, but complex circuits require thousands of hand-soldered connections."
+              },
+              "narrative": [
+                "Jack Kilby is new at TI, with no accrued vacation time. While everyone else enjoys summer break, he sits alone in the lab, thinking.",
+                "The problem haunts him: every complex circuit is a reliability nightmare. A thousand transistors mean a thousand connections. Every solder joint is a failure waiting to happen.",
+                "They call it the 'Tyranny of Numbers.' The more capable the system, the less reliable it becomes."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "Jack Kilby",
+                  "title": "Engineer, Texas Instruments",
+                  "bio": "A practical engineer with a radical idea. While others try to improve manufacturing, Kilby asks: what if we eliminate connections entirely? What if the entire circuit is one piece of semiconductor?",
+                  "stats": [
+                    { "label": "Background", "value": "MIT, Centralab" },
+                    { "label": "Insight", "value": "Monolithic integration" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "By 1958, transistor manufacturing was mature. But complex systems still required hand assembly. The IBM 7090 computer used ~50,000 transistors—each one hand-soldered to its neighbors. Assembly dominated system cost.",
+                  "codeSnippet": "// The Tyranny of Numbers\n// Components: Transistors, resistors, capacitors\n// Connections: 2-4 per component\n// Failure rate per joint: 0.001%\n// \n// System with 10,000 components:\n// Joints: ~30,000\n// Expected failures: 300/year\n// MTBF: ~1 day"
+                }
+              ],
+              "nextScene": "scene-3-2-2"
+            },
+            {
+              "id": "scene-3-2-2",
+              "type": "narrative",
+              "setting": {
+                "text": "July 1958. Kilby's notebook fills with sketches. An insane idea is taking shape."
+              },
+              "narrative": [
+                "Kilby's insight: semiconductors can make everything. Transistors, obviously. But also resistors—a strip of doped semiconductor has resistance. And capacitors—a reverse-biased p-n junction acts like a capacitor.",
+                "What if the entire circuit was built from one piece of semiconductor? No wires. No solder. One monolithic block with all the components built in."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kilby",
+                  "text": "The semiconductor can do it all. Transistors for switching. Resistors from the substrate. Capacitors from the junctions. We don't need separate parts—we need one part that does everything."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Kilby's key insight: semiconductors can form resistors (doped regions), capacitors (junction capacitance), and transistors (multiple junctions) all in the same material. 'Monolithic' literally means 'one stone'—a single piece of semiconductor containing an entire circuit.",
+                  "codeSnippet": "// Semiconductor components\n// Resistor: R = ρL/A (doped region)\n// Capacitor: C = εA/d (junction)\n// Transistor: NPN or PNP junctions\n// \n// All from the same material!\n// Germanium (Kilby) or Silicon (Noyce)"
+                }
+              ],
+              "nextScene": "scene-3-2-3"
+            },
+            {
+              "id": "scene-3-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "Meanwhile, at Fairchild Semiconductor in California, a different team approaches the same problem."
+              },
+              "narrative": [
+                "Robert Noyce never heard of Kilby's work. But he's solving the same problem from a different angle.",
+                "Fairchild has a secret weapon: the planar process, invented by Jean Hoerni. It grows a protective oxide layer over the silicon surface, allowing precise, reproducible transistors.",
+                "Noyce realizes: that oxide layer could also insulate metal interconnects. Wire the components together with aluminum traces on top of the chip, insulated by oxide. No wire bonds. No hand assembly."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧑‍💼",
+                  "name": "Robert Noyce",
+                  "title": "Co-founder, Fairchild Semiconductor",
+                  "bio": "Charismatic, visionary, entrepreneurial. Noyce co-founded Fairchild after leaving Shockley's toxic workplace. His planar IC design will prove more practical than Kilby's, leading to modern chip fabrication.",
+                  "stats": [
+                    { "label": "Role", "value": "Future co-founder of Intel" },
+                    { "label": "Nickname", "value": "Mayor of Silicon Valley" }
+                  ]
+                },
+                {
+                  "avatar": "🔬",
+                  "name": "Jean Hoerni",
+                  "title": "Physicist, Fairchild",
+                  "bio": "Swiss physicist who invented the planar process—growing silicon dioxide on silicon to protect and passivate transistors. This seemingly minor innovation made modern chip manufacturing possible.",
+                  "stats": [
+                    { "label": "Invention", "value": "Planar Process" },
+                    { "label": "Impact", "value": "Enabled modern IC fabrication" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The planar process was revolutionary: growing a thin layer of silicon dioxide (glass) on silicon. This oxide passivates the surface (solving the surface-state problem!), protects the transistor, and—crucially—provides insulation for metal interconnects. All modern chips use variations of this process.",
+                  "codeSnippet": "// Planar vs. Mesa transistor\n// Mesa: Etch away surrounding material\n//       - Fragile, exposed junctions\n//       - Hard to interconnect\n// \n// Planar: Grow oxide on surface\n//       - Protected, stable\n//       - Metal traces on oxide\n//       - Basis of ALL modern ICs"
+                }
+              ],
+              "nextScene": "scene-3-2-4"
+            },
+            {
+              "id": "scene-3-2-4",
+              "type": "choice",
+              "setting": {
+                "text": "September 12, 1958. Kilby demonstrates the first integrated circuit at TI. It's crude—hand-wired connections—but it works."
+              },
+              "narrative": [
+                "Kilby's IC is a phase-shift oscillator: transistor, resistors, capacitors, all in one piece of germanium. Gold wires still connect the components—the monolithic vision isn't complete yet.",
+                "Six months later, Noyce files a patent for the planar integrated circuit: truly monolithic, with aluminum traces deposited directly on the chip.",
+                "Both approaches work. Both change history. The patent fight will last decades."
+              ],
+              "choices": [
+                {
+                  "id": "choice-kilby-approach",
+                  "icon": "💎",
+                  "title": "Study Kilby's Approach",
+                  "description": "Examine the first IC: germanium substrate, wire-bonded connections, proof of concept."
+                },
+                {
+                  "id": "choice-noyce-approach",
+                  "icon": "🔲",
+                  "title": "Study Noyce's Approach",
+                  "description": "Examine the planar IC: silicon substrate, oxide isolation, aluminum interconnects."
+                },
+                {
+                  "id": "choice-build-ic",
+                  "icon": "⚡",
+                  "title": "Build Your Own IC",
+                  "description": "Enter the lab and design an integrated circuit combining multiple components on one chip."
+                }
+              ],
+              "nextScene": "scene-3-2-5"
+            },
+            {
+              "id": "scene-3-2-5",
+              "type": "challenge",
+              "setting": {
+                "text": "Your workbench awaits. The tools of IC fabrication are ready: silicon wafers, dopant gases, photolithography masks, oxide furnaces."
+              },
+              "narrative": [
+                "Design a simple integrated circuit: an inverter (NOT gate) followed by a buffer. Two transistors, load resistors, all on one chip.",
+                "This humble circuit is the ancestor of the billions of transistors in modern processors."
+              ],
+              "challenge": {
+                "title": "DESIGN YOUR FIRST INTEGRATED CIRCUIT",
+                "objectives": [
+                  { "id": "obj-1", "text": "Layout two transistors in silicon", "completed": false },
+                  { "id": "obj-2", "text": "Create resistor regions through doping", "completed": false },
+                  { "id": "obj-3", "text": "Define oxide windows for contacts", "completed": false },
+                  { "id": "obj-4", "text": "Route aluminum interconnects", "completed": false },
+                  { "id": "obj-5", "text": "Simulate: input HIGH → output HIGH", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "IC fabrication is a layer-by-layer process: grow oxide, etch windows, diffuse dopants, deposit metal, etch patterns. Each layer is defined by a 'mask'—a pattern projected onto photoresist. Modern chips have 50+ layers; early ICs had 3-4.",
+                  "codeSnippet": "// IC fabrication steps (simplified)\n// 1. Start with p-type silicon wafer\n// 2. Grow thermal oxide (SiO2)\n// 3. Pattern and etch oxide (photolithography)\n// 4. Diffuse n-type dopant (transistor regions)\n// 5. Grow thin gate oxide\n// 6. Deposit and pattern aluminum\n// 7. Passivation (protective oxide)\n// 8. Bond pads for external connections"
+                }
+              ],
+              "nextScene": "scene-3-2-6"
+            },
+            {
+              "id": "scene-3-2-6",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your IC works. Two transistors, integrated on silicon. The oscilloscope shows clean digital transitions."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Noyce",
+                  "text": "You see the potential? Today, two transistors. Tomorrow, twenty. Next year, two hundred. There's no limit—except what we can pattern and connect."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How many transistors could we eventually fit on a chip?"
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "Gordon Moore has been tracking this. He thinks the count will double every year or two. At that rate... millions within our lifetime."
+                }
+              ],
+              "narrative": [
+                "Moore's prediction would prove remarkably accurate. The 'law' bearing his name guided the industry for fifty years: transistor counts doubling roughly every two years.",
+                "But ICs needed a market to drive that growth. They were expensive, unproven, and most engineers didn't trust them.",
+                "That market would come from an unexpected source: the race to the moon."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-3-3",
+          "number": 3,
+          "title": "The Moon Shot",
+          "subtitle": "Apollo Guidance Computer",
+          "year": "1965",
+          "scenes": [
+            {
+              "id": "scene-3-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "MIT Instrumentation Laboratory, Cambridge, Massachusetts. 1965. President Kennedy's challenge echoes: land a man on the moon and return him safely before the decade is out."
+              },
+              "narrative": [
+                "The Apollo spacecraft needs an onboard computer. Not a room-sized machine—a computer that fits in a one-cubic-foot box, weighs less than 70 pounds, and survives the violence of rocket launch.",
+                "And it must not fail. Astronauts' lives depend on it.",
+                "The only possible technology: integrated circuits. But ICs are new, expensive, and unproven. Can they be trusted with human lives?"
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🚀",
+                  "name": "Eldon Hall",
+                  "title": "Lead Designer, Apollo Guidance Computer",
+                  "bio": "MIT engineer tasked with the impossible: fit a computer into a spacecraft. Hall championed ICs when everyone else wanted proven technology. His bet paid off—and accelerated the entire semiconductor industry.",
+                  "stats": [
+                    { "label": "Challenge", "value": "70 lbs, 1 cubic foot, zero failures" },
+                    { "label": "Decision", "value": "All-IC design" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Apollo Guidance Computer used 4,100 ICs—each a simple 3-input NOR gate. By buying 60% of all ICs produced in 1963, NASA drove prices from $1,000/chip to $25/chip and forced manufacturers to improve reliability.",
+                  "codeSnippet": "// Apollo Guidance Computer specs\n// Memory: 36,864 words (ROM) + 2,048 words (RAM)\n// Word size: 15 bits + parity\n// Speed: ~43,000 adds/second\n// Weight: 70 lbs\n// Power: 55 watts\n// ICs: 4,100 (3-input NOR gates)\n// Reliability required: 99.9% for 2-week mission"
+                }
+              ],
+              "nextScene": "scene-3-3-2"
+            },
+            {
+              "id": "scene-3-3-2",
+              "type": "narrative",
+              "setting": {
+                "text": "The IC qualification lab. Every chip must be tested, burned in, and verified before it can fly."
+              },
+              "narrative": [
+                "You're assigned to the reliability team. Your job: ensure that every IC meets space-grade quality. Temperature cycling. Vibration testing. Radiation exposure.",
+                "The Fairchild chips arrive in batches. Some pass. Many fail. The ones that pass go through burn-in: running at elevated temperature for weeks to weed out 'infant mortality' failures.",
+                "Only the survivors fly to the moon."
+              ],
+              "characters": [
+                {
+                  "avatar": "👩‍💻",
+                  "name": "Margaret Hamilton",
+                  "title": "Director, Software Engineering",
+                  "bio": "Leading the software team, Hamilton coins the term 'software engineering' to give her discipline credibility. Her code will save Apollo 11 when hardware overloads threaten the landing.",
+                  "stats": [
+                    { "label": "Innovation", "value": "Priority scheduling, error recovery" },
+                    { "label": "Legacy", "value": "Term 'software engineering'" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "IC reliability follows a 'bathtub curve': high initial failure rate (infant mortality), then low stable rate, then increasing failures (wear-out). Burn-in eliminates infant mortality by running chips at elevated stress, forcing weak units to fail before deployment.",
+                  "codeSnippet": "// IC reliability bathtub curve\n// \n// Failure |\\\n// Rate    | \\      /\n//         |  \\----/\n//         |   Useful life\n//         +---------------> Time\n//         ^ Burn-in removes\n//           infant mortality"
+                }
+              ],
+              "nextScene": "scene-3-3-3"
+            },
+            {
+              "id": "scene-3-3-3",
+              "type": "challenge",
+              "setting": {
+                "text": "Your reliability lab workbench. A tray of ICs awaits qualification testing."
+              },
+              "narrative": [
+                "The AGC uses 3-input NOR gates exclusively. Every Boolean function—AND, OR, NOT, memory—is built from NOR gates.",
+                "Design and verify a NOR gate's reliability. Then build a simple AGC circuit: an inverter chain using only NOR gates."
+              ],
+              "challenge": {
+                "title": "QUALIFY SPACE-GRADE ICS",
+                "objectives": [
+                  { "id": "obj-1", "text": "Understand NOR gate logic (output = NOT(A OR B OR C))", "completed": false },
+                  { "id": "obj-2", "text": "Build NOT gate from NOR (tie inputs together)", "completed": false },
+                  { "id": "obj-3", "text": "Build AND gate from NOR gates", "completed": false },
+                  { "id": "obj-4", "text": "Build OR gate from NOR gates", "completed": false },
+                  { "id": "obj-5", "text": "Design a 4-bit register using NOR-based flip-flops", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "NOR gates are 'universal'—any Boolean function can be built from NOR gates alone. Using a single gate type simplified manufacturing and testing. The AGC designers chose NOR over NAND for electrical reasons (easier level shifting).",
+                  "codeSnippet": "// NOR-based logic\n// NOT A    = A NOR A\n// A AND B  = (A NOR A) NOR (B NOR B)\n// A OR B   = (A NOR B) NOR (A NOR B)\n// \n// AGC used ~5,000 NOR gates total\n// Each IC contained 3-input NOR gates\n// Resistor-Transistor Logic (RTL)"
+                }
+              ],
+              "nextScene": "scene-3-3-4"
+            },
+            {
+              "id": "scene-3-3-4",
+              "type": "dialogue",
+              "setting": {
+                "text": "July 20, 1969. The Eagle lunar module descends toward the Sea of Tranquility. Alarms blare in Mission Control."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Mission Control",
+                  "text": "Eagle, we're seeing a 1202 alarm. What's your status?"
+                },
+                {
+                  "speaker": "Buzz Aldrin",
+                  "text": "Give us the reading on the 1202 program alarm."
+                },
+                {
+                  "speaker": "Mission Control",
+                  "text": "Roger, we got you. We're GO on that alarm."
+                }
+              ],
+              "narrative": [
+                "The 1202 alarm: executive overflow. The computer is overloaded—the rendezvous radar is flooding it with data it doesn't need for landing.",
+                "But Margaret Hamilton's software has priority scheduling. Non-essential tasks are shed. The landing program keeps running.",
+                "The computer you helped qualify is about to land humans on another world."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 1202/1201 alarms during Apollo 11 descent were caused by a hardware design issue: the rendezvous radar fed spurious signals to the computer. Hamilton's priority-based executive software shed low-priority tasks and kept the landing program running. Without this 'asynchronous executive,' the landing would have been aborted.",
+                  "codeSnippet": "// AGC priority scheduling\n// P66 (landing): Highest priority\n// P63 (guidance): High priority\n// Radar update: Lower priority\n// \n// When overloaded:\n// - Shed lowest priority tasks\n// - Restart when capacity available\n// - Never lose critical functions"
+                }
+              ],
+              "nextScene": "scene-3-3-5"
+            },
+            {
+              "id": "scene-3-3-5",
+              "type": "narrative",
+              "setting": {
+                "text": "The Eagle lands. Armstrong's words echo across 240,000 miles: 'Houston, Tranquility Base here. The Eagle has landed.'"
+              },
+              "narrative": [
+                "Integrated circuits, tested and qualified to survive space, have guided humans to the moon and back.",
+                "NASA's investment paid off beyond measure. The price of ICs dropped 98%. Reliability improved a thousandfold. An industry that served a handful of military customers now serves the world.",
+                "The semiconductor revolution is real. The only question now: what comes next?"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-3-4",
+          "number": 4,
+          "title": "Silicon Valley",
+          "subtitle": "The Birth of the Microprocessor",
+          "year": "1971",
+          "scenes": [
+            {
+              "id": "scene-3-4-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, Santa Clara, California. 1969. A Japanese calculator company has a problem: they need a new brain for their desktop calculator, and they need it fast."
+              },
+              "narrative": [
+                "Busicom's calculator design requires twelve custom chips. Twelve different integrated circuits, each designed from scratch, each requiring masks, testing, qualification.",
+                "Intel is a memory company—they make RAM and ROM chips. Custom calculator logic isn't their specialty. But the contract is lucrative, and Intel is young and hungry."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧑‍💻",
+                  "name": "Ted Hoff",
+                  "title": "Engineer, Intel",
+                  "bio": "Stanford-trained engineer who looked at Busicom's 12-chip design and asked: what if there was a simpler way? His insight—a general-purpose processor programmed with software—will create the microprocessor industry.",
+                  "stats": [
+                    { "label": "Insight", "value": "Replace hardware with software" },
+                    { "label": "Background", "value": "PhD, Stanford" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Busicom's original design used specialized logic: one chip for keyboard scanning, one for display driving, one for addition, one for multiplication, etc. Each function was hardwired in silicon. Changes required new masks—expensive and slow.",
+                  "codeSnippet": "// Busicom's original design\n// Chip 1: Keyboard controller\n// Chip 2: Display driver\n// Chip 3: BCD adder\n// Chip 4: Multiplier\n// ... 8 more chips\n// Total: 12 custom ICs\n// Design time: 12-18 months\n// Cost: Very high"
+                }
+              ],
+              "nextScene": "scene-3-4-2"
+            },
+            {
+              "id": "scene-3-4-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Ted Hoff studies the Busicom specification. Something bothers him: most of the complexity is doing the same things over and over in slightly different ways."
+              },
+              "narrative": [
+                "\"What if,\" Hoff muses, \"instead of twelve specialized chips, we made one general-purpose chip? A tiny computer that could be programmed to do any of these tasks.\"",
+                "The idea is radical. Calculators use hardwired logic because software is slow. But if the chip is fast enough, and the architecture clever enough...",
+                "Hoff sketches a design: a 4-bit CPU with a small instruction set, paired with ROM (for the program) and RAM (for data). Three chips instead of twelve—and the same three chips could be reprogrammed for different calculators."
+              ],
+              "characters": [
+                {
+                  "avatar": "👨‍🔬",
+                  "name": "Federico Faggin",
+                  "title": "Engineer, Intel",
+                  "bio": "Italian-born chip designer who will turn Hoff's concept into working silicon. Faggin's mastery of circuit design and fabrication makes the impossible possible: a complete CPU in 2,300 transistors.",
+                  "stats": [
+                    { "label": "Skill", "value": "Chip design, fabrication" },
+                    { "label": "Role", "value": "Made the 4004 work" }
+                  ]
+                },
+                {
+                  "avatar": "🧑‍💼",
+                  "name": "Masatoshi Shima",
+                  "title": "Engineer, Busicom",
+                  "bio": "Busicom's representative at Intel, initially skeptical of Hoff's simplified design. Shima pushed back on the spec, forcing refinements that made the 4004 more capable.",
+                  "stats": [
+                    { "label": "Role", "value": "Customer advocate" },
+                    { "label": "Contribution", "value": "Refined instruction set" }
+                  ]
+                }
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hoff",
+                  "text": "We don't need twelve chips. We need one chip that can be taught to do twelve things."
+                },
+                {
+                  "speaker": "Shima",
+                  "text": "A programmable chip? For a calculator? The performance..."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "Will be fast enough. Trust me. The simplicity gains outweigh the speed loss."
+                }
+              ],
+              "nextScene": "scene-3-4-3"
+            },
+            {
+              "id": "scene-3-4-3",
+              "type": "choice",
+              "setting": {
+                "text": "November 1971. The Intel 4004 is ready for announcement. The world's first commercial microprocessor."
+              },
+              "narrative": [
+                "Four chips total: the 4004 CPU, 4001 ROM, 4002 RAM, and 4003 shift register. Together, they form the MCS-4 system—a computer on a handful of chips.",
+                "The 4004 runs at 740 kHz. It has 2,300 transistors. Its 4-bit architecture limits it to simple calculations. But it's a complete CPU—fetch, decode, execute, repeat.",
+                "And it can be programmed. Change the software, change the machine."
+              ],
+              "choices": [
+                {
+                  "id": "choice-study-architecture",
+                  "icon": "📐",
+                  "title": "Study the Architecture",
+                  "description": "Examine the 4004's instruction set, registers, and memory addressing. Understand the first microprocessor."
+                },
+                {
+                  "id": "choice-build-micro4",
+                  "icon": "🔧",
+                  "title": "Enter the Lab",
+                  "description": "It's time. Build your own 4-bit microprocessor based on the 4004's architecture. This is the Micro4."
+                },
+                {
+                  "id": "choice-alternative-history",
+                  "icon": "🔮",
+                  "title": "Roads Not Taken: Datapoint 2200",
+                  "description": "Intel almost built a different processor first—the 8008 for Datapoint. What if that design had come first?"
+                }
+              ],
+              "nextScene": "scene-3-4-4"
+            },
+            {
+              "id": "scene-3-4-4",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab bench is ready. The knowledge of five millennia of computation has led to this moment: building your own CPU."
+              },
+              "narrative": [
+                "From abacus beads to vacuum tubes to transistors to integrated circuits—every step has prepared you for this.",
+                "Build the Micro4. A 4-bit CPU with accumulator architecture, like the 4004. Fetch instructions from memory. Decode them. Execute them. Repeat.",
+                "This is where the Digital Archaeology journey truly begins."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO4 CPU",
+                "objectives": [
+                  { "id": "obj-1", "text": "Design the ALU: 4-bit addition with carry", "completed": false },
+                  { "id": "obj-2", "text": "Create the accumulator register", "completed": false },
+                  { "id": "obj-3", "text": "Implement the program counter", "completed": false },
+                  { "id": "obj-4", "text": "Build the instruction decoder", "completed": false },
+                  { "id": "obj-5", "text": "Connect to memory (fetch/store)", "completed": false },
+                  { "id": "obj-6", "text": "Execute a simple program: add two numbers", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "The Intel 4004 had: 4-bit data bus, 16 registers (as scratchpad), 12-bit addresses (4KB), 46 instructions, and 3-level hardware stack. The Micro4 simplifies this for learning while preserving the essential concepts.",
+                  "codeSnippet": "// Intel 4004 key specs\n// Data bus: 4 bits\n// Address space: 4KB ROM, 640 bytes RAM\n// Registers: 16 × 4-bit (general purpose)\n// Stack: 3-level hardware stack\n// Clock: 740 kHz\n// Transistors: 2,300\n// \n// Your Micro4 targets:\n// Data: 4 bits\n// Memory: 256 bytes\n// Registers: 1 accumulator\n// Instructions: ~16"
+                }
+              ],
+              "nextScene": "scene-3-4-5"
+            },
+            {
+              "id": "scene-3-4-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your Micro4 executes its first program. A simple addition—but the first step on a long journey."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "You've built a microprocessor. Do you understand what that means?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "It's a CPU... on a chip. A programmable machine."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "More than that. It's the democratization of computing. Before this, only governments and corporations could afford computers. Now anyone can build one—with enough knowledge."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "And we're just getting started. Four bits today. Eight bits tomorrow. Sixteen, thirty-two... The applications we can't even imagine yet."
+                }
+              ],
+              "narrative": [
+                "You stand at the threshold. The Micro4 is simple—just 4 bits, a few hundred bytes of memory, a handful of instructions. But it works. It computes.",
+                "From here, you'll discover why 8 bits are better than 4. Why stacks enable subroutines. Why registers multiply speed. Why pipelining changes everything.",
+                "Each limitation you hit will drive the next innovation. Just as the burning vacuum tubes drove the transistor. Just as the tyranny of numbers drove integration.",
+                "Welcome to the microprocessor era. Act 4 awaits."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

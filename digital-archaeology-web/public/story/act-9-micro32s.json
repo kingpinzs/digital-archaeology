@@ -1,0 +1,1038 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "title": "Digital Archaeology",
+    "author": "Digital Archaeology Team",
+    "lastUpdated": "2026-01-24"
+  },
+  "acts": [
+    {
+      "id": "act-9",
+      "number": 9,
+      "title": "Superscalar",
+      "description": "The final frontier: multiple instructions executing simultaneously, reordered dynamically, speculatively executed before their time. The Pentium Pro's out-of-order engine transforms x86's legacy instruction set into a fluid stream of micro-operations. Branch predictors gamble on the future. Register renaming eliminates false dependencies. The CPU becomes a prediction machine—and when it's right, it's blazingly fast.",
+      "era": "1995 - 2020",
+      "cpuStage": "micro32s",
+      "chapters": [
+        {
+          "id": "chapter-9-1",
+          "number": 1,
+          "title": "Out of Order",
+          "subtitle": "Pentium Pro Architecture",
+          "year": "1995",
+          "scenes": [
+            {
+              "id": "scene-9-1-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, Hillsboro, Oregon, 1995. The Pentium is successful, but its dual pipelines are limited by dependencies. Instructions execute in order—if one stalls, everything behind it waits. The P6 team has a radical solution: throw away order entirely."
+              },
+              "narrative": [
+                "Consider a line at a coffee shop. If someone at the front has a complex order, everyone waits. But what if people with simple orders could slip ahead? What if the barista could work on multiple drinks simultaneously?",
+                "Out-of-order execution does exactly this for instructions. Decode them in program order, but execute them whenever their inputs are ready. A slow memory load doesn't block fast arithmetic.",
+                "The insight comes from IBM's work in the 1960s—Robert Tomasulo's algorithm for the IBM 360/91. But making it work for the complex x86 instruction set? That's a challenge no one has solved."
+              ],
+              "characters": [
+                {
+                  "avatar": "🚀",
+                  "name": "Bob Colwell",
+                  "title": "Lead Architect, Pentium Pro",
+                  "bio": "The engineer who brought true out-of-order execution to x86. Colwell's P6 architecture (Pentium Pro, Pentium II, Pentium III) translated complex x86 instructions into simple micro-ops, then executed them out of order. This design would dominate for over two decades.",
+                  "stats": [
+                    { "label": "Innovation", "value": "x86 micro-op translation" },
+                    { "label": "Architecture", "value": "P6 (Pentium Pro/II/III)" },
+                    { "label": "Legacy", "value": "Foundation for Core series" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Pentium Pro decoded x86 instructions into simpler 'micro-ops' (μops), which then executed out-of-order. This translation let the complex x86 ISA benefit from techniques developed for RISC processors. The reorder buffer held up to 40 μops, allowing substantial out-of-order execution.",
+                  "codeSnippet": "// x86 to micro-ops translation\n// ADD [mem], EAX   ; Complex CISC instruction\n// \n// Becomes micro-ops:\n// 1. LOAD temp, [mem]     ; Read memory\n// 2. ADD temp, temp, EAX  ; Do the add\n// 3. STORE [mem], temp    ; Write result\n// \n// Micro-ops execute out-of-order\n// Original instruction semantics preserved"
+                }
+              ],
+              "nextScene": "scene-9-1-2"
+            },
+            {
+              "id": "scene-9-1-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "The P6 design lab. Whiteboards covered with diagrams of reservation stations, reorder buffers, and bypass networks. The team is building something unprecedented."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Colwell",
+                  "text": "The key insight is decoupling. Decouple fetch from decode. Decouple decode from execute. Decouple execute from commit. Each stage works at its own pace."
+                },
+                {
+                  "speaker": "Engineer",
+                  "text": "But if execution is out of order, how do we handle exceptions? What if instruction 3 faults after instruction 5 has completed?"
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "The reorder buffer. It holds all instructions in program order. We only commit—make results visible—when an instruction reaches the head of the buffer. If instruction 3 faults, we flush everything after it."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the program sees sequential execution, but internally it's all chaos?"
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "Controlled chaos. The hardware maintains the illusion. The programmer writes sequential code. We execute it in whatever order extracts maximum performance. It's deception in the name of speed."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The reorder buffer (ROB) is a circular queue that holds instructions in program order. Each entry tracks: the instruction, its physical destination register, its completion status, and any exception information. Instructions retire (commit) only from the head of the ROB, ensuring precise exceptions.",
+                  "codeSnippet": "// Reorder buffer structure\n// Entry: [PC|Type|Dest|Value|Done|Exception]\n// \n// Head → [0x100|ADD|P5|42|✓|none]  ← retires next\n//        [0x104|MUL|P8|?? |✗|none]  ← executing\n//        [0x108|DIV|P2|?? |✗|none]  ← waiting\n// Tail → [0x10C|ADD|P9|17|✓|none]  ← completed OOO!\n// \n// Even though 0x10C finished first,\n// it waits until 0x100, 0x104, 0x108 retire"
+                }
+              ],
+              "nextScene": "scene-9-1-3"
+            },
+            {
+              "id": "scene-9-1-3",
+              "type": "narrative",
+              "setting": {
+                "text": "The register renaming unit. The P6's secret weapon against false dependencies."
+              },
+              "narrative": [
+                "x86 has only 8 general-purpose registers. Programs constantly reuse them. But most reuse isn't because the program needs the old value—it's just convenience.",
+                "Consider: MOV EAX, 5 followed by MOV EAX, 10. The second instruction doesn't need EAX's old value. But in-order, the second must wait for the first. False dependency.",
+                "Register renaming eliminates this. The P6 has 40 physical registers. Each instruction that writes a register gets a NEW physical register. No false dependencies. Maximum parallelism."
+              ],
+              "characters": [
+                {
+                  "avatar": "📊",
+                  "name": "Glenn Hinton",
+                  "title": "Principal Architect, P6",
+                  "bio": "Co-designer of the Pentium Pro's microarchitecture. Hinton's work on register renaming and the front-end decoder proved that out-of-order could work for CISC. He would later lead the Atom low-power processor team.",
+                  "stats": [
+                    { "label": "Design", "value": "P6 microarchitecture" },
+                    { "label": "Registers", "value": "8 arch → 40 physical" },
+                    { "label": "Later work", "value": "Intel Atom, Golden Cove" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Three types of data dependencies: RAW (read-after-write, true dependency), WAW (write-after-write, false), WAR (write-after-read, false). Register renaming eliminates WAW and WAR by giving each write a new physical register. Only true RAW dependencies remain.",
+                  "codeSnippet": "// Register renaming example\n// Original program:\n// ADD EAX, EBX, ECX   ; EAX = EBX + ECX\n// MUL EAX, EDX, ESI   ; EAX = EDX * ESI (WAW!)\n// \n// After renaming:\n// ADD P17, P5, P8     ; Write to P17\n// MUL P23, P12, P9    ; Write to P23 (different!)\n// \n// No dependency between ADD and MUL\n// Both can execute in parallel\n// \n// Rename table tracks current mapping:\n// EAX → P23 (most recent), EBX → P5, ..."
+                }
+              ],
+              "nextScene": "scene-9-1-4"
+            },
+            {
+              "id": "scene-9-1-4",
+              "type": "narrative",
+              "setting": {
+                "text": "The reservation stations—holding areas where instructions wait for their operands, ready to execute the moment their inputs arrive."
+              },
+              "narrative": [
+                "Tomasulo's genius: instead of instructions waiting in a central queue, they wait in the execution units themselves. Each unit has 'reservation stations'—slots that hold pending operations.",
+                "When an instruction is decoded, it claims a reservation station. If its operands are ready, it can execute immediately. If not, it waits—but watches the bypass network for its missing data.",
+                "The moment a result appears on the bypass network, all waiting instructions check: 'Is this MY data?' If yes, they grab it and become ready to execute. Parallelism emerges automatically."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Colwell",
+                  "text": "There's no central scheduler. The parallelism is dataflow-driven. Instructions know what they need. They wake up when their data arrives. It's elegant—and it scales."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Reservation stations implement dynamic scheduling. Each station holds: the operation, source operand values (or tags for pending values), and the destination tag. When all sources have values, the instruction issues to the execution unit. This 'data-driven' approach naturally exploits all available parallelism.",
+                  "codeSnippet": "// Reservation station entries\n// [Op|Src1|Src1-ready|Src2|Src2-ready|Dest]\n// \n// ALU RS 1: [ADD|42|✓|tag:P17|✗|P19]  ← waiting for P17\n// ALU RS 2: [SUB|10|✓|5|✓|P20]        ← READY, can issue!\n// ALU RS 3: [AND|tag:P20|✗|tag:P17|✗|P21] ← waiting for 2\n// \n// When P17 broadcasts its result:\n// - ALU RS 1 grabs value, becomes ready\n// - ALU RS 3 grabs value for its Src2\n// \n// Wake-up is parallel and automatic"
+                }
+              ],
+              "nextScene": "scene-9-1-5"
+            },
+            {
+              "id": "scene-9-1-5",
+              "type": "choice",
+              "setting": {
+                "text": "Branch prediction has become critical. A misprediction flushes the entire speculative state—dozens of instructions of wasted work. The predictors must grow sophisticated."
+              },
+              "narrative": [
+                "A two-bit saturating counter for each branch: strongly taken, weakly taken, weakly not taken, strongly not taken. It takes two mistakes to change prediction. Good, but not great.",
+                "Correlating predictors: the outcome of THIS branch often depends on recent branches before it. Nested loops, if-else chains—patterns emerge in the global history.",
+                "Tournament predictors: multiple predictors running simultaneously, with a meta-predictor choosing which to believe. The CPU learns which predictor works best for each branch."
+              ],
+              "choices": [
+                {
+                  "id": "choice-out-of-order",
+                  "icon": "🔀",
+                  "title": "Master Out-of-Order Execution",
+                  "description": "Build reorder buffers and reservation stations. See how instructions execute in data-flow order while maintaining sequential semantics."
+                },
+                {
+                  "id": "choice-register-renaming",
+                  "icon": "📝",
+                  "title": "Implement Register Renaming",
+                  "description": "Build a rename table that maps architectural registers to physical registers, eliminating WAW and WAR dependencies."
+                },
+                {
+                  "id": "choice-branch-prediction",
+                  "icon": "🎯",
+                  "title": "Design Advanced Branch Prediction",
+                  "description": "Build a two-level correlating predictor or tournament predictor. Experience the art of predicting the unpredictable."
+                },
+                {
+                  "id": "choice-speculation",
+                  "icon": "🔮",
+                  "title": "Implement Speculative Execution",
+                  "description": "Build speculative memory access and rollback. See how CPUs gamble on the future—and recover when wrong."
+                }
+              ],
+              "nextScene": "scene-9-1-6"
+            },
+            {
+              "id": "scene-9-1-6",
+              "type": "challenge",
+              "setting": {
+                "text": "Your lab configures for the ultimate challenge: a superscalar, out-of-order processor. The Micro32-S represents the summit of single-thread CPU design."
+              },
+              "narrative": [
+                "Build it all: multiple execution units, register renaming, reservation stations, reorder buffer, branch prediction. This is how modern CPUs work."
+              ],
+              "challenge": {
+                "title": "BUILD THE MICRO32-S SUPERSCALAR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement instruction decode to micro-ops", "completed": false },
+                  { "id": "obj-2", "text": "Build a register rename table", "completed": false },
+                  { "id": "obj-3", "text": "Create reservation stations for execution units", "completed": false },
+                  { "id": "obj-4", "text": "Implement the reorder buffer for in-order commit", "completed": false },
+                  { "id": "obj-5", "text": "Add multiple execution units (2+ ALUs, load/store)", "completed": false },
+                  { "id": "obj-6", "text": "Implement speculative execution with rollback", "completed": false },
+                  { "id": "obj-7", "text": "Add branch prediction (2-bit or better)", "completed": false },
+                  { "id": "obj-8", "text": "Measure IPC on a benchmark program", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "A typical superscalar design: 4-wide decode, 6 execution units (2 ALU, 1 branch, 1 load, 1 store, 1 FP), 40+ physical registers, 40-entry ROB, reservation stations per unit. Peak IPC of 4, realistic IPC of 1.5-2 due to dependencies and misses.",
+                  "codeSnippet": "// Superscalar execution example\n// Cycle 1: Decode 4 instructions\n//   ADD P1, P2, P3  → ALU RS 1\n//   SUB P4, P5, P6  → ALU RS 2  \n//   LOAD P7, [P8]   → Load RS\n//   BEQ P9, label   → Branch RS\n// \n// Cycle 2: All 4 issue in parallel!\n//   ALU 1 executes ADD\n//   ALU 2 executes SUB\n//   Load unit starts memory access\n//   Branch unit evaluates condition\n// \n// Cycle 3: 4 more decode, 4 more issue..."
+                }
+              ],
+              "nextScene": "scene-9-1-7"
+            },
+            {
+              "id": "scene-9-1-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "November 1995. The Pentium Pro launches. It's twice as fast as a Pentium at the same clock speed on 32-bit code. The out-of-order revolution has begun."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Colwell",
+                  "text": "The Pentium Pro is a gamble. 5.5 million transistors—twice the Pentium. Much of that is the out-of-order engine. If it doesn't deliver performance, we've wasted silicon."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But it does deliver. The benchmarks are remarkable."
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "On 32-bit code, yes. But there's a catch: 16-bit code is slow. The decoder struggles with the old instruction formats. Windows 95 users are disappointed. Windows NT users are thrilled."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What's next?"
+                },
+                {
+                  "speaker": "Colwell",
+                  "text": "The Pentium II fixes the 16-bit problem. Then we push clocks higher. And higher. The industry thinks gigahertz is destiny. We're about to find out if they're right."
+                }
+              ],
+              "narrative": [
+                "The Pentium Pro validated out-of-order for x86. Every Intel and AMD processor since has used this approach—decode to micro-ops, execute out of order, retire in order.",
+                "But the P6 team couldn't foresee the consequences. Pushing this architecture to its limits would reveal fundamental problems: power consumption, heat, and eventually, security.",
+                "Continue to Chapter 2: The GHz Race."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-9-2",
+          "number": 2,
+          "title": "The GHz Race",
+          "subtitle": "Pentium 4 and the Power Wall",
+          "year": "1998-2006",
+          "scenes": [
+            {
+              "id": "scene-9-2-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel Corporation, 1998. The Pentium II is dominant, but management wants MORE. More megahertz. More marketing buzz. More competitive advantage. The NetBurst architecture is born."
+              },
+              "narrative": [
+                "The marketing logic is simple: consumers understand bigger numbers. A 2 GHz processor sounds twice as fast as 1 GHz. Never mind IPC—raw clock speed sells.",
+                "To achieve higher frequencies, the NetBurst team makes a radical choice: a 20-stage pipeline. Where the P6 has 12 stages, NetBurst has 20. Later versions will have 31.",
+                "Longer pipelines mean less work per stage, which means faster clocks. But there's a price: branch mispredictions now flush 20 cycles of work instead of 12. Mispredict once and performance plummets."
+              ],
+              "characters": [
+                {
+                  "avatar": "⚡",
+                  "name": "Doug Carmean",
+                  "title": "Lead Architect, NetBurst",
+                  "bio": "The architect behind the Pentium 4's NetBurst microarchitecture. Carmean bet on extreme pipeline depth and clock speed, achieving the industry's first 3 GHz processor. The gamble would later prove problematic.",
+                  "stats": [
+                    { "label": "Pipeline", "value": "20-31 stages" },
+                    { "label": "Peak clock", "value": "3.8 GHz (2004)" },
+                    { "label": "Power", "value": "Up to 130W TDP" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "NetBurst's 'hyper-pipelined' design split each P6 stage into roughly two stages. This halved the work per stage, enabling higher clocks, but doubled misprediction penalties. The design also used a 'trace cache' storing decoded micro-ops instead of raw instructions.",
+                  "codeSnippet": "// Pipeline depth vs misprediction penalty\n// \n// P6 (Pentium Pro): 12 stages\n//   Branch misprediction: ~12 cycle penalty\n//   Typical branch frequency: 15%\n//   If 10% mispredict: 0.15 × 0.10 × 12 = 0.18 CPI loss\n// \n// NetBurst (Pentium 4): 20 stages  \n//   Branch misprediction: ~20 cycle penalty\n//   Same branch stats: 0.15 × 0.10 × 20 = 0.30 CPI loss\n// \n// Nearly 2x worse on branch-heavy code!"
+                }
+              ],
+              "nextScene": "scene-9-2-2"
+            },
+            {
+              "id": "scene-9-2-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "AMD Headquarters, Sunnyvale, 2000. While Intel pushes clocks, AMD takes a different path. The Athlon is about to change everything."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Jerry Sanders",
+                  "text": "Intel thinks bigger pipelines and more megahertz is the answer. We think they're wrong. The Athlon has a 10-stage pipeline—shorter than even the P6."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But you can't clock as high. How do you compete?"
+                },
+                {
+                  "speaker": "Sanders",
+                  "text": "IPC. Instructions per clock. We execute more work every cycle. A 1 GHz Athlon matches a 1.5 GHz Pentium 4 on real applications."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But consumers see the megahertz number..."
+                },
+                {
+                  "speaker": "Sanders",
+                  "text": "So we use model numbers. The Athlon XP 2000+ runs at 1.67 GHz but performs like a 2 GHz Pentium 4. The message: performance matters, not raw frequency."
+                }
+              ],
+              "characters": [
+                {
+                  "avatar": "🔴",
+                  "name": "Dirk Meyer",
+                  "title": "Chief Technology Officer, AMD",
+                  "bio": "The architect behind AMD's Athlon and Athlon 64. Meyer's focus on IPC over raw frequency would prove prescient. The Athlon regularly beat Intel's higher-clocked Pentium 4 on real-world benchmarks.",
+                  "stats": [
+                    { "label": "Design", "value": "K7 (Athlon) architecture" },
+                    { "label": "Pipeline", "value": "10 stages (vs Intel's 20)" },
+                    { "label": "Later role", "value": "AMD CEO (2008-2011)" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AMD's K7 (Athlon) architecture used a shorter, wider design: 10 pipeline stages but 3-way decode and 9 execution units. This delivered higher IPC at lower frequencies. The trade-off: harder to push clocks as high, but better performance per watt.",
+                  "codeSnippet": "// IPC comparison (circa 2003)\n// \n// Intel Pentium 4 @ 3.0 GHz\n//   IPC: ~0.6 (on typical code)\n//   Performance: 3.0 × 0.6 = 1.8 effective GHz\n//   Power: ~82W\n// \n// AMD Athlon XP @ 2.2 GHz  \n//   IPC: ~0.9 (on typical code)\n//   Performance: 2.2 × 0.9 = 2.0 effective GHz\n//   Power: ~68W\n// \n// AMD: Lower clock, higher IPC, better performance/watt"
+                }
+              ],
+              "nextScene": "scene-9-2-3"
+            },
+            {
+              "id": "scene-9-2-3",
+              "type": "narrative",
+              "setting": {
+                "text": "2003. AMD makes history with the Athlon 64—the first 64-bit x86 processor. Intel's response will take years."
+              },
+              "narrative": [
+                "Intel had their own 64-bit architecture: Itanium, a clean-slate VLIW design meant to replace x86 entirely. But Itanium was slow on 32-bit code, and the software world wasn't ready to abandon x86.",
+                "AMD saw the opportunity. Instead of replacing x86, they extended it. AMD64 added 64-bit registers and addressing while remaining fully compatible with existing 32-bit software.",
+                "It was pragmatic brilliance. Programs could migrate to 64-bit gradually. New code got new capabilities. Old code still ran perfectly. Intel, humiliated, eventually licensed AMD's extensions."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏆",
+                  "name": "Fred Weber",
+                  "title": "Chief Technology Officer, AMD",
+                  "bio": "The architect who led AMD's 64-bit extension of x86. Weber's pragmatic approach—extend rather than replace—defined the industry standard. Intel eventually adopted AMD64 under the name 'Intel 64' or 'x86-64'.",
+                  "stats": [
+                    { "label": "Innovation", "value": "AMD64 (x86-64)" },
+                    { "label": "Approach", "value": "Extension, not replacement" },
+                    { "label": "Impact", "value": "Industry-standard 64-bit x86" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AMD64 doubled general-purpose registers from 8 to 16, extended them to 64 bits, added 64-bit addressing (supporting 256 TB virtual memory), and introduced a new 64-bit mode while retaining full 32-bit compatibility. This pragmatic extension became the industry standard.",
+                  "codeSnippet": "// 32-bit x86 vs AMD64\n// \n// 32-bit mode:\n//   8 GPRs: EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP\n//   32-bit registers, 4 GB addressable\n// \n// 64-bit mode:\n//   16 GPRs: RAX, RBX, RCX, RDX, RSI, RDI, RBP, RSP,\n//            R8, R9, R10, R11, R12, R13, R14, R15\n//   64-bit registers, 256 TB virtual addressable\n// \n// Fully backwards compatible: run 32-bit code unchanged"
+                }
+              ],
+              "nextScene": "scene-9-2-4"
+            },
+            {
+              "id": "scene-9-2-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel's fabrication labs, 2004. The Pentium 4 Prescott hits 3.8 GHz. It also hits a wall."
+              },
+              "narrative": [
+                "Prescott was supposed to reach 4 GHz and beyond. The roadmap showed 5 GHz by 2005. But something is wrong. The chips are running HOT.",
+                "Power consumption scales with frequency. Double the clock, roughly double the power. But it's worse than that—higher frequencies require higher voltages, and power scales with voltage SQUARED.",
+                "At 130 watts, the Prescott requires massive cooling. The 4 GHz model is canceled. The 5 GHz dream dies. Intel faces a crisis: the strategy that built their empire is breaking down."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "The physics don't lie. At these voltages and frequencies, the power density approaches a nuclear reactor's surface. We literally can't cool the chips anymore."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So what happens now?"
+                },
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "We go back to the drawing board. NetBurst is dead. The P6 team's ideas—high IPC, lower frequency—were right all along. We're starting the Core architecture."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Dennard scaling—the observation that as transistors shrink, power density stays constant—began breaking down around 90nm. Voltage couldn't drop as fast as transistors shrank. Power density increased, making high frequencies increasingly untenable.",
+                  "codeSnippet": "// The power wall\n// \n// Power = Capacitance × Voltage² × Frequency\n// \n// To increase frequency:\n//   - Need higher voltage for faster switching\n//   - Power increases with voltage SQUARED\n// \n// Example:\n//   1.0 GHz @ 1.0V: P = C × 1.0² × 1.0 = 1.0C\n//   2.0 GHz @ 1.3V: P = C × 1.69 × 2.0 = 3.38C\n//   3.0 GHz @ 1.5V: P = C × 2.25 × 3.0 = 6.75C\n// \n// 3x frequency = 6.75x power (not 3x!)"
+                }
+              ],
+              "nextScene": "scene-9-2-5"
+            },
+            {
+              "id": "scene-9-2-5",
+              "type": "choice",
+              "setting": {
+                "text": "The industry faces a choice. Single-thread performance gains are slowing. But transistor counts keep rising. What do you do with all those transistors?"
+              },
+              "narrative": [
+                "Option one: make the single core bigger. More execution units, larger caches, wider issue. But returns are diminishing—Amdahl's Law limits how much parallelism programs expose.",
+                "Option two: multiple cores. Put two, four, eight cores on one chip. Programs must be parallel, but each thread gets a full processor.",
+                "Option three: specialized accelerators. Graphics processors. Cryptography units. Machine learning engines. Not general-purpose, but incredibly efficient for specific tasks."
+              ],
+              "choices": [
+                {
+                  "id": "choice-wide-core",
+                  "icon": "🔲",
+                  "title": "Build a Wider Core",
+                  "description": "More execution units, larger structures. Extract every bit of instruction-level parallelism from single-threaded code."
+                },
+                {
+                  "id": "choice-multicore",
+                  "icon": "🔢",
+                  "title": "Embrace Multi-Core",
+                  "description": "Two cores at half the frequency consume less power than one at full frequency, but offer more parallel throughput."
+                },
+                {
+                  "id": "choice-accelerator",
+                  "icon": "🎯",
+                  "title": "Design Specialized Accelerators",
+                  "description": "GPUs, TPUs, crypto engines. Trade generality for massive efficiency on specific workloads."
+                },
+                {
+                  "id": "choice-efficiency",
+                  "icon": "🔋",
+                  "title": "Optimize for Efficiency",
+                  "description": "Same performance at lower power. The mobile revolution demands it."
+                }
+              ],
+              "nextScene": "scene-9-2-6"
+            },
+            {
+              "id": "scene-9-2-6",
+              "type": "narrative",
+              "setting": {
+                "text": "2006. Intel launches the Core 2 Duo. It's everything NetBurst wasn't: efficient, fast, and cool. The multi-core era has begun."
+              },
+              "narrative": [
+                "The Core architecture returns to P6 principles: moderate pipeline depth, high IPC, focus on efficiency. Two cores on one die. Each core slower than the fastest Pentium 4s, but together delivering more performance.",
+                "AMD's response is the Athlon 64 X2—also dual core, also efficient. The industry has pivoted. Frequency wars are over. Core count and IPC are the new battleground.",
+                "Software must change too. Programs designed for single threads must be rewritten for parallelism. The 'free lunch' of automatic performance gains from faster CPUs is over."
+              ],
+              "characters": [
+                {
+                  "avatar": "🏛️",
+                  "name": "Anand Chandrasekher",
+                  "title": "General Manager, Intel Mobile Platforms",
+                  "bio": "One of the leaders who championed the shift from raw frequency to efficiency. The mobile market—laptops, then phones—demanded performance per watt. The Core architecture delivered.",
+                  "stats": [
+                    { "label": "Focus", "value": "Performance per watt" },
+                    { "label": "Result", "value": "Core 2: 40% less power" },
+                    { "label": "Trend", "value": "Mobile-first design" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Core 2 Duo specifications: 14-stage pipeline (vs 31 in late Pentium 4), 4-wide decode, 4 ALUs, up to 4 MB L2 cache. At 2.4 GHz, it matched a 3.6 GHz Pentium 4 while using half the power. This proved that IPC mattered more than raw frequency.",
+                  "codeSnippet": "// Core 2 vs Pentium 4 efficiency\n// \n// Pentium 4 Extreme Edition 3.73 GHz\n//   Performance: 100% (normalized)\n//   Power: 130W\n//   Perf/Watt: 0.77\n// \n// Core 2 Duo E6600 2.4 GHz\n//   Performance: 110% (higher despite lower clock!)\n//   Power: 65W  \n//   Perf/Watt: 1.69\n// \n// More than 2x better efficiency!"
+                }
+              ],
+              "nextScene": "scene-9-2-7"
+            },
+            {
+              "id": "scene-9-2-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "A software developer's office, 2007. The rules have changed."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Developer",
+                  "text": "For twenty years, my programs got faster for free. I'd write the same code, buy a new CPU, and boom—2x performance. That's over now."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Because single-core performance has plateaued?"
+                },
+                {
+                  "speaker": "Developer",
+                  "text": "Exactly. I have four cores now, but my single-threaded program only uses one. To get faster, I have to rewrite everything for parallelism. Threading, locks, races, deadlocks... it's hard."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is there any alternative?"
+                },
+                {
+                  "speaker": "Developer",
+                  "text": "Specialized hardware. My graphics card has thousands of simple cores. For the right workload—rendering, machine learning, crypto—it's 100x faster than my CPU. But it only works for specific problems."
+                }
+              ],
+              "narrative": [
+                "The multi-core era forced a reckoning. Software must become parallel to benefit from new hardware. Languages, libraries, and programming models all evolved.",
+                "And new opportunities emerged. GPUs, originally for graphics, became general-purpose parallel processors. Neural networks, impossible to run on CPUs alone, flourished on GPU compute.",
+                "Continue to Chapter 3: The End of an Era."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-9-3",
+          "number": 3,
+          "title": "The End of an Era",
+          "subtitle": "Spectre, Meltdown, and What Comes Next",
+          "year": "2010-2020",
+          "scenes": [
+            {
+              "id": "scene-9-3-1",
+              "type": "narrative",
+              "setting": {
+                "text": "A security research lab, 2017. Something is very wrong. The speculative execution techniques that made modern CPUs fast are leaking secrets."
+              },
+              "narrative": [
+                "For twenty years, CPUs have been prediction machines. Guess which way branches go. Speculatively execute instructions. If wrong, throw away the results and try again.",
+                "But 'throw away the results' wasn't quite true. The speculative execution left traces—in the cache, in the timing of operations, in the processor's internal state.",
+                "Security researchers discovered they could measure these traces. By inducing specific speculative executions, then measuring timing, they could extract data the CPU was never supposed to reveal."
+              ],
+              "characters": [
+                {
+                  "avatar": "👻",
+                  "name": "Jann Horn",
+                  "title": "Security Researcher, Google Project Zero",
+                  "bio": "One of the researchers who discovered Spectre and Meltdown. Horn's work revealed that speculative execution—the foundation of modern CPU performance—had fundamental security implications that the industry had overlooked for decades.",
+                  "stats": [
+                    { "label": "Discovery", "value": "Spectre vulnerabilities" },
+                    { "label": "Impact", "value": "Every modern CPU affected" },
+                    { "label": "Response", "value": "Industry-wide patches, redesigns" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Spectre exploits speculative execution: trick the CPU into speculatively accessing protected memory, then use cache timing to extract the data before rollback. Meltdown exploits a specific Intel vulnerability where kernel memory checks happen AFTER speculative access.",
+                  "codeSnippet": "// Spectre attack concept (simplified)\n// \n// // Victim code with bounds check\n// if (x < array1_size)\n//   y = array2[array1[x] * 256];\n// \n// // Attacker:\n// 1. Train branch predictor with valid x values\n// 2. Flush cache lines for array2\n// 3. Call with out-of-bounds x (but predicted in-bounds)\n// 4. CPU speculatively reads array1[x] (secret!)\n// 5. CPU speculatively reads array2[secret * 256]\n// 6. Branch misprediction detected, rollback\n// 7. BUT: array2[secret*256] is now in cache\n// 8. Time access to each array2 element\n// 9. Fast access reveals secret value"
+                }
+              ],
+              "nextScene": "scene-9-3-2"
+            },
+            {
+              "id": "scene-9-3-2",
+              "type": "dialogue",
+              "setting": {
+                "text": "January 2018. Spectre and Meltdown are publicly disclosed. The tech world recoils."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Security Researcher",
+                  "text": "Every modern processor is vulnerable. Intel, AMD, ARM—all of them. The techniques we've used for performance for twenty years have a fundamental security flaw."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Can it be fixed?"
+                },
+                {
+                  "speaker": "Security Researcher",
+                  "text": "Partially. Software patches slow things down—sometimes significantly. New hardware adds mitigations. But the fundamental tension remains: speculation is fast, but it leaks."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the performance we've enjoyed came at a cost we didn't understand."
+                },
+                {
+                  "speaker": "Security Researcher",
+                  "text": "Exactly. The CPU was designed for speed, assuming a benign world. It never occurred to anyone that measuring cache timing could extract secrets. Now we know better—and we're paying the price."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Meltdown patches (KPTI/KAISER) separated kernel and user page tables, adding overhead to every system call. Spectre mitigations include retpolines (blocking indirect branch speculation), LFENCE instructions, and microcode updates. Performance impact: 5-30% depending on workload.",
+                  "codeSnippet": "// Performance impact of mitigations\n// \n// Syscall-heavy workloads (databases, I/O):\n//   Pre-patch: 100%\n//   Post-KPTI: 70-80% (20-30% slower)\n// \n// CPU-bound workloads:\n//   Pre-patch: 100%  \n//   Post-patch: 95-100% (minimal impact)\n// \n// The cost of secure speculation"
+                }
+              ],
+              "nextScene": "scene-9-3-3"
+            },
+            {
+              "id": "scene-9-3-3",
+              "type": "narrative",
+              "setting": {
+                "text": "AMD Headquarters, 2020. The Ryzen 5000 series launches to universal acclaim. AMD has finally surpassed Intel in single-thread performance."
+              },
+              "narrative": [
+                "For decades, Intel dominated high-performance x86. AMD competed on price, on value, but rarely on raw speed. That's changed.",
+                "The Zen 3 architecture represents AMD's finest work: high IPC, efficient execution, competitive frequencies. The Ryzen 9 5900X beats Intel's best in nearly every benchmark.",
+                "Intel, once invincible, struggles. Manufacturing delays, architecture missteps, competitive pressure. The industry leader is now the underdog."
+              ],
+              "characters": [
+                {
+                  "avatar": "🔬",
+                  "name": "Mike Clark",
+                  "title": "Chief Architect, AMD Zen",
+                  "bio": "The architect behind AMD's Zen series. Clark's team created a modern, efficient microarchitecture that brought AMD back to competitiveness after years of trailing Intel. Zen proved that smart design beats brute-force frequency.",
+                  "stats": [
+                    { "label": "Architecture", "value": "Zen, Zen 2, Zen 3, Zen 4" },
+                    { "label": "IPC gain", "value": "+52% Zen 1 to 3" },
+                    { "label": "Impact", "value": "AMD market share: 10% → 30%+" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Zen 3 improvements: unified 8-core CCX (vs 4-core in Zen 2), reducing inter-core latency. Improved branch prediction, larger caches, wider front-end. IPC improved 19% over Zen 2—a generational leap unusual in mature architectures.",
+                  "codeSnippet": "// Zen 3 architectural highlights\n// \n// Improvements over Zen 2:\n// - Unified 8-core CCX (vs 2× 4-core)\n// - 19% IPC improvement\n// - Doubled L3 cache per core\n// - Improved branch predictor (TAGE-like)\n// - Better memory latency\n// \n// Result:\n// Ryzen 5 5600X (6C, 3.7 GHz): \n//   beats i9-10900K (10C, 3.7 GHz)\n//   in single-thread performance"
+                }
+              ],
+              "nextScene": "scene-9-3-4"
+            },
+            {
+              "id": "scene-9-3-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Apple Park, Cupertino, November 2020. Apple reveals the M1—their first Mac processor. It doesn't use x86 at all."
+              },
+              "narrative": [
+                "For fifteen years, Macs ran Intel processors. Now Apple has done what everyone thought impossible: switched architectures again, this time to their own ARM-based silicon.",
+                "The M1 is remarkable. In a laptop thermal envelope (10 watts), it matches desktop x86 performance (65+ watts). In many tasks, it's the fastest consumer processor ever made.",
+                "The secret: integration. CPU, GPU, neural engine, memory controller—all on one chip, designed together, optimized together. And ARM's simpler instruction set allows efficiency that x86 struggles to match."
+              ],
+              "characters": [
+                {
+                  "avatar": "🍎",
+                  "name": "Johny Srouji",
+                  "title": "Senior VP, Hardware Technologies, Apple",
+                  "bio": "The executive who built Apple's chip design organization. Under Srouji, Apple created the iPhone's A-series chips, then scaled them to Mac-class performance with M1. The M1's efficiency shocked the industry.",
+                  "stats": [
+                    { "label": "Architecture", "value": "Apple Silicon (ARM)" },
+                    { "label": "Power", "value": "10W TDP (laptop)" },
+                    { "label": "Performance", "value": "Matches 65W desktop x86" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "M1 specifications: 8 high-performance cores + 4 efficiency cores, 8-core GPU, 16-core neural engine, unified memory architecture. The integration—memory shared between CPU and GPU, custom interconnects, optimized software stack—enables efficiency impossible with discrete components.",
+                  "codeSnippet": "// M1 efficiency comparison\n// \n// Apple M1 (MacBook Air, fanless)\n//   Single-thread: ~1500 (Geekbench 5)\n//   Power: ~10W sustained\n//   Perf/Watt: 150\n// \n// Intel Core i9-11900K (Desktop, 125W TDP)\n//   Single-thread: ~1600 (Geekbench 5)\n//   Power: ~125W\n//   Perf/Watt: 12.8\n// \n// M1: Similar performance at 10x efficiency"
+                }
+              ],
+              "nextScene": "scene-9-3-5"
+            },
+            {
+              "id": "scene-9-3-5",
+              "type": "choice",
+              "setting": {
+                "text": "The processor landscape has fragmented. x86 dominates desktops and servers. ARM dominates mobile and increasingly laptops. Specialized chips handle AI, graphics, cryptography. What will you master?"
+              },
+              "narrative": [
+                "x86 remains powerful—decades of software, optimized compilers, established ecosystems. Intel and AMD continue pushing IPC, adding cores, integrating accelerators.",
+                "ARM offers efficiency. Simple, clean instruction set. Lower power, adequate performance. Apple proved it can compete at the high end.",
+                "And beyond: RISC-V offers an open architecture anyone can implement. AI chips like Google's TPU deliver orders of magnitude more performance for specific workloads."
+              ],
+              "choices": [
+                {
+                  "id": "choice-x86-deep",
+                  "icon": "💻",
+                  "title": "Master Modern x86",
+                  "description": "Push superscalar to its limits. Explore AVX-512, micro-op fusion, speculative prefetch. Understand why x86 persists."
+                },
+                {
+                  "id": "choice-arm-efficiency",
+                  "icon": "📱",
+                  "title": "Explore ARM Efficiency",
+                  "description": "Build ARM's simpler pipeline. See why fewer instructions can mean more performance per watt."
+                },
+                {
+                  "id": "choice-riscv-open",
+                  "icon": "🔓",
+                  "title": "Design with RISC-V",
+                  "description": "The open instruction set. No licenses, no restrictions. Build exactly the processor you need."
+                },
+                {
+                  "id": "choice-accelerator-ai",
+                  "icon": "🤖",
+                  "title": "Build AI Accelerators",
+                  "description": "Neural networks need matrix multiplication at scale. Design hardware specifically for machine learning."
+                }
+              ],
+              "nextScene": "scene-9-3-6"
+            },
+            {
+              "id": "scene-9-3-6",
+              "type": "challenge",
+              "setting": {
+                "text": "The final challenge: build the most advanced processor you can imagine. All the techniques you've learned—pipelining, superscalar, out-of-order, speculation—come together here."
+              },
+              "narrative": [
+                "This is the summit. Everything from the abacus forward leads here. Beads became gears, gears became relays, relays became vacuum tubes, tubes became transistors, transistors became integrated circuits, ICs became microprocessors.",
+                "And microprocessors became prediction machines—speculating, reordering, executing instructions before they're needed, maintaining the illusion of sequential execution while extracting every bit of parallelism.",
+                "Build your masterpiece."
+              ],
+              "challenge": {
+                "title": "THE ULTIMATE SUPERSCALAR PROCESSOR",
+                "objectives": [
+                  { "id": "obj-1", "text": "Implement 4+ wide decode with micro-op fusion", "completed": false },
+                  { "id": "obj-2", "text": "Build a 100+ entry physical register file", "completed": false },
+                  { "id": "obj-3", "text": "Create 6+ execution units with specialization", "completed": false },
+                  { "id": "obj-4", "text": "Implement a 128+ entry reorder buffer", "completed": false },
+                  { "id": "obj-5", "text": "Add TAGE or perceptron branch prediction", "completed": false },
+                  { "id": "obj-6", "text": "Implement speculative memory disambiguation", "completed": false },
+                  { "id": "obj-7", "text": "Add L1/L2 cache hierarchy with prefetch", "completed": false },
+                  { "id": "obj-8", "text": "Achieve IPC > 2.0 on a realistic benchmark", "completed": false }
+                ]
+              },
+              "technicalNotes": [
+                {
+                  "content": "Modern high-performance cores (Intel Golden Cove, AMD Zen 4, Apple Firestorm) achieve 2-4 IPC on typical code. They use 6-wide decode, 12+ execution units, 200+ ROB entries, TAGE-based prediction with 95%+ accuracy, multi-level caches with aggressive prefetch.",
+                  "codeSnippet": "// Modern superscalar specifications (2024)\n// \n// Intel Raptor Cove (14th Gen):\n//   Decode: 6 wide\n//   Execution: 12 ports\n//   ROB: 512 entries\n//   Registers: 280 physical\n//   Branch predictor: TAGE-like, >95%\n// \n// AMD Zen 4:\n//   Decode: 6 wide  \n//   Execution: 10 ports\n//   ROB: 320 entries\n//   Registers: 224 physical\n//   L1: 32KB I + 32KB D, L2: 1MB"
+                }
+              ],
+              "nextScene": "scene-9-3-7"
+            },
+            {
+              "id": "scene-9-3-7",
+              "type": "dialogue",
+              "setting": {
+                "text": "The virtual lab. Your journey is complete. Behind you: the entire history of computing, from ancient counting tools to speculative superscalar processors."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Mentor",
+                  "text": "You've traveled five thousand years. From the abacus to this—a machine that predicts the future, executes speculatively, and maintains the illusion of sequential execution while processing billions of operations per second."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Every invention solved a problem. And created new ones."
+                },
+                {
+                  "speaker": "Mentor",
+                  "text": "Exactly. The abacus solved counting errors but required training. Mechanical calculators automated arithmetic but wore out. Vacuum tubes were fast but unreliable. Transistors solved reliability but created density challenges. Every solution breeds new problems."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And superscalar? Speculative execution?"
+                },
+                {
+                  "speaker": "Mentor",
+                  "text": "Solved performance, created security vulnerabilities. Solved single-thread limits, created power walls. The lesson of computing history: there are no permanent solutions. Only tradeoffs, and the wisdom to choose the right ones."
+                }
+              ],
+              "nextScene": "scene-9-3-8"
+            },
+            {
+              "id": "scene-9-3-8",
+              "type": "narrative",
+              "setting": {
+                "text": "Epilogue: The journey continues."
+              },
+              "narrative": [
+                "You've traveled from the abacus to the superscalar processor. Five thousand years of computational history. From beads on rods to billions of transistors executing speculatively out of order.",
+                "Every innovation arose from necessity. The abacus because merchants made counting errors. Mechanical calculators because tax collectors drowned in arithmetic. Electronic computers because wars demanded speed. Microprocessors because rooms full of chips were too expensive.",
+                "And superscalar, out-of-order, speculative execution—because users always want more. More speed. More capability. More of everything.",
+                "You haven't just learned this history. You've lived it, building each technology from first principles. You understand not just HOW but WHY.",
+                "The journey is complete. But computing never stops. New challenges await: quantum computing promises exponential speedups for certain problems. Neuromorphic processors mimic the brain's efficiency. Photonic logic replaces electrons with light.",
+                "The next chapter of the story is being written right now. By researchers in labs around the world. By engineers pushing the limits of what's possible.",
+                "And now, by you. You understand where computing came from. You can help write what comes next.",
+                "THE END... and THE BEGINNING."
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The history of computing is a story of tradeoffs. Speed versus power. Generality versus efficiency. Compatibility versus innovation. Security versus performance. Understanding these tradeoffs—and the reasons behind historical choices—is essential for making good decisions in the future.",
+                  "codeSnippet": "// The eternal tradeoffs\n// \n// Performance vs Power:\n//   Higher clocks = more heat\n//   Speculation = wasted work\n// \n// Generality vs Efficiency:\n//   CPUs: good at everything, great at nothing\n//   GPUs: terrible at branching, amazing at parallel\n//   TPUs: useless for general code, 100x ML speed\n// \n// Compatibility vs Innovation:\n//   x86: 40+ years of legacy, hard to change\n//   ARM: simpler, but different ecosystem\n//   RISC-V: clean slate, but proving grounds\n// \n// Every choice has consequences.\n// Understand them, and choose wisely."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapter-9-4",
+          "number": 4,
+          "title": "Roads Not Taken",
+          "subtitle": "Itanium, PowerPC, and the GPU Revolution",
+          "year": "1991-2007",
+          "scenes": [
+            {
+              "id": "scene-9-4-1",
+              "type": "narrative",
+              "setting": {
+                "text": "Intel headquarters, Santa Clara, 1994. Deep in a classified project, engineers work on something that will change everything—or so they believe."
+              },
+              "narrative": [
+                "Intel's engineers look at x86 and see a mess. Decades of backward compatibility have created a baroque instruction set with irregular encodings, implicit registers, and legacy cruft from the 8086 era.",
+                "What if they could start fresh? A clean 64-bit architecture designed for the future, not shackled by the past. They partner with Hewlett-Packard and begin Project Tahoe.",
+                "The architecture is revolutionary: VLIW (Very Long Instruction Word). Instead of the CPU finding parallelism, the compiler bundles multiple operations into single 128-bit instruction words. The CPU executes them in parallel, trusting the compiler's judgment."
+              ],
+              "characters": [
+                {
+                  "avatar": "🎯",
+                  "name": "Project Tahoe",
+                  "title": "Intel-HP Itanium Development",
+                  "bio": "A joint Intel-HP project to create IA-64, a 64-bit VLIW architecture that would replace x86. The project consumed over $10 billion and two decades, only to be overtaken by AMD's simpler x86-64 extension.",
+                  "stats": [
+                    { "label": "Cost", "value": "$10+ billion" },
+                    { "label": "Development", "value": "1994-2001" },
+                    { "label": "Outcome", "value": "Commercial failure" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "VLIW (Very Long Instruction Word) architectures bundle multiple operations into single large instruction words. The compiler determines parallelism at compile time. This simplifies hardware but requires heroic compiler effort—and means recompilation for each new processor version.",
+                  "codeSnippet": "// VLIW Instruction Bundle (Itanium)\n// 128-bit bundle = 3 operations + template\n// \n// [template|op1|op2|op3]\n//    5b     41b 41b 41b\n// \n// Example: Add, multiply, load in parallel\n// add r1=r2,r3 ; mul r4=r5,r6 ; ld r7=[r8]\n// \n// All three execute simultaneously\n// Compiler must guarantee no conflicts"
+                }
+              ],
+              "nextScene": "scene-9-4-2"
+            },
+            {
+              "id": "scene-9-4-2",
+              "type": "narrative",
+              "setting": {
+                "text": "Austin, Texas, 1999. AMD's offices. A small team led by architect Dirk Meyer is working on a different approach to 64-bit computing."
+              },
+              "narrative": [
+                "While Intel bets on a clean break, AMD takes a simpler path. Why not just extend x86? Add 64-bit registers, expand the address space, but keep the existing instruction set.",
+                "It's called x86-64 (later AMD64). The brilliance is simplicity: existing 32-bit code runs unchanged. New code can use 64-bit features. No massive recompilation required.",
+                "Intel dismisses AMD's approach as crude. But customers have millions of lines of x86 code. The cost of recompiling everything for Itanium is staggering. AMD's pragmatic solution is looking very attractive."
+              ],
+              "characters": [
+                {
+                  "avatar": "💡",
+                  "name": "Dirk Meyer",
+                  "title": "Chief Technology Officer, AMD",
+                  "bio": "The architect behind AMD's x86-64 extension. Meyer recognized that backward compatibility trumps architectural elegance. His pragmatic approach would define the next two decades of computing.",
+                  "stats": [
+                    { "label": "Innovation", "value": "x86-64 architecture" },
+                    { "label": "Key insight", "value": "Compatibility > Elegance" },
+                    { "label": "Later role", "value": "AMD CEO (2008-2011)" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AMD64 (x86-64) added 64-bit general-purpose registers (R8-R15), extended existing registers to 64 bits, increased virtual address space to 48 bits (256 TB), and maintained full backward compatibility. Intel eventually adopted AMD's design under the name Intel 64.",
+                  "codeSnippet": "// AMD64 Register Extension\n// 32-bit: EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP\n// \n// 64-bit: Extend to RAX...RSP (64-bit)\n//         Add R8-R15 (new registers)\n// \n// Legacy 32-bit code sees EAX\n// New 64-bit code sees RAX\n// Same physical register, different views\n// \n// mov eax, 42    ; 32-bit, works fine\n// mov rax, 42    ; 64-bit, same reg"
+                }
+              ],
+              "nextScene": "scene-9-4-3"
+            },
+            {
+              "id": "scene-9-4-3",
+              "type": "dialogue",
+              "setting": {
+                "text": "2003. Itanium has finally shipped, but sales are disappointing. Intel executives confront an uncomfortable reality."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Intel Executive",
+                  "text": "Itanium performance is impressive on benchmarks. The architecture is elegant. Why won't customers adopt it?"
+                },
+                {
+                  "speaker": "Customer Representative",
+                  "text": "Because we have to recompile EVERYTHING. Our Oracle databases, our legacy applications, decades of software. And the Itanium compilers aren't producing faster code than we expected."
+                },
+                {
+                  "speaker": "Intel Executive",
+                  "text": "The compilers will improve. VLIW extracts parallelism that out-of-order processors miss."
+                },
+                {
+                  "speaker": "Customer Representative",
+                  "text": "We can't wait. AMD's Opteron runs our existing code AND adds 64-bit. It's the practical choice."
+                },
+                {
+                  "speaker": "Intel Executive",
+                  "text": "AMD is a niche player. Itanium is the future of enterprise computing."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "It wasn't. By 2019, Intel would announce Itanium's end. $10 billion and 25 years, defeated by pragmatic compatibility. Intel quietly adopted AMD's x86-64 design."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Itanium's VLIW design assumed compilers could find instruction-level parallelism better than hardware. This proved overly optimistic. The gap between benchmark performance and real-world applications widened. Meanwhile, x86 out-of-order execution improved faster than expected.",
+                  "codeSnippet": "// Why Itanium Failed:\n// \n// 1. Compiler complexity\n//    - Extracting ILP is NP-hard\n//    - Binary recompilation for each generation\n// \n// 2. Memory latency\n//    - VLIW bundles stall together\n//    - OOO executes around stalls\n// \n// 3. Transition cost\n//    - Billions of lines of x86 code\n//    - x86-64: recompile optional\n//    - Itanium: recompile mandatory"
+                }
+              ],
+              "nextScene": "scene-9-4-4"
+            },
+            {
+              "id": "scene-9-4-4",
+              "type": "narrative",
+              "setting": {
+                "text": "Cupertino, California, 1991. Apple's engineers are frustrated. Intel won't license x86. Motorola's 68040 is falling behind. They need a new processor partnership."
+              },
+              "narrative": [
+                "In a remarkable alliance, Apple, IBM, and Motorola join forces to create the AIM alliance. Their weapon: the PowerPC processor, derived from IBM's POWER architecture.",
+                "PowerPC is everything x86 isn't: clean RISC design, no legacy baggage, modern register file. Apple bets its future on it, transitioning the entire Macintosh line.",
+                "For 15 years, PowerPC powers every Mac. The G3, G4, and G5 processors compete well against Intel. Steve Jobs even mocks Intel's 'slow' chips at WWDC presentations."
+              ],
+              "characters": [
+                {
+                  "avatar": "🍎",
+                  "name": "The AIM Alliance",
+                  "title": "Apple-IBM-Motorola Partnership",
+                  "bio": "A 1991 alliance to create PowerPC processors as an alternative to Intel x86. For 15 years, PowerPC powered all Macintosh computers. The alliance ended when Apple switched to Intel in 2005.",
+                  "stats": [
+                    { "label": "Duration", "value": "1991-2006" },
+                    { "label": "Notable chips", "value": "G3, G4, G5" },
+                    { "label": "Legacy", "value": "IBM POWER continues in servers" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "PowerPC was a simplified version of IBM's high-end POWER architecture, designed for desktop and embedded systems. It used a clean RISC design with 32 general-purpose registers, fixed-width instructions, and orthogonal addressing modes.",
+                  "codeSnippet": "// PowerPC vs x86 (circa 2000)\n// \n// PowerPC: 32 GP registers\n// x86:     8 GP registers\n// \n// PowerPC: Fixed 32-bit instructions\n// x86:     Variable 1-15 bytes\n// \n// PowerPC: Load-store architecture\n// x86:     Memory operands everywhere\n// \n// PowerPC: Clean design, but fragmented market\n// x86:     Ugly design, but dominant ecosystem"
+                }
+              ],
+              "nextScene": "scene-9-4-5"
+            },
+            {
+              "id": "scene-9-4-5",
+              "type": "dialogue",
+              "setting": {
+                "text": "WWDC 2005. Steve Jobs takes the stage with a surprising announcement."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Steve Jobs",
+                  "text": "I have something to tell you today. This has been kept so secret that we didn't even tell you when you picked up your badges. It's true. The rumors are true."
+                },
+                {
+                  "speaker": "Steve Jobs",
+                  "text": "We are going to begin the transition to Intel processors."
+                },
+                {
+                  "speaker": "Audience",
+                  "text": "*gasps and murmurs*"
+                },
+                {
+                  "speaker": "Steve Jobs",
+                  "text": "As we look ahead, we see the road map for PowerPC getting different than what we need. We want to make the best computers for our customers going forward. Intel has the best roadmap."
+                },
+                {
+                  "speaker": "Narrator",
+                  "text": "The 'secret' reason: IBM couldn't deliver a cool-running G5 for laptops. PowerPC's power consumption was too high. The Mac laptop line was stuck. The transition completed in 2006—and ten years later, Apple would transition again, this time to their own ARM-based chips."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The PowerPC-to-Intel transition used 'Rosetta', an emulator that translated PowerPC binaries to x86 at run-time. Most applications worked without modification. The technique would be reused for the 2020 Apple Silicon transition.",
+                  "codeSnippet": "// Apple's Processor Transitions\n// \n// 1984: 68000\n// 1994: 68000 → PowerPC (10 years)\n// 2006: PowerPC → Intel (12 years)\n// 2020: Intel → Apple Silicon (14 years)\n// \n// Each transition used dynamic translation\n// 68k emulator (1994)\n// Rosetta (2006)\n// Rosetta 2 (2020)"
+                }
+              ],
+              "nextScene": "scene-9-4-6"
+            },
+            {
+              "id": "scene-9-4-6",
+              "type": "narrative",
+              "setting": {
+                "text": "NVIDIA headquarters, Santa Clara, 2006. GPU architect John Nickolls is working on something that will transform computing."
+              },
+              "narrative": [
+                "GPUs have evolved from simple 3D accelerators to massively parallel processors. A high-end GPU has hundreds of cores, each executing the same operation on different data. Perfect for graphics—but what else?",
+                "Nickolls leads the development of CUDA: Compute Unified Device Architecture. It lets programmers write general-purpose code that runs on the GPU's parallel cores.",
+                "The insight is simple but revolutionary: many problems that seem sequential can be parallelized. Matrix multiplication, neural network training, physics simulation, cryptography—thousands of operations that don't depend on each other can run simultaneously."
+              ],
+              "characters": [
+                {
+                  "avatar": "🖥️",
+                  "name": "John Nickolls",
+                  "title": "GPU Architect, NVIDIA",
+                  "bio": "The architect behind CUDA, the platform that transformed GPUs from graphics accelerators into general-purpose parallel computers. Nickolls's work enabled the deep learning revolution.",
+                  "stats": [
+                    { "label": "Innovation", "value": "CUDA (2007)" },
+                    { "label": "Impact", "value": "Enabled GPU computing" },
+                    { "label": "Legacy", "value": "Foundation of AI training" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "CUDA exposes the GPU's parallel architecture to general-purpose programming. Programmers write 'kernels' that execute on thousands of GPU cores simultaneously. This SIMT (Single Instruction Multiple Thread) model trades single-thread performance for massive parallelism.",
+                  "codeSnippet": "// CUDA Kernel Example\n// Add two vectors in parallel\n// \n__global__ void add(float *a, float *b, float *c) {\n  int i = threadIdx.x + blockIdx.x * blockDim.x;\n  c[i] = a[i] + b[i];\n}\n// \n// Launch with 1 million threads\n// add<<<1024, 1024>>>(a, b, c);\n// \n// 1 million additions run simultaneously!"
+                }
+              ],
+              "nextScene": "scene-9-4-7"
+            },
+            {
+              "id": "scene-9-4-7",
+              "type": "narrative",
+              "setting": {
+                "text": "A machine learning research lab, 2012. The ImageNet competition results are announced."
+              },
+              "narrative": [
+                "AlexNet has won the ImageNet image classification challenge—and it's not even close. Error rate: 15.3%. The second place finisher: 26.2%. Deep learning has arrived.",
+                "The secret weapon isn't just the neural network architecture. It's the training platform: two NVIDIA GTX 580 GPUs. What would take weeks on a CPU cluster finished in days on commodity graphics cards.",
+                "This moment marks the beginning of the AI revolution. Researchers worldwide realize that GPUs are the key to training large neural networks. NVIDIA stock begins a decade-long climb from $3 to over $400.",
+                "The GPU has evolved from gaming peripheral to the engine of artificial intelligence. Computing will never be the same."
+              ],
+              "characters": [
+                {
+                  "avatar": "🧠",
+                  "name": "AlexNet",
+                  "title": "The Deep Learning Breakthrough",
+                  "bio": "A deep convolutional neural network that won the 2012 ImageNet challenge by a massive margin. Trained on GPUs, AlexNet demonstrated that deep learning at scale was practical—and superior to all previous approaches.",
+                  "stats": [
+                    { "label": "Layers", "value": "8 (5 conv, 3 FC)" },
+                    { "label": "Parameters", "value": "60 million" },
+                    { "label": "Training", "value": "2 GPUs, 6 days" }
+                  ]
+                },
+                {
+                  "avatar": "🏆",
+                  "name": "Jensen Huang",
+                  "title": "CEO & Co-founder, NVIDIA",
+                  "bio": "Huang co-founded NVIDIA in 1993 to build graphics chips. His bet on general-purpose GPU computing (CUDA, 2007) positioned NVIDIA to dominate the AI revolution. By 2024, NVIDIA became the world's most valuable company.",
+                  "stats": [
+                    { "label": "Founded NVIDIA", "value": "1993" },
+                    { "label": "CUDA launch", "value": "2007" },
+                    { "label": "AI dominance", "value": "2012-present" }
+                  ]
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "AlexNet used GPUs to train a neural network with 60 million parameters on 1.2 million images. The key operations—convolutions and matrix multiplications—are massively parallel, making GPUs 10-100x faster than CPUs. This sparked the deep learning revolution.",
+                  "codeSnippet": "// Why GPUs dominate AI training\n// \n// Convolution: same operation, many positions\n// Matrix multiply: same operation, many elements\n// \n// CPU: Optimized for latency\n//   Few cores, fast per-core\n//   Great for branching code\n// \n// GPU: Optimized for throughput\n//   Thousands of cores, slower per-core\n//   Great for parallel numeric code\n// \n// Neural nets: parallel numeric code\n// GPU wins: 10-100x faster training"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

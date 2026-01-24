@@ -4,6 +4,7 @@
 // Story 10.5: Create Chapter Header Component
 // Story 10.6: Create Scene Setting Component
 // Story 10.7: Create Character Card Component
+// Story 10.8: Create Dialogue Block Component
 
 /**
  * Represents a discovery badge earned by the player.
@@ -83,4 +84,14 @@ export interface CharacterData {
   bio: string;
   /** Key stats displayed at bottom of card */
   stats: CharacterStat[];
+}
+
+/**
+ * Represents a line of dialogue from a character.
+ */
+export interface DialogueData {
+  /** The name of the speaker (e.g., "Dr. Chen") */
+  speaker: string;
+  /** The dialogue text spoken by the character */
+  text: string;
 }

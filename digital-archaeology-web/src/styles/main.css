@@ -2722,3 +2722,38 @@ body.da-resizing * {
   color: var(--story-border, rgba(212, 165, 116, 0.3));
   margin: 0 4px;
 }
+
+/* =============================================================================
+   Dialogue Block Component (Story 10.8)
+   ============================================================================= */
+
+.da-dialogue-block {
+  position: relative;
+  margin: 0 0 24px;
+  padding: 0 0 0 20px;
+  border-left: 4px solid var(--persona-copper, #b87333);
+  quotes: none;
+}
+
+.da-dialogue-block--hidden {
+  display: none;
+}
+
+.da-dialogue-block-speaker {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--persona-copper, #b87333);
+}
+
+.da-dialogue-block-text {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--da-text-secondary, #b0b0b0);
+}

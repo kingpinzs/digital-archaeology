@@ -10,4 +10,5 @@ export { StoryContent } from './StoryContent';
 export { ChapterHeader } from './ChapterHeader';
 export { SceneSetting } from './SceneSetting';
 export { CharacterCard } from './CharacterCard';
-export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat } from './types';
+export { DialogueBlock } from './DialogueBlock';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData } from './types';

@@ -12,4 +12,5 @@ export { SceneSetting } from './SceneSetting';
 export { CharacterCard } from './CharacterCard';
 export { DialogueBlock } from './DialogueBlock';
 export { ChoiceCard } from './ChoiceCard';
-export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData } from './types';
+export { TechnicalNote } from './TechnicalNote';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData } from './types';

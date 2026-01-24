@@ -2831,3 +2831,47 @@ body.da-resizing * {
 .da-choice-card:hover .da-choice-card-arrow {
   opacity: 1;
 }
+
+/* =============================================================================
+   Technical Note Component (Story 10.10)
+   Blue-accented box bridging narrative and technical content.
+   ============================================================================= */
+
+.da-technical-note {
+  margin: 16px 0;
+  padding: 16px 20px;
+  background: rgba(74, 158, 255, 0.08);
+  border-left: 4px solid var(--da-accent-blue, #4a9eff);
+  border-radius: 0 4px 4px 0;
+}
+
+.da-technical-note--hidden {
+  display: none;
+}
+
+.da-technical-note-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--da-accent-blue, #4a9eff);
+}
+
+.da-technical-note-content {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+.da-technical-note-code {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  color: var(--da-text-primary, #e0e0e0);
+}

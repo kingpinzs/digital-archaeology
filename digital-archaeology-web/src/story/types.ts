@@ -6,6 +6,7 @@
 // Story 10.7: Create Character Card Component
 // Story 10.8: Create Dialogue Block Component
 // Story 10.9: Create Choice Card Component
+// Story 10.10: Create Technical Note Component
 
 /**
  * Represents a discovery badge earned by the player.
@@ -109,4 +110,15 @@ export interface ChoiceData {
   title: string;
   /** Longer description explaining the choice */
   description: string;
+}
+
+/**
+ * Represents a technical note that bridges narrative and technical content.
+ * Displayed with blue accent styling matching Lab Mode.
+ */
+export interface TechnicalNoteData {
+  /** The explanatory text content */
+  content: string;
+  /** Optional inline code snippet to display in monospace font */
+  codeSnippet?: string;
 }

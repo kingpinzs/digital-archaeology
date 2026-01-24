@@ -1,6 +1,7 @@
 // src/story/StoryLoader.test.ts
 // Tests for StoryLoader service
 // Story 10.14: Implement Story Content Data Structure
+// Story 10.15: Added tests for getSceneById, getFirstScene, getCachedActs
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
@@ -210,6 +211,130 @@ describe('StoryLoader', () => {
 
       // Should fetch twice after cache clear
       expect(fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getSceneById', () => {
+    it('should return null when no content is cached', () => {
+      const scene = loader.getSceneById('scene-1-1-1');
+      expect(scene).toBeNull();
+    });
+
+    it('should return scene from cached act', async () => {
+      const mockAct = createValidStoryAct();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockAct),
+      });
+
+      await loader.loadAct(1);
+      const scene = loader.getSceneById('scene-1-1-1');
+
+      expect(scene).not.toBeNull();
+      expect(scene?.id).toBe('scene-1-1-1');
+    });
+
+    it('should return null for non-existent scene', async () => {
+      const mockAct = createValidStoryAct();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockAct),
+      });
+
+      await loader.loadAct(1);
+      const scene = loader.getSceneById('non-existent');
+
+      expect(scene).toBeNull();
+    });
+
+    it('should search in storyContentCache if act cache misses', async () => {
+      const mockContent = createValidStoryContent();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockContent),
+      });
+
+      await loader.loadAllActs();
+      const scene = loader.getSceneById('scene-1-1-1');
+
+      expect(scene).not.toBeNull();
+      expect(scene?.id).toBe('scene-1-1-1');
+    });
+  });
+
+  describe('getFirstScene', () => {
+    it('should return null when no content is cached', () => {
+      const scene = loader.getFirstScene();
+      expect(scene).toBeNull();
+    });
+
+    it('should return first scene from storyContentCache', async () => {
+      const mockContent = createValidStoryContent();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockContent),
+      });
+
+      await loader.loadAllActs();
+      const scene = loader.getFirstScene();
+
+      expect(scene).not.toBeNull();
+      expect(scene?.id).toBe('scene-1-1-1');
+    });
+
+    it('should return first scene from act cache if no full content', async () => {
+      const mockAct = createValidStoryAct();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockAct),
+      });
+
+      await loader.loadAct(1);
+      const scene = loader.getFirstScene();
+
+      expect(scene).not.toBeNull();
+      expect(scene?.id).toBe('scene-1-1-1');
+    });
+  });
+
+  describe('getCachedActs', () => {
+    it('should return empty array when no content is cached', () => {
+      const acts = loader.getCachedActs();
+      expect(acts).toEqual([]);
+    });
+
+    it('should return acts from storyContentCache', async () => {
+      const mockContent = createValidStoryContent();
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockContent),
+      });
+
+      await loader.loadAllActs();
+      const acts = loader.getCachedActs();
+
+      expect(acts).toHaveLength(1);
+      expect(acts[0].id).toBe('act-1');
+    });
+
+    it('should return sorted acts from act cache', async () => {
+      const mockAct1 = { ...createValidStoryAct(), number: 1 };
+      const mockAct2 = { ...createValidStoryAct(), id: 'act-2', number: 2 };
+
+      globalThis.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct2) })
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockAct1) });
+
+      // Load act 2 first, then act 1
+      await loader.loadAct(2);
+      await loader.loadAct(1);
+
+      const acts = loader.getCachedActs();
+
+      // Should be sorted by number
+      expect(acts).toHaveLength(2);
+      expect(acts[0].number).toBe(1);
+      expect(acts[1].number).toBe(2);
     });
   });
 });

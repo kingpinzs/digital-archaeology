@@ -283,4 +283,70 @@ export class StoryLoader {
     this.actCache.clear();
     this.storyContentCache = null;
   }
+
+  /**
+   * Get a scene by ID from cached content.
+   * @param sceneId - The scene ID to find
+   * @returns The scene if found, null otherwise
+   */
+  getSceneById(sceneId: string): StoryScene | null {
+    // Search in cached acts
+    for (const act of this.actCache.values()) {
+      for (const chapter of act.chapters) {
+        for (const scene of chapter.scenes) {
+          if (scene.id === sceneId) {
+            return scene;
+          }
+        }
+      }
+    }
+
+    // Also search in full content cache if available
+    if (this.storyContentCache) {
+      for (const act of this.storyContentCache.acts) {
+        for (const chapter of act.chapters) {
+          for (const scene of chapter.scenes) {
+            if (scene.id === sceneId) {
+              return scene;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the first scene from cached content.
+   * @returns The first scene if content is cached, null otherwise
+   */
+  getFirstScene(): StoryScene | null {
+    // Try full content cache first
+    if (this.storyContentCache && this.storyContentCache.acts.length > 0) {
+      const firstAct = this.storyContentCache.acts[0];
+      if (firstAct.chapters.length > 0 && firstAct.chapters[0].scenes.length > 0) {
+        return firstAct.chapters[0].scenes[0];
+      }
+    }
+
+    // Try act 1 from act cache
+    const act1 = this.actCache.get(1);
+    if (act1 && act1.chapters.length > 0 && act1.chapters[0].scenes.length > 0) {
+      return act1.chapters[0].scenes[0];
+    }
+
+    return null;
+  }
+
+  /**
+   * Get all cached acts as an array.
+   * @returns Array of cached acts
+   */
+  getCachedActs(): StoryAct[] {
+    if (this.storyContentCache) {
+      return this.storyContentCache.acts;
+    }
+    return Array.from(this.actCache.values()).sort((a, b) => a.number - b.number);
+  }
 }

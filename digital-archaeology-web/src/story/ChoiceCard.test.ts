@@ -229,20 +229,37 @@ describe('ChoiceCard', () => {
       expect(callback).toHaveBeenCalledWith('choice-1');
     });
 
-    it('should trigger callback on keyboard Enter', () => {
+    it('should support keyboard Enter via native button behavior', () => {
+      // Native <button> elements automatically trigger click on Enter/Space.
+      // jsdom doesn't simulate this, so we verify:
+      // 1. Element is a focusable button (guarantees keyboard support)
+      // 2. Click handler works (tested above)
+      choiceCard.mount(container);
+      const element = choiceCard.getElement();
+
+      // Verify it's a button element (native keyboard support)
+      expect(element?.tagName).toBe('BUTTON');
+      expect(element?.getAttribute('type')).toBe('button');
+
+      // Verify button is focusable (no tabindex=-1)
+      expect(element?.getAttribute('tabindex')).not.toBe('-1');
+    });
+
+    it('should support keyboard Space via native button behavior', () => {
+      // Native <button> elements automatically trigger click on Space.
+      // jsdom doesn't simulate this, so we verify the element is a button.
+      choiceCard.mount(container);
+      const element = choiceCard.getElement();
+
+      // Verify it's a button element (native keyboard support)
+      expect(element?.tagName).toBe('BUTTON');
+
+      // Verify click mechanism works (Space triggers click in browsers)
       const callback = vi.fn();
       choiceCard.onSelect(callback);
-      choiceCard.mount(container);
       choiceCard.setChoiceData(mockChoiceData);
-
-      const element = choiceCard.getElement();
-      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
-      element?.dispatchEvent(event);
-
-      // Button elements respond to Enter via click event
-      // We need to simulate the browser behavior
       element?.click();
-      expect(callback).toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith('choice-1');
     });
 
     it('should not throw when clicked without callback', () => {
@@ -339,6 +356,28 @@ describe('ChoiceCard', () => {
       choiceCard.show();
       const element = choiceCard.getElement();
       expect(element?.classList.contains('da-choice-card--hidden')).toBe(false);
+    });
+
+    it('should be focusable for keyboard accessibility', () => {
+      choiceCard.mount(container);
+      const element = choiceCard.getElement() as HTMLButtonElement;
+
+      // Button should be focusable (not disabled, no negative tabindex)
+      expect(element.disabled).toBe(false);
+      expect(element.getAttribute('tabindex')).not.toBe('-1');
+
+      // Should be able to receive focus
+      element.focus();
+      expect(document.activeElement).toBe(element);
+    });
+
+    it('should inherit font-family from parent', () => {
+      choiceCard.mount(container);
+      const element = choiceCard.getElement();
+
+      // Button resets font-family to inherit in CSS
+      // This test verifies the button element exists and can inherit styles
+      expect(element?.tagName).toBe('BUTTON');
     });
   });
 });

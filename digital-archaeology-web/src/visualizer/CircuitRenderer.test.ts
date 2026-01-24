@@ -2,7 +2,11 @@
 // Unit tests for CircuitRenderer component (Story 6.1)
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CircuitRenderer, CircuitRendererState } from './CircuitRenderer';
+import { CircuitRenderer, CircuitLoadError } from './CircuitRenderer';
+import type { CircuitData } from './types';
+
+// Type declaration for global fetch mock in Node.js test environment
+declare const global: { fetch: typeof fetch };
 
 describe('CircuitRenderer', () => {
   let container: HTMLDivElement;
@@ -363,6 +367,177 @@ describe('CircuitRenderer', () => {
     it('should handle destroy when not mounted gracefully', () => {
       // Should not throw
       expect(() => renderer.destroy()).not.toThrow();
+    });
+  });
+
+  describe('updateState() with circuitData', () => {
+    const mockCircuitData: CircuitData = {
+      cycle: 5,
+      stable: true,
+      wires: [
+        {
+          id: 0,
+          name: 'gnd',
+          width: 1,
+          is_input: false,
+          is_output: false,
+          state: [0],
+        },
+        {
+          id: 1,
+          name: 'vdd',
+          width: 1,
+          is_input: false,
+          is_output: false,
+          state: [1],
+        },
+      ],
+      gates: [
+        {
+          id: 0,
+          name: 'AND1',
+          type: 'AND',
+          inputs: [
+            { wire: 0, bit: 0 },
+            { wire: 1, bit: 0 },
+          ],
+          outputs: [{ wire: 0, bit: 0 }],
+        },
+      ],
+    };
+
+    it('should create CircuitModel from circuitData', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitData });
+
+      const model = renderer.getCircuitModel();
+      expect(model).not.toBeNull();
+      expect(model?.gateCount).toBe(1);
+      expect(model?.wireCount).toBe(2);
+    });
+
+    it('should allow access to circuit data through model', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitData });
+
+      const model = renderer.getCircuitModel();
+      expect(model?.getWireByName('gnd')).toBeDefined();
+      expect(model?.getWireByName('vdd')).toBeDefined();
+      expect(model?.getGate(0)?.name).toBe('AND1');
+    });
+
+    it('should replace previous circuit model on new circuitData', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitData });
+
+      const firstModel = renderer.getCircuitModel();
+
+      const newData: CircuitData = {
+        cycle: 10,
+        stable: false,
+        wires: [],
+        gates: [],
+      };
+      renderer.updateState({ circuitData: newData });
+
+      const secondModel = renderer.getCircuitModel();
+      expect(secondModel).not.toBe(firstModel);
+      expect(secondModel?.cycle).toBe(10);
+      expect(secondModel?.isStable).toBe(false);
+    });
+  });
+
+  describe('getCircuitModel()', () => {
+    it('should return null when no circuit data loaded', () => {
+      renderer.mount(container);
+      expect(renderer.getCircuitModel()).toBeNull();
+    });
+
+    it('should return null before mount', () => {
+      expect(renderer.getCircuitModel()).toBeNull();
+    });
+  });
+
+  describe('loadCircuit()', () => {
+    const mockCircuitData: CircuitData = {
+      cycle: 0,
+      stable: true,
+      wires: [
+        {
+          id: 0,
+          name: 'test',
+          width: 1,
+          is_input: false,
+          is_output: false,
+          state: [0],
+        },
+      ],
+      gates: [],
+    };
+
+    it('should load circuit data and create model', async () => {
+      // Mock fetch
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockCircuitData),
+      });
+
+      renderer.mount(container);
+      await renderer.loadCircuit('/circuits/test.json');
+
+      const model = renderer.getCircuitModel();
+      expect(model).not.toBeNull();
+      expect(model?.wireCount).toBe(1);
+    });
+
+    it('should throw CircuitLoadError on fetch failure', async () => {
+      // Mock fetch to fail
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      renderer.mount(container);
+
+      await expect(renderer.loadCircuit('/circuits/missing.json')).rejects.toThrow(
+        CircuitLoadError
+      );
+    });
+
+    it('should trigger re-render after loading', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockCircuitData),
+      });
+
+      const onRenderComplete = vi.fn();
+      const testRenderer = new CircuitRenderer({ onRenderComplete });
+      testRenderer.mount(container);
+
+      // Clear initial render call
+      onRenderComplete.mockClear();
+
+      await testRenderer.loadCircuit('/circuits/test.json');
+
+      expect(onRenderComplete).toHaveBeenCalled();
+
+      testRenderer.destroy();
+    });
+
+    it('should work when not mounted (creates model but no render)', async () => {
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockCircuitData),
+      });
+
+      // Don't mount the renderer
+      await renderer.loadCircuit('/circuits/test.json');
+
+      // Model should still be created
+      const model = renderer.getCircuitModel();
+      expect(model).not.toBeNull();
+      expect(model?.wireCount).toBe(1);
     });
   });
 

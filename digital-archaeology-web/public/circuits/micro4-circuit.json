@@ -1,0 +1,2309 @@
+{
+  "cycle": 0,
+  "stable": true,
+  "wires": [
+    {
+      "id": 0,
+      "name": "gnd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 1,
+      "name": "vdd",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 2,
+      "name": "pc",
+      "width": 8,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "id": 3,
+      "name": "pc_next",
+      "width": 8,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2, 2, 2, 2, 2]
+    },
+    {
+      "id": 4,
+      "name": "pc_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 5,
+      "name": "pc_inc",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 6,
+      "name": "pc_inc2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 7,
+      "name": "clk",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 8,
+      "name": "rst",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 9,
+      "name": "acc",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0]
+    },
+    {
+      "id": 10,
+      "name": "acc_next",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 11,
+      "name": "acc_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 12,
+      "name": "z_flag",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 13,
+      "name": "z_flag_next",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 14,
+      "name": "z_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 15,
+      "name": "ir",
+      "width": 8,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0, 2, 2, 2, 2]
+    },
+    {
+      "id": 16,
+      "name": "ir_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 17,
+      "name": "mar",
+      "width": 8,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "id": 18,
+      "name": "mar_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 19,
+      "name": "mdr",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 20,
+      "name": "mdr_load",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 21,
+      "name": "opcode",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 22,
+      "name": "is_hlt",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 23,
+      "name": "is_lda",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 24,
+      "name": "is_sta",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 25,
+      "name": "is_add",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 26,
+      "name": "is_sub",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 27,
+      "name": "is_jmp",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 28,
+      "name": "is_jz",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 29,
+      "name": "is_ldi",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 30,
+      "name": "op0n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 31,
+      "name": "op1n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 32,
+      "name": "op2n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 33,
+      "name": "op3n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 34,
+      "name": "hlt_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 35,
+      "name": "hlt_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 36,
+      "name": "lda_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 37,
+      "name": "sta_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 38,
+      "name": "sta_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 39,
+      "name": "add_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 40,
+      "name": "sub_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 41,
+      "name": "sub_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 42,
+      "name": "jmp_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 43,
+      "name": "jz_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 44,
+      "name": "ldi_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 45,
+      "name": "alu_a_in",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0]
+    },
+    {
+      "id": 46,
+      "name": "alu_b_in",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 47,
+      "name": "alu_op0",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 48,
+      "name": "alu_result",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 49,
+      "name": "alu_zero",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 50,
+      "name": "alu_carry",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 51,
+      "name": "state",
+      "width": 3,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0]
+    },
+    {
+      "id": 52,
+      "name": "state_next",
+      "width": 3,
+      "is_input": false,
+      "is_output": false,
+      "state": [1, 0, 0]
+    },
+    {
+      "id": 53,
+      "name": "halt",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 54,
+      "name": "mem_read",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 55,
+      "name": "mem_write",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 56,
+      "name": "alu_to_acc",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 57,
+      "name": "mdr_to_acc",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 58,
+      "name": "imm_to_acc",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 59,
+      "name": "mem_addr",
+      "width": 8,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "id": 60,
+      "name": "mem_data_in",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 61,
+      "name": "mem_data_out",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [0, 0, 0, 0]
+    },
+    {
+      "id": 62,
+      "name": "and_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 63,
+      "name": "is_and",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 64,
+      "name": "is_or",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 65,
+      "name": "or_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 66,
+      "name": "is_xor",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 67,
+      "name": "xor_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 68,
+      "name": "is_not",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 69,
+      "name": "not_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 70,
+      "name": "is_shl",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 71,
+      "name": "shl_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 72,
+      "name": "is_shr",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 73,
+      "name": "shr_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 74,
+      "name": "is_inc",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 75,
+      "name": "inc_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 76,
+      "name": "is_dec",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 77,
+      "name": "dec_t",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 78,
+      "name": "is_single_byte",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 79,
+      "name": "single_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 80,
+      "name": "single_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 81,
+      "name": "single_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 82,
+      "name": "single_t4",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 83,
+      "name": "single_t5",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 84,
+      "name": "is_mem_read_op",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 85,
+      "name": "mem_rd_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 86,
+      "name": "mem_rd_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 87,
+      "name": "mem_rd_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 88,
+      "name": "mem_rd_t4",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 89,
+      "name": "is_alu_op",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 90,
+      "name": "alu_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 91,
+      "name": "alu_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 92,
+      "name": "alu_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 93,
+      "name": "alu_t4",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 94,
+      "name": "alu_t5",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 95,
+      "name": "alu_t6",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 96,
+      "name": "alu_t7",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 97,
+      "name": "alu_t8",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 98,
+      "name": "is_jump_op",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 99,
+      "name": "s0",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 100,
+      "name": "s1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 101,
+      "name": "s2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 102,
+      "name": "sn0",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 103,
+      "name": "sn1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 104,
+      "name": "sn2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 105,
+      "name": "is_s0",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 106,
+      "name": "is_s1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 107,
+      "name": "is_s2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 108,
+      "name": "is_s3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 109,
+      "name": "is_s4",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 110,
+      "name": "st_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 111,
+      "name": "st_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 112,
+      "name": "st_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 113,
+      "name": "ns0_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 114,
+      "name": "ns0_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 115,
+      "name": "is_jump_n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 116,
+      "name": "ns2_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 117,
+      "name": "ns2_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 118,
+      "name": "ns2_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 119,
+      "name": "ns1_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 120,
+      "name": "ns1_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 121,
+      "name": "is_single_n",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 122,
+      "name": "mr_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 123,
+      "name": "mr_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 124,
+      "name": "pc_ld_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 125,
+      "name": "pc_ld_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 126,
+      "name": "pc_ld_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [0]
+    },
+    {
+      "id": 127,
+      "name": "mar_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [1]
+    },
+    {
+      "id": 128,
+      "name": "acc_ld_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 129,
+      "name": "acc_ld_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 130,
+      "name": "alu_op",
+      "width": 4,
+      "is_input": false,
+      "is_output": false,
+      "state": [2, 2, 2, 2]
+    },
+    {
+      "id": 131,
+      "name": "aluop0_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 132,
+      "name": "aluop0_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 133,
+      "name": "aluop0_t3",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 134,
+      "name": "aluop1_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 135,
+      "name": "aluop1_t2",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 136,
+      "name": "aluop2_t1",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    },
+    {
+      "id": 137,
+      "name": "mar_next",
+      "width": 1,
+      "is_input": false,
+      "is_output": false,
+      "state": [2]
+    }
+  ],
+  "gates": [
+    {
+      "id": 0,
+      "name": "DEC_OP0",
+      "type": "BUF",
+      "inputs": [{"wire": 15, "bit": 4}],
+      "outputs": [{"wire": 21, "bit": 0}]
+    },
+    {
+      "id": 1,
+      "name": "DEC_OP1",
+      "type": "BUF",
+      "inputs": [{"wire": 15, "bit": 5}],
+      "outputs": [{"wire": 21, "bit": 1}]
+    },
+    {
+      "id": 2,
+      "name": "DEC_OP2",
+      "type": "BUF",
+      "inputs": [{"wire": 15, "bit": 6}],
+      "outputs": [{"wire": 21, "bit": 2}]
+    },
+    {
+      "id": 3,
+      "name": "DEC_OP3",
+      "type": "BUF",
+      "inputs": [{"wire": 15, "bit": 7}],
+      "outputs": [{"wire": 21, "bit": 3}]
+    },
+    {
+      "id": 4,
+      "name": "DEC_NOT0",
+      "type": "NOT",
+      "inputs": [{"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 30, "bit": 0}]
+    },
+    {
+      "id": 5,
+      "name": "DEC_NOT1",
+      "type": "NOT",
+      "inputs": [{"wire": 21, "bit": 1}],
+      "outputs": [{"wire": 31, "bit": 0}]
+    },
+    {
+      "id": 6,
+      "name": "DEC_NOT2",
+      "type": "NOT",
+      "inputs": [{"wire": 21, "bit": 2}],
+      "outputs": [{"wire": 32, "bit": 0}]
+    },
+    {
+      "id": 7,
+      "name": "DEC_NOT3",
+      "type": "NOT",
+      "inputs": [{"wire": 21, "bit": 3}],
+      "outputs": [{"wire": 33, "bit": 0}]
+    },
+    {
+      "id": 8,
+      "name": "DEC_HLT1",
+      "type": "AND",
+      "inputs": [{"wire": 33, "bit": 0}, {"wire": 32, "bit": 0}],
+      "outputs": [{"wire": 34, "bit": 0}]
+    },
+    {
+      "id": 9,
+      "name": "DEC_HLT2",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 35, "bit": 0}]
+    },
+    {
+      "id": 10,
+      "name": "DEC_HLT3",
+      "type": "AND",
+      "inputs": [{"wire": 34, "bit": 0}, {"wire": 35, "bit": 0}],
+      "outputs": [{"wire": 22, "bit": 0}]
+    },
+    {
+      "id": 11,
+      "name": "DEC_LDA1",
+      "type": "AND",
+      "inputs": [{"wire": 34, "bit": 0}, {"wire": 31, "bit": 0}],
+      "outputs": [{"wire": 36, "bit": 0}]
+    },
+    {
+      "id": 12,
+      "name": "DEC_LDA2",
+      "type": "AND",
+      "inputs": [{"wire": 36, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 23, "bit": 0}]
+    },
+    {
+      "id": 13,
+      "name": "DEC_STA1",
+      "type": "AND",
+      "inputs": [{"wire": 33, "bit": 0}, {"wire": 32, "bit": 0}],
+      "outputs": [{"wire": 37, "bit": 0}]
+    },
+    {
+      "id": 14,
+      "name": "DEC_STA2",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 38, "bit": 0}]
+    },
+    {
+      "id": 15,
+      "name": "DEC_STA3",
+      "type": "AND",
+      "inputs": [{"wire": 37, "bit": 0}, {"wire": 38, "bit": 0}],
+      "outputs": [{"wire": 24, "bit": 0}]
+    },
+    {
+      "id": 16,
+      "name": "DEC_ADD1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 39, "bit": 0}]
+    },
+    {
+      "id": 17,
+      "name": "DEC_ADD2",
+      "type": "AND",
+      "inputs": [{"wire": 37, "bit": 0}, {"wire": 39, "bit": 0}],
+      "outputs": [{"wire": 25, "bit": 0}]
+    },
+    {
+      "id": 18,
+      "name": "DEC_SUB1",
+      "type": "AND",
+      "inputs": [{"wire": 33, "bit": 0}, {"wire": 21, "bit": 2}],
+      "outputs": [{"wire": 40, "bit": 0}]
+    },
+    {
+      "id": 19,
+      "name": "DEC_SUB2",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 41, "bit": 0}]
+    },
+    {
+      "id": 20,
+      "name": "DEC_SUB3",
+      "type": "AND",
+      "inputs": [{"wire": 40, "bit": 0}, {"wire": 41, "bit": 0}],
+      "outputs": [{"wire": 26, "bit": 0}]
+    },
+    {
+      "id": 21,
+      "name": "DEC_JMP1",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 42, "bit": 0}]
+    },
+    {
+      "id": 22,
+      "name": "DEC_JMP2",
+      "type": "AND",
+      "inputs": [{"wire": 40, "bit": 0}, {"wire": 42, "bit": 0}],
+      "outputs": [{"wire": 27, "bit": 0}]
+    },
+    {
+      "id": 23,
+      "name": "DEC_JZ1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 43, "bit": 0}]
+    },
+    {
+      "id": 24,
+      "name": "DEC_JZ2",
+      "type": "AND",
+      "inputs": [{"wire": 40, "bit": 0}, {"wire": 43, "bit": 0}],
+      "outputs": [{"wire": 28, "bit": 0}]
+    },
+    {
+      "id": 25,
+      "name": "DEC_LDI1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 44, "bit": 0}]
+    },
+    {
+      "id": 26,
+      "name": "DEC_LDI2",
+      "type": "AND",
+      "inputs": [{"wire": 40, "bit": 0}, {"wire": 44, "bit": 0}],
+      "outputs": [{"wire": 29, "bit": 0}]
+    },
+    {
+      "id": 27,
+      "name": "ALU_A0",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 0}],
+      "outputs": [{"wire": 45, "bit": 0}]
+    },
+    {
+      "id": 28,
+      "name": "ALU_A1",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 1}],
+      "outputs": [{"wire": 45, "bit": 1}]
+    },
+    {
+      "id": 29,
+      "name": "ALU_A2",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 2}],
+      "outputs": [{"wire": 45, "bit": 2}]
+    },
+    {
+      "id": 30,
+      "name": "ALU_A3",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 3}],
+      "outputs": [{"wire": 45, "bit": 3}]
+    },
+    {
+      "id": 31,
+      "name": "ALU_B0",
+      "type": "BUF",
+      "inputs": [{"wire": 19, "bit": 0}],
+      "outputs": [{"wire": 46, "bit": 0}]
+    },
+    {
+      "id": 32,
+      "name": "ALU_B1",
+      "type": "BUF",
+      "inputs": [{"wire": 19, "bit": 1}],
+      "outputs": [{"wire": 46, "bit": 1}]
+    },
+    {
+      "id": 33,
+      "name": "ALU_B2",
+      "type": "BUF",
+      "inputs": [{"wire": 19, "bit": 2}],
+      "outputs": [{"wire": 46, "bit": 2}]
+    },
+    {
+      "id": 34,
+      "name": "ALU_B3",
+      "type": "BUF",
+      "inputs": [{"wire": 19, "bit": 3}],
+      "outputs": [{"wire": 46, "bit": 3}]
+    },
+    {
+      "id": 35,
+      "name": "ALU_OP",
+      "type": "BUF",
+      "inputs": [{"wire": 26, "bit": 0}],
+      "outputs": [{"wire": 47, "bit": 0}]
+    },
+    {
+      "id": 36,
+      "name": "STATE0",
+      "type": "DFF",
+      "inputs": [{"wire": 52, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 51, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 37,
+      "name": "STATE1",
+      "type": "DFF",
+      "inputs": [{"wire": 52, "bit": 1}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 51, "bit": 1}],
+      "stored": 0
+    },
+    {
+      "id": 38,
+      "name": "STATE2",
+      "type": "DFF",
+      "inputs": [{"wire": 52, "bit": 2}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 51, "bit": 2}],
+      "stored": 0
+    },
+    {
+      "id": 39,
+      "name": "MEM_ADDR0",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 0}],
+      "outputs": [{"wire": 59, "bit": 0}]
+    },
+    {
+      "id": 40,
+      "name": "MEM_ADDR1",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 1}],
+      "outputs": [{"wire": 59, "bit": 1}]
+    },
+    {
+      "id": 41,
+      "name": "MEM_ADDR2",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 2}],
+      "outputs": [{"wire": 59, "bit": 2}]
+    },
+    {
+      "id": 42,
+      "name": "MEM_ADDR3",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 3}],
+      "outputs": [{"wire": 59, "bit": 3}]
+    },
+    {
+      "id": 43,
+      "name": "MEM_ADDR4",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 4}],
+      "outputs": [{"wire": 59, "bit": 4}]
+    },
+    {
+      "id": 44,
+      "name": "MEM_ADDR5",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 5}],
+      "outputs": [{"wire": 59, "bit": 5}]
+    },
+    {
+      "id": 45,
+      "name": "MEM_ADDR6",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 6}],
+      "outputs": [{"wire": 59, "bit": 6}]
+    },
+    {
+      "id": 46,
+      "name": "MEM_ADDR7",
+      "type": "BUF",
+      "inputs": [{"wire": 17, "bit": 7}],
+      "outputs": [{"wire": 59, "bit": 7}]
+    },
+    {
+      "id": 47,
+      "name": "MEM_DOUT0",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 0}],
+      "outputs": [{"wire": 61, "bit": 0}]
+    },
+    {
+      "id": 48,
+      "name": "MEM_DOUT1",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 1}],
+      "outputs": [{"wire": 61, "bit": 1}]
+    },
+    {
+      "id": 49,
+      "name": "MEM_DOUT2",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 2}],
+      "outputs": [{"wire": 61, "bit": 2}]
+    },
+    {
+      "id": 50,
+      "name": "MEM_DOUT3",
+      "type": "BUF",
+      "inputs": [{"wire": 9, "bit": 3}],
+      "outputs": [{"wire": 61, "bit": 3}]
+    },
+    {
+      "id": 51,
+      "name": "DEC_AND1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 3}, {"wire": 32, "bit": 0}],
+      "outputs": [{"wire": 62, "bit": 0}]
+    },
+    {
+      "id": 52,
+      "name": "DEC_AND2",
+      "type": "AND",
+      "inputs": [{"wire": 62, "bit": 0}, {"wire": 35, "bit": 0}],
+      "outputs": [{"wire": 63, "bit": 0}]
+    },
+    {
+      "id": 53,
+      "name": "DEC_OR1",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 65, "bit": 0}]
+    },
+    {
+      "id": 54,
+      "name": "DEC_OR2",
+      "type": "AND",
+      "inputs": [{"wire": 62, "bit": 0}, {"wire": 65, "bit": 0}],
+      "outputs": [{"wire": 64, "bit": 0}]
+    },
+    {
+      "id": 55,
+      "name": "DEC_XOR1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 67, "bit": 0}]
+    },
+    {
+      "id": 56,
+      "name": "DEC_XOR2",
+      "type": "AND",
+      "inputs": [{"wire": 62, "bit": 0}, {"wire": 67, "bit": 0}],
+      "outputs": [{"wire": 66, "bit": 0}]
+    },
+    {
+      "id": 57,
+      "name": "DEC_NOT2",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 69, "bit": 0}]
+    },
+    {
+      "id": 58,
+      "name": "DEC_NOT3",
+      "type": "AND",
+      "inputs": [{"wire": 62, "bit": 0}, {"wire": 69, "bit": 0}],
+      "outputs": [{"wire": 68, "bit": 0}]
+    },
+    {
+      "id": 59,
+      "name": "DEC_SHL1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 3}, {"wire": 21, "bit": 2}],
+      "outputs": [{"wire": 71, "bit": 0}]
+    },
+    {
+      "id": 60,
+      "name": "DEC_SHL2",
+      "type": "AND",
+      "inputs": [{"wire": 71, "bit": 0}, {"wire": 35, "bit": 0}],
+      "outputs": [{"wire": 70, "bit": 0}]
+    },
+    {
+      "id": 61,
+      "name": "DEC_SHR1",
+      "type": "AND",
+      "inputs": [{"wire": 31, "bit": 0}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 73, "bit": 0}]
+    },
+    {
+      "id": 62,
+      "name": "DEC_SHR2",
+      "type": "AND",
+      "inputs": [{"wire": 71, "bit": 0}, {"wire": 73, "bit": 0}],
+      "outputs": [{"wire": 72, "bit": 0}]
+    },
+    {
+      "id": 63,
+      "name": "DEC_INC1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 30, "bit": 0}],
+      "outputs": [{"wire": 75, "bit": 0}]
+    },
+    {
+      "id": 64,
+      "name": "DEC_INC2",
+      "type": "AND",
+      "inputs": [{"wire": 71, "bit": 0}, {"wire": 75, "bit": 0}],
+      "outputs": [{"wire": 74, "bit": 0}]
+    },
+    {
+      "id": 65,
+      "name": "DEC_DEC1",
+      "type": "AND",
+      "inputs": [{"wire": 21, "bit": 1}, {"wire": 21, "bit": 0}],
+      "outputs": [{"wire": 77, "bit": 0}]
+    },
+    {
+      "id": 66,
+      "name": "DEC_DEC2",
+      "type": "AND",
+      "inputs": [{"wire": 71, "bit": 0}, {"wire": 77, "bit": 0}],
+      "outputs": [{"wire": 76, "bit": 0}]
+    },
+    {
+      "id": 67,
+      "name": "CAT_SB1",
+      "type": "OR",
+      "inputs": [{"wire": 22, "bit": 0}, {"wire": 29, "bit": 0}],
+      "outputs": [{"wire": 79, "bit": 0}]
+    },
+    {
+      "id": 68,
+      "name": "CAT_SB2",
+      "type": "OR",
+      "inputs": [{"wire": 68, "bit": 0}, {"wire": 70, "bit": 0}],
+      "outputs": [{"wire": 80, "bit": 0}]
+    },
+    {
+      "id": 69,
+      "name": "CAT_SB3",
+      "type": "OR",
+      "inputs": [{"wire": 72, "bit": 0}, {"wire": 74, "bit": 0}],
+      "outputs": [{"wire": 81, "bit": 0}]
+    },
+    {
+      "id": 70,
+      "name": "CAT_SB4",
+      "type": "OR",
+      "inputs": [{"wire": 79, "bit": 0}, {"wire": 80, "bit": 0}],
+      "outputs": [{"wire": 82, "bit": 0}]
+    },
+    {
+      "id": 71,
+      "name": "CAT_SB5",
+      "type": "OR",
+      "inputs": [{"wire": 81, "bit": 0}, {"wire": 76, "bit": 0}],
+      "outputs": [{"wire": 83, "bit": 0}]
+    },
+    {
+      "id": 72,
+      "name": "CAT_SB6",
+      "type": "OR",
+      "inputs": [{"wire": 82, "bit": 0}, {"wire": 83, "bit": 0}],
+      "outputs": [{"wire": 78, "bit": 0}]
+    },
+    {
+      "id": 73,
+      "name": "CAT_MR1",
+      "type": "OR",
+      "inputs": [{"wire": 23, "bit": 0}, {"wire": 25, "bit": 0}],
+      "outputs": [{"wire": 85, "bit": 0}]
+    },
+    {
+      "id": 74,
+      "name": "CAT_MR2",
+      "type": "OR",
+      "inputs": [{"wire": 26, "bit": 0}, {"wire": 63, "bit": 0}],
+      "outputs": [{"wire": 86, "bit": 0}]
+    },
+    {
+      "id": 75,
+      "name": "CAT_MR3",
+      "type": "OR",
+      "inputs": [{"wire": 64, "bit": 0}, {"wire": 66, "bit": 0}],
+      "outputs": [{"wire": 87, "bit": 0}]
+    },
+    {
+      "id": 76,
+      "name": "CAT_MR4",
+      "type": "OR",
+      "inputs": [{"wire": 85, "bit": 0}, {"wire": 86, "bit": 0}],
+      "outputs": [{"wire": 88, "bit": 0}]
+    },
+    {
+      "id": 77,
+      "name": "CAT_MR5",
+      "type": "OR",
+      "inputs": [{"wire": 88, "bit": 0}, {"wire": 87, "bit": 0}],
+      "outputs": [{"wire": 84, "bit": 0}]
+    },
+    {
+      "id": 78,
+      "name": "CAT_ALU1",
+      "type": "OR",
+      "inputs": [{"wire": 25, "bit": 0}, {"wire": 26, "bit": 0}],
+      "outputs": [{"wire": 90, "bit": 0}]
+    },
+    {
+      "id": 79,
+      "name": "CAT_ALU2",
+      "type": "OR",
+      "inputs": [{"wire": 63, "bit": 0}, {"wire": 64, "bit": 0}],
+      "outputs": [{"wire": 91, "bit": 0}]
+    },
+    {
+      "id": 80,
+      "name": "CAT_ALU3",
+      "type": "OR",
+      "inputs": [{"wire": 66, "bit": 0}, {"wire": 68, "bit": 0}],
+      "outputs": [{"wire": 92, "bit": 0}]
+    },
+    {
+      "id": 81,
+      "name": "CAT_ALU4",
+      "type": "OR",
+      "inputs": [{"wire": 70, "bit": 0}, {"wire": 72, "bit": 0}],
+      "outputs": [{"wire": 93, "bit": 0}]
+    },
+    {
+      "id": 82,
+      "name": "CAT_ALU5",
+      "type": "OR",
+      "inputs": [{"wire": 74, "bit": 0}, {"wire": 76, "bit": 0}],
+      "outputs": [{"wire": 94, "bit": 0}]
+    },
+    {
+      "id": 83,
+      "name": "CAT_ALU6",
+      "type": "OR",
+      "inputs": [{"wire": 90, "bit": 0}, {"wire": 91, "bit": 0}],
+      "outputs": [{"wire": 95, "bit": 0}]
+    },
+    {
+      "id": 84,
+      "name": "CAT_ALU7",
+      "type": "OR",
+      "inputs": [{"wire": 92, "bit": 0}, {"wire": 93, "bit": 0}],
+      "outputs": [{"wire": 96, "bit": 0}]
+    },
+    {
+      "id": 85,
+      "name": "CAT_ALU8",
+      "type": "OR",
+      "inputs": [{"wire": 95, "bit": 0}, {"wire": 96, "bit": 0}],
+      "outputs": [{"wire": 97, "bit": 0}]
+    },
+    {
+      "id": 86,
+      "name": "CAT_ALU9",
+      "type": "OR",
+      "inputs": [{"wire": 97, "bit": 0}, {"wire": 94, "bit": 0}],
+      "outputs": [{"wire": 89, "bit": 0}]
+    },
+    {
+      "id": 87,
+      "name": "CAT_JMP",
+      "type": "OR",
+      "inputs": [{"wire": 27, "bit": 0}, {"wire": 28, "bit": 0}],
+      "outputs": [{"wire": 98, "bit": 0}]
+    },
+    {
+      "id": 88,
+      "name": "STATE_N0",
+      "type": "NOT",
+      "inputs": [{"wire": 51, "bit": 0}],
+      "outputs": [{"wire": 102, "bit": 0}]
+    },
+    {
+      "id": 89,
+      "name": "STATE_N1",
+      "type": "NOT",
+      "inputs": [{"wire": 51, "bit": 1}],
+      "outputs": [{"wire": 103, "bit": 0}]
+    },
+    {
+      "id": 90,
+      "name": "STATE_N2",
+      "type": "NOT",
+      "inputs": [{"wire": 51, "bit": 2}],
+      "outputs": [{"wire": 104, "bit": 0}]
+    },
+    {
+      "id": 91,
+      "name": "STATE_IS0_1",
+      "type": "AND",
+      "inputs": [{"wire": 104, "bit": 0}, {"wire": 103, "bit": 0}],
+      "outputs": [{"wire": 110, "bit": 0}]
+    },
+    {
+      "id": 92,
+      "name": "STATE_IS0_2",
+      "type": "AND",
+      "inputs": [{"wire": 110, "bit": 0}, {"wire": 102, "bit": 0}],
+      "outputs": [{"wire": 105, "bit": 0}]
+    },
+    {
+      "id": 93,
+      "name": "STATE_IS1",
+      "type": "AND",
+      "inputs": [{"wire": 110, "bit": 0}, {"wire": 51, "bit": 0}],
+      "outputs": [{"wire": 106, "bit": 0}]
+    },
+    {
+      "id": 94,
+      "name": "STATE_IS2_1",
+      "type": "AND",
+      "inputs": [{"wire": 104, "bit": 0}, {"wire": 51, "bit": 1}],
+      "outputs": [{"wire": 111, "bit": 0}]
+    },
+    {
+      "id": 95,
+      "name": "STATE_IS2_2",
+      "type": "AND",
+      "inputs": [{"wire": 111, "bit": 0}, {"wire": 102, "bit": 0}],
+      "outputs": [{"wire": 107, "bit": 0}]
+    },
+    {
+      "id": 96,
+      "name": "STATE_IS3",
+      "type": "AND",
+      "inputs": [{"wire": 111, "bit": 0}, {"wire": 51, "bit": 0}],
+      "outputs": [{"wire": 108, "bit": 0}]
+    },
+    {
+      "id": 97,
+      "name": "STATE_IS4_1",
+      "type": "AND",
+      "inputs": [{"wire": 51, "bit": 2}, {"wire": 103, "bit": 0}],
+      "outputs": [{"wire": 112, "bit": 0}]
+    },
+    {
+      "id": 98,
+      "name": "STATE_IS4_2",
+      "type": "AND",
+      "inputs": [{"wire": 112, "bit": 0}, {"wire": 102, "bit": 0}],
+      "outputs": [{"wire": 109, "bit": 0}]
+    },
+    {
+      "id": 99,
+      "name": "NS0_NOT",
+      "type": "NOT",
+      "inputs": [{"wire": 98, "bit": 0}],
+      "outputs": [{"wire": 115, "bit": 0}]
+    },
+    {
+      "id": 100,
+      "name": "NS0_AND",
+      "type": "AND",
+      "inputs": [{"wire": 107, "bit": 0}, {"wire": 115, "bit": 0}],
+      "outputs": [{"wire": 113, "bit": 0}]
+    },
+    {
+      "id": 101,
+      "name": "NS0_OR",
+      "type": "OR",
+      "inputs": [{"wire": 105, "bit": 0}, {"wire": 113, "bit": 0}],
+      "outputs": [{"wire": 114, "bit": 0}]
+    },
+    {
+      "id": 102,
+      "name": "NS2_T1",
+      "type": "AND",
+      "inputs": [{"wire": 106, "bit": 0}, {"wire": 78, "bit": 0}],
+      "outputs": [{"wire": 116, "bit": 0}]
+    },
+    {
+      "id": 103,
+      "name": "NS2_T2",
+      "type": "AND",
+      "inputs": [{"wire": 107, "bit": 0}, {"wire": 98, "bit": 0}],
+      "outputs": [{"wire": 117, "bit": 0}]
+    },
+    {
+      "id": 104,
+      "name": "NS2_OR1",
+      "type": "OR",
+      "inputs": [{"wire": 116, "bit": 0}, {"wire": 117, "bit": 0}],
+      "outputs": [{"wire": 118, "bit": 0}]
+    },
+    {
+      "id": 105,
+      "name": "NS2_OR2",
+      "type": "OR",
+      "inputs": [{"wire": 118, "bit": 0}, {"wire": 108, "bit": 0}],
+      "outputs": [{"wire": 52, "bit": 2}]
+    },
+    {
+      "id": 106,
+      "name": "NS1_NOT",
+      "type": "NOT",
+      "inputs": [{"wire": 78, "bit": 0}],
+      "outputs": [{"wire": 121, "bit": 0}]
+    },
+    {
+      "id": 107,
+      "name": "NS1_T1",
+      "type": "AND",
+      "inputs": [{"wire": 106, "bit": 0}, {"wire": 121, "bit": 0}],
+      "outputs": [{"wire": 119, "bit": 0}]
+    },
+    {
+      "id": 108,
+      "name": "NS1_T2",
+      "type": "AND",
+      "inputs": [{"wire": 107, "bit": 0}, {"wire": 115, "bit": 0}],
+      "outputs": [{"wire": 120, "bit": 0}]
+    },
+    {
+      "id": 109,
+      "name": "NS1_OR",
+      "type": "OR",
+      "inputs": [{"wire": 119, "bit": 0}, {"wire": 120, "bit": 0}],
+      "outputs": [{"wire": 52, "bit": 1}]
+    },
+    {
+      "id": 110,
+      "name": "NS0_FINAL",
+      "type": "OR",
+      "inputs": [{"wire": 105, "bit": 0}, {"wire": 120, "bit": 0}],
+      "outputs": [{"wire": 52, "bit": 0}]
+    },
+    {
+      "id": 111,
+      "name": "CTRL_HALT",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 22, "bit": 0}],
+      "outputs": [{"wire": 53, "bit": 0}]
+    },
+    {
+      "id": 112,
+      "name": "CTRL_MR1",
+      "type": "AND",
+      "inputs": [{"wire": 108, "bit": 0}, {"wire": 84, "bit": 0}],
+      "outputs": [{"wire": 122, "bit": 0}]
+    },
+    {
+      "id": 113,
+      "name": "CTRL_MR2",
+      "type": "OR",
+      "inputs": [{"wire": 105, "bit": 0}, {"wire": 107, "bit": 0}],
+      "outputs": [{"wire": 123, "bit": 0}]
+    },
+    {
+      "id": 114,
+      "name": "CTRL_MR3",
+      "type": "OR",
+      "inputs": [{"wire": 123, "bit": 0}, {"wire": 122, "bit": 0}],
+      "outputs": [{"wire": 54, "bit": 0}]
+    },
+    {
+      "id": 115,
+      "name": "CTRL_MW",
+      "type": "AND",
+      "inputs": [{"wire": 108, "bit": 0}, {"wire": 24, "bit": 0}],
+      "outputs": [{"wire": 55, "bit": 0}]
+    },
+    {
+      "id": 116,
+      "name": "CTRL_PCINC",
+      "type": "OR",
+      "inputs": [{"wire": 105, "bit": 0}, {"wire": 107, "bit": 0}],
+      "outputs": [{"wire": 5, "bit": 0}]
+    },
+    {
+      "id": 117,
+      "name": "CTRL_PCLD1",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 27, "bit": 0}],
+      "outputs": [{"wire": 124, "bit": 0}]
+    },
+    {
+      "id": 118,
+      "name": "CTRL_PCLD2",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 28, "bit": 0}],
+      "outputs": [{"wire": 125, "bit": 0}]
+    },
+    {
+      "id": 119,
+      "name": "CTRL_PCLD3",
+      "type": "AND",
+      "inputs": [{"wire": 125, "bit": 0}, {"wire": 12, "bit": 0}],
+      "outputs": [{"wire": 126, "bit": 0}]
+    },
+    {
+      "id": 120,
+      "name": "CTRL_PCLD4",
+      "type": "OR",
+      "inputs": [{"wire": 124, "bit": 0}, {"wire": 126, "bit": 0}],
+      "outputs": [{"wire": 4, "bit": 0}]
+    },
+    {
+      "id": 121,
+      "name": "CTRL_IRLD",
+      "type": "BUF",
+      "inputs": [{"wire": 105, "bit": 0}],
+      "outputs": [{"wire": 16, "bit": 0}]
+    },
+    {
+      "id": 122,
+      "name": "CTRL_MARLD1",
+      "type": "OR",
+      "inputs": [{"wire": 105, "bit": 0}, {"wire": 107, "bit": 0}],
+      "outputs": [{"wire": 127, "bit": 0}]
+    },
+    {
+      "id": 123,
+      "name": "CTRL_MARLD2",
+      "type": "OR",
+      "inputs": [{"wire": 127, "bit": 0}, {"wire": 108, "bit": 0}],
+      "outputs": [{"wire": 18, "bit": 0}]
+    },
+    {
+      "id": 124,
+      "name": "CTRL_ACCLD1",
+      "type": "OR",
+      "inputs": [{"wire": 23, "bit": 0}, {"wire": 29, "bit": 0}],
+      "outputs": [{"wire": 128, "bit": 0}]
+    },
+    {
+      "id": 125,
+      "name": "CTRL_ACCLD2",
+      "type": "OR",
+      "inputs": [{"wire": 128, "bit": 0}, {"wire": 89, "bit": 0}],
+      "outputs": [{"wire": 129, "bit": 0}]
+    },
+    {
+      "id": 126,
+      "name": "CTRL_ACCLD3",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 129, "bit": 0}],
+      "outputs": [{"wire": 11, "bit": 0}]
+    },
+    {
+      "id": 127,
+      "name": "CTRL_ZLD",
+      "type": "BUF",
+      "inputs": [{"wire": 11, "bit": 0}],
+      "outputs": [{"wire": 14, "bit": 0}]
+    },
+    {
+      "id": 128,
+      "name": "CTRL_ALU2ACC",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 89, "bit": 0}],
+      "outputs": [{"wire": 56, "bit": 0}]
+    },
+    {
+      "id": 129,
+      "name": "CTRL_MDR2ACC",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 23, "bit": 0}],
+      "outputs": [{"wire": 57, "bit": 0}]
+    },
+    {
+      "id": 130,
+      "name": "CTRL_IMM2ACC",
+      "type": "AND",
+      "inputs": [{"wire": 109, "bit": 0}, {"wire": 29, "bit": 0}],
+      "outputs": [{"wire": 58, "bit": 0}]
+    },
+    {
+      "id": 131,
+      "name": "CTRL_MDRLD",
+      "type": "AND",
+      "inputs": [{"wire": 108, "bit": 0}, {"wire": 84, "bit": 0}],
+      "outputs": [{"wire": 20, "bit": 0}]
+    },
+    {
+      "id": 132,
+      "name": "ALUOP0_1",
+      "type": "OR",
+      "inputs": [{"wire": 26, "bit": 0}, {"wire": 64, "bit": 0}],
+      "outputs": [{"wire": 131, "bit": 0}]
+    },
+    {
+      "id": 133,
+      "name": "ALUOP0_2",
+      "type": "OR",
+      "inputs": [{"wire": 68, "bit": 0}, {"wire": 72, "bit": 0}],
+      "outputs": [{"wire": 132, "bit": 0}]
+    },
+    {
+      "id": 134,
+      "name": "ALUOP0_3",
+      "type": "OR",
+      "inputs": [{"wire": 131, "bit": 0}, {"wire": 132, "bit": 0}],
+      "outputs": [{"wire": 133, "bit": 0}]
+    },
+    {
+      "id": 135,
+      "name": "ALUOP0_4",
+      "type": "OR",
+      "inputs": [{"wire": 133, "bit": 0}, {"wire": 76, "bit": 0}],
+      "outputs": [{"wire": 130, "bit": 0}]
+    },
+    {
+      "id": 136,
+      "name": "ALUOP1_1",
+      "type": "OR",
+      "inputs": [{"wire": 63, "bit": 0}, {"wire": 64, "bit": 0}],
+      "outputs": [{"wire": 134, "bit": 0}]
+    },
+    {
+      "id": 137,
+      "name": "ALUOP1_2",
+      "type": "OR",
+      "inputs": [{"wire": 70, "bit": 0}, {"wire": 72, "bit": 0}],
+      "outputs": [{"wire": 135, "bit": 0}]
+    },
+    {
+      "id": 138,
+      "name": "ALUOP1_3",
+      "type": "OR",
+      "inputs": [{"wire": 134, "bit": 0}, {"wire": 135, "bit": 0}],
+      "outputs": [{"wire": 130, "bit": 1}]
+    },
+    {
+      "id": 139,
+      "name": "ALUOP2_1",
+      "type": "OR",
+      "inputs": [{"wire": 66, "bit": 0}, {"wire": 68, "bit": 0}],
+      "outputs": [{"wire": 136, "bit": 0}]
+    },
+    {
+      "id": 140,
+      "name": "ALUOP2_2",
+      "type": "OR",
+      "inputs": [{"wire": 136, "bit": 0}, {"wire": 135, "bit": 0}],
+      "outputs": [{"wire": 130, "bit": 2}]
+    },
+    {
+      "id": 141,
+      "name": "ALUOP3",
+      "type": "OR",
+      "inputs": [{"wire": 74, "bit": 0}, {"wire": 76, "bit": 0}],
+      "outputs": [{"wire": 130, "bit": 3}]
+    },
+    {
+      "id": 142,
+      "name": "ACC0",
+      "type": "DFF",
+      "inputs": [{"wire": 10, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 9, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 143,
+      "name": "ACC1",
+      "type": "DFF",
+      "inputs": [{"wire": 10, "bit": 1}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 9, "bit": 1}],
+      "stored": 0
+    },
+    {
+      "id": 144,
+      "name": "ACC2",
+      "type": "DFF",
+      "inputs": [{"wire": 10, "bit": 2}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 9, "bit": 2}],
+      "stored": 0
+    },
+    {
+      "id": 145,
+      "name": "ACC3",
+      "type": "DFF",
+      "inputs": [{"wire": 10, "bit": 3}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 9, "bit": 3}],
+      "stored": 0
+    },
+    {
+      "id": 146,
+      "name": "ZFLAG",
+      "type": "DFF",
+      "inputs": [{"wire": 13, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 12, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 147,
+      "name": "IR0",
+      "type": "DFF",
+      "inputs": [{"wire": 60, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 15, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 148,
+      "name": "IR1",
+      "type": "DFF",
+      "inputs": [{"wire": 60, "bit": 1}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 15, "bit": 1}],
+      "stored": 0
+    },
+    {
+      "id": 149,
+      "name": "IR2",
+      "type": "DFF",
+      "inputs": [{"wire": 60, "bit": 2}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 15, "bit": 2}],
+      "stored": 0
+    },
+    {
+      "id": 150,
+      "name": "IR3",
+      "type": "DFF",
+      "inputs": [{"wire": 60, "bit": 3}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 15, "bit": 3}],
+      "stored": 0
+    },
+    {
+      "id": 151,
+      "name": "MAR0",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 152,
+      "name": "MAR1",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 1}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 1}],
+      "stored": 0
+    },
+    {
+      "id": 153,
+      "name": "MAR2",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 2}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 2}],
+      "stored": 0
+    },
+    {
+      "id": 154,
+      "name": "MAR3",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 3}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 3}],
+      "stored": 0
+    },
+    {
+      "id": 155,
+      "name": "MAR4",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 4}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 4}],
+      "stored": 0
+    },
+    {
+      "id": 156,
+      "name": "MAR5",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 5}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 5}],
+      "stored": 0
+    },
+    {
+      "id": 157,
+      "name": "MAR6",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 6}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 6}],
+      "stored": 0
+    },
+    {
+      "id": 158,
+      "name": "MAR7",
+      "type": "DFF",
+      "inputs": [{"wire": 137, "bit": 7}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 17, "bit": 7}],
+      "stored": 0
+    },
+    {
+      "id": 159,
+      "name": "PC0",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 0}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 0}],
+      "stored": 0
+    },
+    {
+      "id": 160,
+      "name": "PC1",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 1}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 1}],
+      "stored": 0
+    },
+    {
+      "id": 161,
+      "name": "PC2",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 2}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 2}],
+      "stored": 0
+    },
+    {
+      "id": 162,
+      "name": "PC3",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 3}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 3}],
+      "stored": 0
+    },
+    {
+      "id": 163,
+      "name": "PC4",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 4}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 4}],
+      "stored": 0
+    },
+    {
+      "id": 164,
+      "name": "PC5",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 5}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 5}],
+      "stored": 0
+    },
+    {
+      "id": 165,
+      "name": "PC6",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 6}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 6}],
+      "stored": 0
+    },
+    {
+      "id": 166,
+      "name": "PC7",
+      "type": "DFF",
+      "inputs": [{"wire": 3, "bit": 7}, {"wire": 7, "bit": 0}],
+      "outputs": [{"wire": 2, "bit": 7}],
+      "stored": 0
+    }
+  ]
+}

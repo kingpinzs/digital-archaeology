@@ -1,5 +1,9 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2)
+
+import type { CircuitData } from './types';
+import { CircuitModel } from './CircuitModel';
+import { CircuitLoader, CircuitLoadError } from './CircuitLoader';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -18,11 +22,13 @@ export interface CircuitRendererOptions {
 
 /**
  * State interface for CircuitRenderer component.
- * Currently minimal - will expand as circuit data is added in future stories.
+ * Contains circuit data and animation state.
  */
 export interface CircuitRendererState {
   /** Whether the renderer is currently animating */
   isAnimating?: boolean;
+  /** Circuit data to render (Story 6.2) */
+  circuitData?: CircuitData;
 }
 
 /**
@@ -43,6 +49,10 @@ export class CircuitRenderer {
   private displayWidth: number = 0;
   private displayHeight: number = 0;
   private devicePixelRatio: number = 1;
+
+  // Circuit data (Story 6.2)
+  private circuitModel: CircuitModel | null = null;
+  private loader: CircuitLoader | null = null;
 
   // Bound event handler for cleanup
   private boundHandleResize: (entries: ResizeObserverEntry[]) => void;
@@ -174,13 +184,41 @@ export class CircuitRenderer {
   /**
    * Update the component state.
    * Follows the mount/updateState/destroy lifecycle pattern.
-   * Currently triggers a re-render; will handle circuit data in future stories.
-   * @param _state - The new state (currently unused, prepared for future)
+   * Handles circuit data and animation state.
+   * @param state - The new state
    */
-  updateState(_state: CircuitRendererState): void {
-    // Re-render with current state
-    // Future stories will use state for circuit data, animation flags, etc.
+  updateState(state: CircuitRendererState): void {
+    // Update circuit model if circuit data is provided
+    if (state.circuitData) {
+      this.circuitModel = new CircuitModel(state.circuitData);
+    }
+
+    // Re-render with updated state
     this.render();
+  }
+
+  /**
+   * Load circuit data from a JSON file.
+   * Convenience method that loads and sets circuit data.
+   * @param path - Path to the circuit JSON file
+   * @returns Promise resolving when circuit is loaded
+   * @throws CircuitLoadError on load failure
+   */
+  async loadCircuit(path: string): Promise<void> {
+    // Lazily create loader on first use
+    if (!this.loader) {
+      this.loader = new CircuitLoader();
+    }
+    const data = await this.loader.loadCircuit(path);
+    this.updateState({ circuitData: data });
+  }
+
+  /**
+   * Get the current circuit model.
+   * @returns The CircuitModel or null if no circuit loaded
+   */
+  getCircuitModel(): CircuitModel | null {
+    return this.circuitModel;
   }
 
   /**
@@ -238,5 +276,10 @@ export class CircuitRenderer {
     this.canvas = null;
     this.ctx = null;
     this.container = null;
+    this.circuitModel = null;
+    this.loader = null;
   }
 }
+
+// Re-export CircuitLoadError for convenience
+export { CircuitLoadError };

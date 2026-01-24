@@ -104,7 +104,7 @@ development_status:
   # Epic 6: Circuit Visualization
   epic-6: in-progress
   6-1-create-canvas-circuit-renderer: done
-  6-2-load-and-parse-circuit-data: backlog
+  6-2-load-and-parse-circuit-data: done
   6-3-render-gates-with-type-colors: backlog
   6-4-render-wires-with-signal-states: backlog
   6-5-animate-signal-propagation: backlog

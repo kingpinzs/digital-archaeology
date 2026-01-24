@@ -7,6 +7,7 @@
 // Story 10.8: Create Dialogue Block Component
 // Story 10.9: Create Choice Card Component
 // Story 10.10: Create Technical Note Component
+// Story 10.13: Create Challenge Objectives in Lab Mode
 
 /**
  * Represents a discovery badge earned by the player.
@@ -121,4 +122,27 @@ export interface TechnicalNoteData {
   content: string;
   /** Optional inline code snippet to display in monospace font */
   codeSnippet?: string;
+}
+
+/**
+ * Represents a single objective in a challenge.
+ */
+export interface ChallengeObjective {
+  /** Unique identifier for this objective */
+  id: string;
+  /** Description of the objective */
+  text: string;
+  /** Whether the objective is completed */
+  completed: boolean;
+}
+
+/**
+ * Represents challenge data displayed in Lab Mode.
+ * Shows story-driven objectives with completion tracking.
+ */
+export interface ChallengeData {
+  /** Challenge title (e.g., "CARRY LOOK-AHEAD") */
+  title: string;
+  /** List of objectives to complete */
+  objectives: ChallengeObjective[];
 }

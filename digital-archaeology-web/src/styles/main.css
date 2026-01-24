@@ -3003,3 +3003,75 @@ body.da-resizing * {
 .da-story-action-btn-text {
   /* Text inherits from button - no additional styling needed */
 }
+
+/* =============================================================================
+   Challenge Objectives Component (Story 10.13)
+   Displays story-driven objectives in Lab Mode with gold border accent.
+   ============================================================================= */
+
+.da-challenge-objectives {
+  background: var(--story-bg-card, #1e1e2a);
+  border: 2px solid var(--persona-gold, #d4a574);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.da-challenge-objectives--hidden {
+  display: none;
+}
+
+.da-challenge-objectives-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-challenge-objectives-icon {
+  font-size: 20px;
+}
+
+.da-challenge-objectives-title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-challenge-objectives-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.da-challenge-objective-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--da-text-primary, #e0e0e0);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.da-challenge-objective-item--complete {
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-challenge-objective-checkbox {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  color: var(--persona-gold, #d4a574);
+  flex-shrink: 0;
+}
+
+.da-challenge-objective-item--complete .da-challenge-objective-checkbox {
+  color: var(--da-success, #00ff88);
+}
+
+.da-challenge-objective-text {
+  /* Text inherits from item - no additional styling needed */
+}

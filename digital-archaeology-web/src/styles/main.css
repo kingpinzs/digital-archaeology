@@ -2586,3 +2586,50 @@ body.da-resizing * {
   font-style: italic;
   color: var(--da-text-secondary);
 }
+
+/* =============================================================================
+   Scene Setting Component (Story 10.6)
+   ============================================================================= */
+.da-scene-setting {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.da-scene-setting--hidden {
+  display: none;
+}
+
+.da-scene-setting-label {
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--persona-gold, #d4a574);
+  background: var(--story-bg-deep, #0a0a12);
+  z-index: 1;
+}
+
+.da-scene-setting-content {
+  border: 1px solid var(--persona-gold, #d4a574);
+  border-radius: 4px;
+  padding: 24px 32px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 165, 116, 0.03) 0%,
+    rgba(212, 165, 116, 0.08) 50%,
+    rgba(212, 165, 116, 0.03) 100%
+  );
+}
+
+.da-scene-setting-text {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--da-text-secondary, #b0b0b0);
+}

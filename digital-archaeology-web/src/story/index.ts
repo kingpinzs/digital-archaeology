@@ -8,4 +8,5 @@ export type { StoryNavOptions } from './StoryNav';
 export { YourRolePanel } from './YourRolePanel';
 export { StoryContent } from './StoryContent';
 export { ChapterHeader } from './ChapterHeader';
-export type { RoleData, DiscoveryBadge, ChapterData } from './types';
+export { SceneSetting } from './SceneSetting';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData } from './types';

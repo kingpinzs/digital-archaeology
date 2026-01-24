@@ -2,6 +2,7 @@
 // Type definitions for Story Mode components
 // Story 10.4: Create "Your Role" Panel
 // Story 10.5: Create Chapter Header Component
+// Story 10.6: Create Scene Setting Component
 
 /**
  * Represents a discovery badge earned by the player.
@@ -47,4 +48,12 @@ export interface ChapterData {
   title: string;
   /** Subtitle describing the chapter theme */
   subtitle: string;
+}
+
+/**
+ * Data for a scene setting description.
+ */
+export interface SceneSettingData {
+  /** The scene description text (atmospheric/setting details) */
+  text: string;
 }

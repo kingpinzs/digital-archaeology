@@ -2102,3 +2102,391 @@ body.da-resizing * {
   background: color-mix(in srgb, var(--da-error) 80%, white);
   border-color: color-mix(in srgb, var(--da-error) 80%, white);
 }
+
+/* =============================================================================
+   Story Mode Layout Components (Story 10.2)
+   Story Mode has three main areas:
+   - Fixed navigation bar (48px, z-index 100)
+   - "Your Role" panel (fixed left, 220px, desktop only)
+   - Main scrollable content area
+   ============================================================================= */
+
+/* Story Mode Theme Variables - Extended */
+.story-mode {
+  /* Story-specific backgrounds */
+  --story-bg-deep: #0a0a12;
+  --story-bg: #12121a;
+  --story-bg-card: #1e1e2a;
+  --story-border: rgba(212, 165, 116, 0.15);
+
+  /* Accent colors - warm gold/copper */
+  --persona-gold: #d4a574;
+  --persona-warm: #c9956e;
+  --persona-copper: #b87333;
+
+  /* Typography */
+  --story-font-narrative: 'Crimson Text', serif;
+}
+
+/* =============================================================================
+   StoryNav - Fixed Navigation Bar (48px)
+   ============================================================================= */
+
+.da-story-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: var(--story-bg, #12121a);
+  border-bottom: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  z-index: 100;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.da-story-nav--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.da-story-nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.da-story-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.da-story-nav-logo {
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--persona-gold, #d4a574);
+  letter-spacing: 0.02em;
+}
+
+.da-story-nav-toggle-area {
+  /* Placeholder for Story/Lab toggle buttons */
+  min-width: 140px;
+}
+
+.da-story-nav-center {
+  display: flex;
+  align-items: center;
+}
+
+.da-story-nav-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.da-story-nav-progress-label {
+  font-size: 12px;
+  color: var(--da-text-secondary);
+}
+
+.da-story-nav-progress-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.da-progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--da-bg-tertiary);
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  transition: background-color 0.2s ease;
+}
+
+.da-progress-dot--active {
+  background: var(--persona-gold, #d4a574);
+  border-color: var(--persona-gold, #d4a574);
+}
+
+.da-story-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.da-story-nav-era-badge {
+  padding: 4px 12px;
+  background: var(--story-bg-card, #1e1e2a);
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-story-nav-action {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  border-radius: 4px;
+  color: var(--da-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.da-story-nav-action:hover {
+  background: var(--story-bg-card, #1e1e2a);
+  border-color: var(--persona-gold, #d4a574);
+  color: var(--da-text-primary);
+}
+
+.da-story-nav-action:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
+   YourRolePanel - Fixed Left Panel (220px, desktop only)
+   ============================================================================= */
+
+.da-your-role-panel {
+  position: fixed;
+  left: 24px;
+  top: 72px; /* 48px nav + 24px gap */
+  width: 220px;
+  background: var(--story-bg-card, #1e1e2a);
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  border-radius: 8px;
+  padding: 16px;
+  z-index: 50;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+  /* Glass-like effect */
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.da-your-role-panel--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.da-your-role-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-your-role-title {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-your-role-avatar-section {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.da-your-role-avatar {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--story-bg, #12121a);
+  border: 2px solid var(--persona-gold, #d4a574);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.da-your-role-name {
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--da-text-primary);
+  margin-bottom: 4px;
+}
+
+.da-your-role-location {
+  font-size: 12px;
+  color: var(--da-text-secondary);
+}
+
+.da-your-role-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.da-your-role-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.da-your-role-stat-key {
+  color: var(--da-text-secondary);
+}
+
+.da-your-role-stat-value {
+  color: var(--da-text-primary);
+  font-weight: 500;
+}
+
+/* Responsive: Hide panel on screens < 1200px */
+@media (max-width: 1199px) {
+  .da-your-role-panel {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   StoryContent - Main Scrollable Content Area
+   ============================================================================= */
+
+.da-story-content {
+  padding-top: 72px; /* 48px nav + 24px gap */
+  min-height: 100vh;
+  background: var(--story-bg-deep, #0a0a12);
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.da-story-content--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.da-story-content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  margin-left: 280px; /* 24px panel offset + 220px panel width + 36px gap */
+}
+
+/* Responsive: Full width on screens < 1200px */
+@media (max-width: 1199px) {
+  .da-story-content-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.da-story-content-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Chapter Header Placeholder */
+.da-story-chapter-header-placeholder {
+  text-align: center;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-story-chapter-era {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--persona-gold, #d4a574);
+  margin-bottom: 16px;
+}
+
+.da-story-chapter-title {
+  margin: 0 0 12px;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--da-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.da-story-chapter-subtitle {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--da-text-secondary);
+}
+
+/* Scene Setting */
+.da-story-scene-setting {
+  padding: 20px 24px;
+  background: var(--story-bg-card, #1e1e2a);
+  border-left: 3px solid var(--persona-copper, #b87333);
+  border-radius: 0 6px 6px 0;
+}
+
+.da-story-scene-text {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--da-text-primary);
+  font-style: italic;
+}
+
+/* Narrative Text */
+.da-story-narrative {
+  padding: 16px 0;
+}
+
+.da-story-narrative-text {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--da-text-primary);
+}
+
+/* Enter the Lab Button */
+.da-story-lab-button-area {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.da-story-enter-lab-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--persona-gold, #d4a574), var(--persona-copper, #b87333));
+  border: none;
+  border-radius: 6px;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a0a12;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+}
+
+.da-story-enter-lab-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 165, 116, 0.4);
+}
+
+.da-story-enter-lab-btn:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 4px;
+}
+
+.da-story-enter-lab-btn:active {
+  transform: translateY(0);
+}

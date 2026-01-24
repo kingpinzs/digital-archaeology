@@ -15,3 +15,19 @@ export type {
   GatePort,
   GateType,
 } from './types';
+
+// Story 6.3: Gate Rendering
+export { GateRenderer, DEFAULT_GATE_CONFIG } from './GateRenderer';
+export type { GateRenderConfig } from './GateRenderer';
+export { CircuitLayout, DEFAULT_LAYOUT_CONFIG } from './CircuitLayout';
+export type { GatePosition, CircuitLayoutConfig } from './CircuitLayout';
+export {
+  getGateColor,
+  getGateBorderColor,
+  getGateTextColor,
+  isValidGateType,
+  DEFAULT_GATE_COLORS,
+  DEFAULT_GATE_STYLE,
+  GATE_COLOR_VARS,
+  GATE_STYLE_VARS,
+} from './gateColors';

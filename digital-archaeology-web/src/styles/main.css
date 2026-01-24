@@ -36,8 +36,12 @@
   /* Gate type colors (circuit visualization) - universal across themes */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;
-  --da-gate-xor: #ffe66d;
-  --da-gate-not: #c792ea;
+  --da-gate-xor: #c44dff;
+  --da-gate-not: #ffd93d;
+  --da-gate-buf: #888888;
+  --da-gate-dff: #4d96ff;
+  --da-gate-border: #ffffff;
+  --da-gate-text: #ffffff;
 
   /* Semantic colors */
   --da-error: #ff4444;
@@ -97,8 +101,12 @@
   /* Gate type colors (circuit visualization) - universal */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;
-  --da-gate-xor: #ffe66d;
-  --da-gate-not: #c792ea;
+  --da-gate-xor: #c44dff;
+  --da-gate-not: #ffd93d;
+  --da-gate-buf: #888888;
+  --da-gate-dff: #4d96ff;
+  --da-gate-border: #ffffff;
+  --da-gate-text: #ffffff;
 
   /* Semantic colors */
   --da-error: #ff4444;
@@ -146,8 +154,12 @@
   /* Gate type colors (circuit visualization) - universal (same as lab mode) */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;
-  --da-gate-xor: #ffe66d;
-  --da-gate-not: #c792ea;
+  --da-gate-xor: #c44dff;
+  --da-gate-not: #ffd93d;
+  --da-gate-buf: #888888;
+  --da-gate-dff: #4d96ff;
+  --da-gate-border: #ffffff;
+  --da-gate-text: #ffffff;
 
   /* Semantic colors - slightly warmer variants */
   --da-error: #ff5555;

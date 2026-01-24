@@ -63,17 +63,23 @@ describe('CircuitRenderer', () => {
     // Mock devicePixelRatio
     vi.stubGlobal('devicePixelRatio', 2);
 
-    // Mock getComputedStyle for theme background
+    // Mock getComputedStyle for theme background and gate colors
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: (prop: string) => {
-        if (prop === '--da-bg-primary') {
-          return '#1a1a2e';
-        }
-        return '';
+        const cssVars: Record<string, string> = {
+          '--da-bg-primary': '#1a1a2e',
+          '--da-gate-and': '#4ecdc4',
+          '--da-gate-or': '#ff6b6b',
+          '--da-gate-xor': '#c44dff',
+          '--da-gate-not': '#ffd93d',
+          '--da-gate-buf': '#888888',
+          '--da-gate-dff': '#4d96ff',
+        };
+        return cssVars[prop] || '';
       },
     } as CSSStyleDeclaration);
 
-    // Create mock canvas context
+    // Create mock canvas context with all methods needed for gate rendering (Story 6.3)
     mockFillRect = vi.fn();
     mockScale = vi.fn();
     mockSetTransform = vi.fn();
@@ -83,6 +89,16 @@ describe('CircuitRenderer', () => {
       scale: mockScale,
       setTransform: mockSetTransform,
       fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 0,
+      beginPath: vi.fn(),
+      roundRect: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      font: '',
+      textAlign: '' as CanvasTextAlign,
+      textBaseline: '' as CanvasTextBaseline,
     } as unknown as CanvasRenderingContext2D;
 
     // Mock HTMLCanvasElement.prototype.getContext
@@ -307,7 +323,7 @@ describe('CircuitRenderer', () => {
       // Mock getComputedStyle to return empty string
       vi.spyOn(window, 'getComputedStyle').mockReturnValue({
         getPropertyValue: () => '',
-      } as CSSStyleDeclaration);
+      } as unknown as CSSStyleDeclaration);
 
       renderer.mount(container);
       mockFillRect.mockClear();
@@ -649,6 +665,189 @@ describe('CircuitRenderer', () => {
       expect(testRenderer.getDevicePixelRatio()).toBe(1);
 
       testRenderer.destroy();
+    });
+  });
+
+  describe('gate rendering (Story 6.3)', () => {
+    const mockCircuitDataWithGates: CircuitData = {
+      cycle: 0,
+      stable: true,
+      wires: [],
+      gates: [
+        { id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [] },
+        { id: 1, name: 'OR1', type: 'OR', inputs: [], outputs: [] },
+        { id: 2, name: 'NOT1', type: 'NOT', inputs: [], outputs: [] },
+        { id: 3, name: 'BUF1', type: 'BUF', inputs: [], outputs: [] },
+        { id: 4, name: 'DFF1', type: 'DFF', inputs: [], outputs: [], stored: 0 },
+        { id: 5, name: 'XOR1', type: 'XOR', inputs: [], outputs: [] },
+      ],
+    };
+
+    let mockRoundRect: ReturnType<typeof vi.fn>;
+    let mockFill: ReturnType<typeof vi.fn>;
+    let mockStroke: ReturnType<typeof vi.fn>;
+    let mockBeginPath: ReturnType<typeof vi.fn>;
+    let mockFillText: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockRoundRect = vi.fn();
+      mockFill = vi.fn();
+      mockStroke = vi.fn();
+      mockBeginPath = vi.fn();
+      mockFillText = vi.fn();
+
+      // Enhanced mock context for gate rendering
+      mockCtx = {
+        fillRect: mockFillRect,
+        scale: mockScale,
+        setTransform: mockSetTransform,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 0,
+        beginPath: mockBeginPath,
+        roundRect: mockRoundRect,
+        fill: mockFill,
+        stroke: mockStroke,
+        fillText: mockFillText,
+        font: '',
+        textAlign: '' as CanvasTextAlign,
+        textBaseline: '' as CanvasTextBaseline,
+      } as unknown as CanvasRenderingContext2D;
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        (contextId: string) => {
+          if (contextId === '2d') {
+            return mockCtx;
+          }
+          return null;
+        }
+      );
+
+      // Mock CSS variables for gate colors
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-bg-primary': '#1a1a2e',
+            '--da-gate-and': '#4ecdc4',
+            '--da-gate-or': '#ff6b6b',
+            '--da-gate-xor': '#c44dff',
+            '--da-gate-not': '#ffd93d',
+            '--da-gate-buf': '#888888',
+            '--da-gate-dff': '#4d96ff',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+    });
+
+    it('should render gates when circuit data is loaded', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithGates });
+
+      // Should have drawn background + 6 gates (each gate has roundRect call)
+      expect(mockRoundRect).toHaveBeenCalled();
+      expect(mockFill).toHaveBeenCalled();
+      expect(mockStroke).toHaveBeenCalled();
+    });
+
+    it('should render all gate types with different colors', () => {
+      renderer.mount(container);
+
+      // Clear mocks from initial render
+      mockRoundRect.mockClear();
+      mockFill.mockClear();
+
+      renderer.updateState({ circuitData: mockCircuitDataWithGates });
+
+      // 6 gates should be rendered
+      expect(mockRoundRect).toHaveBeenCalledTimes(6);
+      expect(mockFill).toHaveBeenCalledTimes(6);
+    });
+
+    it('should draw gate type labels', () => {
+      renderer.mount(container);
+      mockFillText.mockClear();
+
+      renderer.updateState({ circuitData: mockCircuitDataWithGates });
+
+      // Each gate should have its type label drawn
+      expect(mockFillText).toHaveBeenCalled();
+      const calls = mockFillText.mock.calls;
+      const labels = calls.map((call) => call[0]);
+      expect(labels).toContain('AND');
+      expect(labels).toContain('OR');
+      expect(labels).toContain('NOT');
+      expect(labels).toContain('BUF');
+      expect(labels).toContain('DFF');
+      expect(labels).toContain('XOR');
+    });
+
+    it('should not render gates when no circuit data loaded', () => {
+      renderer.mount(container);
+
+      // Clear mocks from initial render
+      mockRoundRect.mockClear();
+
+      renderer.render();
+
+      // No gates should be rendered
+      expect(mockRoundRect).not.toHaveBeenCalled();
+    });
+
+    it('should clean up gate renderer on destroy', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithGates });
+
+      expect(() => renderer.destroy()).not.toThrow();
+      expect(renderer.getCircuitModel()).toBeNull();
+    });
+
+    it('should handle large circuits (100+ gates) efficiently', () => {
+      // Create mock circuit with 150 gates (similar to micro4-circuit.json which has ~167 gates)
+      const gateTypes = ['AND', 'OR', 'NOT', 'BUF', 'DFF', 'XOR'] as const;
+      const largeCircuitData: CircuitData = {
+        cycle: 0,
+        stable: true,
+        wires: [],
+        gates: Array.from({ length: 150 }, (_, i) => ({
+          id: i,
+          name: `GATE${i}`,
+          type: gateTypes[i % gateTypes.length],
+          inputs: [],
+          outputs: [],
+        })),
+      };
+
+      renderer.mount(container);
+
+      // Should not throw and should render all gates
+      expect(() => renderer.updateState({ circuitData: largeCircuitData })).not.toThrow();
+
+      const model = renderer.getCircuitModel();
+      expect(model?.gateCount).toBe(150);
+
+      // Verify gates were rendered (at least roundRect was called for each)
+      expect(mockRoundRect).toHaveBeenCalled();
+      // Should have rendered all 150 gates (called once per gate)
+      expect(mockRoundRect.mock.calls.length).toBeGreaterThanOrEqual(150);
+    });
+
+    it('should cache layout and only recalculate when circuit or dimensions change', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithGates });
+
+      // Clear mocks after initial render
+      mockRoundRect.mockClear();
+      mockFill.mockClear();
+
+      // Multiple renders with same state should reuse cached layout
+      renderer.render();
+      renderer.render();
+      renderer.render();
+
+      // Gates should still be rendered each time, but layout should be cached
+      // (6 gates * 3 renders = 18 calls)
+      expect(mockRoundRect.mock.calls.length).toBe(18);
     });
   });
 });

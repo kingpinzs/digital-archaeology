@@ -1,9 +1,11 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3)
 
 import type { CircuitData } from './types';
 import { CircuitModel } from './CircuitModel';
 import { CircuitLoader, CircuitLoadError } from './CircuitLoader';
+import { GateRenderer } from './GateRenderer';
+import { CircuitLayout } from './CircuitLayout';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -53,6 +55,15 @@ export class CircuitRenderer {
   // Circuit data (Story 6.2)
   private circuitModel: CircuitModel | null = null;
   private loader: CircuitLoader | null = null;
+
+  // Gate rendering (Story 6.3)
+  private gateRenderer: GateRenderer | null = null;
+  private layout: CircuitLayout | null = null;
+
+  // Layout cache tracking - only recalculate when needed
+  private lastLayoutWidth: number = 0;
+  private lastLayoutHeight: number = 0;
+  private lastLayoutModelId: number = 0; // Tracks which circuit model was used
 
   // Bound event handler for cleanup
   private boundHandleResize: (entries: ResizeObserverEntry[]) => void;
@@ -165,9 +176,8 @@ export class CircuitRenderer {
   }
 
   /**
-   * Render the canvas with theme background.
-   * This is the main render method that clears and prepares the canvas.
-   * Future stories will add gate and wire rendering here.
+   * Render the canvas with theme background and circuit elements.
+   * This is the main render method that clears the canvas and draws all elements.
    */
   render(): void {
     if (!this.ctx || !this.canvas) return;
@@ -177,8 +187,60 @@ export class CircuitRenderer {
     this.ctx.fillStyle = bgColor;
     this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
 
+    // Render gates if circuit data is loaded (Story 6.3)
+    this.renderGates();
+
     // Call render complete callback if provided
     this.options.onRenderComplete?.();
+  }
+
+  /**
+   * Render all gates in the circuit.
+   * Gates are positioned by CircuitLayout and drawn by GateRenderer.
+   * Layout is cached and only recalculated when circuit data or dimensions change.
+   * @private
+   */
+  private renderGates(): void {
+    if (!this.ctx || !this.circuitModel) return;
+
+    // Lazily create gate renderer and layout on first use
+    if (!this.gateRenderer) {
+      this.gateRenderer = new GateRenderer();
+    }
+    if (!this.layout) {
+      this.layout = new CircuitLayout();
+    }
+
+    // Only recalculate layout when circuit or dimensions change
+    const needsLayoutRecalc =
+      this.displayWidth !== this.lastLayoutWidth ||
+      this.displayHeight !== this.lastLayoutHeight ||
+      this.lastLayoutModelId !== this.circuitModel.gates.size; // Simple identity check
+
+    if (needsLayoutRecalc && this.displayWidth > 0 && this.displayHeight > 0) {
+      this.layout.calculate(this.circuitModel, this.displayWidth, this.displayHeight);
+      this.lastLayoutWidth = this.displayWidth;
+      this.lastLayoutHeight = this.displayHeight;
+      this.lastLayoutModelId = this.circuitModel.gates.size;
+    }
+
+    // Get gate dimensions from layout config
+    const layoutConfig = this.layout.getConfig();
+
+    // Render each gate at its calculated position
+    for (const gate of this.circuitModel.gates.values()) {
+      const position = this.layout.getPosition(gate.id);
+      if (position) {
+        this.gateRenderer.renderGate(
+          this.ctx,
+          gate,
+          position.x,
+          position.y,
+          layoutConfig.gateWidth,
+          layoutConfig.gateHeight
+        );
+      }
+    }
   }
 
   /**
@@ -191,6 +253,8 @@ export class CircuitRenderer {
     // Update circuit model if circuit data is provided
     if (state.circuitData) {
       this.circuitModel = new CircuitModel(state.circuitData);
+      // Invalidate layout cache when circuit data changes
+      this.lastLayoutModelId = 0;
     }
 
     // Re-render with updated state
@@ -278,6 +342,13 @@ export class CircuitRenderer {
     this.container = null;
     this.circuitModel = null;
     this.loader = null;
+
+    // Clean up gate rendering (Story 6.3)
+    this.gateRenderer = null;
+    if (this.layout) {
+      this.layout.clear();
+      this.layout = null;
+    }
   }
 }
 

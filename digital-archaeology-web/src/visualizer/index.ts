@@ -1,5 +1,6 @@
 // Barrel export for visualizer module
 // Canvas circuit rendering, animation, interaction
-// Exports will be added as components are created
 
-export {};
+// Story 6.1: Canvas Circuit Renderer
+export { CircuitRenderer } from './CircuitRenderer';
+export type { CircuitRendererOptions, CircuitRendererState } from './CircuitRenderer';

@@ -307,4 +307,116 @@ describe('CircuitLayout', () => {
       expect(config.gapY).toBe(60);
     });
   });
+
+  // Story 6.4: Wire position tests
+  describe('wire positions (Story 6.4)', () => {
+    // Helper to create circuit with wire connections
+    const createCircuitWithWires = (): CircuitData => ({
+      cycle: 0,
+      stable: true,
+      wires: [
+        { id: 0, name: 'wire0', width: 1, is_input: false, is_output: false, state: [1] },
+        { id: 1, name: 'wire1', width: 4, is_input: false, is_output: false, state: [0, 1, 0, 1] },
+      ],
+      gates: [
+        {
+          id: 0,
+          name: 'AND0',
+          type: 'AND',
+          inputs: [{ wire: 0, bit: 0 }],
+          outputs: [{ wire: 1, bit: 0 }],
+        },
+        {
+          id: 1,
+          name: 'OR0',
+          type: 'OR',
+          inputs: [{ wire: 1, bit: 0 }],
+          outputs: [],
+        },
+      ],
+    });
+
+    it('should calculate wire positions', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      expect(layout.wirePositionCount).toBeGreaterThan(0);
+    });
+
+    it('should return wire position with segments', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      const wirePos = layout.getWirePosition(1); // wire1 connects AND output to OR input
+      expect(wirePos).toBeDefined();
+      expect(wirePos?.segments).toBeInstanceOf(Array);
+      expect(wirePos?.segments.length).toBeGreaterThan(0);
+    });
+
+    it('should calculate wire segment start and end coordinates', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      const wirePos = layout.getWirePosition(1);
+      if (wirePos && wirePos.segments.length > 0) {
+        const segment = wirePos.segments[0];
+        expect(segment).toHaveProperty('startX');
+        expect(segment).toHaveProperty('startY');
+        expect(segment).toHaveProperty('endX');
+        expect(segment).toHaveProperty('endY');
+        expect(segment).toHaveProperty('bitIndex');
+      }
+    });
+
+    it('should return undefined for wire with no connections', () => {
+      const data: CircuitData = {
+        cycle: 0,
+        stable: true,
+        wires: [{ id: 99, name: 'unconnected', width: 1, is_input: false, is_output: false, state: [0] }],
+        gates: [{ id: 0, name: 'AND0', type: 'AND', inputs: [], outputs: [] }],
+      };
+      const model = new CircuitModel(data);
+      layout.calculate(model, 800, 600);
+
+      expect(layout.getWirePosition(99)).toBeUndefined();
+    });
+
+    it('should return all wire positions via getAllWirePositions()', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      const wirePositions = layout.getAllWirePositions();
+      expect(wirePositions).toBeInstanceOf(Map);
+    });
+
+    it('should include wire width in wire position', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      const wirePos = layout.getWirePosition(1);
+      expect(wirePos?.width).toBe(4);
+    });
+
+    it('should clear wire positions on recalculate', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      const initialCount = layout.wirePositionCount;
+      expect(initialCount).toBeGreaterThan(0);
+
+      // Recalculate with empty circuit
+      const emptyModel = new CircuitModel({ cycle: 0, stable: true, wires: [], gates: [] });
+      layout.calculate(emptyModel, 800, 600);
+
+      expect(layout.wirePositionCount).toBe(0);
+    });
+
+    it('should clear wire positions on clear()', () => {
+      const model = new CircuitModel(createCircuitWithWires());
+      layout.calculate(model, 800, 600);
+
+      layout.clear();
+      expect(layout.wirePositionCount).toBe(0);
+    });
+  });
 });

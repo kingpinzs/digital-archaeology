@@ -33,6 +33,11 @@
   --da-signal-high: #00ff88;
   --da-signal-low: #3a3a3a;
 
+  /* Wire signal colors (circuit visualization) - Story 6.4 */
+  --da-wire-high: #00ff88;
+  --da-wire-low: #3a3a3a;
+  --da-wire-unknown: #ffaa00;
+
   /* Gate type colors (circuit visualization) - universal across themes */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;
@@ -98,6 +103,11 @@
   --da-signal-high: #00ff88;
   --da-signal-low: #3a3a3a;
 
+  /* Wire signal colors (circuit visualization) - Story 6.4 */
+  --da-wire-high: #00ff88;
+  --da-wire-low: #3a3a3a;
+  --da-wire-unknown: #ffaa00;
+
   /* Gate type colors (circuit visualization) - universal */
   --da-gate-and: #4ecdc4;
   --da-gate-or: #ff6b6b;
@@ -150,6 +160,11 @@
   /* Signal colors (circuit visualization) - universal (same as lab mode) */
   --da-signal-high: #00ff88;
   --da-signal-low: #3a3a3a;
+
+  /* Wire signal colors (circuit visualization) - Story 6.4 */
+  --da-wire-high: #00ff88;
+  --da-wire-low: #3a3a3a;
+  --da-wire-unknown: #ffaa00;
 
   /* Gate type colors (circuit visualization) - universal (same as lab mode) */
   --da-gate-and: #4ecdc4;

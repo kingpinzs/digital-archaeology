@@ -1,11 +1,12 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4)
 
 import type { CircuitData } from './types';
 import { CircuitModel } from './CircuitModel';
 import { CircuitLoader, CircuitLoadError } from './CircuitLoader';
 import { GateRenderer } from './GateRenderer';
 import { CircuitLayout } from './CircuitLayout';
+import { WireRenderer } from './WireRenderer';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -59,6 +60,9 @@ export class CircuitRenderer {
   // Gate rendering (Story 6.3)
   private gateRenderer: GateRenderer | null = null;
   private layout: CircuitLayout | null = null;
+
+  // Wire rendering (Story 6.4)
+  private wireRenderer: WireRenderer | null = null;
 
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
@@ -187,6 +191,12 @@ export class CircuitRenderer {
     this.ctx.fillStyle = bgColor;
     this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
 
+    // Ensure layout is calculated before rendering (Story 6.4)
+    this.ensureLayoutCalculated();
+
+    // Render wires BEFORE gates so gates appear on top (Story 6.4)
+    this.renderWires();
+
     // Render gates if circuit data is loaded (Story 6.3)
     this.renderGates();
 
@@ -195,18 +205,14 @@ export class CircuitRenderer {
   }
 
   /**
-   * Render all gates in the circuit.
-   * Gates are positioned by CircuitLayout and drawn by GateRenderer.
-   * Layout is cached and only recalculated when circuit data or dimensions change.
+   * Ensure layout is calculated and up-to-date.
+   * Shared by both wire and gate rendering.
    * @private
    */
-  private renderGates(): void {
-    if (!this.ctx || !this.circuitModel) return;
+  private ensureLayoutCalculated(): void {
+    if (!this.circuitModel) return;
 
-    // Lazily create gate renderer and layout on first use
-    if (!this.gateRenderer) {
-      this.gateRenderer = new GateRenderer();
-    }
+    // Lazily create layout on first use
     if (!this.layout) {
       this.layout = new CircuitLayout();
     }
@@ -215,13 +221,66 @@ export class CircuitRenderer {
     const needsLayoutRecalc =
       this.displayWidth !== this.lastLayoutWidth ||
       this.displayHeight !== this.lastLayoutHeight ||
-      this.lastLayoutModelId !== this.circuitModel.gates.size; // Simple identity check
+      this.lastLayoutModelId !== this.circuitModel.gates.size;
 
     if (needsLayoutRecalc && this.displayWidth > 0 && this.displayHeight > 0) {
       this.layout.calculate(this.circuitModel, this.displayWidth, this.displayHeight);
       this.lastLayoutWidth = this.displayWidth;
       this.lastLayoutHeight = this.displayHeight;
       this.lastLayoutModelId = this.circuitModel.gates.size;
+    }
+  }
+
+  /**
+   * Render all wires in the circuit.
+   * Wires are rendered before gates so gates appear on top.
+   * @private
+   */
+  private renderWires(): void {
+    if (!this.ctx || !this.circuitModel || !this.layout) return;
+
+    // Lazily create wire renderer on first use
+    if (!this.wireRenderer) {
+      this.wireRenderer = new WireRenderer();
+    }
+
+    // Render each wire at its calculated positions
+    for (const wire of this.circuitModel.wires.values()) {
+      const wirePosition = this.layout.getWirePosition(wire.id);
+      if (!wirePosition) continue;
+
+      const isMultiBit = wire.width > 1;
+
+      // Render each segment of the wire
+      for (const segment of wirePosition.segments) {
+        // Get the signal value for this bit
+        const signalValue = wire.state[segment.bitIndex] ?? 2; // Default to unknown
+
+        this.wireRenderer.renderWire(
+          this.ctx,
+          signalValue,
+          segment.startX,
+          segment.startY,
+          segment.endX,
+          segment.endY,
+          isMultiBit
+        );
+      }
+    }
+  }
+
+  /**
+   * Render all gates in the circuit.
+   * Gates are positioned by CircuitLayout and drawn by GateRenderer.
+   * Layout calculation is handled by ensureLayoutCalculated().
+   * @private
+   */
+  private renderGates(): void {
+    if (!this.ctx || !this.circuitModel || !this.layout) return;
+
+    // Lazily create gate renderer on first use
+    if (!this.gateRenderer) {
+      this.gateRenderer = new GateRenderer();
     }
 
     // Get gate dimensions from layout config
@@ -349,6 +408,9 @@ export class CircuitRenderer {
       this.layout.clear();
       this.layout = null;
     }
+
+    // Clean up wire rendering (Story 6.4)
+    this.wireRenderer = null;
   }
 }
 

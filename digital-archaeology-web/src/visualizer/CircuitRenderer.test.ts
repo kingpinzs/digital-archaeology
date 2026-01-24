@@ -63,7 +63,7 @@ describe('CircuitRenderer', () => {
     // Mock devicePixelRatio
     vi.stubGlobal('devicePixelRatio', 2);
 
-    // Mock getComputedStyle for theme background and gate colors
+    // Mock getComputedStyle for theme background, gate colors, and wire colors
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: (prop: string) => {
         const cssVars: Record<string, string> = {
@@ -74,12 +74,16 @@ describe('CircuitRenderer', () => {
           '--da-gate-not': '#ffd93d',
           '--da-gate-buf': '#888888',
           '--da-gate-dff': '#4d96ff',
+          // Wire colors (Story 6.4)
+          '--da-wire-high': '#00ff88',
+          '--da-wire-low': '#3a3a3a',
+          '--da-wire-unknown': '#ffaa00',
         };
         return cssVars[prop] || '';
       },
     } as CSSStyleDeclaration);
 
-    // Create mock canvas context with all methods needed for gate rendering (Story 6.3)
+    // Create mock canvas context with all methods needed for gate and wire rendering (Story 6.3, 6.4)
     mockFillRect = vi.fn();
     mockScale = vi.fn();
     mockSetTransform = vi.fn();
@@ -91,6 +95,7 @@ describe('CircuitRenderer', () => {
       fillStyle: '',
       strokeStyle: '',
       lineWidth: 0,
+      lineCap: 'butt' as CanvasLineCap,
       beginPath: vi.fn(),
       roundRect: vi.fn(),
       fill: vi.fn(),
@@ -99,6 +104,9 @@ describe('CircuitRenderer', () => {
       font: '',
       textAlign: '' as CanvasTextAlign,
       textBaseline: '' as CanvasTextBaseline,
+      // Wire rendering methods (Story 6.4)
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
 
     // Mock HTMLCanvasElement.prototype.getContext
@@ -848,6 +856,143 @@ describe('CircuitRenderer', () => {
       // Gates should still be rendered each time, but layout should be cached
       // (6 gates * 3 renders = 18 calls)
       expect(mockRoundRect.mock.calls.length).toBe(18);
+    });
+  });
+
+  describe('wire rendering (Story 6.4)', () => {
+    const mockCircuitDataWithWires: CircuitData = {
+      cycle: 0,
+      stable: true,
+      wires: [
+        { id: 0, name: 'wire0', width: 1, is_input: false, is_output: false, state: [1] },
+        { id: 1, name: 'wire1', width: 4, is_input: false, is_output: false, state: [0, 1, 0, 1] },
+      ],
+      gates: [
+        {
+          id: 0,
+          name: 'AND1',
+          type: 'AND',
+          inputs: [{ wire: 0, bit: 0 }],
+          outputs: [{ wire: 1, bit: 0 }],
+        },
+        {
+          id: 1,
+          name: 'OR1',
+          type: 'OR',
+          inputs: [{ wire: 1, bit: 0 }],
+          outputs: [],
+        },
+      ],
+    };
+
+    let mockMoveTo: ReturnType<typeof vi.fn>;
+    let mockLineTo: ReturnType<typeof vi.fn>;
+    let mockStroke: ReturnType<typeof vi.fn>;
+    let mockBeginPath: ReturnType<typeof vi.fn>;
+    let mockRoundRect: ReturnType<typeof vi.fn>;
+    let mockFill: ReturnType<typeof vi.fn>;
+    let mockFillText: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockMoveTo = vi.fn();
+      mockLineTo = vi.fn();
+      mockStroke = vi.fn();
+      mockBeginPath = vi.fn();
+      mockRoundRect = vi.fn();
+      mockFill = vi.fn();
+      mockFillText = vi.fn();
+
+      // Enhanced mock context for wire rendering
+      mockCtx = {
+        fillRect: mockFillRect,
+        scale: mockScale,
+        setTransform: mockSetTransform,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 0,
+        lineCap: 'butt' as CanvasLineCap,
+        beginPath: mockBeginPath,
+        moveTo: mockMoveTo,
+        lineTo: mockLineTo,
+        stroke: mockStroke,
+        roundRect: mockRoundRect,
+        fill: mockFill,
+        fillText: mockFillText,
+        font: '',
+        textAlign: '' as CanvasTextAlign,
+        textBaseline: '' as CanvasTextBaseline,
+      } as unknown as CanvasRenderingContext2D;
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        (contextId: string) => {
+          if (contextId === '2d') {
+            return mockCtx;
+          }
+          return null;
+        }
+      );
+
+      // Mock CSS variables for wire and gate colors
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-bg-primary': '#1a1a2e',
+            '--da-wire-high': '#00ff88',
+            '--da-wire-low': '#3a3a3a',
+            '--da-wire-unknown': '#ffaa00',
+            '--da-gate-and': '#4ecdc4',
+            '--da-gate-or': '#ff6b6b',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+    });
+
+    it('should render wires when circuit data is loaded', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithWires });
+
+      // Wire rendering should call moveTo, lineTo, stroke
+      expect(mockMoveTo).toHaveBeenCalled();
+      expect(mockLineTo).toHaveBeenCalled();
+      expect(mockStroke).toHaveBeenCalled();
+    });
+
+    it('should render wires BEFORE gates (z-order)', () => {
+      const callOrder: string[] = [];
+
+      mockMoveTo.mockImplementation(() => callOrder.push('moveTo'));
+      mockRoundRect.mockImplementation(() => callOrder.push('roundRect'));
+
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithWires });
+
+      // Find first moveTo (wire) and first roundRect (gate)
+      const firstWireCall = callOrder.indexOf('moveTo');
+      const firstGateCall = callOrder.indexOf('roundRect');
+
+      // Wires should be drawn before gates
+      expect(firstWireCall).toBeLessThan(firstGateCall);
+    });
+
+    it('should not render wires when no circuit data loaded', () => {
+      renderer.mount(container);
+
+      // Clear mocks from initial render
+      mockMoveTo.mockClear();
+
+      renderer.render();
+
+      // No wires should be rendered
+      expect(mockMoveTo).not.toHaveBeenCalled();
+    });
+
+    it('should clean up wire renderer on destroy', () => {
+      renderer.mount(container);
+      renderer.updateState({ circuitData: mockCircuitDataWithWires });
+
+      expect(() => renderer.destroy()).not.toThrow();
+      expect(renderer.getCircuitModel()).toBeNull();
     });
   });
 });

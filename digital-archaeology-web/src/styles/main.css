@@ -2875,3 +2875,47 @@ body.da-resizing * {
   border-radius: 4px;
   color: var(--da-text-primary, #e0e0e0);
 }
+
+/* =============================================================================
+   Enter the Lab Button Component (Story 10.11)
+   Prominent button for transitioning from Story Mode to Lab Mode.
+   ============================================================================= */
+
+.da-enter-lab-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 32px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--da-bg-primary, #1a1a2e);
+  background: linear-gradient(135deg, var(--persona-gold, #d4a574), #e8c090);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.da-enter-lab-button--hidden {
+  display: none;
+}
+
+.da-enter-lab-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(212, 165, 116, 0.4);
+}
+
+.da-enter-lab-button:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+.da-enter-lab-button:active {
+  transform: scale(0.98);
+}
+
+.da-enter-lab-button-icon {
+  font-size: 20px;
+}

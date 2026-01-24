@@ -13,4 +13,5 @@ export { CharacterCard } from './CharacterCard';
 export { DialogueBlock } from './DialogueBlock';
 export { ChoiceCard } from './ChoiceCard';
 export { TechnicalNote } from './TechnicalNote';
+export { EnterLabButton } from './EnterLabButton';
 export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData } from './types';

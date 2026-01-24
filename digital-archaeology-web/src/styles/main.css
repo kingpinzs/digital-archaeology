@@ -2212,6 +2212,13 @@ body.da-resizing * {
 .da-progress-dot--active {
   background: var(--persona-gold, #d4a574);
   border-color: var(--persona-gold, #d4a574);
+  box-shadow: 0 0 4px var(--persona-gold, #d4a574);
+}
+
+.da-progress-dot--completed {
+  background: var(--persona-gold, #d4a574);
+  border-color: var(--persona-gold, #d4a574);
+  opacity: 0.7;
 }
 
 .da-story-nav-right {

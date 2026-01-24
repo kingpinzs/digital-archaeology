@@ -29,3 +29,9 @@ export type { StoryStateChangedEvent } from './StoryEngine';
 export { StoryStorage, STORY_STORAGE_KEY } from './StoryStorage';
 export type { StoryPosition, StoryChoice, StoryProgress, StoryEngineState } from './StoryState';
 export { createDefaultProgress, createDefaultEngineState } from './StoryState';
+
+// Story 10.16: Era badge and progress display
+export { EraBadge } from './EraBadge';
+export { ProgressDots } from './ProgressDots';
+export type { ActProgress, ProgressDisplayData } from './ProgressDisplay';
+export { createProgressDisplayData } from './ProgressDisplay';

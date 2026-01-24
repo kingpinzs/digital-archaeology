@@ -2,21 +2,27 @@
 // Tests for StoryNav component
 // Story 10.2: Create Story Mode Layout
 // Story 10.3: Add ModeToggle integration and Journal button tests
+// Story 10.16: Add EraBadge and ProgressDots integration tests
 
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { StoryNav } from './StoryNav';
 import type { ThemeMode } from '@ui/theme';
+import type { StoryProgress } from './StoryState';
 
 describe('StoryNav', () => {
   let container: HTMLElement;
   let storyNav: StoryNav;
   let mockOnModeChange: Mock<(mode: ThemeMode) => void>;
 
-  const createStoryNav = (currentMode: ThemeMode = 'story') => {
+  const createStoryNav = (currentMode: ThemeMode = 'story', options?: {
+    initialEra?: string;
+    getEraForAct?: (actNumber: number) => string;
+  }) => {
     mockOnModeChange = vi.fn<(mode: ThemeMode) => void>();
     return new StoryNav({
       currentMode,
       onModeChange: mockOnModeChange,
+      ...options,
     });
   };
 
@@ -364,6 +370,244 @@ describe('StoryNav', () => {
       expect(buttons.length).toBe(2);
       expect(buttons[0].textContent).toBe('Journal');
       expect(buttons[1].textContent).toBe('Save');
+    });
+  });
+
+  // Story 10.16: EraBadge and ProgressDots Integration Tests
+  describe('Task 4: EraBadge Integration (Story 10.16)', () => {
+    it('should render EraBadge component', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const eraBadge = storyNav.getEraBadge();
+      expect(eraBadge).not.toBeNull();
+    });
+
+    it('should use initialEra option', () => {
+      storyNav = createStoryNav('story', { initialEra: '1985' });
+      storyNav.mount(container);
+
+      const eraBadge = container.querySelector('.da-story-nav-era-badge');
+      expect(eraBadge?.textContent).toBe('1985');
+    });
+
+    it('should update era via setEra()', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.setEra('2000', 'New Millennium');
+
+      const eraBadge = container.querySelector('.da-story-nav-era-badge');
+      expect(eraBadge?.textContent).toBe('2000 - New Millennium');
+    });
+
+    it('should clean up EraBadge on destroy', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      expect(storyNav.getEraBadge()).not.toBeNull();
+
+      storyNav.destroy();
+
+      expect(storyNav.getEraBadge()).toBeNull();
+    });
+  });
+
+  describe('Task 4: ProgressDots Integration (Story 10.16)', () => {
+    it('should render ProgressDots component', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const progressDots = storyNav.getProgressDots();
+      expect(progressDots).not.toBeNull();
+    });
+
+    it('should initialize with act 1 as current', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const dots = container.querySelectorAll('.da-progress-dot');
+      expect(dots[0].classList.contains('da-progress-dot--active')).toBe(true);
+    });
+
+    it('should update progress via setProgressAct()', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.setProgressAct(3, 5);
+
+      const dots = container.querySelectorAll('.da-progress-dot');
+      // Acts 1 and 2 should be completed
+      expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
+      // Act 3 should be active
+      expect(dots[2].classList.contains('da-progress-dot--active')).toBe(true);
+    });
+
+    it('should clean up ProgressDots on destroy', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      expect(storyNav.getProgressDots()).not.toBeNull();
+
+      storyNav.destroy();
+
+      expect(storyNav.getProgressDots()).toBeNull();
+    });
+  });
+
+  describe('Task 4: updateFromProgress Method (Story 10.16)', () => {
+    it('should update progress dots when updateFromProgress called', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const progress: StoryProgress = {
+        position: {
+          actNumber: 4,
+          chapterNumber: 1,
+          sceneId: 'test-scene',
+        },
+        choices: [],
+        discoveredItems: [],
+        startedAt: Date.now(),
+        lastPlayedAt: Date.now(),
+      };
+
+      storyNav.updateFromProgress(progress);
+
+      const dots = container.querySelectorAll('.da-progress-dot');
+      // Acts 1, 2, 3 should be completed
+      expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[2].classList.contains('da-progress-dot--completed')).toBe(true);
+      // Act 4 should be active
+      expect(dots[3].classList.contains('da-progress-dot--active')).toBe(true);
+    });
+
+    it('should reset to initial state when progress is null', () => {
+      storyNav = createStoryNav('story', { initialEra: '1971' });
+      storyNav.mount(container);
+
+      // First advance to act 3
+      storyNav.setProgressAct(3);
+
+      // Then clear progress
+      storyNav.updateFromProgress(null);
+
+      // Should reset to act 1
+      const dots = container.querySelectorAll('.da-progress-dot');
+      expect(dots[0].classList.contains('da-progress-dot--active')).toBe(true);
+      expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(false);
+    });
+
+    it('should update era via getEraForAct callback', () => {
+      const getEraForAct = vi.fn((act: number) => {
+        const eras: Record<number, string> = { 1: '1971', 2: '1978', 3: '1985' };
+        return eras[act] ?? '????';
+      });
+
+      storyNav = createStoryNav('story', { getEraForAct });
+      storyNav.mount(container);
+
+      const progress: StoryProgress = {
+        position: {
+          actNumber: 2,
+          chapterNumber: 1,
+          sceneId: 'test-scene',
+        },
+        choices: [],
+        discoveredItems: [],
+        startedAt: Date.now(),
+        lastPlayedAt: Date.now(),
+      };
+
+      storyNav.updateFromProgress(progress);
+
+      expect(getEraForAct).toHaveBeenCalledWith(2);
+      const eraBadge = container.querySelector('.da-story-nav-era-badge');
+      expect(eraBadge?.textContent).toBe('1978');
+    });
+  });
+
+  describe('Task 4: Event Subscription (Story 10.16)', () => {
+    it('should update when story-state-changed event fires', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const progress: StoryProgress = {
+        position: {
+          actNumber: 5,
+          chapterNumber: 1,
+          sceneId: 'final-scene',
+        },
+        choices: [],
+        discoveredItems: [],
+        startedAt: Date.now(),
+        lastPlayedAt: Date.now(),
+      };
+
+      // Dispatch event
+      const event = new CustomEvent('story-state-changed', {
+        detail: { progress, previousSceneId: null },
+      });
+      window.dispatchEvent(event);
+
+      const dots = container.querySelectorAll('.da-progress-dot');
+      // All previous acts should be completed
+      expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[2].classList.contains('da-progress-dot--completed')).toBe(true);
+      expect(dots[3].classList.contains('da-progress-dot--completed')).toBe(true);
+      // Act 5 should be active
+      expect(dots[4].classList.contains('da-progress-dot--active')).toBe(true);
+    });
+
+    it('should unsubscribe from events on destroy', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+      storyNav.destroy();
+
+      const progress: StoryProgress = {
+        position: {
+          actNumber: 3,
+          chapterNumber: 1,
+          sceneId: 'test-scene',
+        },
+        choices: [],
+        discoveredItems: [],
+        startedAt: Date.now(),
+        lastPlayedAt: Date.now(),
+      };
+
+      // This should not throw or update anything since nav is destroyed
+      const event = new CustomEvent('story-state-changed', {
+        detail: { progress, previousSceneId: null },
+      });
+      window.dispatchEvent(event);
+
+      // No error means unsubscribe worked
+      expect(storyNav.getElement()).toBeNull();
+    });
+  });
+
+  describe('Task 7: Accessibility - Progress Dots (Story 10.16)', () => {
+    it('should have correct aria-labels on progress dots', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+      storyNav.setProgressAct(3, 5);
+
+      const dots = container.querySelectorAll('.da-progress-dot');
+
+      // Completed acts
+      expect(dots[0].getAttribute('aria-label')).toBe('Completed, Act 1 of 5');
+      expect(dots[1].getAttribute('aria-label')).toBe('Completed, Act 2 of 5');
+
+      // Current act
+      expect(dots[2].getAttribute('aria-label')).toBe('Current act, Act 3 of 5');
+
+      // Pending acts
+      expect(dots[3].getAttribute('aria-label')).toBe('Act 4 of 5');
+      expect(dots[4].getAttribute('aria-label')).toBe('Act 5 of 5');
     });
   });
 });

@@ -163,7 +163,7 @@ development_status:
   10-13-create-challenge-objectives-in-lab-mode: done
   10-14-implement-story-content-data-structure: done
   10-15-create-story-progression-engine: done
-  10-16-display-era-badge-and-progress: backlog
+  10-16-display-era-badge-and-progress: done
   epic-10-retrospective: optional
 
   # Epic 11: Multi-Stage Architecture

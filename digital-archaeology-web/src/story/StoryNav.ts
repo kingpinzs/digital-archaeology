@@ -2,9 +2,15 @@
 // Fixed navigation bar for Story Mode (48px height, position: fixed)
 // Story 10.2: Create Story Mode Layout
 // Story 10.3: Add ModeToggle integration and Journal button
+// Story 10.16: Integrate EraBadge and ProgressDots with StoryEngine
 
 import { ModeToggle } from '@ui/ModeToggle';
 import type { ThemeMode } from '@ui/theme';
+import { EraBadge } from './EraBadge';
+import { ProgressDots } from './ProgressDots';
+import { createProgressDisplayData } from './ProgressDisplay';
+import type { StoryProgress } from './StoryState';
+import type { StoryStateChangedEvent } from './StoryEngine';
 
 /**
  * Configuration options for the StoryNav component.
@@ -14,6 +20,10 @@ export interface StoryNavOptions {
   currentMode: ThemeMode;
   /** Callback when mode changes */
   onModeChange: (mode: ThemeMode) => void;
+  /** Optional initial era to display */
+  initialEra?: string;
+  /** Optional callback to get era for an act number */
+  getEraForAct?: (actNumber: number) => string;
 }
 
 /**
@@ -30,12 +40,19 @@ export class StoryNav {
   private element: HTMLElement | null = null;
   private container: HTMLElement | null = null;
   private modeToggle: ModeToggle | null = null;
+  private eraBadge: EraBadge | null = null;
+  private progressDots: ProgressDots | null = null;
   private currentMode: ThemeMode;
   private onModeChange: (mode: ThemeMode) => void;
+  private getEraForAct: ((actNumber: number) => string) | undefined;
+  private initialEra: string;
+  private stateChangedListener: ((event: Event) => void) | null = null;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
     this.onModeChange = options.onModeChange;
+    this.initialEra = options.initialEra ?? '1971';
+    this.getEraForAct = options.getEraForAct;
   }
 
   /**
@@ -47,6 +64,9 @@ export class StoryNav {
     this.element = this.render();
     this.container.appendChild(this.element);
     this.mountModeToggle();
+    this.mountEraBadge();
+    this.mountProgressDots();
+    this.subscribeToStateChanges();
   }
 
   /**
@@ -90,28 +110,21 @@ export class StoryNav {
     progressLabel.className = 'da-story-nav-progress-label';
     progressLabel.textContent = 'Act:';
 
-    const progressDots = document.createElement('span');
-    progressDots.className = 'da-story-nav-progress-dots';
-
-    // Create 5 progress dots
-    for (let i = 0; i < 5; i++) {
-      const dot = document.createElement('span');
-      dot.className = i === 0 ? 'da-progress-dot da-progress-dot--active' : 'da-progress-dot';
-      dot.setAttribute('aria-label', i === 0 ? 'Current act' : `Act ${i + 1}`);
-      progressDots.appendChild(dot);
-    }
+    // Create container for ProgressDots component
+    const progressDotsContainer = document.createElement('span');
+    progressDotsContainer.className = 'da-story-nav-progress-dots-container';
 
     progress.appendChild(progressLabel);
-    progress.appendChild(progressDots);
+    progress.appendChild(progressDotsContainer);
     center.appendChild(progress);
 
     // Right section: era badge, journal button, and save button
     const right = document.createElement('div');
     right.className = 'da-story-nav-right';
 
-    const eraBadge = document.createElement('span');
-    eraBadge.className = 'da-story-nav-era-badge';
-    eraBadge.textContent = '1971';
+    // Create container for EraBadge component
+    const eraBadgeContainer = document.createElement('span');
+    eraBadgeContainer.className = 'da-story-nav-era-badge-container';
 
     const journalButton = document.createElement('button');
     journalButton.type = 'button';
@@ -125,7 +138,7 @@ export class StoryNav {
     saveButton.setAttribute('aria-label', 'Save progress');
     saveButton.textContent = 'Save';
 
-    right.appendChild(eraBadge);
+    right.appendChild(eraBadgeContainer);
     right.appendChild(journalButton);
     right.appendChild(saveButton);
 
@@ -152,6 +165,100 @@ export class StoryNav {
       });
       this.modeToggle.mount(toggleArea as HTMLElement);
     }
+  }
+
+  /**
+   * Mount the EraBadge component.
+   */
+  private mountEraBadge(): void {
+    if (!this.element) return;
+
+    const container = this.element.querySelector('.da-story-nav-era-badge-container');
+    if (container) {
+      this.eraBadge = new EraBadge();
+      this.eraBadge.mount(container as HTMLElement);
+      this.eraBadge.setEra(this.initialEra);
+    }
+  }
+
+  /**
+   * Mount the ProgressDots component.
+   */
+  private mountProgressDots(): void {
+    if (!this.element) return;
+
+    const container = this.element.querySelector('.da-story-nav-progress-dots-container');
+    if (container) {
+      this.progressDots = new ProgressDots();
+      this.progressDots.mount(container as HTMLElement);
+      // Initialize with act 1 as current
+      this.progressDots.setProgress(createProgressDisplayData(1, 5));
+    }
+  }
+
+  /**
+   * Subscribe to story-state-changed events.
+   */
+  private subscribeToStateChanges(): void {
+    this.stateChangedListener = (event: Event) => {
+      const customEvent = event as StoryStateChangedEvent;
+      const { progress } = customEvent.detail;
+      this.updateFromProgress(progress);
+    };
+
+    window.addEventListener('story-state-changed', this.stateChangedListener);
+  }
+
+  /**
+   * Unsubscribe from story-state-changed events.
+   */
+  private unsubscribeFromStateChanges(): void {
+    if (this.stateChangedListener) {
+      window.removeEventListener('story-state-changed', this.stateChangedListener);
+      this.stateChangedListener = null;
+    }
+  }
+
+  /**
+   * Update the era badge and progress dots from story progress.
+   * @param progress - Current story progress, or null if cleared
+   */
+  updateFromProgress(progress: StoryProgress | null): void {
+    if (!progress) {
+      // Reset to initial state when progress is cleared
+      this.eraBadge?.setEra(this.initialEra);
+      this.progressDots?.setProgress(createProgressDisplayData(1, 5));
+      return;
+    }
+
+    const currentAct = progress.position.actNumber;
+
+    // Update progress dots
+    this.progressDots?.setProgress(createProgressDisplayData(currentAct, 5));
+
+    // Update era badge if we have a lookup function
+    if (this.getEraForAct) {
+      const era = this.getEraForAct(currentAct);
+      this.eraBadge?.setEra(era);
+    }
+  }
+
+  /**
+   * Set the era directly (for external updates).
+   * @param year - Era year string
+   * @param title - Optional era title
+   */
+  setEra(year: string, title?: string): void {
+    this.eraBadge?.setEra(year, title);
+  }
+
+  /**
+   * Set the progress directly (for external updates).
+   * @param currentActNumber - Current act number (1-5)
+   * @param totalActs - Total number of acts (default 5)
+   */
+  setProgressAct(currentActNumber: number, totalActs: number = 5): void {
+    this.progressDots?.setProgress(createProgressDisplayData(currentActNumber, totalActs));
   }
 
   /**
@@ -195,13 +302,42 @@ export class StoryNav {
   }
 
   /**
+   * Get the EraBadge component (for testing).
+   */
+  getEraBadge(): EraBadge | null {
+    return this.eraBadge;
+  }
+
+  /**
+   * Get the ProgressDots component (for testing).
+   */
+  getProgressDots(): ProgressDots | null {
+    return this.progressDots;
+  }
+
+  /**
    * Destroy the component and clean up resources.
    */
   destroy(): void {
-    // Destroy ModeToggle first
+    // Unsubscribe from events first
+    this.unsubscribeFromStateChanges();
+
+    // Destroy ModeToggle
     if (this.modeToggle) {
       this.modeToggle.destroy();
       this.modeToggle = null;
+    }
+
+    // Destroy EraBadge
+    if (this.eraBadge) {
+      this.eraBadge.destroy();
+      this.eraBadge = null;
+    }
+
+    // Destroy ProgressDots
+    if (this.progressDots) {
+      this.progressDots.destroy();
+      this.progressDots = null;
     }
 
     if (this.element) {

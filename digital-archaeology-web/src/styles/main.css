@@ -2919,3 +2919,87 @@ body.da-resizing * {
 .da-enter-lab-button-icon {
   font-size: 20px;
 }
+
+/* =============================================================================
+   Story Actions Footer Component (Story 10.12)
+   Navigation controls at the bottom of story content.
+   ============================================================================= */
+
+.da-story-actions-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--da-border, #3a3a5a);
+}
+
+.da-story-actions-footer--hidden {
+  display: none;
+}
+
+.da-story-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  font-family: inherit;
+  font-size: 15px;
+  background: transparent;
+  border: 1px solid var(--da-border, #3a3a5a);
+  border-radius: 6px;
+  color: var(--da-text-secondary, #a0a0b0);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.da-story-action-btn:hover:not(:disabled) {
+  border-color: var(--da-text-secondary, #a0a0b0);
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-story-action-btn:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+.da-story-action-btn--primary {
+  background: var(--persona-gold, #d4a574);
+  border-color: var(--persona-gold, #d4a574);
+  color: var(--da-bg-primary, #1a1a2e);
+  font-weight: 600;
+}
+
+.da-story-action-btn--primary:hover:not(:disabled) {
+  background: #e8c090;
+  border-color: #e8c090;
+  box-shadow: 0 0 20px rgba(212, 165, 116, 0.4);
+}
+
+.da-story-action-btn--lab {
+  background: linear-gradient(135deg, #0f3460, #16213e);
+  border-color: var(--da-accent-blue, #00b4d8);
+  color: var(--da-accent-blue, #00b4d8);
+}
+
+.da-story-action-btn--lab:hover:not(:disabled) {
+  background: linear-gradient(135deg, #16213e, #1a1a2e);
+  box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
+}
+
+.da-story-action-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.da-story-action-btn--hidden {
+  display: none;
+}
+
+.da-story-action-btn-icon {
+  font-size: 16px;
+}
+
+.da-story-action-btn-text {
+  /* Text inherits from button - no additional styling needed */
+}

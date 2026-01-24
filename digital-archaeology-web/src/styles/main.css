@@ -2633,3 +2633,92 @@ body.da-resizing * {
   line-height: 1.7;
   color: var(--da-text-secondary, #b0b0b0);
 }
+
+/* =============================================================================
+   Character Card Component (Story 10.7)
+   ============================================================================= */
+
+.da-character-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 24px;
+  background: var(--story-bg-card, #1e1e2a);
+}
+
+.da-character-card--hidden {
+  display: none;
+}
+
+.da-character-card-avatar {
+  margin-bottom: 16px;
+}
+
+.da-character-card-avatar-emoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.da-character-card-header {
+  margin-bottom: 12px;
+}
+
+.da-character-card-name {
+  margin: 0 0 4px;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-character-card-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+.da-character-card-separator {
+  width: 100%;
+  height: 1px;
+  margin: 16px 0;
+  background: var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-character-card-bio {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+.da-character-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.da-character-card-stat {
+  display: inline;
+}
+
+.da-character-card-stat-label {
+  font-size: 13px;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+.da-character-card-stat-value {
+  font-size: 13px;
+  color: var(--da-text-primary, #e4e4e4);
+}
+
+.da-character-card-stat-separator {
+  color: var(--story-border, rgba(212, 165, 116, 0.3));
+  margin: 0 4px;
+}

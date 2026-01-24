@@ -3,6 +3,7 @@
 // Story 10.4: Create "Your Role" Panel
 // Story 10.5: Create Chapter Header Component
 // Story 10.6: Create Scene Setting Component
+// Story 10.7: Create Character Card Component
 
 /**
  * Represents a discovery badge earned by the player.
@@ -56,4 +57,30 @@ export interface ChapterData {
 export interface SceneSettingData {
   /** The scene description text (atmospheric/setting details) */
   text: string;
+}
+
+/**
+ * A key-value stat displayed on a character card.
+ */
+export interface CharacterStat {
+  /** The stat label (e.g., "Expertise", "Years at Fairchild") */
+  label: string;
+  /** The stat value (e.g., "Digital Logic, ALU Design", "6") */
+  value: string;
+}
+
+/**
+ * Represents a character/NPC in the story.
+ */
+export interface CharacterData {
+  /** Avatar display - emoji string for MVP (e.g., "👩‍🔬") */
+  avatar: string;
+  /** Character's full name (e.g., "Dr. Sarah Chen") */
+  name: string;
+  /** Character's title/role (e.g., "Senior Design Engineer") */
+  title: string;
+  /** Character's background/bio (2-3 sentences) */
+  bio: string;
+  /** Key stats displayed at bottom of card */
+  stats: CharacterStat[];
 }

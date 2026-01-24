@@ -9,4 +9,5 @@ export { YourRolePanel } from './YourRolePanel';
 export { StoryContent } from './StoryContent';
 export { ChapterHeader } from './ChapterHeader';
 export { SceneSetting } from './SceneSetting';
-export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData } from './types';
+export { CharacterCard } from './CharacterCard';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat } from './types';

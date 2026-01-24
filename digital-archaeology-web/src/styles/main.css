@@ -2347,6 +2347,61 @@ body.da-resizing * {
   font-weight: 500;
 }
 
+/* Experience value styling */
+.da-your-role-experience-value {
+  color: var(--persona-gold, #d4a574);
+}
+
+/* =============================================================================
+   Discoveries Section (Story 10.4)
+   ============================================================================= */
+
+.da-your-role-discoveries {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-your-role-discoveries-header {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--persona-gold, #d4a574);
+  margin-bottom: 8px;
+}
+
+.da-your-role-discoveries-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.da-your-role-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--story-bg, #12121a);
+  border: 2px solid var(--story-border, rgba(212, 165, 116, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: default;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.da-your-role-badge--earned {
+  opacity: 1;
+  border-color: var(--persona-gold, #d4a574);
+}
+
+.da-your-role-badge--earned:hover {
+  border-color: var(--persona-warm, #c9956e);
+  transform: scale(1.1);
+}
+
 /* Responsive: Hide panel on screens < 1200px */
 @media (max-width: 1199px) {
   .da-your-role-panel {
@@ -2489,4 +2544,45 @@ body.da-resizing * {
 
 .da-story-enter-lab-btn:active {
   transform: translateY(0);
+}
+
+/* =============================================================================
+   Chapter Header Component (Story 10.5)
+   ============================================================================= */
+.da-chapter-header {
+  text-align: center;
+  padding-bottom: 32px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-chapter-header--hidden {
+  display: none;
+}
+
+.da-chapter-header-era {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--persona-gold, #d4a574);
+  margin-bottom: 16px;
+}
+
+.da-chapter-header-title {
+  margin: 0 0 12px;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--da-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.da-chapter-header-subtitle {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--da-text-secondary);
 }

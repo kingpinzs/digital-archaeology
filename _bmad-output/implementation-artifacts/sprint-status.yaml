@@ -151,8 +151,8 @@ development_status:
   10-1-implement-story-lab-mode-toggle: done
   10-2-create-story-mode-layout: done
   10-3-create-fixed-navigation-bar: done
-  10-4-create-your-role-panel: backlog
-  10-5-create-chapter-header-component: backlog
+  10-4-create-your-role-panel: done
+  10-5-create-chapter-header-component: done
   10-6-create-scene-setting-component: backlog
   10-7-create-character-card-component: backlog
   10-8-create-dialogue-block-component: backlog

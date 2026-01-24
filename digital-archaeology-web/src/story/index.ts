@@ -7,3 +7,5 @@ export { StoryNav } from './StoryNav';
 export type { StoryNavOptions } from './StoryNav';
 export { YourRolePanel } from './YourRolePanel';
 export { StoryContent } from './StoryContent';
+export { ChapterHeader } from './ChapterHeader';
+export type { RoleData, DiscoveryBadge, ChapterData } from './types';

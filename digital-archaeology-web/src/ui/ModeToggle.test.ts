@@ -303,6 +303,38 @@ describe('ModeToggle', () => {
 
       expect(mockOnModeChange).toHaveBeenCalledWith('lab');
     });
+
+    it('should activate focused button on Enter key', () => {
+      modeToggle = new ModeToggle({
+        currentMode: 'story',
+        onModeChange: mockOnModeChange,
+      });
+      modeToggle.mount(container);
+
+      const labBtn = container.querySelector('[data-mode="lab"]') as HTMLButtonElement;
+      labBtn.focus();
+
+      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+      labBtn.dispatchEvent(event);
+
+      expect(mockOnModeChange).toHaveBeenCalledWith('lab');
+    });
+
+    it('should activate focused button on Space key', () => {
+      modeToggle = new ModeToggle({
+        currentMode: 'story',
+        onModeChange: mockOnModeChange,
+      });
+      modeToggle.mount(container);
+
+      const labBtn = container.querySelector('[data-mode="lab"]') as HTMLButtonElement;
+      labBtn.focus();
+
+      const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true });
+      labBtn.dispatchEvent(event);
+
+      expect(mockOnModeChange).toHaveBeenCalledWith('lab');
+    });
   });
 
   describe('Task 1: Cleanup', () => {

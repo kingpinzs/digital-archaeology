@@ -392,6 +392,8 @@ export class App {
     setTheme(mode);
     this.applyModeVisibility();
     this.announceModeChange(mode);
+    // Sync the StoryNav's ModeToggle state (Story 10.3)
+    this.storyModeContainer?.setMode(mode);
   }
 
   /**
@@ -410,7 +412,7 @@ export class App {
   }
 
   /**
-   * Initialize the Story Mode container (Story 10.1).
+   * Initialize the Story Mode container (Story 10.1, 10.3).
    * @returns void
    */
   private initializeStoryModeContainer(): void {
@@ -419,7 +421,10 @@ export class App {
     const storyMount = this.container.querySelector('.da-story-mode-mount');
     if (!storyMount) return;
 
-    this.storyModeContainer = new StoryModeContainer();
+    this.storyModeContainer = new StoryModeContainer({
+      currentMode: this.currentMode,
+      onModeChange: (mode) => this.handleModeChange(mode),
+    });
     this.storyModeContainer.mount(storyMount as HTMLElement);
   }
 

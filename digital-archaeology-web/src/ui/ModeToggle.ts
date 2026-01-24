@@ -209,6 +209,16 @@ export class ModeToggle {
         }
         break;
       }
+      case 'Enter':
+      case ' ': {
+        // Activate the focused button (Space key is ' ')
+        e.preventDefault();
+        const mode = target.getAttribute('data-mode') as ThemeMode;
+        if (mode) {
+          this.handleModeClick(mode);
+        }
+        break;
+      }
     }
   }
 

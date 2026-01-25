@@ -66,3 +66,7 @@ export type { ContentBounds, ViewportSize } from './ZoomController';
 // Story 6.8: Tooltip and Hover Detection
 export { GateTooltip, formatGateType, formatGateOutput, DEFAULT_TOOLTIP_CONFIG } from './GateTooltip';
 export type { TooltipConfig } from './GateTooltip';
+
+// Story 6.9: Code-to-Circuit Linking
+export { getGatesForInstruction, getSignalPathForInstruction, OPCODE_GATE_MAP } from './InstructionGateMapping';
+export type { InstructionMapping } from './InstructionGateMapping';

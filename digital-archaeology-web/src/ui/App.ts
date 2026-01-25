@@ -11,7 +11,7 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { setTheme, initTheme } from './theme';
 import type { ThemeMode } from './theme';
-import { Editor } from '@editor/index';
+import { Editor, parseInstruction } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
@@ -20,7 +20,7 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
-import { CircuitRenderer, ZoomControlsToolbar } from '@visualizer/index';
+import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction } from '@visualizer/index';
 import type { ZoomControlsCallbacks } from '@visualizer/index';
 
 /**
@@ -640,6 +640,8 @@ export class App {
       },
       onAssemble: () => this.handleAssemble(),
       onBreakpointToggle: (lineNumber) => this.handleBreakpointToggle(lineNumber),
+      // Story 6.9: Code-to-circuit linking
+      onLineClick: (lineNumber, lineContent) => this.handleEditorLineClick(lineNumber, lineContent),
     });
     this.editor.mount(codePanelContent as HTMLElement);
 
@@ -1207,6 +1209,36 @@ export class App {
     // Update UI
     this.updateBreakpointDecorations();
     this.updateBreakpointsView();
+  }
+
+  /**
+   * Handle editor line click for code-to-circuit linking (Story 6.9).
+   * Parses the instruction and highlights the corresponding gates in the circuit.
+   * @param _lineNumber - The 1-based line number clicked (unused but available for future use)
+   * @param lineContent - The content of the clicked line
+   */
+  private handleEditorLineClick(_lineNumber: number, lineContent: string): void {
+    if (!this.circuitRenderer) return;
+
+    // Parse instruction from line content
+    const opcode = parseInstruction(lineContent);
+
+    if (opcode) {
+      // Get gates and signal path for this instruction
+      const gateIds = getGatesForInstruction(opcode);
+      const signalPath = getSignalPathForInstruction(opcode);
+
+      if (gateIds.length > 0) {
+        // Highlight the gates and signal path
+        this.circuitRenderer.setHighlightedGates(gateIds, signalPath);
+      } else {
+        // Unknown opcode - clear highlights
+        this.circuitRenderer.clearHighlightedGates();
+      }
+    } else {
+      // Not an instruction (comment, directive, empty) - clear highlights
+      this.circuitRenderer.clearHighlightedGates();
+    }
   }
 
   /**

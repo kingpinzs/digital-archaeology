@@ -29,6 +29,8 @@ export interface EditorOptions {
   onAssemble?: () => void;
   /** Callback when user clicks in gutter to toggle breakpoint (Story 5.8) */
   onBreakpointToggle?: (lineNumber: number) => void;
+  /** Callback when user clicks on a line in the editor content area (Story 6.9) */
+  onLineClick?: (lineNumber: number, lineContent: string) => void;
 }
 
 /**
@@ -84,6 +86,7 @@ export class Editor {
   private assembleActionDisposable: monaco.IDisposable | null = null;
   private mouseDownDisposable: monaco.IDisposable | null = null;
   private breakpointActionDisposable: monaco.IDisposable | null = null;
+  private lineClickDisposable: monaco.IDisposable | null = null;
   private errorDecorationIds: string[] = [];
   private currentInstructionDecorationIds: string[] = [];
   private breakpointDecorationIds: string[] = [];
@@ -202,6 +205,9 @@ export class Editor {
 
     // Set up gutter click handler for breakpoint toggle (Story 5.8)
     this.setupGutterClickHandler();
+
+    // Set up line click handler for code-to-circuit linking (Story 6.9)
+    this.setupLineClickHandler();
   }
 
   /**
@@ -281,6 +287,33 @@ export class Editor {
           this.options.onBreakpointToggle(position.lineNumber);
         }
       },
+    });
+  }
+
+  /**
+   * Set up the line click handler for code-to-circuit linking (Story 6.9).
+   * Detects clicks on the editor content area and calls onLineClick callback.
+   */
+  private setupLineClickHandler(): void {
+    if (!this.editor || !this.options.onLineClick) return;
+
+    this.lineClickDisposable = this.editor.onMouseDown((e) => {
+      // Only trigger for clicks on content area (not gutter, not glyph margin)
+      const contentTargets = [
+        monaco.editor.MouseTargetType.CONTENT_TEXT,
+        monaco.editor.MouseTargetType.CONTENT_EMPTY,
+      ];
+
+      if (contentTargets.includes(e.target.type)) {
+        const lineNumber = e.target.position?.lineNumber;
+        if (lineNumber !== undefined && lineNumber > 0) {
+          const model = this.editor?.getModel();
+          if (model) {
+            const lineContent = model.getLineContent(lineNumber);
+            this.options.onLineClick!(lineNumber, lineContent);
+          }
+        }
+      }
     });
   }
 
@@ -493,6 +526,10 @@ export class Editor {
     if (this.breakpointActionDisposable) {
       this.breakpointActionDisposable.dispose();
       this.breakpointActionDisposable = null;
+    }
+    if (this.lineClickDisposable) {
+      this.lineClickDisposable.dispose();
+      this.lineClickDisposable = null;
     }
     if (this.editor) {
       this.editor.dispose();

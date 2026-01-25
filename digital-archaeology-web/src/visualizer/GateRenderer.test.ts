@@ -515,4 +515,167 @@ describe('GateRenderer', () => {
       expect(mockCtx.roundRect).toHaveBeenCalledWith(7, 18, 66, 44, 4);
     });
   });
+
+  // ============================================================================
+  // Story 6.9: Code-to-Circuit Link Highlight Tests
+  // ============================================================================
+  describe('isLinkedHighlight rendering (Story 6.9)', () => {
+    let mockCtx: CanvasRenderingContext2D;
+    let renderer: GateRenderer;
+    let saveCalled: boolean;
+    let restoreCalled: boolean;
+    let shadowBlur: number;
+    let lineWidthHistory: number[];
+    let strokeStyleHistory: string[];
+
+    const createLinkMockContext = (): CanvasRenderingContext2D => {
+      saveCalled = false;
+      restoreCalled = false;
+      shadowBlur = 0;
+      lineWidthHistory = [];
+      strokeStyleHistory = [];
+
+      let _lineWidth = 1;
+
+      const ctx = {
+        fillStyle: '',
+        beginPath: vi.fn(),
+        roundRect: vi.fn(),
+        fill: vi.fn(),
+        stroke: vi.fn(),
+        fillText: vi.fn(),
+        save: vi.fn(() => { saveCalled = true; }),
+        restore: vi.fn(() => { restoreCalled = true; }),
+        font: '',
+        textAlign: 'center',
+        textBaseline: 'middle',
+        shadowColor: '',
+      };
+
+      // Track strokeStyle
+      Object.defineProperty(ctx, 'strokeStyle', {
+        get: () => ctx.shadowColor,
+        set: (value: string) => {
+          strokeStyleHistory.push(value);
+        },
+      });
+
+      // Track lineWidth
+      Object.defineProperty(ctx, 'lineWidth', {
+        get: () => _lineWidth,
+        set: (value: number) => {
+          _lineWidth = value;
+          lineWidthHistory.push(value);
+        },
+      });
+
+      // Track shadow properties
+      Object.defineProperty(ctx, 'shadowBlur', {
+        get: () => shadowBlur,
+        set: (value: number) => { shadowBlur = value; },
+      });
+
+      return ctx as unknown as CanvasRenderingContext2D;
+    };
+
+    beforeEach(() => {
+      mockCtx = createLinkMockContext();
+      renderer = new GateRenderer();
+      // Mock CSS variable for accent and link highlight colors
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-gate-and': '#4ecdc4',
+            '--da-accent': '#00b4d8',
+            '--da-link-highlight': '#ff9f43',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+    });
+
+    it('should draw larger glow effect when isLinkedHighlight is true', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, false, true);
+
+      // Should call save/restore for glow effect
+      expect(saveCalled).toBe(true);
+      expect(restoreCalled).toBe(true);
+      // Shadow should be set for glow - larger than hover (12 vs 8)
+      expect(shadowBlur).toBe(12);
+    });
+
+    it('should use link highlight color (orange) instead of accent', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, false, true);
+
+      // Border should use link highlight color
+      expect(strokeStyleHistory).toContain('#ff9f43');
+    });
+
+    it('should use thicker border (3px) when linked highlight is active', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, false, true);
+
+      // Should use lineWidth 3 for link highlight
+      expect(lineWidthHistory).toContain(3);
+    });
+
+    it('should prioritize link highlight over hover when both are true', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      // Both isHovered and isLinkedHighlight are true
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, true, true);
+
+      // Link highlight should take priority
+      expect(shadowBlur).toBe(12); // Link highlight blur, not hover blur (8)
+      expect(strokeStyleHistory).toContain('#ff9f43'); // Link highlight color
+      expect(lineWidthHistory).toContain(3); // Link highlight width
+    });
+
+    it('should not apply link highlight when isLinkedHighlight is false', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, false, false);
+
+      // No glow effect
+      expect(saveCalled).toBe(false);
+      expect(restoreCalled).toBe(false);
+      // Default border width
+      expect(lineWidthHistory).toContain(1);
+    });
+  });
 });

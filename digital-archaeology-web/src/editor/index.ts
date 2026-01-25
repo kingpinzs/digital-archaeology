@@ -8,3 +8,6 @@ export {
   resetLanguageRegistration,
   micro4LanguageId,
 } from './micro4-language';
+
+// Story 6.9: Line content parser for code-to-circuit linking
+export { parseInstruction } from './parseInstruction';

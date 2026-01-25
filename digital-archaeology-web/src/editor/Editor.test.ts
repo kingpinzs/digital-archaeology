@@ -62,6 +62,7 @@ const {
         pointer += 1;
       }
     }),
+    getLineContent: vi.fn(() => 'LDA 5'), // Story 6.9: For line click callback
   };
 
   const mockEditorInstance = {
@@ -1841,6 +1842,155 @@ describe('Editor', () => {
     it('should not throw when editor is not mounted', () => {
       const editor = new Editor();
       expect(() => editor.clearBreakpointDecorations()).not.toThrow();
+    });
+  });
+
+  describe('onLineClick callback (Story 6.9)', () => {
+    it('should call onLineClick when content area is clicked', () => {
+      const onLineClick = vi.fn();
+      // Set up getLineContent to return the line content
+      mockModel.getLineContent = vi.fn().mockReturnValue('LDA 5');
+
+      const editor = new Editor({ onLineClick });
+      editor.mount(container);
+
+      // Simulate mouse down event on content area
+      const mockEvent = {
+        target: {
+          type: 6, // MouseTargetType.CONTENT_TEXT
+          position: { lineNumber: 5 },
+        },
+      };
+      // When only onLineClick is provided (no onBreakpointToggle), it's the first onMouseDown call
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const lineClickCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      lineClickCallback?.(mockEvent);
+
+      expect(onLineClick).toHaveBeenCalledWith(5, 'LDA 5');
+
+      editor.destroy();
+    });
+
+    it('should call onLineClick when clicking on empty content area', () => {
+      const onLineClick = vi.fn();
+      mockModel.getLineContent = vi.fn().mockReturnValue('');
+
+      const editor = new Editor({ onLineClick });
+      editor.mount(container);
+
+      // Simulate mouse down event on empty content
+      const mockEvent = {
+        target: {
+          type: 7, // MouseTargetType.CONTENT_EMPTY
+          position: { lineNumber: 3 },
+        },
+      };
+      // When only onLineClick is provided, it's the first onMouseDown call
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const lineClickCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      lineClickCallback?.(mockEvent);
+
+      expect(onLineClick).toHaveBeenCalledWith(3, '');
+
+      editor.destroy();
+    });
+
+    it('should not call onLineClick when gutter is clicked', () => {
+      const onLineClick = vi.fn();
+      const editor = new Editor({ onLineClick });
+      editor.mount(container);
+
+      // Simulate mouse down event on glyph margin (gutter)
+      const mockEvent = {
+        target: {
+          type: 2, // MouseTargetType.GUTTER_GLYPH_MARGIN
+          position: { lineNumber: 5 },
+        },
+      };
+      // When only onLineClick is provided, it's the first onMouseDown call
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const lineClickCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      lineClickCallback?.(mockEvent);
+
+      expect(onLineClick).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should not register line click handler when no callback is provided', () => {
+      const editor = new Editor();
+      editor.mount(container);
+
+      // onMouseDown should not have been called for line click
+      // (only for breakpoints if onBreakpointToggle is provided)
+      expect(mockEditorInstance.onMouseDown).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should dispose line click handler on destroy', () => {
+      const onLineClick = vi.fn();
+      const mockDispose = vi.fn();
+      mockEditorInstance.onMouseDown.mockReturnValue({ dispose: mockDispose });
+
+      const editor = new Editor({ onLineClick });
+      editor.mount(container);
+      editor.destroy();
+
+      expect(mockDispose).toHaveBeenCalled();
+    });
+
+    it('should handle click with undefined position gracefully', () => {
+      const onLineClick = vi.fn();
+      const editor = new Editor({ onLineClick });
+      editor.mount(container);
+
+      // Simulate mouse down event with undefined position
+      const mockEvent = {
+        target: {
+          type: 6, // MouseTargetType.CONTENT_TEXT
+          position: undefined,
+        },
+      };
+      // When only onLineClick is provided, it's the first onMouseDown call
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const lineClickCallback = calls[0]?.[0] as ((e: unknown) => void) | undefined;
+      lineClickCallback?.(mockEvent);
+
+      expect(onLineClick).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should work alongside onBreakpointToggle callback', () => {
+      const onLineClick = vi.fn();
+      const onBreakpointToggle = vi.fn();
+      mockModel.getLineContent = vi.fn().mockReturnValue('ADD 10');
+
+      const editor = new Editor({ onLineClick, onBreakpointToggle });
+      editor.mount(container);
+
+      // Simulate mouse down event on content area
+      const mockContentEvent = {
+        target: {
+          type: 6, // MouseTargetType.CONTENT_TEXT
+          position: { lineNumber: 7 },
+        },
+      };
+      // When both are provided, breakpoint handler is registered first (index 0), then line click (index 1)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const calls = mockEditorInstance.onMouseDown.mock.calls as any[];
+      const lineClickCallback = calls[1]?.[0] as ((e: unknown) => void) | undefined;
+      lineClickCallback?.(mockContentEvent);
+
+      expect(onLineClick).toHaveBeenCalledWith(7, 'ADD 10');
+      expect(onBreakpointToggle).not.toHaveBeenCalled();
+
+      editor.destroy();
     });
   });
 });

@@ -2272,4 +2272,344 @@ describe('CircuitRenderer', () => {
       });
     });
   });
+
+  // ============================================================================
+  // Story 6.9: Code-to-Circuit Linking Tests
+  // ============================================================================
+  describe('Code-to-Circuit Linking (Story 6.9)', () => {
+    describe('setHighlightedGates', () => {
+      it('should store highlighted gate IDs', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1, 2, 3]);
+
+        const highlighted = renderer.getHighlightedGateIds();
+        expect(highlighted.has(1)).toBe(true);
+        expect(highlighted.has(2)).toBe(true);
+        expect(highlighted.has(3)).toBe(true);
+        expect(highlighted.size).toBe(3);
+
+        renderer.destroy();
+      });
+
+      it('should clear previous highlights when setting new ones', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1, 2]);
+        renderer.setHighlightedGates([3, 4]);
+
+        const highlighted = renderer.getHighlightedGateIds();
+        expect(highlighted.has(1)).toBe(false);
+        expect(highlighted.has(2)).toBe(false);
+        expect(highlighted.has(3)).toBe(true);
+        expect(highlighted.has(4)).toBe(true);
+
+        renderer.destroy();
+      });
+
+      it('should clear all highlights when passed empty array', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1, 2, 3]);
+        renderer.setHighlightedGates([]);
+
+        expect(renderer.getHighlightedGateIds().size).toBe(0);
+
+        renderer.destroy();
+      });
+
+      it('should request re-render when highlights change', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+        mockFillRect.mockClear();
+
+        renderer.setHighlightedGates([1, 2]);
+
+        // render() is called which clears and redraws
+        expect(mockFillRect).toHaveBeenCalled();
+
+        renderer.destroy();
+      });
+
+      it('should validate gate IDs against circuit model and filter invalid ones', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with gates 0 and 1
+        const circuitWithGates: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [
+            { id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [] },
+            { id: 1, name: 'OR1', type: 'OR', inputs: [], outputs: [] },
+          ],
+        };
+        renderer.updateState({ circuitData: circuitWithGates });
+
+        // Try to highlight gates 0, 1, 2, 99 - only 0 and 1 exist
+        renderer.setHighlightedGates([0, 1, 2, 99]);
+
+        const highlighted = renderer.getHighlightedGateIds();
+        expect(highlighted.has(0)).toBe(true);
+        expect(highlighted.has(1)).toBe(true);
+        expect(highlighted.has(2)).toBe(false); // Invalid - filtered out
+        expect(highlighted.has(99)).toBe(false); // Invalid - filtered out
+        expect(highlighted.size).toBe(2);
+
+        renderer.destroy();
+      });
+
+      it('should accept all gate IDs when no circuit model is loaded', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // No circuit loaded - all IDs should be accepted
+        renderer.setHighlightedGates([0, 1, 99, 999]);
+
+        const highlighted = renderer.getHighlightedGateIds();
+        expect(highlighted.size).toBe(4);
+        expect(highlighted.has(0)).toBe(true);
+        expect(highlighted.has(999)).toBe(true);
+
+        renderer.destroy();
+      });
+    });
+
+    describe('setHighlightedGates wire segment validation', () => {
+      it('should validate wire segments against circuit model and filter invalid ones', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with specific wires
+        const circuitWithWires: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [
+            { id: 0, name: 'w0', width: 1, is_input: false, is_output: false, state: [0] },
+            { id: 1, name: 'w1', width: 4, is_input: false, is_output: false, state: [0, 0, 0, 0] }, // 4-bit wire
+          ],
+          gates: [{ id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithWires });
+
+        // Try to highlight wire segments - mix of valid and invalid
+        // Valid: [0, 0] (wire 0, bit 0), [1, 0], [1, 3] (wire 1, bits 0-3)
+        // Invalid: [1, 5] (bit 5 exceeds width 4), [99, 0] (wire 99 doesn't exist)
+        renderer.setHighlightedGates([0], [[0, 0], [1, 0], [1, 3], [1, 5], [99, 0]]);
+
+        expect(renderer.isWireSegmentHighlighted(0, 0)).toBe(true);
+        expect(renderer.isWireSegmentHighlighted(1, 0)).toBe(true);
+        expect(renderer.isWireSegmentHighlighted(1, 3)).toBe(true);
+        expect(renderer.isWireSegmentHighlighted(1, 5)).toBe(false); // Invalid bit index
+        expect(renderer.isWireSegmentHighlighted(99, 0)).toBe(false); // Invalid wire ID
+
+        renderer.destroy();
+      });
+
+      it('should filter out malformed wire segment entries', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        const circuitWithWires: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [{ id: 0, name: 'w0', width: 1, is_input: false, is_output: false, state: [0] }],
+          gates: [{ id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithWires });
+
+        // Include malformed entries (wrong length arrays)
+        renderer.setHighlightedGates([0], [[0, 0], [1], [0, 0, 0], []]);
+
+        // Only [0, 0] should be valid
+        expect(renderer.isWireSegmentHighlighted(0, 0)).toBe(true);
+
+        renderer.destroy();
+      });
+
+      it('should set highlightedWireSegments to null when all segments are invalid', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        const circuitWithWires: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [{ id: 0, name: 'w0', width: 1, is_input: false, is_output: false, state: [0] }],
+          gates: [{ id: 0, name: 'AND1', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithWires });
+
+        // All invalid wire segments
+        renderer.setHighlightedGates([0], [[99, 0], [0, 5]]);
+
+        // No segments should be highlighted
+        expect(renderer.isWireSegmentHighlighted(99, 0)).toBe(false);
+        expect(renderer.isWireSegmentHighlighted(0, 5)).toBe(false);
+        expect(renderer.isWireSegmentHighlighted(0, 0)).toBe(false);
+
+        renderer.destroy();
+      });
+    });
+
+    describe('clearHighlightedGates', () => {
+      it('should clear all highlighted gates', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1, 2, 3]);
+        renderer.clearHighlightedGates();
+
+        expect(renderer.getHighlightedGateIds().size).toBe(0);
+
+        renderer.destroy();
+      });
+
+      it('should not re-render if already empty', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+        mockFillRect.mockClear();
+
+        // Clear when already empty
+        renderer.clearHighlightedGates();
+        const callCount = mockFillRect.mock.calls.length;
+
+        // Clear again - should not call render
+        renderer.clearHighlightedGates();
+        expect(mockFillRect.mock.calls.length).toBe(callCount);
+
+        renderer.destroy();
+      });
+    });
+
+    describe('isWireSegmentHighlighted', () => {
+      it('should return true for highlighted wire segments', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1], [[5, 0], [6, 1]]);
+
+        expect(renderer.isWireSegmentHighlighted(5, 0)).toBe(true);
+        expect(renderer.isWireSegmentHighlighted(6, 1)).toBe(true);
+
+        renderer.destroy();
+      });
+
+      it('should return false for non-highlighted wire segments', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1], [[5, 0]]);
+
+        expect(renderer.isWireSegmentHighlighted(5, 1)).toBe(false);
+        expect(renderer.isWireSegmentHighlighted(7, 0)).toBe(false);
+
+        renderer.destroy();
+      });
+
+      it('should return false when no wire segments are highlighted', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        renderer.setHighlightedGates([1, 2]);
+
+        expect(renderer.isWireSegmentHighlighted(5, 0)).toBe(false);
+
+        renderer.destroy();
+      });
+    });
+
+    describe('getHighlightedGateIds', () => {
+      it('should return empty set when no gates highlighted', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        expect(renderer.getHighlightedGateIds().size).toBe(0);
+
+        renderer.destroy();
+      });
+    });
+
+    describe('click handler for clearing highlights', () => {
+      it('should clear highlights when clicking on empty canvas space', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Set some highlights
+        renderer.setHighlightedGates([1, 2, 3]);
+        expect(renderer.getHighlightedGateIds().size).toBe(3);
+
+        // Simulate click on empty space (no circuit loaded, so hitTest returns null)
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', {
+          clientX: 100,
+          clientY: 100,
+          bubbles: true,
+        });
+        canvas.dispatchEvent(clickEvent);
+
+        // Highlights should be cleared
+        expect(renderer.getHighlightedGateIds().size).toBe(0);
+
+        renderer.destroy();
+      });
+
+      it('should not clear highlights after a drag operation', () => {
+        // Create renderer with zoom set to allow panning
+        renderer = new CircuitRenderer({
+          zoom: {
+            initialScale: 2.0, // Zoom in to allow panning
+          },
+        });
+        renderer.mount(container);
+
+        // Set some highlights
+        renderer.setHighlightedGates([1, 2, 3]);
+        expect(renderer.getHighlightedGateIds().size).toBe(3);
+
+        const canvas = container.querySelector('canvas')!;
+
+        // Simulate mousedown
+        const mousedownEvent = new MouseEvent('mousedown', {
+          clientX: 100,
+          clientY: 100,
+          button: 0,
+          bubbles: true,
+        });
+        canvas.dispatchEvent(mousedownEvent);
+
+        // Simulate mousemove with significant movement (drag)
+        const mousemoveEvent = new MouseEvent('mousemove', {
+          clientX: 150, // 50px movement
+          clientY: 150,
+          bubbles: true,
+        });
+        document.dispatchEvent(mousemoveEvent);
+
+        // Simulate mouseup
+        const mouseupEvent = new MouseEvent('mouseup', {
+          clientX: 150,
+          clientY: 150,
+          bubbles: true,
+        });
+        document.dispatchEvent(mouseupEvent);
+
+        // Simulate click (which fires after mouseup on canvas)
+        const clickEvent = new MouseEvent('click', {
+          clientX: 150,
+          clientY: 150,
+          bubbles: true,
+        });
+        canvas.dispatchEvent(clickEvent);
+
+        // Highlights should NOT be cleared because this was a drag
+        expect(renderer.getHighlightedGateIds().size).toBe(3);
+
+        renderer.destroy();
+      });
+    });
+  });
 });

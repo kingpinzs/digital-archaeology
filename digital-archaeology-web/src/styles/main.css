@@ -29,6 +29,10 @@
   --da-accent: #00b4d8;
   --da-accent-hover: #48cae4;
 
+  /* Code-to-circuit linking highlight (Story 6.9) */
+  --da-link-highlight: #ff9f43;
+  --da-link-glow: rgba(255, 159, 67, 0.5);
+
   /* Signal colors (circuit visualization) - universal across themes */
   --da-signal-high: #00ff88;
   --da-signal-low: #3a3a3a;

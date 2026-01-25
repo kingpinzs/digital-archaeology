@@ -6,6 +6,7 @@ const {
   mockModel,
   cursorPositionListeners,
   contentChangeListeners,
+  mouseDownListeners,
   addedActions,
   mockCursorDisposable,
   MockRange,
@@ -24,9 +25,14 @@ const {
     }
   }
 
+  // Track editor lines for getLineContent (Story 6.9)
+  let editorLines: string[] = [];
+
   const mockModel = {
     undo: vi.fn(),
     redo: vi.fn(),
+    getLineContent: vi.fn((lineNumber: number) => editorLines[lineNumber - 1] || ''),
+    _setLines: (lines: string[]) => { editorLines = lines; },
   };
 
   // Track cursor position listeners for testing
@@ -38,6 +44,9 @@ const {
 
   // Track added actions for testing
   const addedActions: Array<{ id: string; label: string; keybindings: number[]; run: () => void }> = [];
+
+  // Track mouse down listeners for line click testing (Story 6.9)
+  const mouseDownListeners: Array<(e: { target: { type: number; position?: { lineNumber: number } } }) => void> = [];
 
   // Track editor content
   let editorContent = '';
@@ -68,8 +77,11 @@ const {
     deltaDecorations: vi.fn(() => ['decoration-id']),
     setPosition: vi.fn(),
     revealLineInCenter: vi.fn(),
-    // Mouse event methods (Story 5.8)
-    onMouseDown: vi.fn(() => ({ dispose: vi.fn() })),
+    // Mouse event methods (Story 5.8, 6.9)
+    onMouseDown: vi.fn((callback: (e: { target: { type: number; position?: { lineNumber: number } } }) => void) => {
+      mouseDownListeners.push(callback);
+      return { dispose: vi.fn() };
+    }),
     // Helper to reset content for tests
     _setContent: (content: string) => {
       editorContent = content;
@@ -84,6 +96,7 @@ const {
     mockModel,
     cursorPositionListeners,
     contentChangeListeners,
+    mouseDownListeners,
     addedActions,
     mockCursorDisposable,
     MockRange,
@@ -94,6 +107,23 @@ vi.mock('monaco-editor', () => ({
   editor: {
     create: vi.fn(() => mockEditorInstance),
     defineTheme: vi.fn(),
+    // MouseTargetType enum for line click and breakpoint detection (Story 5.8, 6.9)
+    MouseTargetType: {
+      UNKNOWN: 0,
+      TEXTAREA: 1,
+      GUTTER_GLYPH_MARGIN: 2,
+      GUTTER_LINE_NUMBERS: 3,
+      GUTTER_LINE_DECORATIONS: 4,
+      GUTTER_VIEW_ZONE: 5,
+      CONTENT_TEXT: 6,
+      CONTENT_EMPTY: 7,
+      CONTENT_VIEW_ZONE: 8,
+      CONTENT_WIDGET: 9,
+      OVERVIEW_RULER: 10,
+      SCROLLBAR: 11,
+      OVERLAY_WIDGET: 12,
+      OUTSIDE_EDITOR: 13,
+    },
   },
   languages: {
     register: vi.fn(),
@@ -105,6 +135,7 @@ vi.mock('monaco-editor', () => ({
   },
   KeyCode: {
     Enter: 3,
+    F9: 78,
   },
   Range: MockRange,
 }));
@@ -7119,6 +7150,139 @@ describe('App', () => {
         // cycleCount should be updated from cpuState
         expect(statusBar?.getState().cycleCount).toBe(0);
       });
+    });
+  });
+
+  // ============================================================================
+  // Story 6.9: Code-to-Circuit Linking Integration Tests
+  // ============================================================================
+  describe('Code-to-Circuit Linking (Story 6.9)', () => {
+    // Monaco MouseTargetType constants
+    const CONTENT_TEXT = 6;
+    const GUTTER_GLYPH_MARGIN = 2;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mouseDownListeners.length = 0;
+      // Set up editor with assembly code
+      mockModel._setLines([
+        '; Test program',
+        'START: LDA $10',
+        '       ADD $11',
+        '       STA $12',
+        '       HLT',
+      ]);
+      app.mount(container);
+    });
+
+    it('should set up line click handler on editor', () => {
+      // onMouseDown should be called at least once (for breakpoints and/or line clicks)
+      expect(mockEditorInstance.onMouseDown).toHaveBeenCalled();
+      // Should have registered at least one mouseDown listener
+      expect(mouseDownListeners.length).toBeGreaterThan(0);
+    });
+
+    it('should register onLineClick callback during editor setup', () => {
+      // The onMouseDown mock is called during Editor mount
+      // Verify that the callback was registered
+      expect(mockEditorInstance.onMouseDown).toHaveBeenCalledTimes(2);
+      // Two handlers: one for breakpoints (gutter), one for line clicks (content)
+    });
+
+    it('should pass line content when clicking on content area', () => {
+      // Note: circuitRenderer may be null in jsdom (no canvas context)
+      // This test verifies the wiring from editor click to model.getLineContent
+
+      // Simulate clicking on line 2 (LDA instruction) in content area
+      const contentClickEvent = {
+        target: {
+          type: CONTENT_TEXT,
+          position: { lineNumber: 2 },
+        },
+      };
+
+      // Find the content click listener and trigger it
+      for (const listener of mouseDownListeners) {
+        listener(contentClickEvent);
+      }
+
+      // Verify getLineContent was called with correct line number
+      expect(mockModel.getLineContent).toHaveBeenCalledWith(2);
+    });
+
+    it('should not call getLineContent for gutter clicks', () => {
+      mockModel.getLineContent.mockClear();
+
+      // Simulate clicking on gutter (not content area)
+      const gutterClickEvent = {
+        target: {
+          type: GUTTER_GLYPH_MARGIN,
+          position: { lineNumber: 2 },
+        },
+      };
+
+      for (const listener of mouseDownListeners) {
+        listener(gutterClickEvent);
+      }
+
+      // getLineContent should NOT be called for gutter clicks (those are for breakpoints)
+      // The line click handler only fires for CONTENT_TEXT and CONTENT_EMPTY targets
+      expect(mockModel.getLineContent).not.toHaveBeenCalled();
+    });
+
+    it('should handle click on different lines', () => {
+      // Click on line 3 (ADD instruction)
+      const addClickEvent = {
+        target: {
+          type: CONTENT_TEXT,
+          position: { lineNumber: 3 },
+        },
+      };
+
+      for (const listener of mouseDownListeners) {
+        listener(addClickEvent);
+      }
+
+      expect(mockModel.getLineContent).toHaveBeenCalledWith(3);
+    });
+
+    it('should handle click on comment line', () => {
+      // Click on line 1 (comment line)
+      const commentClickEvent = {
+        target: {
+          type: CONTENT_TEXT,
+          position: { lineNumber: 1 },
+        },
+      };
+
+      for (const listener of mouseDownListeners) {
+        listener(commentClickEvent);
+      }
+
+      expect(mockModel.getLineContent).toHaveBeenCalledWith(1);
+      // parseInstruction will return null for comment, and highlights will be cleared
+      // (if circuitRenderer is available)
+    });
+
+    it('should handle click on empty content area (CONTENT_EMPTY)', () => {
+      const CONTENT_EMPTY = 7;
+      mockModel.getLineContent.mockClear();
+
+      // Simulate clicking on empty line content
+      const emptyClickEvent = {
+        target: {
+          type: CONTENT_EMPTY,
+          position: { lineNumber: 6 }, // Line after HLT
+        },
+      };
+
+      for (const listener of mouseDownListeners) {
+        listener(emptyClickEvent);
+      }
+
+      // getLineContent should be called for CONTENT_EMPTY clicks too
+      expect(mockModel.getLineContent).toHaveBeenCalledWith(6);
+      // parseInstruction will return null for empty line, and highlights will be cleared
     });
   });
 });

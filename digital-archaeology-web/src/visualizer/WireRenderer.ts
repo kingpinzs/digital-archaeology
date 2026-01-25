@@ -2,6 +2,7 @@
 // Wire rendering utility for circuit visualization (Story 6.4)
 
 import { getWireColor } from './wireColors';
+import { getLinkHighlightColor } from './highlightColors';
 
 /**
  * Wire rendering configuration.
@@ -48,6 +49,7 @@ export class WireRenderer {
    * @param endX - X coordinate of wire end
    * @param endY - Y coordinate of wire end
    * @param isMultiBit - Whether this is a multi-bit wire (default: false)
+   * @param isPathHighlight - Whether to render signal path highlight (Story 6.9)
    */
   renderWire(
     ctx: CanvasRenderingContext2D,
@@ -56,15 +58,32 @@ export class WireRenderer {
     startY: number,
     endX: number,
     endY: number,
-    isMultiBit: boolean = false
+    isMultiBit: boolean = false,
+    isPathHighlight: boolean = false
   ): void {
+    // Determine line width
+    let lineWidth = isMultiBit ? this.config.multiBitWidth : this.config.singleBitWidth;
+
+    // Apply path highlight effect (Story 6.9)
+    if (isPathHighlight) {
+      ctx.save();
+      ctx.shadowColor = getLinkHighlightColor();
+      ctx.shadowBlur = 6;
+      lineWidth = Math.max(lineWidth * 2, 4); // At least 4px for visibility
+    }
+
     ctx.strokeStyle = getWireColor(signalValue);
-    ctx.lineWidth = isMultiBit ? this.config.multiBitWidth : this.config.singleBitWidth;
+    ctx.lineWidth = lineWidth;
     ctx.lineCap = this.config.lineCap;
     ctx.beginPath();
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.stroke();
+
+    // Restore context if we modified it for path highlight
+    if (isPathHighlight) {
+      ctx.restore();
+    }
   }
 
   /**

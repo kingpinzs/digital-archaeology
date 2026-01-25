@@ -131,6 +131,12 @@ export class CircuitRenderer {
   private boundMouseMoveHoverHandler: ((e: MouseEvent) => void) | null = null;
   private boundMouseLeaveHandler: ((e: MouseEvent) => void) | null = null;
 
+  // Code-to-circuit linking (Story 6.9)
+  private highlightedGateIds: Set<number> = new Set();
+  private highlightedWireSegments: number[][] | null = null;
+  private boundClickHandler: ((e: MouseEvent) => void) | null = null;
+  private didDragDuringClick: boolean = false;
+
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
   private lastLayoutHeight: number = 0;
@@ -216,6 +222,9 @@ export class CircuitRenderer {
     this.setupTooltip();
     this.setupHoverHandlers();
 
+    // Set up click handler for clearing code-to-circuit highlights (Story 6.9)
+    this.setupClickHandler();
+
     // Update viewport size for pan bounds (Story 6.7)
     this.zoomController.setViewportSize(this.displayWidth, this.displayHeight);
 
@@ -287,6 +296,10 @@ export class CircuitRenderer {
     // Only allow panning when panning is allowed
     if (!this.zoomController.isPanningAllowed()) return;
 
+    // Reset drag tracking flag at start of new interaction (Story 6.9)
+    // Prevents stale state if previous click event was somehow missed
+    this.didDragDuringClick = false;
+
     this.isDragging = true;
     this.lastDragX = e.clientX;
     this.lastDragY = e.clientY;
@@ -306,6 +319,11 @@ export class CircuitRenderer {
 
     const deltaX = e.clientX - this.lastDragX;
     const deltaY = e.clientY - this.lastDragY;
+
+    // Track that actual movement occurred (for click handler, Story 6.9)
+    if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+      this.didDragDuringClick = true;
+    }
 
     this.zoomController.pan(deltaX, deltaY);
 
@@ -374,6 +392,43 @@ export class CircuitRenderer {
 
     this.canvas.addEventListener('mousemove', this.boundMouseMoveHoverHandler);
     this.canvas.addEventListener('mouseleave', this.boundMouseLeaveHandler);
+  }
+
+  /**
+   * Set up click handler for clearing code-to-circuit highlights (Story 6.9).
+   * Clears editor-triggered highlights when clicking on empty canvas space.
+   * @private
+   */
+  private setupClickHandler(): void {
+    if (!this.canvas) return;
+
+    this.boundClickHandler = this.handleClick.bind(this);
+    this.canvas.addEventListener('click', this.boundClickHandler);
+  }
+
+  /**
+   * Handle click event for clearing code-to-circuit highlights (Story 6.9).
+   * Clears highlights when clicking on empty canvas space (not on a gate).
+   * Ignores clicks that were part of a drag operation.
+   * @private
+   */
+  private handleClick(e: MouseEvent): void {
+    // Don't clear highlights if this was a drag operation
+    if (this.didDragDuringClick) {
+      this.didDragDuringClick = false;
+      return;
+    }
+
+    // Convert screen to canvas coordinates
+    const canvasCoords = this.screenToCanvas(e.clientX, e.clientY);
+
+    // Hit test against gates
+    const gate = this.hitTestGate(canvasCoords.x, canvasCoords.y);
+
+    // If no gate was clicked, clear the highlights
+    if (!gate) {
+      this.clearHighlightedGates();
+    }
   }
 
   /**
@@ -681,6 +736,9 @@ export class CircuitRenderer {
         // Get the signal value for this bit
         const signalValue = wireState[segment.bitIndex] ?? 2; // Default to unknown
 
+        // Check if this wire segment is highlighted for signal path (Story 6.9)
+        const isPathHighlight = this.isWireSegmentHighlighted(wire.id, segment.bitIndex);
+
         this.wireRenderer.renderWire(
           this.ctx,
           signalValue,
@@ -688,7 +746,8 @@ export class CircuitRenderer {
           segment.startY,
           segment.endX,
           segment.endY,
-          isMultiBit
+          isMultiBit,
+          isPathHighlight
         );
       }
     }
@@ -727,6 +786,9 @@ export class CircuitRenderer {
         // Check if this gate is hovered (Story 6.8)
         const isHovered = this.hoveredGateId === gate.id;
 
+        // Check if this gate is highlighted for code-to-circuit linking (Story 6.9)
+        const isLinkedHighlight = this.highlightedGateIds.has(gate.id);
+
         this.gateRenderer.renderGate(
           this.ctx,
           gate,
@@ -735,7 +797,8 @@ export class CircuitRenderer {
           layoutConfig.gateWidth,
           layoutConfig.gateHeight,
           pulseScale,
-          isHovered
+          isHovered,
+          isLinkedHighlight
         );
       }
     }
@@ -1002,6 +1065,88 @@ export class CircuitRenderer {
     this.render();
   }
 
+  // ============================================================================
+  // Code-to-Circuit Linking Methods (Story 6.9)
+  // ============================================================================
+
+  /**
+   * Set the gates to highlight for code-to-circuit linking.
+   * Validates gate IDs and wire segments against the loaded circuit model.
+   * Invalid IDs are silently filtered out for graceful degradation.
+   * @param gateIds - Array of gate IDs to highlight
+   * @param wireSegments - Optional array of [wireId, bitIndex] pairs for signal path
+   */
+  setHighlightedGates(gateIds: number[], wireSegments?: number[][]): void {
+    this.highlightedGateIds.clear();
+
+    // Validate and add gate IDs (only if circuit model is loaded)
+    for (const id of gateIds) {
+      if (this.circuitModel) {
+        // Validate gate exists in circuit
+        if (this.circuitModel.getGate(id)) {
+          this.highlightedGateIds.add(id);
+        }
+        // Invalid gate IDs are silently ignored for graceful degradation
+      } else {
+        // No circuit loaded - add all IDs unconditionally
+        // Invalid IDs are harmlessly ignored during render (only circuitModel gates are drawn)
+        this.highlightedGateIds.add(id);
+      }
+    }
+
+    // Validate wire segments if provided and circuit is loaded
+    if (wireSegments && this.circuitModel) {
+      const validSegments: number[][] = [];
+      for (const segment of wireSegments) {
+        if (segment.length === 2) {
+          const [wireId, bitIndex] = segment;
+          const wire = this.circuitModel.getWire(wireId);
+          if (wire && bitIndex >= 0 && bitIndex < wire.width) {
+            validSegments.push(segment);
+          }
+          // Invalid segments are silently ignored for graceful degradation
+        }
+      }
+      this.highlightedWireSegments = validSegments.length > 0 ? validSegments : null;
+    } else {
+      this.highlightedWireSegments = wireSegments ?? null;
+    }
+
+    this.render();
+  }
+
+  /**
+   * Clear all code-to-circuit highlighting.
+   */
+  clearHighlightedGates(): void {
+    if (this.highlightedGateIds.size > 0 || this.highlightedWireSegments !== null) {
+      this.highlightedGateIds.clear();
+      this.highlightedWireSegments = null;
+      this.render();
+    }
+  }
+
+  /**
+   * Get the set of currently highlighted gate IDs.
+   * @returns Set of highlighted gate IDs
+   */
+  getHighlightedGateIds(): Set<number> {
+    return this.highlightedGateIds;
+  }
+
+  /**
+   * Check if a wire segment is highlighted for signal path emphasis.
+   * @param wireId - The wire ID
+   * @param bitIndex - The bit index within the wire
+   * @returns True if the segment is highlighted
+   */
+  isWireSegmentHighlighted(wireId: number, bitIndex: number): boolean {
+    if (!this.highlightedWireSegments) return false;
+    return this.highlightedWireSegments.some(
+      ([wId, bIdx]) => wId === wireId && bIdx === bitIndex
+    );
+  }
+
   /**
    * Destroy the component and clean up resources.
    * Removes the canvas and disconnects the resize observer.
@@ -1045,6 +1190,13 @@ export class CircuitRenderer {
     this.boundMouseLeaveHandler = null;
     this.hoveredGateId = null;
 
+    // Clean up click handler (Story 6.9)
+    if (this.canvas && this.boundClickHandler) {
+      this.canvas.removeEventListener('click', this.boundClickHandler);
+    }
+    this.boundClickHandler = null;
+    this.didDragDuringClick = false;
+
     // Clean up tooltip (Story 6.8)
     if (this.tooltip) {
       this.tooltip.destroy();
@@ -1084,6 +1236,10 @@ export class CircuitRenderer {
     }
     this.changedGates.clear();
     this.interpolatedWireStates = null;
+
+    // Clean up code-to-circuit linking state (Story 6.9)
+    this.highlightedGateIds.clear();
+    this.highlightedWireSegments = null;
   }
 }
 

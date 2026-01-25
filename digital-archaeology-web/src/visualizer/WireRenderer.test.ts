@@ -177,4 +177,121 @@ describe('WireRenderer', () => {
       expect(config.multiBitWidth).toBe(2); // Unchanged
     });
   });
+
+  // ============================================================================
+  // Story 6.9: Signal Path Highlight Tests
+  // ============================================================================
+  describe('isPathHighlight rendering (Story 6.9)', () => {
+    let pathMockCtx: {
+      strokeStyle: string;
+      lineWidth: number;
+      lineCap: CanvasLineCap;
+      shadowBlur: number;
+      shadowColor: string;
+      beginPath: ReturnType<typeof vi.fn>;
+      moveTo: ReturnType<typeof vi.fn>;
+      lineTo: ReturnType<typeof vi.fn>;
+      stroke: ReturnType<typeof vi.fn>;
+      save: ReturnType<typeof vi.fn>;
+      restore: ReturnType<typeof vi.fn>;
+    };
+    let saveCalled: boolean;
+    let restoreCalled: boolean;
+
+    beforeEach(() => {
+      saveCalled = false;
+      restoreCalled = false;
+
+      pathMockCtx = {
+        strokeStyle: '',
+        lineWidth: 0,
+        lineCap: 'butt',
+        shadowBlur: 0,
+        shadowColor: '',
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        save: vi.fn(() => { saveCalled = true; }),
+        restore: vi.fn(() => { restoreCalled = true; }),
+      };
+
+      // Mock CSS variable for link highlight color
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-link-highlight': '#ff9f43',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+    });
+
+    it('should apply path highlight glow effect when isPathHighlight is true', () => {
+      renderer.renderWire(
+        pathMockCtx as unknown as CanvasRenderingContext2D,
+        1,
+        0,
+        0,
+        50,
+        50,
+        false,
+        true // isPathHighlight
+      );
+
+      expect(saveCalled).toBe(true);
+      expect(restoreCalled).toBe(true);
+      expect(pathMockCtx.shadowBlur).toBe(6);
+      expect(pathMockCtx.shadowColor).toBe('#ff9f43');
+    });
+
+    it('should use thicker line width when isPathHighlight is true', () => {
+      renderer.renderWire(
+        pathMockCtx as unknown as CanvasRenderingContext2D,
+        1,
+        0,
+        0,
+        50,
+        50,
+        false, // single bit (would be 1px normally)
+        true   // isPathHighlight
+      );
+
+      // Should be at least 4px (max of width * 2 or 4)
+      expect(pathMockCtx.lineWidth).toBeGreaterThanOrEqual(4);
+    });
+
+    it('should not apply glow effect when isPathHighlight is false', () => {
+      renderer.renderWire(
+        pathMockCtx as unknown as CanvasRenderingContext2D,
+        1,
+        0,
+        0,
+        50,
+        50,
+        false,
+        false // isPathHighlight
+      );
+
+      expect(saveCalled).toBe(false);
+      expect(restoreCalled).toBe(false);
+    });
+
+    it('should work with multi-bit wires and path highlight', () => {
+      renderer.renderWire(
+        pathMockCtx as unknown as CanvasRenderingContext2D,
+        1,
+        0,
+        0,
+        50,
+        50,
+        true,  // multi-bit
+        true   // isPathHighlight
+      );
+
+      // Multi-bit is 2px, doubled is 4px which matches minimum
+      expect(pathMockCtx.lineWidth).toBeGreaterThanOrEqual(4);
+      expect(saveCalled).toBe(true);
+    });
+  });
 });

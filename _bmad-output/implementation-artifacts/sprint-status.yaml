@@ -112,7 +112,7 @@ development_status:
   6-7-implement-pan-navigation: done
   6-8-show-component-tooltips: done
   6-9-implement-code-to-circuit-linking: done
-  6-10-implement-circuit-to-code-linking: backlog
+  6-10-implement-circuit-to-code-linking: in-progress
   6-11-display-signal-values-panel: backlog
   6-12-show-breadcrumb-navigation: backlog
   epic-6-retrospective: optional
@@ -429,3 +429,59 @@ development_status:
   33-6-what-if-risc-won: backlog
   33-7-what-if-multicore-went-differently: backlog
   epic-33-retrospective: optional
+
+  # Epic 34: Learning Philosophy System
+  epic-34: backlog
+  34-1-constraint-first-discovery-mode: backlog
+  34-2-forward-discovery-learning-path: backlog
+  34-3-the-stuck-protocol-system: backlog
+  34-4-validation-proof-system: backlog
+  34-5-solo-vs-community-learning-modes: backlog
+  epic-34-retrospective: optional
+
+  # Epic 35: Economic Forces & Historical Context Track
+  epic-35: backlog
+  35-1-mistake-archaeology-system: backlog
+  35-2-follow-the-money-context: backlog
+  35-3-historical-context-track-human-story: backlog
+  35-4-why-things-failed-dead-ends: backlog
+  epic-35-retrospective: optional
+
+  # Epic 36: Democratization & Accessibility System
+  epic-36: backlog
+  36-1-expose-manufactured-scarcity: backlog
+  36-2-kits-for-everyone-physical-build: backlog
+  36-3-cost-transparency-system: backlog
+  36-4-multiple-entry-points-system: backlog
+  36-5-democratization-mission-statement: backlog
+  epic-36-retrospective: optional
+
+  # Epic 37: Advanced Architecture Philosophy
+  epic-37: backlog
+  37-1-microcontroller-paradox-exploration: backlog
+  37-2-why-cant-we-just-question-system: backlog
+  37-3-what-if-neither-third-options: backlog
+  37-4-why-fixed-bit-width-exploration: backlog
+  37-5-gpu-cartel-watching-lock-in: backlog
+  37-6-hybrid-machine-design: backlog
+  37-7-data-first-architecture-design: backlog
+  37-8-the-shapeshifter-machine: backlog
+  epic-37-retrospective: optional
+
+  # Epic 38: User-Driven Discovery System
+  epic-38: backlog
+  38-1-your-ideas-lead-the-way: backlog
+  38-2-new-paths-you-create: backlog
+  38-3-explore-build-discover-loop: backlog
+  38-4-dead-ends-with-reasons-system: backlog
+  38-5-interlinking-discovery-network: backlog
+  epic-38-retrospective: optional
+
+  # Epic 39: Physical Build & Kit Support
+  epic-39: backlog
+  39-1-safe-experiments-guide: backlog
+  39-2-stage-0-physical-kit: backlog
+  39-3-micro4-physical-kit: backlog
+  39-4-tools-equipment-guide: backlog
+  39-5-physical-vs-simulated-dual-track: backlog
+  epic-39-retrospective: optional

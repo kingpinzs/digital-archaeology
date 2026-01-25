@@ -337,6 +337,30 @@ Users can explore 8 parallel tracks of interconnected discoveries that led to mo
 Users explore specific moments where history could have diverged, with playable "what if" content. Key branch points: 1837 (What if Babbage got funding?), 1970s (What if stack machines won over register machines?), 1978 (What if Intel went flat 32-bit instead of segment registers?), 1980s (What if IBM kept PC proprietary like Apple?), 1985 (What if 386 made a clean break from real mode?), 1990s (What if MIPS/SPARC beat x86?), 2000s (What if the multicore pivot went differently?).
 **FRs covered:** Brainstorming session "Key Branch Points in History" section
 
+### Epic 34: Learning Philosophy System
+The platform teaches HOW to learn, not just WHAT. Constraint-First Discovery (give the problem, let them invent solutions), Forward Discovery (learn forward not reverse-engineer answers), The Stuck Protocol (debugging is a skill to teach with structured help systems), Validation & Proof System (how do you KNOW you understand? - working systems that prove mastery), and Solo vs Community options (optional collaboration, solo-first as default).
+**FRs covered:** Brainstorming Ideas #1, #2, #39, #40, #41
+
+### Epic 35: Economic Forces & Historical Context Track
+Every decision is explained through economic, political, and business context. Mistake Archaeology (find decisions baked in by accident that we're stuck with), Follow the Money (explicit economic motivations at every branch point), Historical Context Track (Cold War, business battles, patent wars, personality conflicts - the human story behind the technology), Why Things Failed (not just "wrong" but physics/economics/timing/materials reasons).
+**FRs covered:** Brainstorming Ideas #4, #42, #43, #55
+
+### Epic 36: Democratization & Accessibility System
+Prove computing is learnable by ANYONE without billion-dollar dependencies. Why Can't Anyone Build One? (expose manufactured scarcity vs actual necessity), Artificial Complexity (call out complexity as a moat not requirement), Kits for Everyone (physical kit designs for real building), Cost Transparency (honest about what each stage costs in time and money), Simulation-First as First-Class Path ($0 hardware option explicitly supported), Multiple Entry Points (on-ramps at every skill level from zero to advanced).
+**FRs covered:** Brainstorming Ideas #12, #14, #18, #19, #44, #45, #46
+
+### Epic 37: Advanced Architecture Philosophy
+Explore radical alternatives to conventional CPU design. The Microcontroller Paradox (more power = less control, why?), "Why Can't We Just..." Question System (reveal artificial constraints through user questions), What If Neither? (third options nobody explored), Why Fixed Bit Width? (why not "whatever the data needs"?), The GPU Cartel (watching lock-in happen in real time), The Hybrid Machine (combine paradigms instead of choosing), "Why Not All?" Principle (A + B + C instead of A vs B), Data-First Architecture (machine serves data, not data serves machine), The Shapeshifter Machine (meta-architecture that becomes what's needed).
+**FRs covered:** Brainstorming Ideas #5, #6, #16, #21, #22, #23, #24, #25, #26
+
+### Epic 38: User-Driven Discovery System
+Users don't just follow the golden path - they CREATE new paths. Your Ideas Lead the Way (YOUR thinking creates YOUR branches), New Paths You Create (ideas that aren't in history - YOU invent them), Explore → Build → Discover Loop (system helps explore, lets you build, shows consequences), Dead Ends With Reasons (failure teaches WHY - physics, materials, economics, timing), Interlinking Discovery (your ideas plug into the web of human discovery and connect to other thinkers).
+**FRs covered:** Brainstorming Ideas #52, #53, #54, #55, #56
+
+### Epic 39: Physical Build & Kit Support
+Support real-world hardware building alongside simulation. Safe Experiments List (identify what's safe to try at each stage), Kit Designs (BOM, instructions, sources for building real circuits), Physical vs Simulated Dual Tracks (both paths valid and first-class), Real-World Validation (connect simulation understanding to physical reality), Tools & Equipment Guide (what you need, where to get it, what it costs).
+**FRs covered:** Brainstorming Ideas #38, Next Steps #6, #7
+
 ---
 
 ## Epic 1: Project Foundation & App Shell
@@ -5377,6 +5401,720 @@ So that I understand why we stopped increasing clock speeds.
 **And** I see: multiple cores was the pragmatic solution
 **And** I can explore: what if we solved the power problem differently?
 **And** I can return to the golden path when ready
+
+---
+
+## Epic 34: Learning Philosophy System
+
+**Goal:** Teach HOW to learn, not just WHAT - implementing the core learning philosophy from the brainstorming vision.
+
+**FRs covered:** Brainstorming Ideas #1 (Constraint-First Discovery), #2 (Forward Discovery), #39 (The Stuck Protocol), #40 (Validation & Proof), #41 (Solo vs Community)
+
+### Story 34.1: Constraint-First Discovery Mode
+
+As a learner,
+I want to be given the PROBLEM first without the solution,
+So that I can invent solutions myself and truly understand WHY each feature exists.
+
+**Acceptance Criteria:**
+
+**Given** I enter a new concept module
+**When** the system presents a challenge
+**Then** I receive: the PROBLEM (what engineers faced), the CONSTRAINTS (what limits existed), the GOAL (what they needed to achieve)
+**And** I do NOT receive the solution first
+**And** I can attempt MY solution before seeing history's answer
+**And** the system provides feedback on my approach
+**And** I can then see "what history chose" and compare to my solution
+**And** I understand both approaches' tradeoffs
+
+---
+
+### Story 34.2: Forward Discovery Learning Path
+
+As a learner,
+I want to learn concepts FORWARD (problem → solution) not backward (solution → explanation),
+So that my brain builds understanding the way it naturally learns.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning a new concept
+**When** the system structures the learning
+**Then** I experience: Discovery (what's the problem?) → Exploration (what options exist?) → Implementation (build something) → Validation (does it work?) → Connection (how does this link to other concepts?)
+**And** I NEVER get "here's the answer, now let me explain why"
+**And** each concept builds on problems I've already solved
+**And** I feel like I DISCOVERED the solution, not just learned it
+
+---
+
+### Story 34.3: The Stuck Protocol System
+
+As a learner,
+I want structured help when I get stuck,
+So that debugging becomes a learnable skill, not a frustration.
+
+**Acceptance Criteria:**
+
+**Given** I've been struggling with a problem for a configurable time
+**When** the system detects I'm stuck
+**Then** it offers graduated help levels:
+  - Level 1: "What have you tried?" (reflection prompt)
+  - Level 2: "Have you checked...?" (diagnostic checklist)
+  - Level 3: "Similar problems often involve..." (pattern hints)
+  - Level 4: "Here's a related example..." (worked example)
+  - Level 5: "The key insight is..." (direct hint)
+**And** I can request help at any level manually
+**And** each level is logged so I can review my learning patterns
+**And** I learn the DEBUGGING PROCESS not just the answer
+
+---
+
+### Story 34.4: Validation & Proof System
+
+As a learner,
+I want to KNOW that I truly understand, not just THINK I understand,
+So that I have confidence in my knowledge and can build on it.
+
+**Acceptance Criteria:**
+
+**Given** I complete a learning module
+**When** I claim understanding
+**Then** the system challenges me to PROVE IT through:
+  - Building something that works
+  - Explaining the concept to a simulated student
+  - Predicting what will happen in a new scenario
+  - Finding the bug in intentionally broken code
+  - Teaching the concept back (Feynman technique)
+**And** my proof attempts are tracked and reviewed
+**And** I receive a "mastery confidence score" based on my proofs
+**And** I can see which concepts need more validation
+
+---
+
+### Story 34.5: Solo vs Community Learning Modes
+
+As a learner,
+I want to choose between solo exploration and community collaboration,
+So that learning fits my preferred style and social comfort.
+
+**Acceptance Criteria:**
+
+**Given** I'm using the platform
+**When** I configure my learning preferences
+**Then** I can select:
+  - Solo Mode: All challenges, my pace, no external interaction
+  - Community Mode: Share solutions, see others' approaches, collaborate
+  - Hybrid Mode: Solo learning with optional community check-ins
+**And** Solo Mode is the default (no pressure to share)
+**And** Community features are opt-in not opt-out
+**And** I can switch modes at any time
+**And** my progress is visible only to me by default
+
+---
+
+## Epic 35: Economic Forces & Historical Context Track
+
+**Goal:** Show the HUMAN story behind technology - economics, politics, personalities, and accidents that shaped computing.
+
+**FRs covered:** Brainstorming Ideas #4 (Mistake Archaeology), #42 (Historical Context Track), #43 (Economic Forces Explicit), #55 (Dead Ends With Reasons)
+
+### Story 35.1: Mistake Archaeology System
+
+As a learner,
+I want to find decisions that got baked into computing by ACCIDENT,
+So that I understand which "requirements" are actually just historical baggage.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about a computing standard or convention
+**When** I select "Why is it this way?"
+**Then** I can discover if it was:
+  - Intentional design (with reasons)
+  - Accident that got locked in
+  - Compromise that became permanent
+  - Marketing decision that became technical
+  - Legal/patent workaround that became standard
+**And** I see specific examples: Why 8 bits? Why ASCII values? Why little-endian? Why QWERTY?
+**And** I can explore "What if this had been different?"
+**And** I understand: not all constraints are physics - some are just history
+
+---
+
+### Story 35.2: Follow the Money Context
+
+As a learner,
+I want to understand the ECONOMIC motivations behind every major decision,
+So that I see computing as a human story, not just a technical one.
+
+**Acceptance Criteria:**
+
+**Given** I'm at a major historical branch point
+**When** I select "Follow the Money"
+**Then** I see:
+  - Who paid for this development? (government, corporations, individuals)
+  - What was the business model? (sell hardware, sell software, sell access)
+  - Who made money? Who lost money?
+  - What economic pressures drove the decision?
+  - What would have been cheaper/more expensive?
+**And** I understand: Intel chose backward compatibility because $$$
+**And** I understand: IBM opened the PC because they underestimated software
+**And** I understand: Microsoft's rise was economics not technology
+
+---
+
+### Story 35.3: Historical Context Track - The Human Story
+
+As a learner,
+I want to experience the HUMAN drama behind computing,
+So that I connect emotionally with the story and remember the lessons.
+
+**Acceptance Criteria:**
+
+**Given** I'm exploring a historical era
+**When** I select "The Human Story"
+**Then** I can explore:
+  - Cold War Context: Government funding, space race, military needs
+  - Business Battles: IBM vs everyone, Intel vs AMD, Apple vs Microsoft
+  - Patent Wars: Who sued who, what ideas were locked up
+  - Personality Conflicts: Jobs vs Wozniak, Shockley vs Bardeen/Brattain
+  - Timing & Luck: Right place, right time, happy accidents
+**And** I see: Shockley's management failures created Silicon Valley
+**And** I see: The Cold War funded computing's early growth
+**And** I see: Patent battles shaped what innovations could spread
+
+---
+
+### Story 35.4: Why Things Failed - Dead Ends With Reasons
+
+As a learner,
+I want to understand WHY failed approaches failed,
+So that dead ends teach me as much as successes.
+
+**Acceptance Criteria:**
+
+**Given** I explore an abandoned technology or approach
+**When** I reach a "dead end"
+**Then** I learn WHY it failed through specific reasons:
+  - Physics limitations (couldn't overcome fundamental constraints)
+  - Materials limitations (technology didn't exist yet)
+  - Economic reasons (too expensive, no market)
+  - Timing reasons (too early or too late)
+  - Political/social reasons (wrong backers, bad timing)
+**And** I see: Analog computing failed because of noise accumulation (physics)
+**And** I see: Babbage failed because of materials precision (materials)
+**And** I see: Lisp machines failed because general-purpose was cheaper (economics)
+**And** I can explore: "Could it work NOW with modern technology?"
+
+---
+
+## Epic 36: Democratization & Accessibility System
+
+**Goal:** Prove computing is learnable by ANYONE - expose artificial barriers and provide multiple paths in.
+
+**FRs covered:** Brainstorming Ideas #12, #14, #18, #19, #44, #45, #46
+
+### Story 36.1: Expose Manufactured Scarcity
+
+As a learner,
+I want to understand what barriers to CPU understanding are REAL vs ARTIFICIAL,
+So that I'm not intimidated by complexity that exists to exclude rather than because it's necessary.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about an aspect of computing
+**When** I encounter complexity
+**Then** I can ask "Is this necessary?"
+**And** the system explains:
+  - Real complexity: Physics requires this, here's why
+  - Historical complexity: It started simple, then got complicated because...
+  - Artificial complexity: This could be simpler but isn't because...
+  - Moat complexity: This is deliberately hard to keep others out
+**And** I see examples: x86 instruction encoding is artificial complexity
+**And** I see examples: Transistor physics is real complexity
+**And** I feel empowered: "I CAN understand this, it's not magic"
+
+---
+
+### Story 36.2: Kits for Everyone - Physical Build Designs
+
+As a learner,
+I want access to kit designs for building REAL hardware,
+So that simulation knowledge translates to physical reality.
+
+**Acceptance Criteria:**
+
+**Given** I want to build something physical
+**When** I access the Kits section
+**Then** I find for each stage:
+  - Complete Bill of Materials (BOM) with part numbers and sources
+  - Step-by-step assembly instructions with photos
+  - Estimated cost breakdown (components, tools, shipping)
+  - Time estimate for assembly
+  - Common mistakes and how to avoid them
+  - Verification tests to confirm it works
+**And** Stage 0 kit: Basic logic gates from transistors (~$20)
+**And** Micro4 kit: Working 4-bit CPU on breadboard (~$50)
+**And** Micro8 kit: 8-bit CPU with more complexity (~$100)
+**And** all kits use commonly available parts (no custom chips)
+
+---
+
+### Story 36.3: Cost Transparency System
+
+As a learner,
+I want honest information about what each learning stage costs,
+So that I can plan my learning journey with realistic expectations.
+
+**Acceptance Criteria:**
+
+**Given** I'm planning my learning path
+**When** I view any stage or project
+**Then** I see clear cost information:
+  - Simulation path: $0 (requires only a computer and browser)
+  - Basic physical experiments: $X (what exactly you need)
+  - Full kit builds: $X (complete BOM costs)
+  - FPGA path: $X (which boards, which tools)
+  - Time investment: X hours estimated
+**And** costs are broken down by required vs optional
+**And** alternative sources are listed (cheaper options)
+**And** I can filter content by budget: "$0 only", "under $50", etc.
+
+---
+
+### Story 36.4: Multiple Entry Points System
+
+As a learner,
+I want to enter the learning journey at my current skill level,
+So that I'm not forced to start from zero if I already know things.
+
+**Acceptance Criteria:**
+
+**Given** I'm new to the platform
+**When** I start
+**Then** I can choose my entry point:
+  - Complete Beginner: Start at Stage 0 (electricity, what's a switch?)
+  - Some Programming: Start at Micro4 (you know code, now see how it runs)
+  - EE Background: Start at circuit level (you know electronics, learn computing)
+  - CS Graduate: Start at advanced topics (fill in the gaps you missed)
+  - Expert Refresher: Jump to specific topics of interest
+**And** each entry point has a quick assessment to confirm level
+**And** I can always go back to earlier content if needed
+**And** no entry point is "lesser" - all lead to full understanding
+
+---
+
+### Story 36.5: The Democratization Mission Statement
+
+As a learner,
+I want to understand the MISSION of this platform,
+So that I feel part of something larger than just learning.
+
+**Acceptance Criteria:**
+
+**Given** I first encounter the platform
+**When** I learn about its purpose
+**Then** I understand:
+  - The Mission: Prove anyone can build a computer without billion-dollar dependencies
+  - The Problem: Computing knowledge has been gatekept and mystified
+  - The Solution: Open, free, accessible path from zero to expert
+  - The Test: "Can I build a complete computer from switches to OS using only things I could make or source without permission?"
+**And** I feel: "This is FOR me, not above me"
+**And** I feel: "I can contribute to this mission"
+
+---
+
+## Epic 37: Advanced Architecture Philosophy
+
+**Goal:** Explore radical alternatives and challenge fundamental assumptions about CPU design.
+
+**FRs covered:** Brainstorming Ideas #5, #6, #16, #21, #22, #23, #24, #25, #26
+
+### Story 37.1: The Microcontroller Paradox Exploration
+
+As a learner,
+I want to understand why "more power = less control",
+So that I see the tradeoffs in modern computing clearly.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about modern processors
+**When** I explore the Microcontroller Paradox
+**Then** I understand:
+  - Micro4: You control EVERYTHING. Every bit, every cycle.
+  - Modern CPU: Layers of abstraction hide what's really happening
+  - The Paradox: More capable machines give us LESS understanding
+**And** I can explore: Why did we accept this tradeoff?
+**And** I can explore: What do we lose when we can't see inside?
+**And** I understand: Security, debugging, optimization all suffer when we lose visibility
+
+---
+
+### Story 37.2: "Why Can't We Just..." Question System
+
+As a learner,
+I want to ask "Why can't we just..." questions and get real answers,
+So that I discover which constraints are physics vs convention vs business.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning any concept
+**When** I ask "Why can't we just...?"
+**Then** the system provides categories of answers:
+  - "You CAN - here's how" (it's actually possible)
+  - "Physics says no - here's why" (fundamental limitation)
+  - "Materials say not yet - here's what's needed" (technology gap)
+  - "Economics says no - here's the cost" (too expensive)
+  - "History says we don't - here's what locked us in" (path dependency)
+**And** I see curated "Why can't we just..." questions with answers
+**And** I can submit my own questions
+**And** good questions get added to the library
+
+---
+
+### Story 37.3: What If Neither? - Third Options
+
+As a learner,
+I want to explore third options that nobody tried,
+So that I see beyond false binaries in computing history.
+
+**Acceptance Criteria:**
+
+**Given** I'm at a historical "either/or" decision point
+**When** I select "What if neither?"
+**Then** I can explore alternatives:
+  - RISC vs CISC: What about VLIW? What about transport-triggered?
+  - Register vs Stack: What about memory-memory architectures?
+  - Big vs Little Endian: What about middle-endian? Variable endian?
+  - Sync vs Async: What about globally asynchronous, locally synchronous?
+**And** I can design and simulate my "third option"
+**And** I discover why third options often weren't tried (not because they're bad)
+
+---
+
+### Story 37.4: Why Fixed Bit Width? Exploration
+
+As a learner,
+I want to understand why computers use fixed bit widths,
+So that I see this as a CHOICE not an absolute requirement.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about data representation
+**When** I explore "Why 8/16/32/64 bits?"
+**Then** I understand:
+  - Historical reasons: Hardware was simpler with fixed widths
+  - Economic reasons: Standard widths enable interoperability
+  - Alternative: Variable-width architectures exist (UTF-8 is variable!)
+  - Alternative: Arbitrary precision arithmetic is possible
+**And** I can explore: What if data width matched data size?
+**And** I can build: A simple variable-width system
+**And** I see tradeoffs: Simplicity vs flexibility vs performance
+
+---
+
+### Story 37.5: The GPU Cartel - Watching Lock-In Happen
+
+As a learner,
+I want to understand how lock-in is happening NOW with GPUs and AI,
+So that I recognize patterns from history repeating.
+
+**Acceptance Criteria:**
+
+**Given** I've learned about historical lock-in (x86, IBM PC)
+**When** I explore "The GPU Cartel"
+**Then** I see parallels:
+  - NVIDIA's CUDA = IBM's PC BIOS (proprietary becomes standard)
+  - GPU memory bandwidth = Intel's x86 (physics becomes moat)
+  - AI training costs = Mainframe costs (economics creates barriers)
+**And** I understand: We're watching lock-in happen in real time
+**And** I can explore: What alternatives exist? (OpenCL, TPUs, neuromorphic)
+**And** I ask: "What would it take to break this lock-in?"
+
+---
+
+### Story 37.6: The Hybrid Machine Design
+
+As a learner,
+I want to explore machines that COMBINE paradigms instead of choosing,
+So that I see CPU, GPU, FPGA, analog as a spectrum not discrete choices.
+
+**Acceptance Criteria:**
+
+**Given** I've learned multiple computing paradigms
+**When** I explore "The Hybrid Machine"
+**Then** I can design systems combining:
+  - Digital + Analog (precise control + fast approximation)
+  - CPU + GPU (sequential + parallel)
+  - Fixed + Reconfigurable (ASIC + FPGA)
+  - Deterministic + Probabilistic (exact + approximate)
+**And** I see: Modern chips ARE hybrid (CPU + GPU + NPU + ...)
+**And** I can simulate: A hybrid architecture I design
+**And** I explore: When is hybrid better than pure?
+
+---
+
+### Story 37.7: Data-First Architecture Design
+
+As a learner,
+I want to explore machines where the MACHINE serves the DATA,
+So that I see beyond the CPU-centric worldview.
+
+**Acceptance Criteria:**
+
+**Given** I've learned traditional CPU architecture
+**When** I explore "Data-First Architecture"
+**Then** I encounter alternative paradigms:
+  - Dataflow: Computation happens WHERE the data is
+  - Content-addressable: Find by content not address
+  - Associative: Memory that searches itself
+  - In-memory computing: Processing inside RAM
+**And** I understand: Moving data is often the bottleneck
+**And** I can design: A data-first system for a specific problem
+**And** I see: GPUs and TPUs are moving toward data-first
+
+---
+
+### Story 37.8: The Shapeshifter Machine
+
+As a learner,
+I want to explore machines that BECOME what's needed,
+So that I see beyond fixed architectures to meta-architectures.
+
+**Acceptance Criteria:**
+
+**Given** I've learned various architecture types
+**When** I explore "The Shapeshifter Machine"
+**Then** I understand:
+  - FPGAs: Hardware that can become any circuit
+  - Configurable processors: Instructions that can be added
+  - Soft cores: CPUs that run on FPGAs
+  - The ultimate: Hardware that reconfigures at runtime
+**And** I can design: A system that adapts to its workload
+**And** I explore: Why don't we do this more? (complexity, power, cost)
+**And** I see: The spectrum from fully fixed to fully flexible
+
+---
+
+## Epic 38: User-Driven Discovery System
+
+**Goal:** Users don't just follow the golden path - they CREATE new paths that become part of the experience.
+
+**FRs covered:** Brainstorming Ideas #52, #53, #54, #55, #56
+
+### Story 38.1: Your Ideas Lead the Way
+
+As a learner,
+I want MY thinking to create MY branches through the content,
+So that I'm not just following someone else's path but creating my own.
+
+**Acceptance Criteria:**
+
+**Given** I'm exploring any topic
+**When** I have an idea or question
+**Then** I can:
+  - Tag it as "My Idea"
+  - Branch off to explore it
+  - Document what I discover
+  - Save it as part of MY path through the content
+**And** my exploration is tracked and visualized
+**And** I can see: "Here's where YOUR thinking diverged from the golden path"
+**And** my ideas become part of my learning record
+
+---
+
+### Story 38.2: New Paths You Create
+
+As a learner,
+I want to create paths that AREN'T in history,
+So that I can invent rather than just learn.
+
+**Acceptance Criteria:**
+
+**Given** I have an original idea for an architecture or approach
+**When** I choose "Create New Path"
+**Then** I can:
+  - Design my approach using the tools
+  - Simulate it to see if it works
+  - Document why I made my choices
+  - Compare to historical approaches
+  - Save it as a "User-Created Path"
+**And** my path can optionally be shared with the community
+**And** good user paths may be featured
+**And** I feel like an INVENTOR not just a student
+
+---
+
+### Story 38.3: Explore → Build → Discover Loop
+
+As a learner,
+I want a consistent loop of explore-build-discover,
+So that every learning cycle reinforces both understanding and capability.
+
+**Acceptance Criteria:**
+
+**Given** I'm at any point in the learning journey
+**When** I engage with content
+**Then** I experience the loop:
+  - EXPLORE: What's the problem? What options exist?
+  - BUILD: Create something - simulation or physical
+  - DISCOVER: What happens? Does it work? What did I learn?
+**And** then loop back with new questions
+**And** this loop is explicit in the UI (not hidden)
+**And** I can see: "You're in the EXPLORE phase" or "Time to BUILD"
+
+---
+
+### Story 38.4: Dead Ends With Reasons System
+
+As a learner,
+I want dead ends to teach me WHY something fails,
+So that failure is as educational as success.
+
+**Acceptance Criteria:**
+
+**Given** I try an approach that doesn't work
+**When** I reach a "dead end"
+**Then** I receive:
+  - Clear indication: "This approach has limitations"
+  - Specific reason: Physics / Materials / Economics / Timing / Politics
+  - What would need to change for it to work
+  - Historical parallel: "Others tried this and here's what happened"
+  - Connection: "But this idea led to X which DID work"
+**And** dead ends are celebrated as learning, not failures
+**And** I understand: Edison's "10,000 ways that don't work"
+
+---
+
+### Story 38.5: Interlinking Discovery Network
+
+As a learner,
+I want my ideas to connect to the web of human discovery,
+So that I feel part of the larger story of invention.
+
+**Acceptance Criteria:**
+
+**Given** I explore or create an idea
+**When** the system processes my work
+**Then** it shows connections:
+  - "Your approach is similar to what [historical figure] tried"
+  - "This connects to [other concept] you'll learn later"
+  - "Another user explored something similar - see their path"
+  - "This relates to [current research] happening now"
+**And** I see: My ideas exist in a network, not isolation
+**And** I feel: I'm part of the ongoing story of computing
+**And** I discover: Connections I wouldn't have found alone
+
+---
+
+## Epic 39: Physical Build & Kit Support
+
+**Goal:** Support real-world hardware building alongside simulation with clear, accessible guidance.
+
+**FRs covered:** Brainstorming Ideas #38, Next Steps #6, #7
+
+### Story 39.1: Safe Experiments Guide
+
+As a learner,
+I want to know what's SAFE to try at each stage,
+So that I can experiment physically without risk of injury or equipment damage.
+
+**Acceptance Criteria:**
+
+**Given** I want to do physical experiments
+**When** I access any hands-on content
+**Then** I see clear safety information:
+  - GREEN: Safe for anyone (batteries, LEDs, small circuits)
+  - YELLOW: Needs caution (soldering, higher voltages)
+  - RED: Requires experience (mains power, high voltages)
+**And** each experiment lists: safety equipment needed, common mistakes, what could go wrong
+**And** voltages and currents are clearly labeled
+**And** I know: When to ask for help from someone experienced
+
+---
+
+### Story 39.2: Stage 0 Physical Kit
+
+As a learner,
+I want a beginner-friendly kit design for basic electronics,
+So that I can start building real circuits immediately.
+
+**Acceptance Criteria:**
+
+**Given** I want to start physical building
+**When** I access the Stage 0 Kit
+**Then** I find:
+  - Complete BOM: Breadboard, LEDs, resistors, transistors, switches, wires
+  - Source list: Where to buy each item (multiple vendors)
+  - Cost estimate: ~$20-30 for complete kit
+  - Projects: LED circuits, transistor as switch, basic logic gates
+  - Instructions: Step-by-step with photos and diagrams
+  - Verification: How to test that each circuit works
+**And** all parts are through-hole (no SMD soldering required)
+**And** no soldering required for basic projects
+
+---
+
+### Story 39.3: Micro4 Physical Kit
+
+As a learner,
+I want a kit design for building a working 4-bit CPU,
+So that I can hold a CPU I built myself.
+
+**Acceptance Criteria:**
+
+**Given** I've completed Stage 0 physical experiments
+**When** I access the Micro4 Kit
+**Then** I find:
+  - Complete BOM: 74-series logic ICs, clock circuit, LEDs, switches
+  - Cost estimate: ~$50-75 for complete kit
+  - PCB option: Design files for custom PCB (optional)
+  - Breadboard option: Build on breadboards (more educational)
+  - Assembly instructions: Multi-session build guide
+  - Testing guide: How to verify each subsystem
+  - Programming guide: How to load programs via switches
+**And** the kit CPU matches the Micro4 simulation exactly
+**And** programs written in the simulator run on the physical kit
+
+---
+
+### Story 39.4: Tools & Equipment Guide
+
+As a learner,
+I want clear guidance on what tools I need,
+So that I can invest wisely in equipment.
+
+**Acceptance Criteria:**
+
+**Given** I want to do physical building
+**When** I access the Tools Guide
+**Then** I find:
+  - Essential tools: Multimeter, breadboard, wire strippers, power supply
+  - Nice-to-have: Oscilloscope, logic analyzer, bench power supply
+  - Recommended models at different price points
+  - What you can skip (and what you're giving up)
+  - DIY alternatives where possible
+**And** I understand: What each tool does and when you need it
+**And** I can make informed decisions about tool purchases
+
+---
+
+### Story 39.5: Physical vs Simulated Dual Track
+
+As a learner,
+I want both simulation and physical paths treated as first-class options,
+So that I can choose based on my resources and preferences.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning any concept
+**When** I access the content
+**Then** I see both paths clearly:
+  - Simulation Track: All concepts learnable in browser ($0)
+  - Physical Track: Equivalent hands-on experiences with real hardware
+  - Hybrid Track: Some simulation, some physical (best of both)
+**And** neither track is "better" or "more real"
+**And** concepts learned in simulation transfer to physical
+**And** physical experiences deepen simulation understanding
+**And** I can switch tracks at any time
 
 ---
 

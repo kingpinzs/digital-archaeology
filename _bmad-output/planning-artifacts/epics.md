@@ -1951,16 +1951,22 @@ So that I experience their mindset, constraints, and discoveries firsthand.
 **And** I feel the authentic constraints of the era
 
 **Personas to Implement (from IMMERSIVE_PLATFORM_PLAN.md):**
-- Era 0a: Charles Babbage - "Navigation tables are killing sailors"
-- Era 0b: Ada Lovelace - "The machine could compose music..."
-- Era 1: Alan Turing - "What CAN machines compute?"
-- Era 2: Konrad Zuse - Building the Z3 with relays
-- Era 3: Shockley/Bardeen/Brattain - The transistor breakthrough
-- Era 4: Kilby/Noyce - The integrated circuit race
-- Era 5: Federico Faggin - "Busicom needs a calculator chip"
-- Era 6: Steve Wozniak - Making computing personal
-- Era 7: IBM PC Team - The business standard
-- Era 8: Intel 386 Team - 32-bit protected mode
+- Era 0a (1679): Gottfried Leibniz - "All computation can be reduced to 0s and 1s"
+- Era 0b (1804): Joseph Jacquard - "Programs can be stored on physical media"
+- Era 0c (1822): Charles Babbage - "Navigation tables are killing sailors"
+- Era 0d (1837): Charles Babbage - "What if a GENERAL-purpose calculating machine?"
+- Era 0e (1843): Ada Lovelace - "The machine could compose music..."
+- Era 0f (1854): George Boole - "Logic can become mathematics"
+- Era 1a (1936): Alan Turing - "What CAN machines compute?"
+- Era 1b (1937): Claude Shannon - "Boolean algebra IS electrical circuits"
+- Era 2a (1941): Konrad Zuse - Building the Z3 with relays
+- Era 2b (1945): ENIAC Team - 1000x faster than relays, but 18,000 tubes
+- Era 3 (1947): Shockley/Bardeen/Brattain - The transistor breakthrough
+- Era 4 (1958): Kilby/Noyce - The integrated circuit race
+- Era 5 (1971): Federico Faggin - "Busicom needs a calculator chip"
+- Era 6 (1976): Steve Wozniak - Making computing personal
+- Era 7 (1981): IBM PC Team - The business standard
+- Era 8 (1985): Intel 386 Team - 32-bit protected mode
 
 ---
 

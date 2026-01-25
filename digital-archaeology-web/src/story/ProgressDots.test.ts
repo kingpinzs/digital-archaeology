@@ -1,6 +1,7 @@
 // src/story/ProgressDots.test.ts
 // Tests for ProgressDots component
 // Story 10.16: Display Era Badge and Progress
+// Updated for 0-based act numbering (acts 0-10)
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ProgressDots } from './ProgressDots';
@@ -56,7 +57,7 @@ describe('ProgressDots', () => {
     it('should render correct number of dots (5)', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      progressDots.setProgress(createProgressDisplayData(0, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
       expect(dots.length).toBe(5);
@@ -65,7 +66,7 @@ describe('ProgressDots', () => {
     it('should render 3 dots when totalActs is 3', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 3));
+      progressDots.setProgress(createProgressDisplayData(0, 3));
 
       const dots = container.querySelectorAll('.da-progress-dot');
       expect(dots.length).toBe(3);
@@ -74,7 +75,7 @@ describe('ProgressDots', () => {
     it('should return dots via getDots()', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      progressDots.setProgress(createProgressDisplayData(0, 5));
 
       const dots = progressDots.getDots();
       expect(dots.length).toBe(5);
@@ -85,17 +86,17 @@ describe('ProgressDots', () => {
     it('should mark current act with active class', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      // Act 2 (0-indexed) should be at index 2
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Act 3 is index 2 (0-indexed)
       expect(dots[2].classList.contains('da-progress-dot--active')).toBe(true);
     });
 
     it('should have only one active dot', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(2, 5));
+      progressDots.setProgress(createProgressDisplayData(1, 5));
 
       const activeDots = container.querySelectorAll('.da-progress-dot--active');
       expect(activeDots.length).toBe(1);
@@ -105,10 +106,12 @@ describe('ProgressDots', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
 
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      // Start at act 0
+      progressDots.setProgress(createProgressDisplayData(0, 5));
       expect(container.querySelectorAll('.da-progress-dot')[0].classList.contains('da-progress-dot--active')).toBe(true);
 
-      progressDots.setProgress(createProgressDisplayData(4, 5));
+      // Move to act 3
+      progressDots.setProgress(createProgressDisplayData(3, 5));
       expect(container.querySelectorAll('.da-progress-dot')[3].classList.contains('da-progress-dot--active')).toBe(true);
       expect(container.querySelectorAll('.da-progress-dot')[0].classList.contains('da-progress-dot--active')).toBe(false);
     });
@@ -118,10 +121,10 @@ describe('ProgressDots', () => {
     it('should mark completed acts with completed class', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      // Current act is 2, so acts 0 and 1 should be completed
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Acts 1 and 2 (indices 0 and 1) should be completed
       expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
     });
@@ -129,10 +132,10 @@ describe('ProgressDots', () => {
     it('should not mark future acts as completed', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      // Current act is 2, so acts 3 and 4 should not be completed
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Acts 4 and 5 (indices 3 and 4) should not be completed
       expect(dots[3].classList.contains('da-progress-dot--completed')).toBe(false);
       expect(dots[4].classList.contains('da-progress-dot--completed')).toBe(false);
     });
@@ -140,7 +143,7 @@ describe('ProgressDots', () => {
     it('should not mark current act as completed', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
       // Current act (index 2) should have active, not completed
@@ -151,9 +154,9 @@ describe('ProgressDots', () => {
     it('should have correct completed count', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(4, 5));
+      // Current act is 3, so acts 0, 1, 2 are completed (3 total)
+      progressDots.setProgress(createProgressDisplayData(3, 5));
 
-      // 3 completed (acts 1, 2, 3), 1 active (act 4), 1 pending (act 5)
       const completedDots = container.querySelectorAll('.da-progress-dot--completed');
       expect(completedDots.length).toBe(3);
     });
@@ -163,32 +166,32 @@ describe('ProgressDots', () => {
     it('should have aria-label "Current act, Act X of Y" for active dot', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const activeDot = container.querySelector('.da-progress-dot--active');
-      expect(activeDot?.getAttribute('aria-label')).toBe('Current act, Act 3 of 5');
+      expect(activeDot?.getAttribute('aria-label')).toBe('Current act, Act 2 of 5');
     });
 
     it('should have aria-label "Completed, Act X of Y" for completed dot', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(3, 5));
+      progressDots.setProgress(createProgressDisplayData(2, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      expect(dots[0].getAttribute('aria-label')).toBe('Completed, Act 1 of 5');
-      expect(dots[1].getAttribute('aria-label')).toBe('Completed, Act 2 of 5');
+      expect(dots[0].getAttribute('aria-label')).toBe('Completed, Act 0 of 5');
+      expect(dots[1].getAttribute('aria-label')).toBe('Completed, Act 1 of 5');
     });
 
     it('should have aria-label "Act X of Y" for pending dot', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(2, 5));
+      progressDots.setProgress(createProgressDisplayData(1, 5));
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Acts 3, 4, 5 are pending
-      expect(dots[2].getAttribute('aria-label')).toBe('Act 3 of 5');
-      expect(dots[3].getAttribute('aria-label')).toBe('Act 4 of 5');
-      expect(dots[4].getAttribute('aria-label')).toBe('Act 5 of 5');
+      // Acts 2, 3, 4 are pending
+      expect(dots[2].getAttribute('aria-label')).toBe('Act 2 of 5');
+      expect(dots[3].getAttribute('aria-label')).toBe('Act 3 of 5');
+      expect(dots[4].getAttribute('aria-label')).toBe('Act 4 of 5');
     });
   });
 
@@ -196,7 +199,7 @@ describe('ProgressDots', () => {
     it('should return current progress data', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      const data = createProgressDisplayData(3, 5);
+      const data = createProgressDisplayData(2, 5);
       progressDots.setProgress(data);
 
       const progress = progressDots.getProgress();
@@ -215,7 +218,7 @@ describe('ProgressDots', () => {
     it('should remove element from DOM on destroy', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      progressDots.setProgress(createProgressDisplayData(0, 5));
 
       expect(container.querySelector('.da-story-nav-progress-dots')).not.toBeNull();
 
@@ -235,7 +238,7 @@ describe('ProgressDots', () => {
     it('should clear dots array on destroy', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      progressDots.setProgress(createProgressDisplayData(0, 5));
       progressDots.destroy();
 
       expect(progressDots.getDots()).toHaveLength(0);
@@ -244,7 +247,7 @@ describe('ProgressDots', () => {
     it('should clear progress data on destroy', () => {
       progressDots = new ProgressDots();
       progressDots.mount(container);
-      progressDots.setProgress(createProgressDisplayData(1, 5));
+      progressDots.setProgress(createProgressDisplayData(0, 5));
       progressDots.destroy();
 
       expect(progressDots.getProgress()).toBeNull();
@@ -254,43 +257,44 @@ describe('ProgressDots', () => {
 
 describe('createProgressDisplayData', () => {
   it('should create progress data with correct structure', () => {
-    const data = createProgressDisplayData(3, 5);
+    const data = createProgressDisplayData(2, 5);
 
-    expect(data.currentActNumber).toBe(3);
+    expect(data.currentActNumber).toBe(2);
     expect(data.totalActs).toBe(5);
     expect(data.acts).toHaveLength(5);
   });
 
   it('should mark acts before current as completed', () => {
-    const data = createProgressDisplayData(3, 5);
+    const data = createProgressDisplayData(2, 5);
 
+    // Acts 0 and 1 are completed, act 2 is current
     expect(data.acts[0].isCompleted).toBe(true);
     expect(data.acts[1].isCompleted).toBe(true);
     expect(data.acts[2].isCompleted).toBe(false);
   });
 
   it('should mark current act correctly', () => {
-    const data = createProgressDisplayData(3, 5);
+    const data = createProgressDisplayData(2, 5);
 
     expect(data.acts[2].isCurrent).toBe(true);
     expect(data.acts[0].isCurrent).toBe(false);
     expect(data.acts[3].isCurrent).toBe(false);
   });
 
-  it('should use default totalActs of 5', () => {
-    const data = createProgressDisplayData(2);
+  it('should use default totalActs of 11', () => {
+    const data = createProgressDisplayData(1);
 
-    expect(data.totalActs).toBe(5);
-    expect(data.acts).toHaveLength(5);
+    expect(data.totalActs).toBe(11);
+    expect(data.acts).toHaveLength(11);
   });
 
-  it('should set correct act numbers', () => {
-    const data = createProgressDisplayData(1, 5);
+  it('should set correct act numbers (0-indexed)', () => {
+    const data = createProgressDisplayData(0, 5);
 
-    expect(data.acts[0].actNumber).toBe(1);
-    expect(data.acts[1].actNumber).toBe(2);
-    expect(data.acts[2].actNumber).toBe(3);
-    expect(data.acts[3].actNumber).toBe(4);
-    expect(data.acts[4].actNumber).toBe(5);
+    expect(data.acts[0].actNumber).toBe(0);
+    expect(data.acts[1].actNumber).toBe(1);
+    expect(data.acts[2].actNumber).toBe(2);
+    expect(data.acts[3].actNumber).toBe(3);
+    expect(data.acts[4].actNumber).toBe(4);
   });
 });

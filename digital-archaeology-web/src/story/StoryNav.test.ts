@@ -85,8 +85,9 @@ describe('StoryNav', () => {
       const progressDots = container.querySelector('.da-story-nav-progress-dots');
       expect(progressDots).not.toBeNull();
 
+      // Default is 11 acts (0-10)
       const dots = container.querySelectorAll('.da-progress-dot');
-      expect(dots.length).toBe(5);
+      expect(dots.length).toBe(11);
     });
 
     it('should have first progress dot marked as active', () => {
@@ -434,13 +435,14 @@ describe('StoryNav', () => {
       storyNav = createStoryNav();
       storyNav.mount(container);
 
-      storyNav.setProgressAct(3, 5);
+      // Set to act 2 (0-indexed) with 5 total acts
+      storyNav.setProgressAct(2, 5);
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Acts 1 and 2 should be completed
+      // Acts 0 and 1 should be completed
       expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
-      // Act 3 should be active
+      // Act 2 should be active
       expect(dots[2].classList.contains('da-progress-dot--active')).toBe(true);
     });
 
@@ -463,7 +465,7 @@ describe('StoryNav', () => {
 
       const progress: StoryProgress = {
         position: {
-          actNumber: 4,
+          actNumber: 3,  // 0-indexed
           chapterNumber: 1,
           sceneId: 'test-scene',
         },
@@ -476,11 +478,11 @@ describe('StoryNav', () => {
       storyNav.updateFromProgress(progress);
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // Acts 1, 2, 3 should be completed
+      // Acts 0, 1, 2 should be completed
       expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[2].classList.contains('da-progress-dot--completed')).toBe(true);
-      // Act 4 should be active
+      // Act 3 should be active
       expect(dots[3].classList.contains('da-progress-dot--active')).toBe(true);
     });
 
@@ -488,13 +490,13 @@ describe('StoryNav', () => {
       storyNav = createStoryNav('story', { initialEra: '1971' });
       storyNav.mount(container);
 
-      // First advance to act 3
-      storyNav.setProgressAct(3);
+      // First advance to act 2 (0-indexed)
+      storyNav.setProgressAct(2);
 
       // Then clear progress
       storyNav.updateFromProgress(null);
 
-      // Should reset to act 1
+      // Should reset to act 0
       const dots = container.querySelectorAll('.da-progress-dot');
       expect(dots[0].classList.contains('da-progress-dot--active')).toBe(true);
       expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(false);
@@ -536,7 +538,7 @@ describe('StoryNav', () => {
 
       const progress: StoryProgress = {
         position: {
-          actNumber: 5,
+          actNumber: 4,  // 0-indexed
           chapterNumber: 1,
           sceneId: 'final-scene',
         },
@@ -553,12 +555,12 @@ describe('StoryNav', () => {
       window.dispatchEvent(event);
 
       const dots = container.querySelectorAll('.da-progress-dot');
-      // All previous acts should be completed
+      // All previous acts (0-3) should be completed
       expect(dots[0].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[1].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[2].classList.contains('da-progress-dot--completed')).toBe(true);
       expect(dots[3].classList.contains('da-progress-dot--completed')).toBe(true);
-      // Act 5 should be active
+      // Act 4 should be active
       expect(dots[4].classList.contains('da-progress-dot--active')).toBe(true);
     });
 
@@ -594,20 +596,21 @@ describe('StoryNav', () => {
     it('should have correct aria-labels on progress dots', () => {
       storyNav = createStoryNav();
       storyNav.mount(container);
-      storyNav.setProgressAct(3, 5);
+      // Set to act 2 (0-indexed) with 5 total acts
+      storyNav.setProgressAct(2, 5);
 
       const dots = container.querySelectorAll('.da-progress-dot');
 
-      // Completed acts
-      expect(dots[0].getAttribute('aria-label')).toBe('Completed, Act 1 of 5');
-      expect(dots[1].getAttribute('aria-label')).toBe('Completed, Act 2 of 5');
+      // Completed acts (0-indexed)
+      expect(dots[0].getAttribute('aria-label')).toBe('Completed, Act 0 of 5');
+      expect(dots[1].getAttribute('aria-label')).toBe('Completed, Act 1 of 5');
 
       // Current act
-      expect(dots[2].getAttribute('aria-label')).toBe('Current act, Act 3 of 5');
+      expect(dots[2].getAttribute('aria-label')).toBe('Current act, Act 2 of 5');
 
       // Pending acts
-      expect(dots[3].getAttribute('aria-label')).toBe('Act 4 of 5');
-      expect(dots[4].getAttribute('aria-label')).toBe('Act 5 of 5');
+      expect(dots[3].getAttribute('aria-label')).toBe('Act 3 of 5');
+      expect(dots[4].getAttribute('aria-label')).toBe('Act 4 of 5');
     });
   });
 });

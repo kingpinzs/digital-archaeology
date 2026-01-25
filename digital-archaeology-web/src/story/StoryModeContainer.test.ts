@@ -7,10 +7,47 @@ import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vite
 import { StoryModeContainer } from './StoryModeContainer';
 import type { ThemeMode } from '@ui/theme';
 
+// Mock story data for tests
+const mockStoryIndex = {
+  version: '1.0.0',
+  metadata: {
+    title: 'Test Story',
+    author: 'Test Author',
+    lastUpdated: '2026-01-24',
+  },
+  actIndex: [{ number: 0, file: 'act-0.json' }],
+};
+
+const mockStoryAct = {
+  id: 'act-0',
+  number: 0,
+  title: 'Test Act',
+  description: 'Test description',
+  era: '1971',
+  cpuStage: 'micro4',
+  chapters: [
+    {
+      id: 'chapter-0-1',
+      number: 1,
+      title: 'Test Chapter',
+      subtitle: 'Test Subtitle',
+      year: '1971',
+      scenes: [
+        {
+          id: 'scene-0-1-1',
+          type: 'narrative',
+          narrative: ['Test narrative'],
+        },
+      ],
+    },
+  ],
+};
+
 describe('StoryModeContainer', () => {
   let container: HTMLElement;
   let storyContainer: StoryModeContainer;
   let mockOnModeChange: Mock<(mode: ThemeMode) => void>;
+  let originalFetch: typeof globalThis.fetch;
 
   const createStoryModeContainer = (currentMode: ThemeMode = 'story') => {
     mockOnModeChange = vi.fn<(mode: ThemeMode) => void>();
@@ -23,11 +60,36 @@ describe('StoryModeContainer', () => {
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
+
+    // Mock fetch to return valid story data
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn((url: string | URL | Request) => {
+      const urlString = typeof url === 'string' ? url : url.toString();
+      if (urlString.includes('story-content.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockStoryIndex),
+        } as Response);
+      }
+      if (urlString.includes('act-')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockStoryAct),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      } as Response);
+    }) as typeof fetch;
   });
 
   afterEach(() => {
     storyContainer?.destroy();
     container.remove();
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   describe('Task 1 & 6: Layout Structure', () => {

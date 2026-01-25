@@ -41,3 +41,11 @@ export { StoryController } from './StoryController';
 export type { StoryControllerCallbacks } from './StoryController';
 export { SceneRenderer } from './SceneRenderer';
 export type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';
+
+// Phase 2: Story Browser for act/chapter navigation
+export { StoryBrowser } from './StoryBrowser';
+export type { StoryBrowserCallbacks, StoryBrowserData } from './StoryBrowser';
+
+// Phase 3: Story Journal for journey log
+export { StoryJournal } from './StoryJournal';
+export type { StoryJournalCallbacks, StoryJournalData } from './StoryJournal';

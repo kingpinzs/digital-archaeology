@@ -8,6 +8,8 @@ import { StoryNav } from './StoryNav';
 import { YourRolePanel } from './YourRolePanel';
 import { StoryContent } from './StoryContent';
 import { StoryController } from './StoryController';
+import { StoryBrowser } from './StoryBrowser';
+import { StoryJournal } from './StoryJournal';
 import type { ThemeMode } from '@ui/theme';
 import type { RoleData } from './types';
 
@@ -43,6 +45,8 @@ export class StoryModeContainer {
   private storyNav: StoryNav | null = null;
   private yourRolePanel: YourRolePanel | null = null;
   private storyContent: StoryContent | null = null;
+  private storyBrowser: StoryBrowser | null = null;
+  private storyJournal: StoryJournal | null = null;
 
   // Story integration
   private storyController: StoryController | null = null;
@@ -113,9 +117,34 @@ export class StoryModeContainer {
         getEraForAct: (actNumber: number) => {
           return this.storyController?.getEraForAct(actNumber) ?? 'Unknown';
         },
+        onProgressClick: () => {
+          this.openStoryBrowser();
+        },
+        onJournalClick: () => {
+          this.openStoryJournal();
+        },
       });
       this.storyNav.mount(navMount as HTMLElement);
     }
+
+    // Create StoryBrowser (mounted on demand when opened)
+    this.storyBrowser = new StoryBrowser();
+    this.storyBrowser.setCallbacks({
+      onSceneSelect: (sceneId: string) => {
+        this.navigateToScene(sceneId);
+      },
+      onClose: () => {
+        // Browser closed - no additional action needed
+      },
+    });
+
+    // Create StoryJournal (mounted on demand when opened)
+    this.storyJournal = new StoryJournal();
+    this.storyJournal.setCallbacks({
+      onClose: () => {
+        // Journal closed - no additional action needed
+      },
+    });
 
     if (panelMount) {
       this.yourRolePanel = new YourRolePanel();
@@ -163,6 +192,10 @@ export class StoryModeContainer {
         if (roleData) {
           this.yourRolePanel?.setRoleData(roleData);
         }
+
+        // Update StoryNav with actual total acts count from loaded content
+        const totalActs = this.storyController?.getTotalActs() ?? 11;
+        this.storyNav?.setTotalActs(totalActs);
       })
       .catch((error) => {
         console.error('Failed to initialize story:', error);
@@ -211,6 +244,69 @@ export class StoryModeContainer {
     if (this.initializationPromise) {
       await this.initializationPromise;
     }
+  }
+
+  /**
+   * Open the story browser modal.
+   */
+  private openStoryBrowser(): void {
+    if (!this.storyController || !this.storyBrowser) return;
+
+    // Get data for the browser
+    const acts = this.storyController.getActs();
+    const progress = this.storyController.getProgress();
+
+    // Get visited scenes from navigation history
+    const engine = this.storyController.getEngine();
+    const visitedScenes = new Set<string>();
+    if (progress) {
+      // Add scenes from navigation history
+      const history = engine.getSceneHistory();
+      for (const sceneId of history) {
+        visitedScenes.add(sceneId);
+      }
+      // Also add current scene
+      visitedScenes.add(progress.position.sceneId);
+    }
+
+    this.storyBrowser.open({
+      acts,
+      progress,
+      visitedScenes,
+    });
+  }
+
+  /**
+   * Navigate to a specific scene by ID.
+   */
+  private navigateToScene(sceneId: string): void {
+    if (!this.storyController) return;
+
+    const engine = this.storyController.getEngine();
+    try {
+      engine.goToScene(sceneId);
+    } catch (error) {
+      console.warn('Failed to navigate to scene:', sceneId, error);
+    }
+  }
+
+  /**
+   * Open the story journal modal.
+   */
+  private openStoryJournal(): void {
+    if (!this.storyController || !this.storyJournal) return;
+
+    // Get data for the journal
+    const acts = this.storyController.getActs();
+    const progress = this.storyController.getProgress();
+    const engine = this.storyController.getEngine();
+    const sceneHistory = engine.getSceneHistory();
+
+    this.storyJournal.open({
+      progress,
+      acts,
+      sceneHistory,
+    });
   }
 
   /**
@@ -299,6 +395,12 @@ export class StoryModeContainer {
 
     this.storyContent?.destroy();
     this.storyContent = null;
+
+    this.storyBrowser?.destroy();
+    this.storyBrowser = null;
+
+    this.storyJournal?.destroy();
+    this.storyJournal = null;
 
     // Remove element from DOM
     if (this.element) {

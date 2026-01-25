@@ -123,6 +123,20 @@ export class StoryController {
   }
 
   /**
+   * Get the total number of acts.
+   */
+  getTotalActs(): number {
+    return this.acts.length;
+  }
+
+  /**
+   * Get all acts (for story browser).
+   */
+  getActs(): StoryAct[] {
+    return [...this.acts];
+  }
+
+  /**
    * Get role data based on current progress.
    */
   getRoleData(): RoleData | null {

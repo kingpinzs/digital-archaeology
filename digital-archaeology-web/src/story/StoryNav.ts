@@ -24,6 +24,12 @@ export interface StoryNavOptions {
   initialEra?: string;
   /** Optional callback to get era for an act number */
   getEraForAct?: (actNumber: number) => string;
+  /** Total number of acts (default 11) */
+  totalActs?: number;
+  /** Callback when progress dots are clicked (opens story browser) */
+  onProgressClick?: () => void;
+  /** Callback when journal button is clicked */
+  onJournalClick?: () => void;
 }
 
 /**
@@ -46,13 +52,19 @@ export class StoryNav {
   private onModeChange: (mode: ThemeMode) => void;
   private getEraForAct: ((actNumber: number) => string) | undefined;
   private initialEra: string;
+  private totalActs: number;
   private stateChangedListener: ((event: Event) => void) | null = null;
+  private onProgressClick: (() => void) | undefined;
+  private onJournalClick: (() => void) | undefined;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
     this.onModeChange = options.onModeChange;
     this.initialEra = options.initialEra ?? '1971';
     this.getEraForAct = options.getEraForAct;
+    this.totalActs = options.totalActs ?? 11; // Default to 11 acts (0-10)
+    this.onProgressClick = options.onProgressClick;
+    this.onJournalClick = options.onJournalClick;
   }
 
   /**
@@ -98,13 +110,17 @@ export class StoryNav {
     left.appendChild(logo);
     left.appendChild(toggleArea);
 
-    // Center section: progress dots
+    // Center section: progress dots (clickable to open story browser)
     const center = document.createElement('div');
     center.className = 'da-story-nav-center';
 
-    const progress = document.createElement('div');
+    const progress = document.createElement('button');
+    progress.type = 'button';
     progress.className = 'da-story-nav-progress';
-    progress.setAttribute('aria-label', 'Story progress');
+    progress.setAttribute('aria-label', 'Open story browser');
+    progress.addEventListener('click', () => {
+      this.onProgressClick?.();
+    });
 
     const progressLabel = document.createElement('span');
     progressLabel.className = 'da-story-nav-progress-label';
@@ -131,6 +147,9 @@ export class StoryNav {
     journalButton.className = 'da-story-nav-action';
     journalButton.setAttribute('aria-label', 'Open journal');
     journalButton.textContent = 'Journal';
+    journalButton.addEventListener('click', () => {
+      this.onJournalClick?.();
+    });
 
     const saveButton = document.createElement('button');
     saveButton.type = 'button';
@@ -191,8 +210,8 @@ export class StoryNav {
     if (container) {
       this.progressDots = new ProgressDots();
       this.progressDots.mount(container as HTMLElement);
-      // Initialize with act 1 as current
-      this.progressDots.setProgress(createProgressDisplayData(1, 5));
+      // Initialize with act 0 as current (acts are 0-indexed starting at 0)
+      this.progressDots.setProgress(createProgressDisplayData(0, this.totalActs));
     }
   }
 
@@ -227,14 +246,14 @@ export class StoryNav {
     if (!progress) {
       // Reset to initial state when progress is cleared
       this.eraBadge?.setEra(this.initialEra);
-      this.progressDots?.setProgress(createProgressDisplayData(1, 5));
+      this.progressDots?.setProgress(createProgressDisplayData(0, this.totalActs));
       return;
     }
 
     const currentAct = progress.position.actNumber;
 
     // Update progress dots
-    this.progressDots?.setProgress(createProgressDisplayData(currentAct, 5));
+    this.progressDots?.setProgress(createProgressDisplayData(currentAct, this.totalActs));
 
     // Update era badge if we have a lookup function
     if (this.getEraForAct) {
@@ -254,11 +273,24 @@ export class StoryNav {
 
   /**
    * Set the progress directly (for external updates).
-   * @param currentActNumber - Current act number (1-5)
-   * @param totalActs - Total number of acts (default 5)
+   * @param currentActNumber - Current act number (0-10)
+   * @param totalActsOverride - Optional override for total acts
    */
-  setProgressAct(currentActNumber: number, totalActs: number = 5): void {
-    this.progressDots?.setProgress(createProgressDisplayData(currentActNumber, totalActs));
+  setProgressAct(currentActNumber: number, totalActsOverride?: number): void {
+    this.progressDots?.setProgress(createProgressDisplayData(currentActNumber, totalActsOverride ?? this.totalActs));
+  }
+
+  /**
+   * Update the total acts count (e.g., after story content loads).
+   * @param totalActs - The new total number of acts
+   */
+  setTotalActs(totalActs: number): void {
+    this.totalActs = totalActs;
+    // Re-render progress dots with new total
+    const progress = this.progressDots?.getProgress();
+    if (progress) {
+      this.progressDots?.setProgress(createProgressDisplayData(progress.currentActNumber, this.totalActs));
+    }
   }
 
   /**

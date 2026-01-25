@@ -206,6 +206,13 @@ export class StoryEngine {
   }
 
   /**
+   * Get the scene history (visited scenes for back navigation).
+   */
+  getSceneHistory(): string[] {
+    return [...this.sceneHistory];
+  }
+
+  /**
    * Start a new game from the first scene.
    */
   startNewGame(): void {

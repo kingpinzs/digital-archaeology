@@ -1349,6 +1349,24 @@ So that I know what level I'm viewing.
 
 ---
 
+### Story 6.13: Integrate Circuit Visualization with Emulator
+
+As a user,
+I want the circuit diagram to reflect the actual CPU state,
+So that I can see how my program affects the hardware.
+
+**Acceptance Criteria:**
+
+**Given** the application loads
+**When** the circuit panel is visible
+**Then** the Micro4 circuit is automatically loaded and rendered
+**And** stepping through code updates the circuit with animation
+**And** wire colors reflect actual signal values
+**And** the Signal Values Panel shows correct register values
+**And** Run mode updates circuit without animation for performance
+
+---
+
 ## Epic 7: HDL Editor & Management
 
 **Goal:** Users can view, edit, validate, and reload HDL definitions

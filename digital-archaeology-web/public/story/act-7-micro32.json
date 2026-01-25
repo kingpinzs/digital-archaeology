@@ -92,19 +92,106 @@
                   "id": "choice-flat-model",
                   "icon": "📐",
                   "title": "Master Flat Memory Model",
-                  "description": "Program without segments. Experience the freedom of simple, linear addressing."
+                  "description": "Program without segments. Experience the freedom of simple, linear addressing.",
+                  "nextScene": "scene-7-1-3a"
                 },
                 {
                   "id": "choice-protected-mode",
                   "icon": "🛡️",
                   "title": "Explore Protected Mode",
-                  "description": "Understand privilege levels, descriptor tables, and how the OS controls user programs."
+                  "description": "Understand privilege levels, descriptor tables, and how the OS controls user programs.",
+                  "nextScene": "scene-7-1-3b"
                 },
                 {
                   "id": "choice-paging",
                   "icon": "📄",
                   "title": "Implement Paging",
-                  "description": "Build page tables. Map virtual to physical. Enable demand paging and memory protection."
+                  "description": "Build page tables. Map virtual to physical. Enable demand paging and memory protection.",
+                  "nextScene": "scene-7-1-3c"
+                }
+              ],
+              "nextScene": "scene-7-1-4"
+            },
+            {
+              "id": "scene-7-1-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "A 386 programming environment. The segment registers are set up once—then forgotten."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Crawford",
+                  "text": "The flat model is simple: set CS, DS, SS, ES all to base 0, limit 4GB. Now every pointer is just an address. No near, no far, no huge. Just addresses."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And the compiler doesn't need to know about segments?"
+                },
+                {
+                  "speaker": "Crawford",
+                  "text": "Exactly. A C pointer is 32 bits. It addresses 4GB. The compiler generates simple, efficient code. Programmers think in flat address space. Everyone wins."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Flat model simplified everything: one pointer size, one addressing mode, one mental model. Linux, Windows NT, and all modern operating systems use flat model. The segment registers still exist for compatibility but are typically ignored.",
+                  "codeSnippet": "// Flat model setup\n// \n// GDT entries:\n//   Code: base=0, limit=FFFFFFFF, DPL=0\n//   Data: base=0, limit=FFFFFFFF, DPL=0\n// \n// After setup:\n//   mov eax, [0x12345678]  ; Direct address\n//   call 0x00401000        ; Direct call\n// \n// Segments are invisible to programmers"
+                }
+              ],
+              "nextScene": "scene-7-1-4"
+            },
+            {
+              "id": "scene-7-1-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "The privilege ring architecture. Four levels of protection, though most systems use only two."
+              },
+              "dialogues": [
+                {
+                  "speaker": "OS Developer",
+                  "text": "Ring 0 is kernel mode—full access to hardware, all instructions available. Ring 3 is user mode—restricted access, certain instructions forbidden."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about Rings 1 and 2?"
+                },
+                {
+                  "speaker": "OS Developer",
+                  "text": "Theoretically for device drivers and services. In practice, almost no operating system uses them. Ring 0 for the kernel, Ring 3 for everything else. Simple is better."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The privilege level is stored in the low 2 bits of segment selectors. Ring 0 can execute privileged instructions (HLT, CLI, MOV to CR0). Ring 3 triggers a protection fault. This hardware enforcement is the foundation of OS security.",
+                  "codeSnippet": "// Privilege levels\n// \n// Ring 0 (kernel): All access\n//   mov cr0, eax   ; Allowed\n//   cli            ; Allowed (disable interrupts)\n//   hlt            ; Allowed (halt CPU)\n// \n// Ring 3 (user): Restricted\n//   mov cr0, eax   ; FAULT: #GP\n//   cli            ; FAULT: #GP\n// \n// System calls: INT 0x80 → ring transition"
+                }
+              ],
+              "nextScene": "scene-7-1-4"
+            },
+            {
+              "id": "scene-7-1-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "The paging unit. Virtual addresses become physical through two levels of lookup."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Crawford",
+                  "text": "A virtual address has three parts: page directory index (10 bits), page table index (10 bits), offset within page (12 bits). Each level narrows down to the final physical page."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And if a page isn't in memory?"
+                },
+                {
+                  "speaker": "Crawford",
+                  "text": "Page fault. The Present bit is clear. The OS handles the fault, loads the page from disk, updates the table, and restarts the instruction. Virtual memory—more address space than physical RAM."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Paging enabled demand loading, memory-mapped files, copy-on-write, and shared libraries. The TLB (Translation Lookaside Buffer) caches page table lookups for speed. Without caching, every memory access would require three memory accesses.",
+                  "codeSnippet": "// Virtual address translation\n// \n// Virtual: 0x12345678\n//   Dir index:  0x048 (bits 31-22)\n//   Table index: 0x145 (bits 21-12)\n//   Offset:     0x678 (bits 11-0)\n// \n// Steps:\n// 1. CR3 → Page Directory base\n// 2. PD[0x048] → Page Table base\n// 3. PT[0x145] → Physical page base\n// 4. Physical = page base + 0x678"
                 }
               ],
               "nextScene": "scene-7-1-4"
@@ -252,19 +339,106 @@
                   "id": "choice-nt-internals",
                   "icon": "🪟",
                   "title": "Explore Windows NT Internals",
-                  "description": "HAL, executive, subsystems. Microsoft's layered architecture for reliability and portability."
+                  "description": "HAL, executive, subsystems. Microsoft's layered architecture for reliability and portability.",
+                  "nextScene": "scene-7-2-3a"
                 },
                 {
                   "id": "choice-linux-kernel",
                   "icon": "🐧",
                   "title": "Study Linux Kernel Design",
-                  "description": "Monolithic kernel, loadable modules, the Unix philosophy. Open source operating system internals."
+                  "description": "Monolithic kernel, loadable modules, the Unix philosophy. Open source operating system internals.",
+                  "nextScene": "scene-7-2-3b"
                 },
                 {
                   "id": "choice-os-development",
                   "icon": "💻",
                   "title": "Build Your Own OS",
-                  "description": "Apply what you've learned. Create a simple operating system kernel using the Micro32."
+                  "description": "Apply what you've learned. Create a simple operating system kernel using the Micro32.",
+                  "nextScene": "scene-7-2-3c"
+                }
+              ],
+              "nextScene": "scene-7-2-4"
+            },
+            {
+              "id": "scene-7-2-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Windows NT architecture documentation. Layers upon layers of abstraction."
+              },
+              "dialogues": [
+                {
+                  "speaker": "NT Developer",
+                  "text": "The HAL—Hardware Abstraction Layer—sits at the bottom. Above it, the kernel handles scheduling and synchronization. Above that, the executive provides services: memory manager, I/O manager, object manager."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Why so many layers?"
+                },
+                {
+                  "speaker": "NT Developer",
+                  "text": "Portability and reliability. NT ran on x86, MIPS, Alpha, PowerPC. Change the HAL, keep everything else. When a component fails, the layers contain the damage. Cutler learned this building VMS."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Windows NT's layered architecture enabled portability across multiple CPU architectures. The same source code, with different HALs, produced NT for x86, Alpha, MIPS, and PowerPC. This architecture persists in Windows today.",
+                  "codeSnippet": "// Windows NT layers\n// \n// [Applications]\n// [Win32 Subsystem]\n// [NT Executive]\n//   - I/O Manager\n//   - Memory Manager\n//   - Object Manager\n// [NT Kernel]\n// [HAL]\n// [Hardware]"
+                }
+              ],
+              "nextScene": "scene-7-2-4"
+            },
+            {
+              "id": "scene-7-2-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A Linux kernel developer's workstation. Code, patches, and mailing list debates."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Linux Developer",
+                  "text": "Linux is monolithic—everything runs in kernel space. But loadable modules let us add functionality without rebooting. Device drivers, filesystems, even CPU schedulers can be modules."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Isn't monolithic less reliable than microkernel?"
+                },
+                {
+                  "speaker": "Linux Developer",
+                  "text": "Torvalds had that debate with Tanenbaum. Monolithic is faster—no context switches for every system call. And with careful coding, it's reliable enough. The servers of the internet prove it daily."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Linux's monolithic kernel with loadable modules achieved the best of both worlds: fast in-kernel execution with modular extensibility. The kernel source is open—anyone can study, modify, and improve it. This transparency accelerated development.",
+                  "codeSnippet": "// Linux module example\n// \n// static int __init hello_init(void) {\n//     printk(KERN_INFO \"Hello, kernel!\\n\");\n//     return 0;\n// }\n// \n// static void __exit hello_exit(void) {\n//     printk(KERN_INFO \"Goodbye, kernel!\\n\");\n// }\n// \n// module_init(hello_init);\n// module_exit(hello_exit);"
+                }
+              ],
+              "nextScene": "scene-7-2-4"
+            },
+            {
+              "id": "scene-7-2-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "Your own OS development environment. A blank screen awaiting your bootloader."
+              },
+              "dialogues": [
+                {
+                  "speaker": "OS Guide",
+                  "text": "Building an OS teaches you everything. Boot sequence: BIOS loads your bootloader, bootloader loads your kernel, kernel sets up protected mode, then you're on your own."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Where do I start?"
+                },
+                {
+                  "speaker": "OS Guide",
+                  "text": "Start small. Get to protected mode. Print characters to the screen. Handle keyboard interrupts. Add a simple memory allocator. Each step builds on the last. In a weekend, you'll have a toy OS. In a month, something real."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "OS development is the ultimate learning experience. You control every aspect: memory layout, interrupt handling, scheduling, device drivers. Nothing is hidden. Projects like osdev.org provide tutorials from 'hello world' to functional kernels.",
+                  "codeSnippet": "// Minimal kernel entry point\n// \n// [BITS 32]\n// global _start\n// \n// _start:\n//     mov esp, 0x90000     ; Set up stack\n//     call kernel_main     ; Call C code\n//     hlt                  ; Halt if returns\n// \n// void kernel_main() {\n//     char* vga = (char*)0xB8000;\n//     vga[0] = 'H';\n//     vga[1] = 0x07;  // White on black\n// }"
                 }
               ],
               "nextScene": "scene-7-2-4"
@@ -439,19 +613,106 @@
                   "id": "choice-study-cache",
                   "icon": "💾",
                   "title": "Understand Cache Memory",
-                  "description": "Why is cache so important? How do cache hits and misses affect performance?"
+                  "description": "Why is cache so important? How do cache hits and misses affect performance?",
+                  "nextScene": "scene-7-3-3a"
                 },
                 {
                   "id": "choice-branch-prediction",
                   "icon": "🔮",
                   "title": "Explore Branch Prediction",
-                  "description": "How does the CPU guess which way a branch will go? What happens when it guesses wrong?"
+                  "description": "How does the CPU guess which way a branch will go? What happens when it guesses wrong?",
+                  "nextScene": "scene-7-3-3b"
                 },
                 {
                   "id": "choice-prepare-pipeline",
                   "icon": "⚡",
                   "title": "Prepare for Pipelining",
-                  "description": "The next leap in performance. Understand how instruction pipelines multiply throughput."
+                  "description": "The next leap in performance. Understand how instruction pipelines multiply throughput.",
+                  "nextScene": "scene-7-3-3c"
+                }
+              ],
+              "nextScene": "scene-7-3-4"
+            },
+            {
+              "id": "scene-7-3-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "A cache memory demonstration. The difference between hit and miss is dramatic."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Cache Expert",
+                  "text": "Memory is slow—100 cycles to access DRAM. But cache hits take 1-3 cycles. With 95% hit rate, average access time drops from 100 cycles to about 6. That's why cache matters so much."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What makes code cache-friendly?"
+                },
+                {
+                  "speaker": "Cache Expert",
+                  "text": "Locality. Access memory sequentially, not randomly. Keep working sets small. Loop over arrays, not linked lists. The cache rewards predictable access patterns."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Cache works because of locality: programs tend to access the same memory locations repeatedly (temporal locality) and nearby locations (spatial locality). Cache exploits both, keeping recently-used data close to the CPU.",
+                  "codeSnippet": "// Cache-friendly vs unfriendly code\n// \n// GOOD: Sequential access (cache-friendly)\n// for (i = 0; i < N; i++)\n//     sum += array[i];\n// \n// BAD: Random access (cache-hostile)\n// for (i = 0; i < N; i++)\n//     sum += array[rand() % N];\n// \n// The good version can be 10-100x faster!"
+                }
+              ],
+              "nextScene": "scene-7-3-4"
+            },
+            {
+              "id": "scene-7-3-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Branch prediction hardware. The CPU guesses the future—and is usually right."
+              },
+              "dialogues": [
+                {
+                  "speaker": "CPU Architect",
+                  "text": "When the CPU fetches a branch instruction, it doesn't wait to compute the condition. It guesses—based on history—and fetches the predicted path. If wrong, it flushes and refetches."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How does it know which way to guess?"
+                },
+                {
+                  "speaker": "CPU Architect",
+                  "text": "Simple predictors track each branch: was it taken last time? More sophisticated ones track patterns—the last N branches affect this prediction. Modern predictors achieve 95%+ accuracy."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Branch misprediction costs 10-20 cycles—the CPU must flush the pipeline and restart. With 5-10% misprediction rate, this overhead is significant. Branchless code and predictable branches (like loop exits) improve performance.",
+                  "codeSnippet": "// Branch prediction impact\n// \n// Predictable branch (good):\n// for (i = 0; i < 1000; i++) { ... }\n// // Loop branch taken 999 times, not taken once\n// // Predictor learns quickly\n// \n// Random branch (bad):\n// if (rand() & 1) { ... }\n// // 50% misprediction rate\n// // Pipeline flushes constantly"
+                }
+              ],
+              "nextScene": "scene-7-3-4"
+            },
+            {
+              "id": "scene-7-3-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "An introduction to instruction pipelining. The concept that will transform CPU performance."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Pipeline Architect",
+                  "text": "Without pipelining, each instruction fully completes before the next starts. With pipelining, instructions overlap—while one executes, the next decodes, and the next fetches."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Like an assembly line?"
+                },
+                {
+                  "speaker": "Pipeline Architect",
+                  "text": "Exactly. Five stages, five instructions in flight simultaneously. Same silicon, same clock speed, but five times the throughput—when everything flows smoothly. Hazards and stalls reduce that, but it's still a massive win."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Pipelining exploits instruction-level parallelism (ILP). The classic 5-stage RISC pipeline (IF, ID, EX, MEM, WB) achieved near-one-cycle-per-instruction throughput. This principle drives all modern CPUs.",
+                  "codeSnippet": "// Pipeline stages\n// \n// IF: Instruction Fetch\n// ID: Instruction Decode\n// EX: Execute / ALU operation\n// MEM: Memory access (load/store)\n// WB: Write Back to registers\n// \n// Cycle:  1  2  3  4  5  6  7\n// I1:    IF ID EX MM WB\n// I2:       IF ID EX MM WB\n// I3:          IF ID EX MM WB\n// \n// After startup: 1 instruction/cycle"
                 }
               ],
               "nextScene": "scene-7-3-4"

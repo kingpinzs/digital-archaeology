@@ -174,25 +174,141 @@
                   "id": "choice-static-prediction",
                   "icon": "📐",
                   "title": "Implement Static Prediction",
-                  "description": "Use simple direction-based prediction: backward branches taken, forward branches not taken. Simple and deterministic."
+                  "description": "Use simple direction-based prediction: backward branches taken, forward branches not taken. Simple and deterministic.",
+                  "nextScene": "scene-8-1-5a"
                 },
                 {
                   "id": "choice-dynamic-prediction",
                   "icon": "🧠",
                   "title": "Design Dynamic Prediction",
-                  "description": "Build a Branch History Table that remembers each branch's past behavior. Complex but adaptive."
+                  "description": "Build a Branch History Table that remembers each branch's past behavior. Complex but adaptive.",
+                  "nextScene": "scene-8-1-5b"
                 },
                 {
                   "id": "choice-understand-hazards",
                   "icon": "⚠️",
                   "title": "Master Pipeline Hazards",
-                  "description": "Deep dive into all hazard types: RAW, WAR, WAW, control, structural. Understand when and why pipelines stall."
+                  "description": "Deep dive into all hazard types: RAW, WAR, WAW, control, structural. Understand when and why pipelines stall.",
+                  "nextScene": "scene-8-1-5c"
                 },
                 {
                   "id": "choice-implement-forwarding",
                   "icon": "➡️",
                   "title": "Build Forwarding Paths",
-                  "description": "Implement bypass paths that route results directly between pipeline stages, eliminating data hazard stalls."
+                  "description": "Implement bypass paths that route results directly between pipeline stages, eliminating data hazard stalls.",
+                  "nextScene": "scene-8-1-5d"
+                }
+              ],
+              "nextScene": "scene-8-1-6"
+            },
+            {
+              "id": "scene-8-1-5a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Static branch prediction implementation. Simple rules, deterministic behavior."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Gelsinger",
+                  "text": "Static prediction is elegant. Backward branches—loops—are almost always taken. Forward branches—error handling—usually not. One bit per branch tells you the direction."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What accuracy can we expect?"
+                },
+                {
+                  "speaker": "Gelsinger",
+                  "text": "About 70-80% for typical code. Not great, but it's free—no tables, no history, no complexity. For the i486's 5-stage pipeline, it's good enough to start."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Static prediction uses branch instruction encoding or address to predict. BTFNT (Backward Taken, Forward Not Taken) is common. More advanced: use instruction bits to encode compiler hints about likely direction.",
+                  "codeSnippet": "// Static prediction rules\n// \n// BTFNT (Backward Taken, Forward Not Taken):\n// \n// loop:           ; Backward branch\n//   cmp eax, 0\n//   jne loop      ; Predict TAKEN (loop)\n// \n//   test ebx, ebx ; Forward branch\n//   jz error      ; Predict NOT TAKEN\n// \n// ~70-80% accuracy on typical code"
+                }
+              ],
+              "nextScene": "scene-8-1-6"
+            },
+            {
+              "id": "scene-8-1-5b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Dynamic branch prediction. Learning from history."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Prediction Expert",
+                  "text": "A Branch History Table stores the outcome of each branch. Next time we see that branch, we predict what happened last time. If the branch behaves consistently, we're almost always right."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What if a branch alternates taken/not-taken?"
+                },
+                {
+                  "speaker": "Prediction Expert",
+                  "text": "Two-bit counters help. We need two wrong predictions to change our mind. Strongly taken, weakly taken, weakly not-taken, strongly not-taken. It handles noise better."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Two-bit saturating counters are the foundation of dynamic prediction. The hysteresis prevents a single misprediction from changing the prediction. Modern predictors extend this with global history, correlation, and neural networks.",
+                  "codeSnippet": "// Two-bit predictor states\n// \n// 11: Strongly Taken      → predict T\n// 10: Weakly Taken        → predict T\n// 01: Weakly Not Taken    → predict NT\n// 00: Strongly Not Taken  → predict NT\n// \n// Transitions:\n// Taken:     00→01, 01→10, 10→11, 11→11\n// Not Taken: 11→10, 10→01, 01→00, 00→00\n// \n// Requires two misses to flip prediction"
+                }
+              ],
+              "nextScene": "scene-8-1-6"
+            },
+            {
+              "id": "scene-8-1-5c",
+              "type": "dialogue",
+              "setting": {
+                "text": "A deep dive into pipeline hazards. The obstacles that prevent perfect pipelining."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Hazard Expert",
+                  "text": "RAW—Read After Write—is the true dependency. The instruction needs a value being computed. WAW and WAR are false dependencies—they can be eliminated by renaming."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And structural hazards?"
+                },
+                {
+                  "speaker": "Hazard Expert",
+                  "text": "Two instructions want the same hardware—say, both need the ALU. Either stall one or duplicate the unit. Control hazards are branches—we might have fetched the wrong instructions entirely."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Hazard taxonomy: RAW (true dependency), WAR/WAW (false dependencies, eliminated by renaming), structural (resource conflicts), control (branches). Each requires different solutions: forwarding, renaming, duplication, prediction.",
+                  "codeSnippet": "// Hazard examples\n// \n// RAW (true dependency):\n//   ADD R1, R2, R3  ; produces R1\n//   SUB R4, R1, R5  ; needs R1\n//   → Forward or stall\n// \n// WAW (false dependency):\n//   MUL R1, R2, R3  ; writes R1\n//   ADD R1, R4, R5  ; writes R1\n//   → Register renaming eliminates\n// \n// Structural:\n//   MUL uses ALU for 4 cycles\n//   ADD wants ALU now\n//   → Stall or duplicate ALU"
+                }
+              ],
+              "nextScene": "scene-8-1-6"
+            },
+            {
+              "id": "scene-8-1-5d",
+              "type": "dialogue",
+              "setting": {
+                "text": "Forwarding paths—bypassing the register file to eliminate stalls."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Forwarding Expert",
+                  "text": "Without forwarding, every dependent instruction stalls until the producer writes back. With forwarding, we tap the result directly from the ALU output and route it where needed."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How many forwarding paths do we need?"
+                },
+                {
+                  "speaker": "Forwarding Expert",
+                  "text": "From ALU output to ALU inputs. From memory stage to ALU. Potentially from writeback to decode. Each path adds wires and muxes, but eliminates stall cycles. The tradeoff almost always favors forwarding."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Forwarding (bypassing) routes results directly between pipeline stages without waiting for register writeback. A 5-stage pipeline typically needs EX→EX and MEM→EX forwarding paths. This hardware complexity pays for itself in reduced stalls.",
+                  "codeSnippet": "// Forwarding example\n// \n// Without forwarding:\n//   ADD R1, R2, R3  ; IF ID EX MM WB\n//   SUB R4, R1, R5  ;    IF ID -- -- EX MM WB\n//                        (2 stall cycles)\n// \n// With EX→EX forwarding:\n//   ADD R1, R2, R3  ; IF ID EX MM WB\n//   SUB R4, R1, R5  ;    IF ID EX MM WB\n//                        (R1 forwarded from ADD's EX)"
                 }
               ],
               "nextScene": "scene-8-1-6"
@@ -430,25 +546,29 @@
                   "id": "choice-risc-deep-dive",
                   "icon": "🎓",
                   "title": "Explore RISC Architecture",
-                  "description": "Build a clean RISC pipeline: fixed-length instructions, load/store architecture, register windows, delay slots."
+                  "description": "Build a clean RISC pipeline: fixed-length instructions, load/store architecture, register windows, delay slots.",
+                  "nextScene": "scene-8-2-5a"
                 },
                 {
                   "id": "choice-cisc-optimization",
                   "icon": "🏗️",
                   "title": "Optimize CISC Pipeline",
-                  "description": "See how Intel makes complex x86 instructions work in a pipeline through microcode and internal RISC translation."
+                  "description": "See how Intel makes complex x86 instructions work in a pipeline through microcode and internal RISC translation.",
+                  "nextScene": "scene-8-2-5b"
                 },
                 {
                   "id": "choice-alpha-speed",
                   "icon": "⚡",
                   "title": "Study Alpha's Speed",
-                  "description": "Understand how Alpha achieved 200 MHz through aggressive pipeline design and frequency optimization."
+                  "description": "Understand how Alpha achieved 200 MHz through aggressive pipeline design and frequency optimization.",
+                  "nextScene": "scene-8-2-5c"
                 },
                 {
                   "id": "choice-compare-architectures",
                   "icon": "⚖️",
                   "title": "Compare RISC vs CISC",
-                  "description": "Run the same algorithm on both architectures. Measure clock cycles, instruction counts, and total performance."
+                  "description": "Run the same algorithm on both architectures. Measure clock cycles, instruction counts, and total performance.",
+                  "nextScene": "scene-8-2-5d"
                 }
               ],
               "nextScene": "scene-8-2-6"

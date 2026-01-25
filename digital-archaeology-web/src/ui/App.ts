@@ -1032,7 +1032,7 @@ export class App {
     // Create CircuitRenderer with onZoomChange callback to update toolbar
     this.circuitRenderer = new CircuitRenderer({
       zoom: {
-        onZoomChange: (scale: number, displayPercent: string) => {
+        onZoomChange: (_scale: number, displayPercent: string) => {
           if (this.zoomControlsToolbar) {
             this.zoomControlsToolbar.updateState({ zoomPercent: displayPercent });
           }

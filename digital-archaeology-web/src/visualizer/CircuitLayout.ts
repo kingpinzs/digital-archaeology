@@ -101,7 +101,7 @@ export class CircuitLayout {
    * @param canvasWidth - Width of the canvas in pixels
    * @param canvasHeight - Height of the canvas in pixels
    */
-  calculate(model: CircuitModel, canvasWidth: number, canvasHeight: number): void {
+  calculate(model: CircuitModel, _canvasWidth: number, canvasHeight: number): void {
     this.positions.clear();
     this.wirePositions.clear();
 

@@ -146,9 +146,6 @@ describe('animationUtils', () => {
   });
 
   describe('getPulseScaleFromCSS()', () => {
-    // Store original getComputedStyle
-    const originalGetComputedStyle = window.getComputedStyle;
-
     afterEach(() => {
       // Restore after each test
       vi.spyOn(window, 'getComputedStyle').mockRestore?.();
@@ -157,7 +154,7 @@ describe('animationUtils', () => {
     it('should return DEFAULT_PULSE_MAX_SCALE when CSS variable is not set', () => {
       vi.spyOn(window, 'getComputedStyle').mockReturnValue({
         getPropertyValue: () => '',
-      } as CSSStyleDeclaration);
+      } as unknown as CSSStyleDeclaration);
 
       expect(getPulseScaleFromCSS()).toBe(DEFAULT_PULSE_MAX_SCALE);
     });
@@ -165,7 +162,7 @@ describe('animationUtils', () => {
     it('should parse CSS variable value correctly', () => {
       vi.spyOn(window, 'getComputedStyle').mockReturnValue({
         getPropertyValue: () => '1.2',
-      } as CSSStyleDeclaration);
+      } as unknown as CSSStyleDeclaration);
 
       expect(getPulseScaleFromCSS()).toBe(1.2);
     });
@@ -173,7 +170,7 @@ describe('animationUtils', () => {
     it('should return default for invalid CSS value', () => {
       vi.spyOn(window, 'getComputedStyle').mockReturnValue({
         getPropertyValue: () => 'invalid',
-      } as CSSStyleDeclaration);
+      } as unknown as CSSStyleDeclaration);
 
       expect(getPulseScaleFromCSS()).toBe(DEFAULT_PULSE_MAX_SCALE);
     });

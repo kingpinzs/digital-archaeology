@@ -1342,6 +1342,8 @@ describe('CircuitRenderer', () => {
           { id: 1, name: 'G2', type: 'OR', inputs: [], outputs: [] },
         ],
         wires: [],
+        cycle: 0,
+        stable: true,
       };
       zoomRenderer.updateState({ circuitData: mockCircuit });
 
@@ -1479,8 +1481,9 @@ describe('CircuitRenderer', () => {
       Object.defineProperty(wheelEvent, 'offsetY', { value: 300 });
 
       // Should still attach listener but not change zoom
+      // TypeScript can't track assignment through mock callback, so cast is needed
       if (wheelEventListener) {
-        wheelEventListener(wheelEvent);
+        (wheelEventListener as (e: WheelEvent) => void)(wheelEvent);
       }
 
       expect(noWheelRenderer.getZoom()).toBe(1.0);

@@ -198,7 +198,8 @@ describe('ZoomControlsToolbar', () => {
 
     it('should clean up event listeners (no errors after destroy)', () => {
       toolbar.mount(container);
-      const btn = container.querySelector('[data-action="zoom-in"]') as HTMLButtonElement;
+      // Query button to verify it exists before destroy
+      container.querySelector('[data-action="zoom-in"]') as HTMLButtonElement;
       toolbar.destroy();
 
       // The button is removed, so clicking shouldn't work

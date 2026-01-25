@@ -359,7 +359,7 @@ describe('getAnimationDurationFromCSS()', () => {
   it('should return default when CSS variable is not set', () => {
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: () => '',
-    } as CSSStyleDeclaration);
+    } as unknown as CSSStyleDeclaration);
 
     expect(getAnimationDurationFromCSS()).toBe(DEFAULT_ANIMATION_CONFIG.duration);
   });
@@ -367,7 +367,7 @@ describe('getAnimationDurationFromCSS()', () => {
   it('should parse milliseconds format', () => {
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: () => '750ms',
-    } as CSSStyleDeclaration);
+    } as unknown as CSSStyleDeclaration);
 
     expect(getAnimationDurationFromCSS()).toBe(750);
   });
@@ -375,7 +375,7 @@ describe('getAnimationDurationFromCSS()', () => {
   it('should parse seconds format', () => {
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: () => '0.5s',
-    } as CSSStyleDeclaration);
+    } as unknown as CSSStyleDeclaration);
 
     expect(getAnimationDurationFromCSS()).toBe(500);
   });
@@ -383,7 +383,7 @@ describe('getAnimationDurationFromCSS()', () => {
   it('should parse plain number', () => {
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: () => '300',
-    } as CSSStyleDeclaration);
+    } as unknown as CSSStyleDeclaration);
 
     expect(getAnimationDurationFromCSS()).toBe(300);
   });
@@ -391,7 +391,7 @@ describe('getAnimationDurationFromCSS()', () => {
   it('should return default for invalid value', () => {
     vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       getPropertyValue: () => 'invalid',
-    } as CSSStyleDeclaration);
+    } as unknown as CSSStyleDeclaration);
 
     expect(getAnimationDurationFromCSS()).toBe(DEFAULT_ANIMATION_CONFIG.duration);
   });

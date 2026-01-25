@@ -289,7 +289,6 @@ describe('StoryBrowser', () => {
       browser.open(mockData);
 
       // Expand act 1 and chapter 1 (already expanded by default)
-      const chapterHeaders = document.querySelectorAll('.da-story-browser-chapter-header');
       // Find the chapter in act 1
       let act1ChapterHeader: HTMLElement | null = null;
       const acts = document.querySelectorAll('.da-story-browser-act');

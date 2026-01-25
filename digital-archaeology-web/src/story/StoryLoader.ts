@@ -208,7 +208,7 @@ export class StoryLoader {
       return cached;
     }
 
-    const url = `/story/act-${actNumber}.json`;
+    const url = `${import.meta.env.BASE_URL}story/act-${actNumber}.json`;
 
     try {
       const response = await fetch(url);
@@ -253,7 +253,7 @@ export class StoryLoader {
       return this.storyContentCache;
     }
 
-    const indexUrl = '/story/story-content.json';
+    const indexUrl = `${import.meta.env.BASE_URL}story/story-content.json`;
 
     try {
       // Load the index file
@@ -276,7 +276,7 @@ export class StoryLoader {
 
       // Load all acts in parallel
       const actPromises = actIndex.map(async (entry) => {
-        const actUrl = `/story/${entry.file}`;
+        const actUrl = `${import.meta.env.BASE_URL}story/${entry.file}`;
         const actResponse = await fetch(actUrl);
 
         if (!actResponse.ok) {

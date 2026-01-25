@@ -97,10 +97,14 @@ export class CircuitLoader {
    * @throws CircuitLoadError on fetch failure, invalid JSON, or validation failure
    */
   async loadCircuit(path: string): Promise<CircuitData> {
+    // Prepend base URL for paths starting with /
+    const resolvedPath = path.startsWith('/')
+      ? `${import.meta.env.BASE_URL}${path.slice(1)}`
+      : path;
     let response: Response;
 
     try {
-      response = await fetch(path);
+      response = await fetch(resolvedPath);
     } catch (error) {
       throw new CircuitLoadError(
         `Failed to fetch circuit: ${(error as Error).message}`,

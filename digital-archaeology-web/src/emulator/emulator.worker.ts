@@ -635,7 +635,7 @@ async function initializeWasm(): Promise<boolean> {
     // Dynamic import for WASM module using absolute path from origin.
     // The @vite-ignore comment prevents Vite from statically analyzing this import,
     // which is necessary since the WASM is served from /public at runtime.
-    const wasmUrl = new URL('/wasm/micro4-cpu.js', self.location.origin).href;
+    const wasmUrl = new URL(`${import.meta.env.BASE_URL}wasm/micro4-cpu.js`, self.location.origin).href;
     const createModule = await import(/* @vite-ignore */ wasmUrl);
     const module: EmulatorModule = await createModule.default();
 

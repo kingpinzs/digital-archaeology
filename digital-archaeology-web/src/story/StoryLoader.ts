@@ -24,6 +24,7 @@ const VALID_CPU_STAGES: readonly string[] = [
   'micro32',
   'micro32p',
   'micro32s',
+  'future',
 ];
 
 /** Valid scene types for type guard validation (must match SceneType type) */

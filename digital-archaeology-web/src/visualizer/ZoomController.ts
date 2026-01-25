@@ -37,14 +37,34 @@ export const DEFAULT_ZOOM_CONFIG: ZoomControllerConfig = {
 };
 
 /**
+ * Content bounds for pan clamping (Story 6.7).
+ */
+export interface ContentBounds {
+  width: number;
+  height: number;
+}
+
+/**
+ * Viewport size for pan clamping (Story 6.7).
+ */
+export interface ViewportSize {
+  width: number;
+  height: number;
+}
+
+/**
  * ZoomController manages zoom state and calculations for the circuit renderer.
- * Provides methods for zooming in/out, fit-to-view, and zoom-around-point.
+ * Provides methods for zooming in/out, fit-to-view, zoom-around-point, and panning.
  */
 export class ZoomController {
   private config: ZoomControllerConfig;
   private scale: number = 1.0;
   private offset: ZoomOffset = { x: 0, y: 0 };
   private onChange: ZoomChangeCallback | null = null;
+
+  // Pan state management (Story 6.7)
+  private contentBounds: ContentBounds | null = null;
+  private viewportSize: ViewportSize | null = null;
 
   /**
    * Create a new ZoomController.
@@ -94,6 +114,7 @@ export class ZoomController {
 
   /**
    * Set the zoom scale, clamping to min/max range.
+   * Re-clamps offset after scale change (Story 6.7).
    * @param scale - New scale value
    */
   setScale(scale: number): void {
@@ -101,6 +122,8 @@ export class ZoomController {
     this.scale = this.clampScale(scale);
 
     if (this.scale !== oldScale) {
+      // Re-clamp offset after scale change (Story 6.7)
+      this.clampOffset();
       this.notifyChange();
     }
   }
@@ -248,6 +271,75 @@ export class ZoomController {
     this.onChange = callback;
   }
 
+  // ============================================================================
+  // Pan State Management (Story 6.7)
+  // ============================================================================
+
+  /**
+   * Set the content bounds for pan clamping.
+   * @param width - Content width in pixels
+   * @param height - Content height in pixels
+   */
+  setContentBounds(width: number, height: number): void {
+    this.contentBounds = { width, height };
+    this.clampOffset();
+  }
+
+  /**
+   * Set the viewport size for pan clamping.
+   * @param width - Viewport width in pixels
+   * @param height - Viewport height in pixels
+   */
+  setViewportSize(width: number, height: number): void {
+    this.viewportSize = { width, height };
+    this.clampOffset();
+  }
+
+  /**
+   * Pan by delta amounts, clamping to content bounds.
+   * Notifies onChange callback after pan.
+   * @param deltaX - Horizontal pan delta
+   * @param deltaY - Vertical pan delta
+   */
+  pan(deltaX: number, deltaY: number): void {
+    const oldX = this.offset.x;
+    const oldY = this.offset.y;
+
+    this.offset.x += deltaX;
+    this.offset.y += deltaY;
+    this.clampOffset();
+
+    // Notify if offset actually changed
+    if (this.offset.x !== oldX || this.offset.y !== oldY) {
+      this.notifyChange();
+    }
+  }
+
+  /**
+   * Check if panning is allowed at the current state.
+   * Panning is allowed when zoomed in beyond 1.0 or when content exceeds viewport.
+   * @returns True if panning is allowed
+   */
+  isPanningAllowed(): boolean {
+    // Always allow panning when zoomed in
+    if (this.scale > 1.0) {
+      return true;
+    }
+
+    // Check if content exceeds viewport at current zoom
+    if (this.contentBounds && this.viewportSize) {
+      const scaledContentWidth = this.contentBounds.width * this.scale;
+      const scaledContentHeight = this.contentBounds.height * this.scale;
+
+      return (
+        scaledContentWidth > this.viewportSize.width ||
+        scaledContentHeight > this.viewportSize.height
+      );
+    }
+
+    return false;
+  }
+
   /**
    * Clamp scale to config min/max range.
    * @param scale - Scale to clamp
@@ -263,6 +355,45 @@ export class ZoomController {
   private notifyChange(): void {
     if (this.onChange) {
       this.onChange(this.scale, this.getDisplayPercent());
+    }
+  }
+
+  /**
+   * Clamp offset to content bounds (Story 6.7).
+   * If content is smaller than viewport at current zoom, centers it.
+   * If content is larger, clamps so content edges don't move past viewport edges.
+   */
+  private clampOffset(): void {
+    // If no bounds set, no clamping (unlimited pan)
+    if (!this.contentBounds || !this.viewportSize) {
+      return;
+    }
+
+    const scaledContentWidth = this.contentBounds.width * this.scale;
+    const scaledContentHeight = this.contentBounds.height * this.scale;
+
+    // Handle X axis
+    if (scaledContentWidth <= this.viewportSize.width) {
+      // Content smaller than viewport - center it
+      this.offset.x = (this.viewportSize.width - scaledContentWidth) / 2;
+    } else {
+      // Content larger than viewport - clamp so edges don't move past viewport
+      // Max offset is 0 (content left edge at viewport left)
+      // Min offset is viewport - scaledContent (content right edge at viewport right)
+      const minX = this.viewportSize.width - scaledContentWidth;
+      const maxX = 0;
+      this.offset.x = Math.max(minX, Math.min(maxX, this.offset.x));
+    }
+
+    // Handle Y axis
+    if (scaledContentHeight <= this.viewportSize.height) {
+      // Content smaller than viewport - center it
+      this.offset.y = (this.viewportSize.height - scaledContentHeight) / 2;
+    } else {
+      // Content larger than viewport - clamp so edges don't move past viewport
+      const minY = this.viewportSize.height - scaledContentHeight;
+      const maxY = 0;
+      this.offset.y = Math.max(minY, Math.min(maxY, this.offset.y));
     }
   }
 }

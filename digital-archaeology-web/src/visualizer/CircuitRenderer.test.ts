@@ -92,6 +92,7 @@ describe('CircuitRenderer', () => {
       fillRect: mockFillRect,
       scale: mockScale,
       setTransform: mockSetTransform,
+      translate: vi.fn(), // Story 6.7: pan offset
       fillStyle: '',
       strokeStyle: '',
       lineWidth: 0,
@@ -709,6 +710,7 @@ describe('CircuitRenderer', () => {
         fillRect: mockFillRect,
         scale: mockScale,
         setTransform: mockSetTransform,
+        translate: vi.fn(), // Story 6.7: pan offset
         fillStyle: '',
         strokeStyle: '',
         lineWidth: 0,
@@ -907,6 +909,7 @@ describe('CircuitRenderer', () => {
         fillRect: mockFillRect,
         scale: mockScale,
         setTransform: mockSetTransform,
+        translate: vi.fn(), // Story 6.7: pan offset
         fillStyle: '',
         strokeStyle: '',
         lineWidth: 0,
@@ -1062,6 +1065,7 @@ describe('CircuitRenderer', () => {
         fillRect: mockFillRect,
         scale: mockScale,
         setTransform: mockSetTransform,
+        translate: vi.fn(), // Story 6.7: pan offset
         fillStyle: '',
         strokeStyle: '',
         lineWidth: 0,
@@ -1501,6 +1505,335 @@ describe('CircuitRenderer', () => {
 
       addSpy.mockRestore();
       removeSpy.mockRestore();
+    });
+  });
+
+  // Story 6.7: Pan Navigation
+  describe('pan navigation (Story 6.7)', () => {
+    let mockTranslate: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockTranslate = vi.fn();
+      mockCtx = {
+        ...mockCtx,
+        translate: mockTranslate,
+      } as unknown as CanvasRenderingContext2D;
+
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        (contextId: string) => {
+          if (contextId === '2d') {
+            return mockCtx;
+          }
+          return null;
+        }
+      );
+    });
+
+    describe('pan offset integration', () => {
+      it('should have default offset of (0, 0)', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        const offset = panRenderer.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+        panRenderer.destroy();
+      });
+
+      it('should set offset via setOffset()', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.setOffset(50, 30);
+        const offset = panRenderer.getOffset();
+        expect(offset.x).toBe(50);
+        expect(offset.y).toBe(30);
+        panRenderer.destroy();
+      });
+
+      it('should apply pan offset to canvas transform', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        mockTranslate.mockClear();
+        mockScale.mockClear();
+
+        panRenderer.setOffset(100, 50);
+        panRenderer.render();
+
+        // Translate should be called with offset * devicePixelRatio
+        expect(mockTranslate).toHaveBeenCalledWith(200, 100); // 100*2, 50*2
+        panRenderer.destroy();
+      });
+
+      it('should reset offset on resetZoom()', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.setOffset(100, 50);
+        panRenderer.setZoom(2.0);
+
+        panRenderer.resetZoom();
+
+        expect(panRenderer.getZoom()).toBe(1.0);
+        const offset = panRenderer.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+        panRenderer.destroy();
+      });
+    });
+
+    describe('mouse drag pan handler', () => {
+      let mouseDownListener: ((e: MouseEvent) => void) | null = null;
+      let documentMouseMoveListener: ((e: MouseEvent) => void) | null = null;
+      let documentMouseUpListener: ((e: MouseEvent) => void) | null = null;
+      let addSpy: ReturnType<typeof vi.spyOn>;
+      let documentAddSpy: ReturnType<typeof vi.spyOn>;
+
+      beforeEach(() => {
+        mouseDownListener = null;
+        documentMouseMoveListener = null;
+        documentMouseUpListener = null;
+
+        addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(
+          function(this: HTMLCanvasElement, type: string, listener: EventListenerOrEventListenerObject) {
+            if (type === 'mousedown') {
+              mouseDownListener = listener as (e: MouseEvent) => void;
+            }
+          }
+        );
+
+        documentAddSpy = vi.spyOn(document, 'addEventListener').mockImplementation(
+          function(type: string, listener: EventListenerOrEventListenerObject) {
+            if (type === 'mousemove') {
+              documentMouseMoveListener = listener as (e: MouseEvent) => void;
+            } else if (type === 'mouseup') {
+              documentMouseUpListener = listener as (e: MouseEvent) => void;
+            }
+          }
+        );
+      });
+
+      afterEach(() => {
+        addSpy.mockRestore();
+        documentAddSpy.mockRestore();
+      });
+
+      it('should attach mousedown listener on mount', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        expect(mouseDownListener).not.toBeNull();
+        panRenderer.destroy();
+      });
+
+      it('should attach mousemove and mouseup to document on mount', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        expect(documentMouseMoveListener).not.toBeNull();
+        expect(documentMouseUpListener).not.toBeNull();
+        panRenderer.destroy();
+      });
+
+      it('should start dragging on left mouse button down when pan allowed', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+
+        // Zoom in to enable panning
+        panRenderer.setZoom(2.0);
+
+        const mouseEvent = new MouseEvent('mousedown', {
+          button: 0,
+          clientX: 100,
+          clientY: 100,
+        });
+
+        mouseDownListener!(mouseEvent);
+
+        // Check that dragging is active by attempting a mousemove
+        const moveEvent = new MouseEvent('mousemove', {
+          clientX: 150,
+          clientY: 120,
+        });
+        documentMouseMoveListener!(moveEvent);
+
+        // Offset should have changed
+        const offset = panRenderer.getOffset();
+        expect(offset.x).not.toBe(0);
+        expect(offset.y).not.toBe(0);
+
+        panRenderer.destroy();
+      });
+
+      it('should not start dragging when pan is not allowed (zoom <= 1.0)', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+
+        // At default zoom 1.0, pan is not allowed (unless content exceeds viewport)
+        const mouseEvent = new MouseEvent('mousedown', {
+          button: 0,
+          clientX: 100,
+          clientY: 100,
+        });
+
+        mouseDownListener!(mouseEvent);
+
+        const moveEvent = new MouseEvent('mousemove', {
+          clientX: 150,
+          clientY: 120,
+        });
+        documentMouseMoveListener!(moveEvent);
+
+        // Offset should NOT have changed
+        const offset = panRenderer.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+
+        panRenderer.destroy();
+      });
+
+      it('should not start dragging on right mouse button', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.setZoom(2.0);
+
+        const mouseEvent = new MouseEvent('mousedown', {
+          button: 2, // Right click
+          clientX: 100,
+          clientY: 100,
+        });
+
+        mouseDownListener!(mouseEvent);
+
+        const moveEvent = new MouseEvent('mousemove', {
+          clientX: 150,
+          clientY: 120,
+        });
+        documentMouseMoveListener!(moveEvent);
+
+        // Offset should NOT have changed
+        const offset = panRenderer.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+
+        panRenderer.destroy();
+      });
+
+      it('should stop dragging on mouseup', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.setZoom(2.0);
+
+        // Start drag
+        mouseDownListener!(new MouseEvent('mousedown', {
+          button: 0,
+          clientX: 100,
+          clientY: 100,
+        }));
+
+        // End drag
+        documentMouseUpListener!(new MouseEvent('mouseup', {
+          clientX: 150,
+          clientY: 120,
+        }));
+
+        // Get current offset
+        const offsetBefore = panRenderer.getOffset();
+
+        // Move mouse after mouseup
+        documentMouseMoveListener!(new MouseEvent('mousemove', {
+          clientX: 200,
+          clientY: 150,
+        }));
+
+        // Offset should NOT change after mouseup
+        const offsetAfter = panRenderer.getOffset();
+        expect(offsetAfter.x).toBe(offsetBefore.x);
+        expect(offsetAfter.y).toBe(offsetBefore.y);
+
+        panRenderer.destroy();
+      });
+
+      it('should update offset correctly during drag', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.setZoom(2.0);
+
+        // Start drag at (100, 100)
+        mouseDownListener!(new MouseEvent('mousedown', {
+          button: 0,
+          clientX: 100,
+          clientY: 100,
+        }));
+
+        // Move to (150, 120) - delta (50, 20)
+        documentMouseMoveListener!(new MouseEvent('mousemove', {
+          clientX: 150,
+          clientY: 120,
+        }));
+
+        const offset = panRenderer.getOffset();
+        // Pan delta should be applied
+        // Note: exact values depend on clamping, but should be non-zero
+        expect(offset.x).not.toBe(0);
+        expect(offset.y).not.toBe(0);
+
+        panRenderer.destroy();
+      });
+
+      it('should remove event listeners on destroy', () => {
+        const removeSpy = vi.spyOn(HTMLCanvasElement.prototype, 'removeEventListener');
+        const docRemoveSpy = vi.spyOn(document, 'removeEventListener');
+
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        panRenderer.destroy();
+
+        expect(removeSpy).toHaveBeenCalledWith('mousedown', expect.any(Function));
+        expect(docRemoveSpy).toHaveBeenCalledWith('mousemove', expect.any(Function));
+        expect(docRemoveSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
+
+        removeSpy.mockRestore();
+        docRemoveSpy.mockRestore();
+      });
+    });
+
+    describe('cursor state management', () => {
+      it('should set cursor to grab when zoomed in', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        const canvas = panRenderer.getCanvas();
+
+        panRenderer.setZoom(2.0);
+
+        expect(canvas?.dataset.pan).toBe('allowed');
+        panRenderer.destroy();
+      });
+
+      it('should set cursor to default when not zoomed in', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        const canvas = panRenderer.getCanvas();
+
+        panRenderer.setZoom(1.0);
+
+        expect(canvas?.dataset.pan).toBeUndefined();
+        panRenderer.destroy();
+      });
+
+      it('should update cursor on zoom change', () => {
+        const panRenderer = new CircuitRenderer();
+        panRenderer.mount(container);
+        const canvas = panRenderer.getCanvas();
+
+        // Initially at 1.0, no pan cursor
+        expect(canvas?.dataset.pan).toBeUndefined();
+
+        // Zoom in - should enable pan cursor
+        panRenderer.setZoom(2.0);
+        expect(canvas?.dataset.pan).toBe('allowed');
+
+        // Zoom back out - should disable pan cursor
+        panRenderer.setZoom(1.0);
+        expect(canvas?.dataset.pan).toBeUndefined();
+
+        panRenderer.destroy();
+      });
     });
   });
 });

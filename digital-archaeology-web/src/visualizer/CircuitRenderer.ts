@@ -116,6 +116,14 @@ export class CircuitRenderer {
   private zoomController: ZoomController;
   private boundWheelHandler: ((e: WheelEvent) => void) | null = null;
 
+  // Pan navigation (Story 6.7)
+  private isDragging: boolean = false;
+  private lastDragX: number = 0;
+  private lastDragY: number = 0;
+  private boundMouseDownHandler: ((e: MouseEvent) => void) | null = null;
+  private boundMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+  private boundMouseUpHandler: ((e: MouseEvent) => void) | null = null;
+
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
   private lastLayoutHeight: number = 0;
@@ -194,6 +202,12 @@ export class CircuitRenderer {
     // Set up wheel zoom handler (Story 6.6)
     this.setupWheelZoom();
 
+    // Set up pan handlers (Story 6.7)
+    this.setupPanHandlers();
+
+    // Update viewport size for pan bounds (Story 6.7)
+    this.zoomController.setViewportSize(this.displayWidth, this.displayHeight);
+
     // Initial render
     this.render();
   }
@@ -230,6 +244,95 @@ export class CircuitRenderer {
 
     // Use passive: false to allow preventDefault
     this.canvas.addEventListener('wheel', this.boundWheelHandler, { passive: false });
+  }
+
+  /**
+   * Set up mouse drag pan handlers (Story 6.7).
+   * Handlers are bound here and stored as class properties to ensure the same
+   * reference is used for both addEventListener and removeEventListener.
+   * @private
+   */
+  private setupPanHandlers(): void {
+    if (!this.canvas) return;
+
+    // Bind handlers once and store references for cleanup in destroy()
+    this.boundMouseDownHandler = this.handleMouseDown.bind(this);
+    this.boundMouseMoveHandler = this.handleMouseMove.bind(this);
+    this.boundMouseUpHandler = this.handleMouseUp.bind(this);
+
+    this.canvas.addEventListener('mousedown', this.boundMouseDownHandler);
+    document.addEventListener('mousemove', this.boundMouseMoveHandler);
+    document.addEventListener('mouseup', this.boundMouseUpHandler);
+  }
+
+  /**
+   * Handle mouse down event for pan start (Story 6.7).
+   * @private
+   */
+  private handleMouseDown(e: MouseEvent): void {
+    // Only handle left mouse button
+    if (e.button !== 0) return;
+
+    // Only allow panning when panning is allowed
+    if (!this.zoomController.isPanningAllowed()) return;
+
+    this.isDragging = true;
+    this.lastDragX = e.clientX;
+    this.lastDragY = e.clientY;
+
+    // Update cursor state
+    this.updatePanCursor();
+
+    e.preventDefault();
+  }
+
+  /**
+   * Handle mouse move event for panning (Story 6.7).
+   * @private
+   */
+  private handleMouseMove(e: MouseEvent): void {
+    if (!this.isDragging) return;
+
+    const deltaX = e.clientX - this.lastDragX;
+    const deltaY = e.clientY - this.lastDragY;
+
+    this.zoomController.pan(deltaX, deltaY);
+
+    this.lastDragX = e.clientX;
+    this.lastDragY = e.clientY;
+
+    this.render();
+  }
+
+  /**
+   * Handle mouse up event for pan end (Story 6.7).
+   * @private
+   */
+  private handleMouseUp(_e: MouseEvent): void {
+    if (!this.isDragging) return;
+
+    this.isDragging = false;
+    this.updatePanCursor();
+  }
+
+  /**
+   * Update cursor state based on pan availability (Story 6.7).
+   * Sets data-pan attribute on canvas for CSS cursor styling:
+   * - 'allowed': Shows grab cursor when pan is available
+   * - 'active': Shows grabbing cursor during drag
+   * - removed: Default cursor when pan is not available
+   * @private
+   */
+  private updatePanCursor(): void {
+    if (!this.canvas) return;
+
+    if (this.isDragging) {
+      this.canvas.dataset.pan = 'active';
+    } else if (this.zoomController.isPanningAllowed()) {
+      this.canvas.dataset.pan = 'allowed';
+    } else {
+      delete this.canvas.dataset.pan;
+    }
   }
 
   /**
@@ -271,21 +374,27 @@ export class CircuitRenderer {
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
 
+    // Update viewport size for pan bounds (Story 6.7)
+    this.zoomController.setViewportSize(width, height);
+
     // Apply transform with device pixel ratio and zoom scale (Story 6.6)
     this.applyCanvasTransform();
   }
 
   /**
-   * Apply canvas transform with device pixel ratio and zoom scale.
+   * Apply canvas transform with device pixel ratio, zoom scale, and pan offset.
    * @private
    */
   private applyCanvasTransform(): void {
     if (!this.ctx) return;
 
     const zoom = this.zoomController.getScale();
+    const offset = this.zoomController.getOffset();
     const combinedScale = this.devicePixelRatio * zoom;
 
     this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+    // Apply offset BEFORE scaling so it's in screen coordinates (Story 6.7)
+    this.ctx.translate(offset.x * this.devicePixelRatio, offset.y * this.devicePixelRatio);
     this.ctx.scale(combinedScale, combinedScale);
   }
 
@@ -312,11 +421,19 @@ export class CircuitRenderer {
     this.applyCanvasTransform();
 
     // Clear canvas with theme background
-    // Note: fillRect coordinates are in zoomed space, so we need to account for zoom
+    // Note: fillRect coordinates are in transformed space, so we need to account for
+    // both zoom and pan offset to ensure the entire visible area is filled (Story 6.7)
     const bgColor = this.getThemeBackground();
     this.ctx.fillStyle = bgColor;
     const zoom = this.zoomController.getScale();
-    this.ctx.fillRect(0, 0, this.displayWidth / zoom, this.displayHeight / zoom);
+    const offset = this.zoomController.getOffset();
+    // Calculate fill area to cover entire viewport in transformed coordinates
+    // Use (0 - x) instead of -x to avoid JavaScript's -0 edge case
+    const fillX = (0 - offset.x) / zoom;
+    const fillY = (0 - offset.y) / zoom;
+    const fillWidth = this.displayWidth / zoom;
+    const fillHeight = this.displayHeight / zoom;
+    this.ctx.fillRect(fillX, fillY, fillWidth, fillHeight);
 
     // Ensure layout is calculated before rendering (Story 6.4)
     this.ensureLayoutCalculated();
@@ -334,6 +451,7 @@ export class CircuitRenderer {
   /**
    * Ensure layout is calculated and up-to-date.
    * Shared by both wire and gate rendering.
+   * Updates content bounds for pan clamping when layout changes (Story 6.7).
    * @private
    */
   private ensureLayoutCalculated(): void {
@@ -355,6 +473,12 @@ export class CircuitRenderer {
       this.lastLayoutWidth = this.displayWidth;
       this.lastLayoutHeight = this.displayHeight;
       this.lastLayoutModelId = this.circuitModel.gates.size;
+
+      // Update content bounds for pan clamping (Story 6.7)
+      const bounds = this.layout.getBounds();
+      if (bounds && bounds.width > 0 && bounds.height > 0) {
+        this.zoomController.setContentBounds(bounds.width, bounds.height);
+      }
     }
   }
 
@@ -629,15 +753,19 @@ export class CircuitRenderer {
     this.zoomController.setScale(scale);
     // Only re-render if zoom actually changed and we're mounted
     if (this.ctx && this.zoomController.getScale() !== oldScale) {
+      // Update cursor state since pan availability may change (Story 6.7)
+      this.updatePanCursor();
       this.render();
     }
   }
 
   /**
-   * Reset zoom to 100% (scale = 1.0).
+   * Reset zoom to 100% (scale = 1.0) and pan offset to (0, 0).
    */
   resetZoom(): void {
     this.zoomController.reset();
+    // Update cursor state since pan availability may change (Story 6.7)
+    this.updatePanCursor();
     this.render();
   }
 
@@ -656,12 +784,18 @@ export class CircuitRenderer {
       return 1.0;
     }
 
-    return this.zoomController.zoomToFit(
+    const scale = this.zoomController.zoomToFit(
       bounds.width,
       bounds.height,
       this.displayWidth,
       this.displayHeight
     );
+
+    // Update cursor state since pan availability may change (Story 6.7)
+    this.updatePanCursor();
+    this.render();
+
+    return scale;
   }
 
   /**
@@ -670,6 +804,28 @@ export class CircuitRenderer {
    */
   getZoomDisplayPercent(): string {
     return this.zoomController.getDisplayPercent();
+  }
+
+  // ============================================================================
+  // Pan Methods (Story 6.7)
+  // ============================================================================
+
+  /**
+   * Get the current pan offset.
+   * @returns Object with x and y offset values
+   */
+  getOffset(): { x: number; y: number } {
+    return this.zoomController.getOffset();
+  }
+
+  /**
+   * Set the pan offset and re-render.
+   * @param x - X offset
+   * @param y - Y offset
+   */
+  setOffset(x: number, y: number): void {
+    this.zoomController.setOffset(x, y);
+    this.render();
   }
 
   /**
@@ -688,6 +844,21 @@ export class CircuitRenderer {
       this.canvas.removeEventListener('wheel', this.boundWheelHandler, { passive: false } as EventListenerOptions);
       this.boundWheelHandler = null;
     }
+
+    // Clean up pan handlers BEFORE clearing canvas reference (Story 6.7)
+    if (this.canvas && this.boundMouseDownHandler) {
+      this.canvas.removeEventListener('mousedown', this.boundMouseDownHandler);
+    }
+    if (this.boundMouseMoveHandler) {
+      document.removeEventListener('mousemove', this.boundMouseMoveHandler);
+    }
+    if (this.boundMouseUpHandler) {
+      document.removeEventListener('mouseup', this.boundMouseUpHandler);
+    }
+    this.boundMouseDownHandler = null;
+    this.boundMouseMoveHandler = null;
+    this.boundMouseUpHandler = null;
+    this.isDragging = false;
 
     // Remove canvas from DOM
     if (this.canvas && this.canvas.parentNode) {

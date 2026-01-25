@@ -423,6 +423,15 @@
   background: var(--da-bg-primary);
 }
 
+/* Pan cursor states (Story 6.7) */
+.da-circuit-canvas[data-pan="allowed"] {
+  cursor: grab;
+}
+
+.da-circuit-canvas[data-pan="active"] {
+  cursor: grabbing;
+}
+
 /* Zoom Controls (Story 6.6) */
 .da-zoom-controls {
   display: flex;

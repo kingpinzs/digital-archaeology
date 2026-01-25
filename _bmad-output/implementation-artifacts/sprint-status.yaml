@@ -108,8 +108,8 @@ development_status:
   6-3-render-gates-with-type-colors: done
   6-4-render-wires-with-signal-states: done
   6-5-animate-signal-propagation: done
-  6-6-implement-zoom-controls: backlog
-  6-7-implement-pan-navigation: backlog
+  6-6-implement-zoom-controls: done
+  6-7-implement-pan-navigation: done
   6-8-show-component-tooltips: backlog
   6-9-implement-code-to-circuit-linking: backlog
   6-10-implement-circuit-to-code-linking: backlog

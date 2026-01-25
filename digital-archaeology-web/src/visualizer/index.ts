@@ -59,3 +59,6 @@ export type { ZoomControllerConfig, ZoomOffset, ZoomChangeCallback } from './Zoo
 export { ZoomControlsToolbar } from './ZoomControlsToolbar';
 export type { ZoomControlsCallbacks, ZoomControlsState } from './ZoomControlsToolbar';
 export type { ZoomOptions } from './CircuitRenderer';
+
+// Story 6.7: Pan Navigation
+export type { ContentBounds, ViewportSize } from './ZoomController';

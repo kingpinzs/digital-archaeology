@@ -384,6 +384,228 @@ describe('ZoomController', () => {
     });
   });
 
+  // Story 6.7: Pan navigation tests
+  describe('pan state management (Story 6.7)', () => {
+    describe('setContentBounds()', () => {
+      it('should set content bounds', () => {
+        controller.setContentBounds(800, 600);
+        // Content bounds affect offset clamping - tested via pan()
+        expect(true).toBe(true); // Bounds are internal, test via behavior
+      });
+    });
+
+    describe('setViewportSize()', () => {
+      it('should set viewport size', () => {
+        controller.setViewportSize(400, 300);
+        // Viewport size affects offset clamping - tested via pan()
+        expect(true).toBe(true); // Size is internal, test via behavior
+      });
+    });
+
+    describe('pan()', () => {
+      it('should add delta to offset', () => {
+        controller.pan(50, 30);
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(50);
+        expect(offset.y).toBe(30);
+      });
+
+      it('should accumulate multiple pan calls', () => {
+        controller.pan(20, 10);
+        controller.pan(30, 20);
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(50);
+        expect(offset.y).toBe(30);
+      });
+
+      it('should handle negative deltas', () => {
+        controller.pan(-25, -15);
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(-25);
+        expect(offset.y).toBe(-15);
+      });
+
+      it('should not clamp offset when no content bounds set', () => {
+        // Without bounds, panning is unlimited
+        controller.pan(10000, 10000);
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(10000);
+        expect(offset.y).toBe(10000);
+      });
+    });
+
+    describe('offset clamping with bounds', () => {
+      beforeEach(() => {
+        // Set up: content 800x600, viewport 400x300, scale 1.0
+        controller.setContentBounds(800, 600);
+        controller.setViewportSize(400, 300);
+      });
+
+      it('should clamp offset so content does not move past right edge', () => {
+        // Content wider than viewport: can pan left (negative offset) but not past 0
+        // Min offset X = viewport - content = 400 - 800 = -400
+        // Max offset X = 0 (content left edge at viewport left)
+        controller.pan(100, 0); // Try to pan right (positive offset)
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(0); // Clamped to 0
+      });
+
+      it('should clamp offset so content does not move past left edge', () => {
+        // Can pan left up to content edge meeting viewport right
+        controller.pan(-500, 0); // Try to pan too far left
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(-400); // Clamped to minX = 400 - 800 = -400
+      });
+
+      it('should clamp offset so content does not move past bottom edge', () => {
+        controller.pan(0, 100); // Try to pan down (positive offset)
+        const offset = controller.getOffset();
+        expect(offset.y).toBe(0); // Clamped to 0
+      });
+
+      it('should clamp offset so content does not move past top edge', () => {
+        // Min offset Y = viewport - content = 300 - 600 = -300
+        controller.pan(0, -400); // Try to pan too far up
+        const offset = controller.getOffset();
+        expect(offset.y).toBe(-300); // Clamped to minY
+      });
+
+      it('should allow valid pan within bounds', () => {
+        controller.pan(-200, -150); // Valid pan
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(-200);
+        expect(offset.y).toBe(-150);
+      });
+    });
+
+    describe('offset clamping with zoom', () => {
+      beforeEach(() => {
+        controller.setContentBounds(400, 300);
+        controller.setViewportSize(400, 300);
+      });
+
+      it('should adjust clamping based on zoom scale', () => {
+        // At 2x zoom: scaled content = 800x600, viewport = 400x300
+        // Min offset X = 400 - 800 = -400
+        controller.setScale(2.0);
+        controller.pan(-500, 0);
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(-400); // Clamped based on scaled content
+      });
+
+      it('should center content when content smaller than viewport at current zoom', () => {
+        // At 0.5x zoom: scaled content = 200x150, viewport = 400x300
+        // Content fits with room to spare, should center
+        controller.setScale(0.5);
+        controller.pan(100, 100); // Any pan attempt
+        const offset = controller.getOffset();
+        // Center X = (400 - 200) / 2 = 100
+        // Center Y = (300 - 150) / 2 = 75
+        expect(offset.x).toBe(100);
+        expect(offset.y).toBe(75);
+      });
+
+      it('should re-clamp offset when scale changes', () => {
+        controller.setScale(2.0);
+        controller.pan(-400, -300);
+        expect(controller.getOffset().x).toBe(-400);
+
+        // Now reduce zoom - offset should re-clamp
+        controller.setScale(1.0);
+        // At 1x: content = viewport, so offset should be 0 (centered/no pan needed)
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+      });
+    });
+
+    describe('isPanningAllowed()', () => {
+      it('should return true when zoomed in beyond 1.0', () => {
+        controller.setScale(1.5);
+        expect(controller.isPanningAllowed()).toBe(true);
+      });
+
+      it('should return false at default zoom with no content bounds', () => {
+        expect(controller.isPanningAllowed()).toBe(false);
+      });
+
+      it('should return true when content exceeds viewport at current zoom', () => {
+        controller.setContentBounds(800, 600);
+        controller.setViewportSize(400, 300);
+        // Content (800x600) > viewport (400x300) at scale 1.0
+        expect(controller.isPanningAllowed()).toBe(true);
+      });
+
+      it('should return false when content fits in viewport at current zoom', () => {
+        controller.setContentBounds(200, 150);
+        controller.setViewportSize(400, 300);
+        // Content (200x150) < viewport (400x300) at scale 1.0
+        expect(controller.isPanningAllowed()).toBe(false);
+      });
+
+      it('should return true when zoom makes content exceed viewport', () => {
+        controller.setContentBounds(300, 200);
+        controller.setViewportSize(400, 300);
+        // At 1.0: content fits (300x200 < 400x300)
+        expect(controller.isPanningAllowed()).toBe(false);
+        // At 2.0: scaled content (600x400) > viewport (400x300)
+        controller.setScale(2.0);
+        expect(controller.isPanningAllowed()).toBe(true);
+      });
+    });
+
+    describe('reset() clears offset', () => {
+      it('should reset offset to (0, 0) when reset is called', () => {
+        controller.setContentBounds(800, 600);
+        controller.setViewportSize(400, 300);
+        controller.pan(-200, -150);
+        expect(controller.getOffset().x).toBe(-200);
+
+        controller.reset();
+        const offset = controller.getOffset();
+        expect(offset.x).toBe(0);
+        expect(offset.y).toBe(0);
+      });
+    });
+
+    describe('pan() notifyChange behavior', () => {
+      it('should call onChange callback when pan changes offset', () => {
+        const callback = vi.fn();
+        controller.setOnChange(callback);
+
+        controller.pan(50, 30);
+
+        expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith(1.0, '100%');
+      });
+
+      it('should not call onChange if offset does not change (clamped to same value)', () => {
+        const callback = vi.fn();
+        controller.setContentBounds(400, 300);
+        controller.setViewportSize(400, 300);
+        // At scale 1.0, content = viewport, so offset is always centered at 0,0
+        controller.setOnChange(callback);
+        callback.mockClear();
+
+        controller.pan(100, 100); // Will be clamped back to 0,0
+
+        // Should not call because offset didn't actually change
+        expect(callback).not.toHaveBeenCalled();
+      });
+
+      it('should call onChange multiple times for multiple pan operations', () => {
+        const callback = vi.fn();
+        controller.setOnChange(callback);
+
+        controller.pan(10, 10);
+        controller.pan(20, 20);
+        controller.pan(30, 30);
+
+        expect(callback).toHaveBeenCalledTimes(3);
+      });
+    });
+  });
+
   describe('onChange callback', () => {
     it('should call onChange when scale changes via setScale', () => {
       const onChange = vi.fn();

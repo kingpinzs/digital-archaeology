@@ -2063,6 +2063,64 @@ So that I understand how computing evolved through different minds.
 
 ---
 
+### Story 10.21: Historical Mindset Time-Travel
+
+As a learner,
+I want to BE the engineer in 1978, not a student in 2026,
+So that I understand problems from the perspective of those who faced them.
+
+**Acceptance Criteria:**
+
+**Given** I enter any historical era
+**When** I begin learning
+**Then** the system establishes my mindset:
+  - What year it is (not modern day)
+  - What technology EXISTS at this time (no anachronisms)
+  - What problems engineers are ACTUALLY facing
+  - What constraints they work under (budget, materials, knowledge)
+  - What is IMPOSSIBLE vs merely difficult at this time
+**And** I think like someone IN that time, not looking back
+**And** hindsight is explicitly removed - I don't know what "will" happen
+**And** I face decisions without knowing the "right" answer
+**And** the experience feels like time-travel, not history class
+
+**Example:**
+- 1978: "You're at Intel. The 8080 is a hit. But addresses are only 16 bits - 64KB max.
+  Memory is getting cheaper. What do you do?"
+- NOT: "Here's how Intel solved the 64KB limitation with segment registers."
+
+---
+
+### Story 10.22: Decision-Maker + Builder Mode
+
+As a learner,
+I want to both THINK and DO, not just one or the other,
+So that my understanding comes from both decision-making and building.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning any concept
+**When** I engage with the material
+**Then** I experience BOTH modes:
+
+  **Decision-Maker Mode:**
+  - I face the same choices engineers faced
+  - I make decisions with limited information
+  - I see consequences of my decisions
+  - I compare my choices to history's choices
+
+  **Builder Mode:**
+  - I implement my decisions (or history's decisions)
+  - I write real code, design real circuits
+  - I see my implementations actually run
+  - I feel the satisfaction of working systems
+
+**And** these modes alternate naturally (decide → build → decide → build)
+**And** neither mode is optional - both are required for true understanding
+**And** the experience is: "I decided how to solve this AND I built the solution"
+
+---
+
 ## Epic 11: Multi-Stage Architecture
 
 **Goal:** Platform supports multiple CPU stages with stage switching

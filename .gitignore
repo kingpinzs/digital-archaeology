@@ -25,3 +25,10 @@ materials.md
 
 # MCP config (local)
 .mcp.json
+
+# Node.js
+node_modules/
+
+# Test artifacts
+playwright-report/
+test-results/

@@ -170,6 +170,7 @@ development_status:
   10-20-create-persona-transition-narratives: backlog
   10-21-historical-mindset-time-travel: backlog
   10-22-decision-maker-builder-mode: backlog
+  10-23-first-discoverer-mind-experience: backlog
   epic-10-retrospective: optional
 
   # Epic 11: Multi-Stage Architecture
@@ -359,6 +360,11 @@ development_status:
   26-9-alternate-timeline-story-content: backlog
   26-10-seamless-story-lab-story-loop: backlog
   26-11-golden-path-timeline-bc-to-cpu: backlog
+  26-12-timeline-navigation-jump-between-eras: backlog
+  26-13-open-doors-no-blockers-navigation: backlog
+  26-14-it-works-connection-system: backlog
+  26-15-the-discovery-path-live-each-step: backlog
+  26-16-brave-alternatives-what-if-dared: backlog
   epic-26-retrospective: optional
 
   # Epic 27: Historical Immersion System

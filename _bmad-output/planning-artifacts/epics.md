@@ -2119,6 +2119,27 @@ So that my understanding comes from both decision-making and building.
 **And** neither mode is optional - both are required for true understanding
 **And** the experience is: "I decided how to solve this AND I built the solution"
 
+### Story 10.23: First Discoverer's Mind Experience
+
+As a new learner,
+I want to experience one complete "discoverer's mind" journey as my first interaction,
+So that I immediately understand what this platform offers.
+
+**Acceptance Criteria:**
+
+**Given** I'm a brand new user
+**When** I start the first experience
+**Then** I'm placed into one complete historical moment:
+  - I face ONE real constraint (e.g., "how do we count with electricity?")
+  - I have LIMITED tools (just what they had)
+  - I make ONE decision (my approach)
+  - I see ONE consequence (what happens)
+  - I experience ONE "IT WORKS!" moment
+**And** this takes 5-10 minutes maximum
+**And** by the end, I KNOW what this platform is about
+**And** I feel: "I just discovered something. I want more."
+**And** this serves as the prototype for ALL future discoverer experiences
+
 ---
 
 ## Epic 11: Multi-Stage Architecture
@@ -4529,6 +4550,112 @@ So that I understand the FULL scope of the journey.
 **And** I see where I currently am on the timeline
 **And** I see my branches and explorations marked on the timeline
 **And** this is the "map" of the entire Digital Archaeology experience
+
+---
+
+### Story 26.12: Timeline Navigation - Jump Between Eras
+
+As a player experiencing the game,
+I want to jump between timelines and eras freely,
+So that I can follow my curiosity and always return.
+
+**Acceptance Criteria:**
+
+**Given** I am anywhere in the experience
+**When** I want to explore a different era or timeline
+**Then** I can:
+  - Jump to any era on the golden path (BC through future)
+  - Jump to any alternate timeline I've explored
+  - Jump to any branch point to explore "what if"
+  - Jump to any of my own created paths
+**And** navigation is like "Assassin's Creed's Animus" - time-travel between minds
+**And** I can follow curiosity freely without losing progress
+**And** I can always return to where I was
+**And** my journey is non-linear if I choose
+
+---
+
+### Story 26.13: Open Doors - No Blockers Navigation
+
+As a player experiencing the game,
+I want clear main path with easy branches and NO blockers,
+So that I'm never stuck or forced into a single path.
+
+**Acceptance Criteria:**
+
+**Given** I am following the golden path
+**When** I see an interesting tangent or branch
+**Then** I can ALWAYS take it - nothing is locked unnecessarily
+**And** "Open Doors" philosophy means:
+  - Every concept has an "explore more" option
+  - No artificial prerequisites that don't make sense
+  - If I want to jump ahead, I can (with appropriate warnings)
+  - If I want to go deep on one topic, I can
+  - If I want to skip something, I can (with a note of what I missed)
+**And** blockers only exist for genuine dependencies
+**And** the path is MY choice, not the system's choice
+
+---
+
+### Story 26.14: "IT WORKS!" Connection System
+
+As a player experiencing the game,
+I want successful discoveries to connect me to other ideas and thinkers,
+So that my understanding builds into a web of knowledge.
+
+**Acceptance Criteria:**
+
+**Given** I successfully complete a discovery or build something that works
+**When** the system shows "IT WORKS!"
+**Then** I see connections:
+  - **Other ideas**: "This relates to [concept] which you'll explore in [topic]"
+  - **Other thinkers**: "This is similar to what [historical figure] discovered"
+  - **Future paths**: "This enables [future technology] that you'll see later"
+  - **Your next step**: "Now you can try [next challenge] or explore [related topic]"
+**And** these connections are personalized to my journey
+**And** I feel part of a web of discovery, not isolated learning
+**And** my successes connect to the larger story of computing
+
+---
+
+### Story 26.15: The Discovery Path - Live Each Step
+
+As a learner,
+I want each discovery to naturally lead to the next,
+So that I LIVE the journey rather than just learn about it.
+
+**Acceptance Criteria:**
+
+**Given** I complete any discovery or understanding
+**When** I'm ready for the next step
+**Then** the next discovery emerges NATURALLY from what I just learned:
+  - "Now that you understand [X], you'll notice [Y] is a problem"
+  - "The engineers of [era] had just figured out [X]. Now they faced [Y]"
+  - "With [X] working, the next question is [Y]"
+**And** I don't just "learn about" the discovery path - I LIVE it
+**And** each step feels like a natural progression, not a curriculum
+**And** I experience: "Of course this is what comes next!"
+
+---
+
+### Story 26.16: Brave Alternatives - What If Someone Dared?
+
+As a learner,
+I want to explore what computing would look like if someone had been brave,
+So that I see which constraints were fear vs physics.
+
+**Acceptance Criteria:**
+
+**Given** I'm at a historical decision point
+**When** I select "What if someone had been brave?"
+**Then** I explore alternatives where:
+  - Someone ignored backward compatibility (what if Intel abandoned real mode?)
+  - Someone challenged the establishment (what if IBM went open source?)
+  - Someone took the risky path (what if Apple kept the Mac open?)
+  - Someone defied economics (what if someone funded Babbage properly?)
+**And** I understand: some constraints were courage, not physics
+**And** I see: "brave" vs "safe" decisions shaped computing history
+**And** I ask: "What would I have done? Would I have been brave?"
 
 ---
 

@@ -151,19 +151,134 @@
                   "id": "choice-explore-concept",
                   "icon": "🔍",
                   "title": "Explore the Concept",
-                  "description": "Ask Hoff to explain how a general-purpose chip would work for a calculator."
+                  "description": "Ask Hoff to explain how a general-purpose chip would work for a calculator.",
+                  "nextScene": "scene-4-1-4a"
                 },
                 {
                   "id": "choice-challenge-idea",
                   "icon": "⚠️",
                   "title": "Challenge the Idea",
-                  "description": "Point out the risks: Will Busicom accept this? Can it even be built?"
+                  "description": "Point out the risks: Will Busicom accept this? Can it even be built?",
+                  "nextScene": "scene-4-1-4b"
                 },
                 {
                   "id": "choice-support-vision",
                   "icon": "🚀",
                   "title": "Support the Vision",
-                  "description": "Recognize the potential: This could change more than just calculators."
+                  "description": "Recognize the potential: This could change more than just calculators.",
+                  "nextScene": "scene-4-1-4c"
+                }
+              ]
+            },
+            {
+              "id": "scene-4-1-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Hoff moves to the whiteboard, marker in hand."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "Explain it to me. How does a general-purpose chip do what twelve specialized chips do?"
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "Think of it like a recipe vs. a pre-made meal. Busicom's design is twelve pre-made meals - each chip does one specific thing. My design is a kitchen with basic tools - you can make any meal by following different recipes."
+                },
+                {
+                  "speaker": "You",
+                  "text": "The recipes being... software?"
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "Exactly! The processor executes instructions - add these numbers, compare these values, jump to this step. Chain enough instructions together, and you get calculator functions. Or traffic light control. Or anything else."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But won't all that instruction processing be slow?"
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "For a supercomputer, yes. For a calculator? A human can type maybe ten keystrokes per second. We only need to be faster than human fingers. That's achievable."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Hoff's insight was recognizing that calculator applications don't need raw speed - they need flexibility. A general-purpose processor running at 100,000 instructions per second is more than fast enough to keep up with human typing and display refresh rates.",
+                  "codeSnippet": "// Calculator timing analysis\n// \n// Human typing speed: ~10 keys/second\n// Display refresh: ~30 Hz\n// Required processing: ~1000 ops/keystroke\n// \n// Need: 10 × 1000 = 10,000 ops/second\n// 4004 delivers: 92,000 ops/second\n// \n// Margin: 9× faster than needed\n// Conclusion: General-purpose is fast enough"
+                }
+              ],
+              "nextScene": "scene-4-1-5"
+            },
+            {
+              "id": "scene-4-1-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "The senior engineers exchange skeptical glances. You voice what they're thinking."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "This is a huge risk. Busicom has already designed their system. They won't want to start over."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "Maybe not. But their design requires twelve custom mask sets. That's millions in engineering costs. Our design uses four chips - the same four chips for every calculator model."
+                },
+                {
+                  "speaker": "Senior Engineer",
+                  "text": "And if it doesn't work? We'll have wasted months and lost the contract."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "The architecture is sound - it's based on established minicomputer principles. The question is whether we can fit it on a chip. I think we can, but I won't lie - it's pushing the limits."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Who would design it? This isn't like anything Intel has built before."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "We'd need someone special. A chip designer who understands system architecture. They exist - we just need to find one."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The skeptics weren't wrong about the risks. Intel had never designed a processor before - they made memory chips. The 4004 required new design methodologies, new testing approaches, and an engineer (Faggin) who could bridge the gap between computer architecture and silicon implementation.",
+                  "codeSnippet": "// Project risks (1969 assessment)\n// \n// Technical risks:\n// - No prior CPU design experience\n// - 2,300 transistors (ambitious density)\n// - New silicon gate process\n// - Complex control logic\n// \n// Business risks:\n// - Busicom might reject proposal\n// - Delays could lose contract\n// - Resources diverted from memory products\n// \n// Mitigation: Hire expert chip designer"
+                }
+              ],
+              "nextScene": "scene-4-1-5"
+            },
+            {
+              "id": "scene-4-1-4c",
+              "type": "narrative",
+              "setting": {
+                "text": "Something clicks in your mind. You see beyond the calculator to something much larger."
+              },
+              "narrative": [
+                "You step forward, energized by a sudden realization. 'This isn't just about calculators,' you say. 'If we build a general-purpose processor, we can sell the same chip for completely different products.'",
+                "Traffic lights. Vending machines. Industrial controllers. Scientific instruments. Any application that needs a small amount of computing power could use this chip.",
+                "Instead of designing new hardware for each customer, we design once and sell millions."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hoff",
+                  "text": "Now you're seeing it. Busicom wants a calculator. But we're building a universal controller. The calculator is just the first application."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "Interesting... If we own the design rights, we could license it broadly. This could be bigger than the memory business."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "Let's not get ahead of ourselves. First, we need to convince Busicom. And actually build the thing."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The microprocessor created entirely new markets. Before 1971, embedding computing in products required custom hardware for each application. After the 4004, any product could add intelligence by including a standard microprocessor and custom software. This shift enabled the embedded systems industry worth hundreds of billions today.",
+                  "codeSnippet": "// Early 4004 applications (1972-1974)\n// \n// Calculators (original purpose)\n// Cash registers\n// Traffic light controllers\n// Elevator systems\n// Pinball machines\n// Industrial controllers\n// Scientific instruments\n// \n// Same chip, different software\n// = Different product every time"
                 }
               ],
               "nextScene": "scene-4-1-5"
@@ -493,19 +608,129 @@
                   "id": "choice-support-buyback",
                   "icon": "💰",
                   "title": "Support the Buyback",
-                  "description": "Argue that the microprocessor's potential justifies the cost of regaining the rights."
+                  "description": "Argue that the microprocessor's potential justifies the cost of regaining the rights.",
+                  "nextScene": "scene-4-3-4a"
                 },
                 {
                   "id": "choice-honor-contract",
                   "icon": "📜",
                   "title": "Honor the Contract",
-                  "description": "Point out the ethical issues with pressuring a struggling partner to give up their rights."
+                  "description": "Point out the ethical issues with pressuring a struggling partner to give up their rights.",
+                  "nextScene": "scene-4-3-4b"
                 },
                 {
                   "id": "choice-seek-compromise",
                   "icon": "🤝",
                   "title": "Seek Compromise",
-                  "description": "Suggest a deal where Busicom keeps calculator rights but Intel can sell to non-competing markets."
+                  "description": "Suggest a deal where Busicom keeps calculator rights but Intel can sell to non-competing markets.",
+                  "nextScene": "scene-4-3-4c"
+                }
+              ]
+            },
+            {
+              "id": "scene-4-3-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "You stand to address the room, conviction in your voice."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "The 4004 isn't just a calculator chip. It's a universal computer in miniature. Every appliance, every machine, every system that needs any computing power could use this chip. We're talking about millions of units."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "That's a bold claim. The market for embedded processors doesn't exist yet."
+                },
+                {
+                  "speaker": "You",
+                  "text": "It will exist because we'll create it. Think about it - before microprocessors, adding intelligence to a product meant custom hardware. Expensive. Slow. Now? Drop in a 4004, write some software, done. The market will explode."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "The math supports this. Even at a 10% share of industrial controllers, we're talking millions of chips. That dwarfs the calculator market."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "The question is the cost. What's the minimum we'd need to offer Busicom to release their exclusivity?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Intel's buyback created the microprocessor industry. If Busicom had retained exclusivity, the 4004 might have remained a calculator-only chip. Instead, Intel's broad licensing enabled thousands of applications - creating an industry worth trillions of dollars.",
+                  "codeSnippet": "// Market analysis (1971 projection)\n// \n// Calculator market:\n//   Global units: ~10 million/year\n//   Intel share: Maybe 5% = 500K units\n// \n// Embedded/industrial market:\n//   Traffic lights, elevators, vending...\n//   Potential: 50+ million units/year\n//   Intel share: First mover = 30%?\n// \n// Conclusion: Embedded >> Calculators"
+                }
+              ],
+              "nextScene": "scene-4-3-5"
+            },
+            {
+              "id": "scene-4-3-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "You hesitate, troubled by the ethics of the situation."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "Wait. Busicom paid for this development. Shima worked alongside us for months. We're talking about taking advantage of their financial troubles to grab rights they legitimately purchased."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "The contract allows renegotiation. This is just business."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is it? We're pressuring a partner in a weak position. If Busicom were healthy, they'd never agree. Are we the kind of company that exploits partners when they're down?"
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "The technology will spread regardless. If we don't sell it, someone else will develop their own. TI is already working on similar concepts. The question is whether Intel leads or follows."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "A fair point from both sides. Perhaps we can structure this so both companies benefit."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The ethics of the Busicom negotiation remain debated. Some see Intel as opportunistic; others argue that Busicom received fair value (reduced chip costs) for rights they couldn't fully exploit anyway. Shima himself later joined Intel, suggesting no lasting bitterness.",
+                  "codeSnippet": "// The deal structure (actual)\n// \n// Original terms:\n// - Busicom exclusive rights\n// - Fixed price per chip\n// \n// Renegotiated terms:\n// - Busicom loses exclusivity\n// - Chip price reduced by ~$0.60/unit\n// - Busicom saves ~$60,000 on their order\n// - Intel gains global microprocessor rights\n// \n// Outcome: Both companies got what they needed most"
+                }
+              ],
+              "nextScene": "scene-4-3-5"
+            },
+            {
+              "id": "scene-4-3-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "You search for middle ground."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "What if we split the markets? Busicom keeps exclusive rights for calculators and office machines - their core business. Intel gets rights to sell in non-competing markets: industrial, automotive, scientific."
+                },
+                {
+                  "speaker": "Hoff",
+                  "text": "A non-compete partition? That could work. Busicom's competitors can't use the chip against them, but we're free to pursue new markets."
+                },
+                {
+                  "speaker": "Moore",
+                  "text": "The definition of 'calculator' would need to be very precise. What about programmable calculators? Financial calculators?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "Those are Busicom's. We focus on truly different applications - where the chip replaces custom logic, not existing calculators. The markets don't overlap."
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "It's worth proposing. A clear market split might be easier for Busicom to accept than total loss of exclusivity."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The actual deal ended up being simpler - full non-exclusivity in exchange for price reductions. But market partitioning was common in semiconductor licensing. Today's ARM licenses often include field-of-use restrictions that divide markets between different licensees.",
+                  "codeSnippet": "// Market partition concept\n// \n// Busicom exclusive markets:\n// - Desktop calculators\n// - Office machines\n// - Financial products\n// \n// Intel free markets:\n// - Industrial control\n// - Automotive\n// - Scientific instruments\n// - Consumer electronics\n// - (Everything except calculators)\n// \n// Result: Both win, no direct competition"
                 }
               ],
               "nextScene": "scene-4-3-5"

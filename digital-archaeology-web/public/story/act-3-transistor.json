@@ -142,19 +142,119 @@
                   "id": "choice-observe-experiment",
                   "icon": "👁️",
                   "title": "Observe the Experiment",
-                  "description": "Watch Brattain and Bardeen make history. See the moment the first transistor amplifies a signal."
+                  "description": "Watch Brattain and Bardeen make history. See the moment the first transistor amplifies a signal.",
+                  "nextScene": "scene-3-1-4a"
                 },
                 {
                   "id": "choice-understand-theory",
                   "icon": "📚",
                   "title": "Understand the Theory",
-                  "description": "Have Bardeen explain why the point-contact approach works where the field effect failed."
+                  "description": "Have Bardeen explain why the point-contact approach works where the field effect failed.",
+                  "nextScene": "scene-3-1-4b"
                 },
                 {
                   "id": "choice-roads-not-taken",
                   "icon": "🔮",
                   "title": "Roads Not Taken: Lilienfeld's FET",
-                  "description": "In 1926, Julius Lilienfeld patented the field-effect transistor. It should have worked. Return to your lab and build what he envisioned."
+                  "description": "In 1926, Julius Lilienfeld patented the field-effect transistor. It should have worked. Return to your lab and build what he envisioned.",
+                  "nextScene": "scene-3-1-4c"
+                }
+              ]
+            },
+            {
+              "id": "scene-3-1-4a",
+              "type": "narrative",
+              "setting": {
+                "text": "The laboratory bench. December 16, 1947. Brattain's hands are steady as he positions the gold contacts."
+              },
+              "narrative": [
+                "You stand behind Brattain as he prepares the apparatus. A wedge of plastic, gold foil slit with a razor blade to create two contacts separated by a hair's breadth. A piece of germanium crystal.",
+                "Brattain lowers the contacts onto the crystal. The oscilloscope trace flickers. He adjusts the bias voltages—negative on one contact, positive on the other.",
+                "Then he applies a signal to the emitter contact. On the oscilloscope, the collector signal jumps—amplified. Not attenuated. Amplified."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Brattain",
+                  "text": "John! Look at this gain! We're getting voltage amplification. Current gain too. It's working, John. It's really working."
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "Power gain greater than unity. That's the definition of amplification. We've done it."
+                },
+                {
+                  "speaker": "Brattain",
+                  "text": "All those months of failed experiments... and it comes down to this ugly little wedge of plastic and gold."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The first transistor achieved a power gain of 18—meaning the output power was 18 times the input power. The critical parameter was the 50-micrometer spacing between contacts. Closer spacing meant more gain but was nearly impossible to achieve with 1947 fabrication techniques.",
+                  "codeSnippet": "// First transistor performance\n// Contact spacing: ~50 micrometers\n// Voltage gain: ~15\n// Current gain: ~100  \n// Power gain: ~18\n// Frequency: Audio range only\n// \n// Compare to vacuum triode:\n// Power gain: ~100\n// Frequency: MHz range\n// \n// Transistor wins: No heater, no vacuum"
+                }
+              ],
+              "nextScene": "scene-3-1-5"
+            },
+            {
+              "id": "scene-3-1-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Bardeen's small office. Chalkboards covered with equations. A few germanium samples on the shelf."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "Why did the point-contact approach work when the field effect failed?"
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "The field effect tries to control current by pushing charges around with an electric field. But surface states trap those charges—they screen the field before it can penetrate the semiconductor."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And point contact avoids that?"
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "Point contact injects minority carriers directly into the bulk. The emitter contact pushes holes into n-type germanium. Those holes diffuse through the crystal to the collector. Surface states can't screen what's happening inside the bulk."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So it's a completely different mechanism?"
+                },
+                {
+                  "speaker": "Bardeen",
+                  "text": "Yes. Shockley's field effect modulates the surface. Our point contact modulates the bulk. Both are valid approaches—but only one works with today's materials. Someday, when we can control surface states, the field effect will have its day."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Bardeen was right: the field-effect transistor (FET) eventually dominated. The MOSFET, using a thin oxide layer to control surface states, was invented in 1959. Today, virtually all digital circuits use MOSFETs—Shockley's original concept, finally realized.",
+                  "codeSnippet": "// Transistor evolution\n// 1947: Point-contact (Bardeen/Brattain)\n//       → Unreliable, noisy\n// 1948: Junction transistor (Shockley)\n//       → Reliable, manufacturable\n// 1959: MOSFET (Kahng/Atalla)\n//       → Field effect finally works!\n// Today: FinFET, GAA-FET\n//       → Advanced field-effect designs"
+                }
+              ],
+              "nextScene": "scene-3-1-5"
+            },
+            {
+              "id": "scene-3-1-4c",
+              "type": "narrative",
+              "setting": {
+                "text": "A historical detour: your workbench, reconfigured for 1926 technology."
+              },
+              "narrative": [
+                "Julius Edgar Lilienfeld filed his FET patent in 1926—twenty years before Bardeen and Brattain. His design was sound: a thin semiconductor film with a metal gate to control conductivity.",
+                "Why didn't it work? Materials. Lilienfeld's semiconductors were impure, his surfaces uncontrolled. The physics was right; the fabrication wasn't.",
+                "You have an advantage: hindsight. Build Lilienfeld's FET with modern understanding."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Historical Note",
+                  "text": "Lilienfeld's 1926 patent describes a field-effect device remarkably similar to modern MOSFETs. He even suggested using thin oxide films. But without pure semiconductors and clean surfaces, no one could make it work for thirty more years."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Lilienfeld's patent (US 1,745,175) describes a 'Method and apparatus for controlling electric currents' using semiconductor thin films. The patent was granted but never successfully demonstrated. Semiconductor purity technology didn't exist until the 1940s, and surface passivation wasn't understood until Bardeen's work.",
+                  "codeSnippet": "// Lilienfeld's 1926 FET concept\n// Gate: Metal electrode\n// Insulator: Thin film (air or oxide)\n// Channel: Copper sulfide semiconductor\n// \n// Problem: Impure materials\n// Cu2S purity: ~95% (needed: 99.999%)\n// Surface states: Uncontrolled\n// Result: No measurable field effect\n// \n// Same concept works in 1959:\n// Gate: Aluminum\n// Insulator: Silicon dioxide (SiO2)\n// Channel: Pure silicon (99.9999%)"
                 }
               ],
               "nextScene": "scene-3-1-5"
@@ -339,19 +439,87 @@
                   "id": "choice-kilby-approach",
                   "icon": "💎",
                   "title": "Study Kilby's Approach",
-                  "description": "Examine the first IC: germanium substrate, wire-bonded connections, proof of concept."
+                  "description": "Examine the first IC: germanium substrate, wire-bonded connections, proof of concept.",
+                  "nextScene": "scene-3-2-4a"
                 },
                 {
                   "id": "choice-noyce-approach",
                   "icon": "🔲",
                   "title": "Study Noyce's Approach",
-                  "description": "Examine the planar IC: silicon substrate, oxide isolation, aluminum interconnects."
+                  "description": "Examine the planar IC: silicon substrate, oxide isolation, aluminum interconnects.",
+                  "nextScene": "scene-3-2-4b"
                 },
                 {
                   "id": "choice-build-ic",
                   "icon": "⚡",
                   "title": "Build Your Own IC",
-                  "description": "Enter the lab and design an integrated circuit combining multiple components on one chip."
+                  "description": "Enter the lab and design an integrated circuit combining multiple components on one chip.",
+                  "nextScene": "scene-3-2-5"
+                }
+              ]
+            },
+            {
+              "id": "scene-3-2-4a",
+              "type": "narrative",
+              "setting": {
+                "text": "Texas Instruments laboratory. Kilby's first integrated circuit sits under a microscope."
+              },
+              "narrative": [
+                "The IC looks almost primitive: a sliver of germanium about half an inch long, with tiny gold wires bonded to various points. It's a phase-shift oscillator—transistor, capacitors, and resistors all in one piece of semiconductor.",
+                "Kilby points to the components. 'The transistor is here—a mesa structure etched into the surface. The resistors are these doped regions. The capacitors use junction capacitance.'",
+                "The wires bother you. 'I thought the point was to eliminate connections?'"
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Kilby",
+                  "text": "These wires are temporary. They connect the components because I haven't figured out how to make interconnects in the semiconductor itself. But the principle is proven: all the components can be made from one piece of material."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Why germanium? Fairchild uses silicon."
+                },
+                {
+                  "speaker": "Kilby",
+                  "text": "TI knows germanium. We have the processes, the equipment, the expertise. Silicon is harder to work with—higher temperatures, more demanding chemistry. But I suspect silicon will win in the end. It's more abundant, and silicon dioxide is a natural insulator."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Kilby's first IC (September 12, 1958) used germanium and required external wire bonds between components. It proved the monolithic concept but wasn't practical for manufacturing. Kilby received the 2000 Nobel Prize in Physics for inventing the IC.",
+                  "codeSnippet": "// Kilby's first IC (1958)\n// Material: Germanium\n// Components: 1 transistor, 3 resistors, 1 capacitor\n// Interconnects: Gold wire bonds (external)\n// Function: Phase-shift oscillator\n// Size: ~11 × 1.5 mm\n// \n// Limitations:\n// - Wire bonds add failure points\n// - Germanium hard to oxidize\n// - Mesa transistors fragile"
+                }
+              ],
+              "nextScene": "scene-3-2-5"
+            },
+            {
+              "id": "scene-3-2-4b",
+              "type": "narrative",
+              "setting": {
+                "text": "Fairchild Semiconductor, Mountain View. The planar IC gleams under harsh fluorescent lights."
+              },
+              "narrative": [
+                "Noyce's IC looks different from Kilby's. The surface is flat—planar—covered with a glassy layer of silicon dioxide. Aluminum traces snake across the surface, connecting components beneath.",
+                "It's beautiful in its simplicity. No wire bonds. No exposed junctions. Everything protected by oxide, connected by metal.",
+                "Jean Hoerni's planar process made this possible. Grow oxide, etch windows, diffuse dopants, deposit metal. Layer by layer, the circuit takes shape."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Noyce",
+                  "text": "The oxide does everything. It masks during diffusion. It passivates the surface. It insulates the interconnects. Silicon dioxide is the secret ingredient."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Why didn't Kilby do this?"
+                },
+                {
+                  "speaker": "Noyce",
+                  "text": "Germanium doesn't form a good native oxide. Silicon does. That's why silicon wins—not because of the transistors themselves, but because of the oxide. SiO2 is a near-perfect insulator that grows naturally on silicon."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Noyce's planar IC (January 1959) used silicon and integrated metal interconnects—no wire bonds. The planar process became the foundation of all modern IC fabrication. Noyce didn't receive a Nobel Prize (he died in 1990; the prize cannot be awarded posthumously), but he's often called 'the Mayor of Silicon Valley.'",
+                  "codeSnippet": "// Noyce's planar IC (1959)\n// Material: Silicon\n// Interconnects: Aluminum on SiO2\n// Process: Planar (Hoerni invention)\n// \n// Key innovations:\n// 1. Thermal oxide for passivation\n// 2. Oxide windows for contacts\n// 3. Metal traces on oxide surface\n// 4. All processing from one side\n// \n// This is how ALL modern ICs are made"
                 }
               ],
               "nextScene": "scene-3-2-5"
@@ -658,19 +826,79 @@
                   "id": "choice-study-architecture",
                   "icon": "📐",
                   "title": "Study the Architecture",
-                  "description": "Examine the 4004's instruction set, registers, and memory addressing. Understand the first microprocessor."
+                  "description": "Examine the 4004's instruction set, registers, and memory addressing. Understand the first microprocessor.",
+                  "nextScene": "scene-3-4-3a"
                 },
                 {
                   "id": "choice-build-micro4",
                   "icon": "🔧",
                   "title": "Enter the Lab",
-                  "description": "It's time. Build your own 4-bit microprocessor based on the 4004's architecture. This is the Micro4."
+                  "description": "It's time. Build your own 4-bit microprocessor based on the 4004's architecture. This is the Micro4.",
+                  "nextScene": "scene-3-4-4"
                 },
                 {
                   "id": "choice-alternative-history",
                   "icon": "🔮",
                   "title": "Roads Not Taken: Datapoint 2200",
-                  "description": "Intel almost built a different processor first—the 8008 for Datapoint. What if that design had come first?"
+                  "description": "Intel almost built a different processor first—the 8008 for Datapoint. What if that design had come first?",
+                  "nextScene": "scene-3-4-3b"
+                }
+              ]
+            },
+            {
+              "id": "scene-3-4-3a",
+              "type": "narrative",
+              "setting": {
+                "text": "A technical deep-dive into the world's first microprocessor."
+              },
+              "narrative": [
+                "The 4004 is a marvel of miniaturization: 2,300 transistors in a 3mm × 4mm die. Faggin drew every transistor by hand, at 500× magnification, on rubylith film.",
+                "The architecture reflects its calculator origins. Sixteen 4-bit registers serve as scratchpad memory. A single accumulator handles arithmetic. The ALU performs binary-coded decimal (BCD) operations—because calculators display decimal digits.",
+                "Forty-six instructions cover arithmetic, logic, register manipulation, and program control. A three-level hardware stack enables subroutine calls."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Faggin",
+                  "text": "Every transistor had to be placed by hand. I worked 80-hour weeks for months. The 4004 is as much art as engineering—every micron matters."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Why only 4 bits? That seems limiting."
+                },
+                {
+                  "speaker": "Faggin",
+                  "text": "BCD digits are 4 bits. For a calculator, 4 bits is exactly right. But you're correct—general computing needs more. The 8008 is already in design: 8-bit data, larger address space. Then 16-bit, then 32..."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 4004's instruction set was optimized for BCD arithmetic. The DAA (Decimal Adjust Accumulator) instruction corrects binary addition to produce valid BCD results. Modern x86 processors still include this instruction for backward compatibility—a relic of the calculator era.",
+                  "codeSnippet": "// Intel 4004 instruction set highlights\n// \n// Arithmetic:\n// ADD R  - Add register to A\n// SUB R  - Subtract register from A\n// INC R  - Increment register\n// DAA    - Decimal adjust (BCD correction)\n// \n// Control:\n// JMP    - Unconditional jump (12-bit address)\n// JCN    - Conditional jump\n// JMS    - Jump to subroutine (uses stack)\n// BBL    - Branch back and load (return)\n// \n// 46 total instructions"
+                }
+              ],
+              "nextScene": "scene-3-4-4"
+            },
+            {
+              "id": "scene-3-4-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "An alternate history: what if the 8008 had come first?"
+              },
+              "narrative": [
+                "Intel actually started the 8008 design before the 4004. Datapoint Corporation wanted a CPU for their 2200 programmable terminal. Victor Poor and Harry Pyle designed an 8-bit architecture that Intel agreed to implement in silicon.",
+                "But the 8008 was delayed. Datapoint needed terminals immediately, so they built the 2200 from discrete TTL chips. By the time Intel delivered the 8008 in 1972, Datapoint didn't need it anymore.",
+                "Ironically, the 8008's architecture—designed for a terminal—became the foundation of the 8080, which became the foundation of x86. Every Intel PC processor descends from a terminal controller nobody wanted."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Historical Note",
+                  "text": "The Datapoint 2200 architecture, designed by Victor Poor and Harry Pyle, specified 8-bit registers named A, B, C, D, E, H, and L. These register names survive in x86 as AX, BX, CX, DX—forty years later."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8008 (1972) was the true ancestor of x86. Its 8-bit accumulator, six general registers, and stack-based subroutines defined the architecture that Intel would expand into 8080, 8086, and eventually the modern x86-64. The 4004's BCD-focused design was an evolutionary dead end.",
+                  "codeSnippet": "// Architecture lineage\n// \n// 4004 (1971): BCD calculator\n//   → Dead end (calculator niche)\n// \n// 8008 (1972): Terminal controller\n//   → 8080 (1974): General purpose\n//   → 8086 (1978): 16-bit extension\n//   → 80386 (1985): 32-bit\n//   → x86-64 (2003): 64-bit\n//   → YOUR PC TODAY\n// \n// Every Intel PC traces to Datapoint 2200"
                 }
               ],
               "nextScene": "scene-3-4-4"

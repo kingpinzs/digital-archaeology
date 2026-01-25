@@ -140,19 +140,131 @@
                   "id": "choice-learn-architecture",
                   "icon": "🔌",
                   "title": "Learn ENIAC's Architecture",
-                  "description": "Study the accumulators, multipliers, and function tables. Understand how plug boards create programs."
+                  "description": "Study the accumulators, multipliers, and function tables. Understand how plug boards create programs.",
+                  "nextScene": "scene-2-1-3a"
                 },
                 {
                   "id": "choice-program-eniac",
                   "icon": "📐",
                   "title": "Program a Calculation",
-                  "description": "Work with the programmers to set up a trajectory computation. Experience hardwired programming firsthand."
+                  "description": "Work with the programmers to set up a trajectory computation. Experience hardwired programming firsthand.",
+                  "nextScene": "scene-2-1-3b"
                 },
                 {
                   "id": "choice-von-neumann-insight",
                   "icon": "💡",
                   "title": "Discuss the Future with von Neumann",
-                  "description": "What if programs lived in memory? Explore the stored-program concept that will define all future computers."
+                  "description": "What if programs lived in memory? Explore the stored-program concept that will define all future computers.",
+                  "nextScene": "scene-2-1-3c"
+                }
+              ]
+            },
+            {
+              "id": "scene-2-1-3a",
+              "type": "narrative",
+              "setting": {
+                "text": "Eckert leads you through ENIAC's architecture, panel by panel. The heat is oppressive, but the logic is beautiful."
+              },
+              "narrative": [
+                "ENIAC has twenty 'accumulators'—each a 10-digit decimal register built from vacuum tubes. Each digit uses a ring counter: ten flip-flops where exactly one is 'on' at any time. The value is which flip-flop is active.",
+                "The accumulators don't just store numbers—they can add or subtract. When a pulse arrives, the counter advances. Ten pulses means 'add 10'. It's decimal arithmetic implemented in electronics.",
+                "Between the accumulators, Eckert shows you the multiplier unit. 'Multiplication is repeated addition,' he explains. 'The multiplier coordinates hundreds of addition cycles. One multiplication takes 2.8 milliseconds—thousands of times faster than a human.'"
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Eckert",
+                  "text": "Every tube here does one thing: it's either on or off. But combine thousands of them the right way, and you get arithmetic. That's the magic—simple components creating complex behavior."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What happens when a tube fails?"
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "We designed for failure. Every tube runs below its rated voltage. We have spare circuits, redundant paths. Even so, we replace several tubes every day. It's a constant battle."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "ENIAC's decimal design was chosen because humans think in decimal. Each digit required 10 flip-flops (one-hot encoding). Binary would have been more efficient—4 flip-flops per digit—but harder for operators to understand. Later computers chose binary for its simplicity.",
+                  "codeSnippet": "// ENIAC decimal vs binary storage\n// \n// Decimal (ENIAC):\n// One digit = 10 flip-flops\n// Value 7 = 0000000100 (7th flip-flop on)\n// 10 digits = 100 flip-flops\n// \n// Binary (modern):\n// One digit (0-9) = 4 flip-flops\n// Value 7 = 0111\n// 10 digits = 40 flip-flops\n// \n// Binary wins: 2.5× more efficient"
+                }
+              ],
+              "nextScene": "scene-2-1-4"
+            },
+            {
+              "id": "scene-2-1-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "Jean Jennings hands you a wiring diagram. 'This is today's setup,' she says. 'We're computing a trajectory for a 155mm shell at 45 degrees elevation.'"
+              },
+              "narrative": [
+                "Programming ENIAC means connecting the right accumulators with patch cables, setting thousands of switches, and configuring the function tables with ballistic data. There's no 'code' in the modern sense—just physical connections.",
+                "Jennings walks you through the process. 'First, we break the problem into operations. Then we figure out which accumulator does what. Then we connect them in the right sequence.'",
+                "You help plug cables, following her diagram. Each connection must be perfect. One wrong cable and the calculation gives nonsense—or worse, damages the machine."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Jennings",
+                  "text": "See this cable? It carries the current velocity value from accumulator 3 to accumulator 7, where it's combined with air resistance. Every cable is a data path. Every switch is an instruction."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How long did it take to set this up?"
+                },
+                {
+                  "speaker": "Jennings",
+                  "text": "Three days for this trajectory calculation. And if we find an error, we have to trace every connection to find it. Betty invented a technique—she calls it 'debugging.' We're all bugs hunting through these wires."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The ENIAC programmers—all women mathematicians—developed debugging techniques that would define software engineering. Betty Holberton invented breakpoints: stopping the machine at specific points to examine values. They also created reusable 'subroutines'—common operations pre-wired and called as needed.",
+                  "codeSnippet": "// ENIAC 'programming' steps\n// \n// 1. Mathematical analysis\n//    Break problem into operations\n// \n// 2. Flow diagram\n//    Map operations to accumulators\n// \n// 3. Wiring setup\n//    Plug cables, set switches\n//    (Takes days)\n// \n// 4. Testing\n//    Run with known values\n//    Debug using breakpoints\n// \n// 5. Production runs\n//    (Takes seconds each)"
+                }
+              ],
+              "nextScene": "scene-2-1-4"
+            },
+            {
+              "id": "scene-2-1-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "Von Neumann sits in a quiet corner of the Moore School, away from ENIAC's roar. His eyes are alive with calculation."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Von Neumann",
+                  "text": "ENIAC is magnificent—but limited. Every new problem requires rewiring. What if the wiring instructions themselves were stored in memory?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "Instructions in memory? Like the data?"
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "Exactly! The machine reads an instruction, executes it, reads the next. The program becomes just another pattern of bits. Change the program by changing memory, not by moving cables."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But how would that work? The machine would need to know what each instruction means."
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "A decoder. A small piece of hardware that interprets instruction codes. '0001' means add. '0010' means subtract. The decoder is fixed; the program is flexible. This is the key insight."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And the program could change itself? Modify its own instructions?"
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "Now you see it! A program that writes programs. A machine that improves itself. The implications are... profound. This is what we're designing for EDVAC."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Von Neumann's 'First Draft of a Report on the EDVAC' (1945) established the stored-program concept. Programs and data share the same memory. Instructions are fetched, decoded, and executed in sequence. Self-modifying code becomes possible. This architecture—now called 'von Neumann architecture'—underlies virtually all computers today.",
+                  "codeSnippet": "// Von Neumann's insight\n// \n// ENIAC: Program = Physical wiring\n//        Hardcoded, inflexible\n// \n// EDVAC: Program = Data in memory\n//        Flexible, modifiable\n// \n// Key implication:\n// Programs can modify themselves!\n// \n// memory[100] = ADD instruction\n// memory[100] = memory[100] + 1\n// Now memory[100] = SUB instruction\n// \n// Enables: loops, subroutines, compilers"
                 }
               ],
               "nextScene": "scene-2-1-4"
@@ -291,19 +403,120 @@
                   "id": "choice-instruction-design",
                   "icon": "📋",
                   "title": "Design the Instruction Set",
-                  "description": "Define what operations EDVAC will support. Balance power against complexity."
+                  "description": "Define what operations EDVAC will support. Balance power against complexity.",
+                  "nextScene": "scene-2-2-3a"
                 },
                 {
                   "id": "choice-memory-architecture",
                   "icon": "🧠",
                   "title": "Explore Memory Architecture",
-                  "description": "Understand mercury delay lines, Williams tubes, and the memory technologies of the era."
+                  "description": "Understand mercury delay lines, Williams tubes, and the memory technologies of the era.",
+                  "nextScene": "scene-2-2-3b"
                 },
                 {
                   "id": "choice-fetch-execute",
                   "icon": "🔄",
                   "title": "Implement the Fetch-Execute Cycle",
-                  "description": "Build the core loop of all stored-program computers: fetch, decode, execute, repeat."
+                  "description": "Build the core loop of all stored-program computers: fetch, decode, execute, repeat.",
+                  "nextScene": "scene-2-2-3c"
+                }
+              ]
+            },
+            {
+              "id": "scene-2-2-3a",
+              "type": "narrative",
+              "setting": {
+                "text": "A chalkboard fills with opcodes and bit patterns. Von Neumann leads the discussion: what instructions does a universal computer need?"
+              },
+              "narrative": [
+                "The debate is fundamental: how many instructions should a computer have? Too few, and programming becomes tedious—every operation requires many steps. Too many, and the control logic becomes impossibly complex.",
+                "Von Neumann argues for minimalism. 'A small set of operations, used cleverly, can compute anything. The complexity should be in the program, not the hardware.'",
+                "The proposed EDVAC instruction set takes shape: arithmetic (add, subtract, multiply, divide), data movement (load, store), and control flow (jump, conditional branch). About a dozen instructions total."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Von Neumann",
+                  "text": "Consider: with just ADD, NEGATE, and conditional JUMP, you can compute anything computable. Subtraction is addition of the negation. Multiplication is repeated addition. We need only the primitives."
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "But efficiency matters! A hardware multiplier is a thousand times faster than repeated addition. Users will need multiplication constantly."
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "Agreed. We include what's commonly needed: arithmetic, memory access, branching. But no more. Every instruction we add is more tubes, more heat, more failure points."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "EDVAC's instruction set included about 12 operations. Modern RISC processors have 50-100. Modern x86 has thousands (most rarely used). The debate between minimal and complex instruction sets continues—RISC vs CISC. Von Neumann favored simplicity; the market often chose features.",
+                  "codeSnippet": "// EDVAC-style minimal instruction set\n// \n// Arithmetic:\n// ADD   - Add memory to accumulator\n// SUB   - Subtract memory from accumulator\n// MUL   - Multiply\n// DIV   - Divide\n// \n// Memory:\n// LOAD  - Memory to accumulator\n// STORE - Accumulator to memory\n// \n// Control:\n// JUMP  - Unconditional branch\n// JZ    - Jump if accumulator is zero\n// HALT  - Stop execution\n// \n// ~12 instructions total"
+                }
+              ],
+              "nextScene": "scene-2-2-4"
+            },
+            {
+              "id": "scene-2-2-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "The memory laboratory. Tubes of mercury line the walls. In the corner, a cathode ray tube flickers with strange patterns."
+              },
+              "narrative": [
+                "Memory is the bottleneck of early computing. ENIAC has only 20 words of fast storage (in its accumulators). EDVAC needs thousands. But how do you store thousands of bits electronically?",
+                "Eckert shows you the mercury delay line. Sound pulses travel through a tube of mercury at about 1,500 meters per second. A one-meter tube delays a pulse by 0.7 milliseconds. Detect the pulse at the end, amplify it, send it back to the start—the data circulates forever.",
+                "But delay lines are slow: you must wait for your data to 'come around' in the loop. Random access is impossible. Manchester's Williams tube offers an alternative: store bits as dots on a CRT screen, read them instantly."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Eckert",
+                  "text": "Each delay line holds about 1,000 bits. The bit you want might be anywhere in the loop. Average access time: half a millisecond. Not fast, but the memory is cheap and reliable."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about the Williams tube? Instant access to any bit?"
+                },
+                {
+                  "speaker": "Eckert",
+                  "text": "Promising, but unproven. The charge leaks away—you must constantly refresh it. And the CRT itself is fragile. For EDVAC, we're betting on mercury. It works."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Memory technologies of the late 1940s: Mercury delay lines (serial, cheap, reliable). Williams tubes (random-access, fast, fragile). Magnetic drum (mechanical, huge capacity, very slow). Core memory (coming soon—would dominate for 20 years). Each had tradeoffs that shaped computer design.",
+                  "codeSnippet": "// Memory technologies circa 1950\n// \n// Mercury delay line:\n//   Capacity: ~1 Kbit per tube\n//   Access: Serial (avg 0.5ms)\n//   Cost: Low\n//   Reliability: High\n// \n// Williams tube (CRT):\n//   Capacity: ~1 Kbit per tube\n//   Access: Random (<1µs)\n//   Cost: Medium\n//   Reliability: Low (needs refresh)\n// \n// Magnetic drum:\n//   Capacity: 10+ Kbits\n//   Access: Serial (10-20ms)\n//   Cost: High\n//   Reliability: High"
+                }
+              ],
+              "nextScene": "scene-2-2-4"
+            },
+            {
+              "id": "scene-2-2-3c",
+              "type": "narrative",
+              "setting": {
+                "text": "A simplified control unit diagram covers the blackboard. This is the heartbeat of the stored-program computer."
+              },
+              "narrative": [
+                "Von Neumann traces the cycle: 'First, fetch. The program counter holds an address. Read the instruction at that address. Second, decode. What operation? What operands? Third, execute. Perform the operation. Fourth, update. Advance the program counter. Fifth, repeat.'",
+                "This cycle—fetch, decode, execute—is the fundamental rhythm of computation. Every computer from EDVAC to the latest smartphone follows it, billions of times per second.",
+                "The beauty is in the simplicity. The same memory holds both data and instructions. The same buses carry both. The control unit doesn't know the difference—it just follows the cycle."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Von Neumann",
+                  "text": "The program counter is just a register that holds an address. Fetch loads the instruction. Decode parses it. Execute performs it. Then we increment the counter and repeat. Simplicity itself."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about jumps? Loops? How do you break out of the sequence?"
+                },
+                {
+                  "speaker": "Von Neumann",
+                  "text": "A jump instruction simply writes a new value to the program counter. The next fetch reads from that new address. Control flow becomes data flow. It's elegant, don't you think?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The fetch-execute cycle was von Neumann's key insight. Instructions are data. The program counter sequences through memory. Jumps modify the counter. Modern CPUs pipeline this cycle, executing multiple instructions simultaneously, but the fundamental concept remains unchanged.",
+                  "codeSnippet": "// The fetch-execute cycle\n// \n// while (running) {\n//   // FETCH\n//   instruction = memory[PC]\n//   PC = PC + 1\n//   \n//   // DECODE\n//   opcode = instruction[31:24]\n//   operand = instruction[23:0]\n//   \n//   // EXECUTE\n//   switch (opcode) {\n//     ADD:  ACC = ACC + memory[operand]\n//     LOAD: ACC = memory[operand]\n//     JUMP: PC = operand\n//     HALT: running = false\n//   }\n// }"
                 }
               ],
               "nextScene": "scene-2-2-4"
@@ -623,19 +836,120 @@
                   "id": "choice-operate-univac",
                   "icon": "🖥️",
                   "title": "Operate UNIVAC",
-                  "description": "Experience the first commercial computer. Load magnetic tapes, run programs, interpret results."
+                  "description": "Experience the first commercial computer. Load magnetic tapes, run programs, interpret results.",
+                  "nextScene": "scene-2-3-3a"
                 },
                 {
                   "id": "choice-program-univac",
                   "icon": "📝",
                   "title": "Program in UNIVAC Assembly",
-                  "description": "Write code for the UNIVAC I. Learn its instruction set and programming conventions."
+                  "description": "Write code for the UNIVAC I. Learn its instruction set and programming conventions.",
+                  "nextScene": "scene-2-3-3b"
                 },
                 {
                   "id": "choice-understand-limits",
                   "icon": "⚠️",
                   "title": "Understand the Limits",
-                  "description": "Why can't vacuum tube computers scale further? Explore the heat, power, and reliability barriers that demand a new technology."
+                  "description": "Why can't vacuum tube computers scale further? Explore the heat, power, and reliability barriers that demand a new technology.",
+                  "nextScene": "scene-2-3-3c"
+                }
+              ]
+            },
+            {
+              "id": "scene-2-3-3a",
+              "type": "narrative",
+              "setting": {
+                "text": "The UNIVAC operator console. Magnetic tape drives spin. The supervisory typewriter clacks with status messages."
+              },
+              "narrative": [
+                "Operating UNIVAC is a choreographed dance. Mount the program tape on drive A. Mount the data tape on drive B. Set the console switches. Type the start command. Watch the lights.",
+                "The operator shows you the sequence. 'First, we load the program. UNIVAC reads the tape at 100 characters per second—fast for its time. Then we load the data. Then we run.'",
+                "The machine hums to life. Tape reels spin, stop, spin again. The mercury delay lines pulse with data. After fifteen minutes, the printer chatters out results: a payroll calculation for General Electric."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Operator",
+                  "text": "Every morning we run diagnostics. Check the tubes, verify the memory, test the arithmetic unit. If anything's wrong, we find it before the customers' jobs run."
+                },
+                {
+                  "speaker": "You",
+                  "text": "How often do tubes fail?"
+                },
+                {
+                  "speaker": "Operator",
+                  "text": "One or two a week, usually. We keep a full set of spares. The secret is running them cool—below their rated voltage. UNIVAC is more reliable than ENIAC ever was, but it still needs constant care."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "UNIVAC operators were highly trained specialists. They managed tape mounts, monitored console lights, interpreted error codes, and performed routine maintenance. A good operator could double a machine's effective throughput by minimizing idle time between jobs.",
+                  "codeSnippet": "// UNIVAC I operation sequence\n// \n// 1. Mount program tape (Drive A)\n// 2. Mount data tape (Drive B)\n// 3. Mount output tape (Drive C)\n// 4. Set console switches for job type\n// 5. Type RUN on supervisory typewriter\n// 6. Monitor status lights\n// 7. Replace tape if TAPE ERROR light\n// 8. Retrieve output tape when COMPLETE\n// 9. Print results on UNIPRINTER\n// \n// Typical job: 15-30 minutes"
+                }
+              ],
+              "nextScene": "scene-2-3-4"
+            },
+            {
+              "id": "scene-2-3-3b",
+              "type": "narrative",
+              "setting": {
+                "text": "The programming office. Coding sheets cover every desk. A woman in a Navy uniform reviews a stack of instructions."
+              },
+              "narrative": [
+                "Grace Hopper looks up from her work. 'You want to learn UNIVAC programming? Good. We need more programmers. The machine is faster than all of us combined.'",
+                "UNIVAC uses a fixed-point decimal system. Each word holds 12 characters. Instructions specify an operation code and one or two memory addresses. It's cryptic, but there's a logic to it.",
+                "Hopper shows you a sample program: adding two numbers. 'Load the first number into the accumulator. Add the second. Store the result. Three instructions for something you'd do in your head instantly. But the machine does it in milliseconds—and never makes arithmetic errors.'"
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Hopper",
+                  "text": "Programming is like writing very precise recipes. Every step must be exact. The machine does exactly what you tell it—no more, no less. If your program is wrong, the machine cheerfully gives you wrong answers."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is there an easier way? Writing in numbers is hard."
+                },
+                {
+                  "speaker": "Hopper",
+                  "text": "I'm working on that. What if we could write in something closer to English, and have a program translate it to machine code? I call it a 'compiler.' Most people think I'm crazy."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Grace Hopper pioneered the compiler concept at Remington Rand. Her A-0 system (1952) was the first compiler—a program that translated symbolic code into machine instructions. This led to FLOW-MATIC and eventually COBOL. Hopper proved that programs could write programs.",
+                  "codeSnippet": "// UNIVAC programming evolution\n// \n// 1951: Machine code only\n// A0 00 0100 0200  ; Add [100] to [200]\n// \n// 1952: A-0 compiler (Hopper)\n// ADD X Y          ; Symbolic notation\n// \n// 1957: FLOW-MATIC (Hopper)\n// ADD PRICE TO TOTAL  ; English-like!\n// \n// 1959: COBOL\n// ADD ITEM-PRICE TO ORDER-TOTAL\n// GIVING NEW-TOTAL."
+                }
+              ],
+              "nextScene": "scene-2-3-4"
+            },
+            {
+              "id": "scene-2-3-3c",
+              "type": "narrative",
+              "setting": {
+                "text": "The UNIVAC maintenance bay. Rows of replacement tubes, testing equipment, and cooling system diagrams."
+              },
+              "narrative": [
+                "The chief engineer explains the math. 'UNIVAC has 5,200 tubes. Each tube has a mean time between failures of maybe 10,000 hours. That means, on average, a tube fails every two hours. We've improved that with better tubes and lower voltages, but the fundamental problem remains.'",
+                "Heat is the killer. Each tube dissipates several watts. Five thousand tubes means 125 kilowatts of heat—enough to warm a small building. The cooling system is as complex as the computer itself.",
+                "And power consumption limits scaling. UNIVAC uses 125 kilowatts. A machine ten times larger would need 1.25 megawatts—a small power plant. Vacuum tubes simply can't scale to the computers we dream of."
+              ],
+              "dialogues": [
+                {
+                  "speaker": "Engineer",
+                  "text": "We've hit a wall. To make computers faster, we need more tubes. More tubes mean more heat, more power, more failures. At some point, the machine spends more time broken than running."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is there no alternative?"
+                },
+                {
+                  "speaker": "Engineer",
+                  "text": "There's talk of something called a transistor. Solid-state switching—no vacuum, no filament, no heat. If it works, everything changes. But right now, it's a laboratory curiosity. We'll see."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Vacuum tube reliability followed Poisson statistics: with n tubes each failing with probability p, the system failure rate is n×p. UNIVAC's 5,200 tubes, even with 20,000-hour MTBF each, gave a system MTBF of only 4 hours. This 'tyranny of numbers' made scaling impossible without a new technology.",
+                  "codeSnippet": "// Vacuum tube scaling problem\n// \n// Tube MTBF: 20,000 hours (best case)\n// \n// System MTBF = Tube MTBF / Number of tubes\n// \n// UNIVAC (5,200 tubes):\n//   20,000 / 5,200 = 3.8 hours\n// \n// 10× larger (52,000 tubes):\n//   20,000 / 52,000 = 0.4 hours\n//   = 23 minutes between failures!\n// \n// Conclusion: Vacuum tubes don't scale"
                 }
               ],
               "nextScene": "scene-2-3-4"

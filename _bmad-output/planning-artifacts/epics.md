@@ -3400,6 +3400,30 @@ So that I can practice and experiment beyond Digital Archaeology.
 
 ---
 
+### Story 20.13: Depth When You Want It - Layers on Demand
+
+As a learner,
+I want to access deeper content WHEN I WANT IT, not forced on me,
+So that I can go as deep as I'm curious without being overwhelmed.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning any concept
+**When** I want more depth
+**Then** I see layered access options:
+  - **Quick Summary**: 1-2 sentence explanation (always visible)
+  - **Core Concept**: 1-2 paragraphs explaining the essentials
+  - **Deep Dive**: Full article with technical details
+  - **Academic**: Links to papers, research, primary sources
+  - **Media**: Videos, documentaries, podcasts on this topic
+  - **Interactive**: Simulations, exercises, experiments
+**And** each layer is opt-in (I click to expand)
+**And** my depth preferences are remembered
+**And** I'm never forced to read content I don't want
+**And** the system suggests: "Want to go deeper on this?"
+
+---
+
 ## Epic 21: Homework & Exercises System
 
 **Goal:** Users can practice with structured challenges
@@ -4421,6 +4445,35 @@ So that it feels like one cohesive experience.
 
 ---
 
+### Story 26.11: Golden Path Timeline - BC to Modern CPU
+
+As a player experiencing the game,
+I want to see the complete timeline from ancient history to modern computing,
+So that I understand the FULL scope of the journey.
+
+**Acceptance Criteria:**
+
+**Given** I access the Timeline view
+**When** I see the Golden Path
+**Then** I see the complete arc:
+  - **Ancient** (~600 BC): Thales discovers static electricity
+  - **Classical** (~300 BC): Aristotle's logic, abacus computing
+  - **Renaissance** (1600s): Pascal, Leibniz, mechanical calculators
+  - **Industrial** (1800s): Babbage, Lovelace, Boolean algebra
+  - **Electrical** (1900-1940s): Relays, vacuum tubes, Turing, von Neumann
+  - **Transistor** (1950s-1960s): Solid state, integrated circuits
+  - **Microprocessor** (1970s): 4004, 8080, personal computing begins
+  - **Modern** (1980s-2000s): x86, RISC, pipelining, caches
+  - **Contemporary** (2010s+): Multicore, GPUs, specialized processors
+  - **Future**: Quantum, neuromorphic, what's next?
+**And** each era shows: key figures, key inventions, branch points
+**And** I can zoom from "big picture" to "specific decade"
+**And** I see where I currently am on the timeline
+**And** I see my branches and explorations marked on the timeline
+**And** this is the "map" of the entire Digital Archaeology experience
+
+---
+
 ## Epic 27: Historical Immersion System
 
 **Goal:** Users experience computing history through authentic primary sources
@@ -5126,6 +5179,28 @@ So that I understand alternatives to the global clock.
 
 ---
 
+### Story 31.8: Transport-Triggered Architecture (TTA) Exploration
+
+As a learner,
+I want to explore Transport-Triggered Architecture,
+So that I understand radically simple alternatives to conventional CPUs.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the TTA module
+**Then** I understand: TTA uses only MOVE instructions - computation happens as a side effect of moving data
+**And** I see: This is radically simpler - no complex instruction decoder
+**And** I discover: TTA is "weird" but that's not the same as "wrong"
+**And** I build a simple TTA processor in simulation
+**And** I understand: sometimes embracing weirdness leads to elegance
+**And** I see real TTA implementations (MOVE Project, some DSPs)
+
+**The Pattern:**
+- "What if we embraced weirdness instead of fighting it?"
+
+---
+
 ## Epic 32: Historical Path Branches (The Discovery Web)
 
 **Goal:** Users can explore 8 parallel tracks of interconnected discoveries, seeing how inventions built on each other
@@ -5511,6 +5586,28 @@ So that learning fits my preferred style and social comfort.
 
 ---
 
+### Story 34.6: The Core Test - "Could I Have Invented This?"
+
+As a learner,
+I want a clear test to know if I TRULY understand a concept,
+So that I can distinguish "I memorized this" from "I could have invented this."
+
+**Acceptance Criteria:**
+
+**Given** I complete any learning module
+**When** I take the Core Test
+**Then** the system asks: "Given only the PROBLEM and CONSTRAINTS, could you have invented this solution?"
+**And** I must demonstrate understanding by:
+  - Explaining WHY this solution works (not just HOW)
+  - Identifying what alternatives existed and why they weren't chosen
+  - Predicting what would happen if constraints changed
+  - Designing a variation that addresses a slightly different problem
+**And** this test is applied at every major concept
+**And** passing this test means: "I don't just know the answer, I understand why it's the answer"
+**And** the Core Test is the gold standard for true understanding
+
+---
+
 ## Epic 35: Economic Forces & Historical Context Track
 
 **Goal:** Show the HUMAN story behind technology - economics, politics, personalities, and accidents that shaped computing.
@@ -5603,6 +5700,31 @@ So that dead ends teach me as much as successes.
 **And** I see: Babbage failed because of materials precision (materials)
 **And** I see: Lisp machines failed because general-purpose was cheaper (economics)
 **And** I can explore: "Could it work NOW with modern technology?"
+
+---
+
+### Story 35.5: Trap Identification System
+
+As a learner,
+I want to identify "traps" where computing got locked into suboptimal solutions,
+So that I see which constraints are physics vs which are just historical accidents.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about any computing standard or convention
+**When** I select "Is this a trap?"
+**Then** the system categorizes it:
+  - **Backward Compatibility Trap**: We do it this way because old software needs it
+    - Example: x86 real mode, BIOS, little-endian
+  - **"Good Enough" Trap**: It works, so we stopped improving
+    - Example: 8-bit bytes, ASCII, malloc/free
+  - **Greed Trap**: Someone profits from keeping it this way
+    - Example: proprietary instruction sets, locked bootloaders
+  - **Not A Trap**: This is actually the best solution given physics/economics
+    - Example: binary logic (transistors favor it), cache hierarchies
+**And** I learn to ask: "Who benefits from this staying the same?"
+**And** I can explore: "What would break if we fixed this trap?"
+**And** I understand: Identifying traps is the first step to liberation
 
 ---
 
@@ -5894,6 +6016,72 @@ So that I see beyond fixed architectures to meta-architectures.
 
 ---
 
+### Story 37.9: RISC vs CISC - The False Binary
+
+As a learner,
+I want to understand that RISC vs CISC may be the wrong framing entirely,
+So that I see beyond false binaries in computing debates.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about CPU architecture debates
+**When** I explore "RISC vs CISC: False Binary?"
+**Then** I understand:
+  - The debate framing: simple instructions vs complex instructions
+  - What both camps got RIGHT and WRONG
+  - Modern reality: x86 internally uses RISC-like micro-ops
+  - ARM added complex instructions (NEON, SVE)
+  - The question: "Was this even the right question to ask?"
+**And** I explore: What if we asked different questions entirely?
+**And** I understand: False binaries limit thinking - the answer may be "neither" or "both"
+**And** I see: Other architectures that rejected this framing (VLIW, dataflow)
+
+---
+
+### Story 37.10: General vs Specific - Why General-Purpose?
+
+As a learner,
+I want to understand why we use general-purpose CPUs when ASICs dominate specific tasks,
+So that I see the tradeoffs in architecture choices.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about specialized vs general computing
+**When** I explore "General vs Specific"
+**Then** I understand:
+  - ASICs: Application-Specific Integrated Circuits are faster and more efficient
+  - GPUs: Specialized for graphics, now used for AI
+  - TPUs: Google's tensor processing units
+  - Bitcoin ASICs: Specialized mining hardware
+  - The question: Why do we still use general-purpose CPUs?
+**And** I see the answer: Flexibility vs performance tradeoff
+**And** I explore: When does specialization win? When does general-purpose win?
+**And** I understand: The ecosystem and economics drive architecture choices
+
+---
+
+### Story 37.11: Proprietary vs Open - Who Benefits?
+
+As a learner,
+I want to understand who benefits from closed vs open systems,
+So that I see the economic and political forces shaping computing.
+
+**Acceptance Criteria:**
+
+**Given** I'm learning about computing history and current state
+**When** I explore "Proprietary vs Open"
+**Then** I see the patterns:
+  - IBM's proprietary mainframes → open-ish PC → clones won
+  - Apple's closed ecosystem → premium pricing, control
+  - x86's openness → compatibility won
+  - ARM's licensing model → ubiquity in mobile
+  - RISC-V's open ISA → challenging the duopoly
+**And** I understand: "Open" and "closed" have different meanings at different layers
+**And** I ask: Who benefits from keeping knowledge closed?
+**And** I see: Economic moats vs. innovation speed tradeoffs
+
+---
+
 ## Epic 38: User-Driven Discovery System
 
 **Goal:** Users don't just follow the golden path - they CREATE new paths that become part of the experience.
@@ -6002,6 +6190,36 @@ So that I feel part of the larger story of invention.
 **And** I see: My ideas exist in a network, not isolation
 **And** I feel: I'm part of the ongoing story of computing
 **And** I discover: Connections I wouldn't have found alone
+
+---
+
+### Story 38.6: Freedom & Ownership Principles
+
+As a learner,
+I want the platform to embody the principles of freedom and ownership,
+So that my learning experience is truly MINE, not just following a script.
+
+**Acceptance Criteria:**
+
+**Given** I'm using the platform
+**When** I engage with any content
+**Then** I experience these principles:
+
+**FREEDOM:**
+  - "Explore anything" - no artificial blockers or forced sequences
+  - "Return anytime" - always can get back to golden path
+  - "No wrong path" - every exploration teaches something
+  - Non-linear navigation is first-class, not an exception
+
+**OWNERSHIP:**
+  - "YOUR ideas matter" - my contributions are saved and valued
+  - "Not just following a script" - I make real choices
+  - "The struggle is YOURS" - challenges are earned, not given
+  - "The discovery is YOURS" - I feel like I discovered, not was told
+
+**And** these principles are explicit in the UI (not hidden)
+**And** the platform reminds me: "This is YOUR journey, YOUR discoveries"
+**And** my learning record shows: "paths I created" not just "content I consumed"
 
 ---
 

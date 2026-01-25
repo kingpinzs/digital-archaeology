@@ -112,7 +112,7 @@ development_status:
   6-7-implement-pan-navigation: done
   6-8-show-component-tooltips: done
   6-9-implement-code-to-circuit-linking: done
-  6-10-implement-circuit-to-code-linking: in-progress
+  6-10-implement-circuit-to-code-linking: done
   6-11-display-signal-values-panel: backlog
   6-12-show-breadcrumb-navigation: backlog
   epic-6-retrospective: optional
@@ -279,6 +279,7 @@ development_status:
   20-10-curated-books-reading-list: backlog
   20-11-museums-physical-sites: backlog
   20-12-online-simulators-resources: backlog
+  20-13-depth-when-you-want-it: backlog
   epic-20-retrospective: optional
 
   # Epic 21: Homework & Exercises System
@@ -355,6 +356,7 @@ development_status:
   26-8-time-travel-replay: backlog
   26-9-alternate-timeline-story-content: backlog
   26-10-seamless-story-lab-story-loop: backlog
+  26-11-golden-path-timeline-bc-to-cpu: backlog
   epic-26-retrospective: optional
 
   # Epic 27: Historical Immersion System
@@ -405,6 +407,7 @@ development_status:
   31-5-dataflow-architecture-exploration: backlog
   31-6-lisp-machine-exploration: backlog
   31-7-asynchronous-cpu-exploration: backlog
+  31-8-transport-triggered-architecture: backlog
   epic-31-retrospective: optional
 
   # Epic 32: Historical Path Branches
@@ -437,6 +440,7 @@ development_status:
   34-3-the-stuck-protocol-system: backlog
   34-4-validation-proof-system: backlog
   34-5-solo-vs-community-learning-modes: backlog
+  34-6-the-core-test-could-i-have-invented: backlog
   epic-34-retrospective: optional
 
   # Epic 35: Economic Forces & Historical Context Track
@@ -445,6 +449,7 @@ development_status:
   35-2-follow-the-money-context: backlog
   35-3-historical-context-track-human-story: backlog
   35-4-why-things-failed-dead-ends: backlog
+  35-5-trap-identification-system: backlog
   epic-35-retrospective: optional
 
   # Epic 36: Democratization & Accessibility System
@@ -466,6 +471,9 @@ development_status:
   37-6-hybrid-machine-design: backlog
   37-7-data-first-architecture-design: backlog
   37-8-the-shapeshifter-machine: backlog
+  37-9-risc-vs-cisc-false-binary: backlog
+  37-10-general-vs-specific: backlog
+  37-11-proprietary-vs-open: backlog
   epic-37-retrospective: optional
 
   # Epic 38: User-Driven Discovery System
@@ -475,6 +483,7 @@ development_status:
   38-3-explore-build-discover-loop: backlog
   38-4-dead-ends-with-reasons-system: backlog
   38-5-interlinking-discovery-network: backlog
+  38-6-freedom-ownership-principles: backlog
   epic-38-retrospective: optional
 
   # Epic 39: Physical Build & Kit Support

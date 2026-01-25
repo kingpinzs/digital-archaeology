@@ -161,19 +161,106 @@
                   "id": "choice-learn-operation",
                   "icon": "⚙️",
                   "title": "Learn to Operate the Tabulator",
-                  "description": "Master the Hollerith machine. Understand punch cards, pin readers, and electromechanical counters."
+                  "description": "Master the Hollerith machine. Understand punch cards, pin readers, and electromechanical counters.",
+                  "nextScene": "scene-1-1-4a"
                 },
                 {
                   "id": "choice-design-cards",
                   "icon": "🎴",
                   "title": "Design a Punch Card System",
-                  "description": "Create your own encoding scheme. Decide what data to capture and how to represent it in holes."
+                  "description": "Create your own encoding scheme. Decide what data to capture and how to represent it in holes.",
+                  "nextScene": "scene-1-1-4b"
                 },
                 {
                   "id": "choice-understand-implications",
                   "icon": "💭",
                   "title": "Consider the Implications",
-                  "description": "Machines that process data about people. What does this mean for privacy, for government power, for society?"
+                  "description": "Machines that process data about people. What does this mean for privacy, for government power, for society?",
+                  "nextScene": "scene-1-1-4c"
+                }
+              ],
+              "nextScene": "scene-1-1-5"
+            },
+            {
+              "id": "scene-1-1-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "The tabulating room. Rows of Hollerith machines click rhythmically as operators feed punch cards through the readers."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Hollerith",
+                  "text": "Watch the operator. She places the card on the reader, pulls the lever down. The pins descend—where there's a hole, the pin passes through into mercury, completing the circuit."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And the dials? They're counting automatically?"
+                },
+                {
+                  "speaker": "Hollerith",
+                  "text": "Each circuit connects to an electromechanical counter. Forty dials, forty counts. The operator just feeds cards—the machine does the mathematics. Eighty cards per minute, error-free."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Hollerith tabulator's mercury cups provided reliable electrical contact. When a pin found a hole, it dipped into mercury—a liquid metal that conducted electricity perfectly. This simple mechanism enabled reliable detection of binary patterns at mechanical speed.",
+                  "codeSnippet": "// Hollerith tabulator operation\n// \n// 1. Operator places card on reader\n// 2. Pulls lever - pins descend\n// 3. Pins through holes touch mercury\n// 4. Completed circuits:\n//    - Increment counters\n//    - Activate sorter electromagnets\n// 5. Card drops into sorted bin\n// 6. Repeat 80 times per minute\n// \n// Binary principle: hole = 1, no hole = 0"
+                }
+              ],
+              "nextScene": "scene-1-1-5"
+            },
+            {
+              "id": "scene-1-1-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A drafting table with blank punch card templates. Hollerith explains the art of encoding information."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Hollerith",
+                  "text": "The card has 45 columns, 10 rows. Each column can encode one digit, 0-9. But here's the clever part: combinations of holes can represent more complex data."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So two holes in one column could mean something different than either hole alone?"
+                },
+                {
+                  "speaker": "Hollerith",
+                  "text": "Exactly! This is the foundation of encoding. Later cards will use 80 columns and encode letters, numbers, and special characters. But the principle is the same: patterns of holes represent data."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 80-column card (introduced 1928) became the standard for 50 years. The EBCDIC and ASCII encodings translated characters into hole patterns. The physical dimensions of the card—7.375 x 3.25 inches—were based on the 1887 US dollar bill, so existing money-handling machinery could process them.",
+                  "codeSnippet": "// Punch card encoding evolution\n// \n// 1890: 45 columns, numeric only\n// 1928: 80 columns, Hollerith code\n// 1931: EBCDIC (8-bit, IBM)\n// 1964: ASCII (7-bit, standard)\n// \n// Card dimensions: 7.375\" x 3.25\"\n// Based on 1887 dollar bill size!\n// \n// Legacy: 80 columns became terminal width\n// (Still default in many systems today)"
+                }
+              ],
+              "nextScene": "scene-1-1-5"
+            },
+            {
+              "id": "scene-1-1-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "A quiet moment in the census building. The implications of machine-readable personal data are just beginning to be understood."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Clerk",
+                  "text": "These machines know things about people. Where they live. What they do. Where they came from. All searchable. All countable. All sortable."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Is that dangerous?"
+                },
+                {
+                  "speaker": "Clerk",
+                  "text": "In America, we use it for census statistics. But imagine if a government wanted to find everyone of a certain religion, or ethnicity, or political belief. The same technology that counts us can also... categorize us."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "This concern proved tragically prescient. During WWII, Hollerith technology (by then owned by IBM) was used by Nazi Germany to identify and track Jewish populations. The Dehomag subsidiary's tabulators processed census data that facilitated the Holocaust.",
+                  "codeSnippet": "// The double-edged nature of data\n// \n// Beneficial uses:\n// - Census planning\n// - Public health tracking\n// - Economic statistics\n// \n// Dangerous uses:\n// - Population targeting\n// - Surveillance\n// - Discrimination\n// \n// Same technology, different intentions\n// The ethical questions persist today"
                 }
               ],
               "nextScene": "scene-1-1-5"
@@ -322,19 +409,106 @@
                   "id": "choice-study-z3",
                   "icon": "🔧",
                   "title": "Study the Z3 Architecture",
-                  "description": "Examine the world's first programmable computer. Understand relay logic, binary arithmetic, and program control."
+                  "description": "Examine the world's first programmable computer. Understand relay logic, binary arithmetic, and program control.",
+                  "nextScene": "scene-1-2-3a"
                 },
                 {
                   "id": "choice-understand-floating-point",
                   "icon": "🔢",
                   "title": "Master Floating-Point",
-                  "description": "Learn Zuse's floating-point format. Understand why separating exponent and mantissa enables vast numeric ranges."
+                  "description": "Learn Zuse's floating-point format. Understand why separating exponent and mantissa enables vast numeric ranges.",
+                  "nextScene": "scene-1-2-3b"
                 },
                 {
                   "id": "choice-roads-not-taken",
                   "icon": "🔮",
                   "title": "Roads Not Taken: What If Germany Had Invested?",
-                  "description": "If the Nazis had funded Zuse fully, computing history might look very different. Explore this alternate path."
+                  "description": "If the Nazis had funded Zuse fully, computing history might look very different. Explore this alternate path.",
+                  "nextScene": "scene-1-2-3c"
+                }
+              ],
+              "nextScene": "scene-1-2-4"
+            },
+            {
+              "id": "scene-1-2-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Inside the Z3. Relays click in precise patterns as the machine performs a calculation. Zuse explains the architecture."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "The Z3 has three parts: the memory, the arithmetic unit, and the control unit. Memory stores 64 words of 22 bits each. The arithmetic unit performs addition, subtraction, multiplication, division, and square root."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And the control unit reads the program from film?"
+                },
+                {
+                  "speaker": "Zuse",
+                  "text": "Yes! Discarded 35mm movie film, punched with hole patterns. Each frame contains one instruction. The machine reads the film, decodes the instruction, and executes it. Fully automatic, fully programmable."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Z3's architecture presaged modern computers: separate memory, ALU, and control unit. Its 22-bit word used 1 sign bit, 7 exponent bits, and 14 mantissa bits—a floating-point format remarkably similar to later standards.",
+                  "codeSnippet": "// Z3 architecture\n// \n// Memory: 64 words x 22 bits\n//   1 bit sign\n//   7 bit exponent  \n//   14 bit mantissa\n// \n// Instructions (8 types):\n//   Ld n  - Load from memory n\n//   St n  - Store to memory n  \n//   +, -, *, /  - Arithmetic\n//   sqrt  - Square root\n// \n// Clock: 5.33 Hz (operations/second)"
+                }
+              ],
+              "nextScene": "scene-1-2-4"
+            },
+            {
+              "id": "scene-1-2-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A chalkboard covered with mathematical notation. Zuse explains his floating-point innovation."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "Engineers need to calculate with very large and very small numbers. Wing stress might be 10^6, while a tolerance is 10^-6. Fixed-point can't handle both. Floating-point can."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So you separate the size from the precision?"
+                },
+                {
+                  "speaker": "Zuse",
+                  "text": "Exactly! The mantissa holds the significant digits, the exponent scales them. 1.234 × 10^6 and 1.234 × 10^-6 use the same mantissa—only the exponent differs. One format handles all engineering calculations."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Zuse's floating-point format anticipated the IEEE 754 standard by 45 years. His insight—that scientific computing requires both range and precision—became fundamental to all computer arithmetic. Every GPU, CPU, and calculator today uses floating-point.",
+                  "codeSnippet": "// Floating-point representation\n// \n// Number: ±M × 2^E\n//   M = mantissa (1.xxxxx in binary)\n//   E = exponent (power of 2)\n// \n// Example: 6.5 decimal\n//   Binary: 110.1 = 1.101 × 2^2\n//   Sign: 0 (positive)\n//   Exponent: 2 (with bias)\n//   Mantissa: 101 (after leading 1)\n// \n// Range: ~10^-38 to ~10^38 (32-bit)"
+                }
+              ],
+              "nextScene": "scene-1-2-4"
+            },
+            {
+              "id": "scene-1-2-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "A contemplative moment. What if history had taken a different path?"
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zuse",
+                  "text": "I asked the government for resources to build a more powerful machine. They refused. Tanks and rockets, they said. No interest in computing machines."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What if they had funded you?"
+                },
+                {
+                  "speaker": "Zuse",
+                  "text": "With proper resources, I could have built the Z4 three years earlier. Vacuum tube machines by 1944. Perhaps... but no. Such power in their hands would have been terrible. Perhaps it's better the relay clicked slowly in my workshop."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Nazi regime's failure to invest in computing was a strategic blunder. While Germany built V-2 rockets with slide rules, Britain's Colossus broke German codes and America's ENIAC calculated artillery tables. Computing power proved as decisive as military hardware.",
+                  "codeSnippet": "// Roads not taken\n// \n// Germany's choice: Rockets (V-2)\n// Result: Tactical weapon, limited impact\n// \n// Britain's choice: Codebreaking (Colossus)  \n// Result: Strategic intelligence advantage\n// \n// America's choice: Computing (ENIAC)\n// Result: Artillery, atomic bomb calculations\n// \n// Lesson: Information processing \n// can be more powerful than weapons"
                 }
               ],
               "nextScene": "scene-1-2-4"
@@ -520,19 +694,106 @@
                   "id": "choice-study-colossus",
                   "icon": "💡",
                   "title": "Study Colossus Architecture",
-                  "description": "Examine the first electronic digital machine. Understand how vacuum tubes implement Boolean logic at electronic speed."
+                  "description": "Examine the first electronic digital machine. Understand how vacuum tubes implement Boolean logic at electronic speed.",
+                  "nextScene": "scene-1-3-3a"
                 },
                 {
                   "id": "choice-breaking-codes",
                   "icon": "🔓",
                   "title": "Break a Lorenz Message",
-                  "description": "Experience the cryptanalysis process. Use statistical methods to find the cipher wheel settings."
+                  "description": "Experience the cryptanalysis process. Use statistical methods to find the cipher wheel settings.",
+                  "nextScene": "scene-1-3-3b"
                 },
                 {
                   "id": "choice-turing-vision",
                   "icon": "🔮",
                   "title": "Roads Not Taken: Turing's ACE",
-                  "description": "Turing's post-war ACE design was more advanced than anything built until the 1960s. Return to your lab to construct his vision."
+                  "description": "Turing's post-war ACE design was more advanced than anything built until the 1960s. Return to your lab to construct his vision.",
+                  "nextScene": "scene-1-3-3c"
+                }
+              ],
+              "nextScene": "scene-1-3-4"
+            },
+            {
+              "id": "scene-1-3-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Inside Colossus. Rack after rack of vacuum tubes glow orange. Tommy Flowers explains how electronic logic works."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Flowers",
+                  "text": "A vacuum tube is a switch with no moving parts. Apply voltage to the grid and current flows from cathode to plate. Remove voltage and it stops. On or off, in microseconds rather than milliseconds."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But 1,500 tubes—how do you keep them all working?"
+                },
+                {
+                  "speaker": "Flowers",
+                  "text": "The secret: never turn them off. Tubes fail when thermal stress cracks the glass—heating and cooling, on and off. Leave them running continuously and they last for years. Colossus runs 24 hours a day."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Colossus Mark I used 1,500 tubes; Mark II used 2,400. By selecting high-quality components and running continuously, Flowers achieved reliability that skeptics thought impossible. The machine operated at 5,000 characters per second—1,000 times faster than relay machines.",
+                  "codeSnippet": "// Colossus specifications\n// \n// Mark I: 1,500 tubes\n// Mark II: 2,400 tubes\n// Tape speed: 5,000 chars/second\n// Paper tape: 30 mph through reader\n// \n// Reliability secret:\n// - High-quality components\n// - Continuous operation (no thermal cycling)\n// - Redundant designs where possible\n// - Careful power supply regulation"
+                }
+              ],
+              "nextScene": "scene-1-3-4"
+            },
+            {
+              "id": "scene-1-3-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A simplified Lorenz cipher demonstration. The mathematical attack becomes clear."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Cryptanalyst",
+                  "text": "The Lorenz cipher adds pseudo-random bits to the message. If we can guess the wheel settings that generated those bits, we can subtract them and read the plaintext."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But there are billions of possible settings..."
+                },
+                {
+                  "speaker": "Cryptanalyst",
+                  "text": "True randomness has no pattern. But Lorenz's wheels create subtle statistical biases. Colossus counts these biases at electronic speed, testing millions of settings until the patterns emerge. Mathematics defeats machinery."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Lorenz attack exploited the delta method: XORing adjacent characters revealed patterns in the key stream. Colossus counted coincidences between the cipher tape and generated patterns, finding statistical anomalies that indicated correct wheel settings.",
+                  "codeSnippet": "// Lorenz cryptanalysis (simplified)\n// \n// Cipher = Plaintext XOR Key\n// Delta-cipher = Delta-plain XOR Delta-key\n// \n// For German text:\n// - Certain character pairs are common\n// - Delta patterns have statistical bias\n// \n// Colossus approach:\n// 1. Generate candidate key patterns\n// 2. XOR with cipher tape\n// 3. Count statistical matches\n// 4. High count = likely correct setting\n// \n// Speed: millions of tests per hour"
+                }
+              ],
+              "nextScene": "scene-1-3-4"
+            },
+            {
+              "id": "scene-1-3-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "After the war. Turing sketches his vision for the ACE—a computer decades ahead of its time."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Turing",
+                  "text": "The ACE will store its program in memory—just like data. The same memory that holds numbers can hold instructions. The machine can modify its own program as it runs."
+                },
+                {
+                  "speaker": "You",
+                  "text": "A machine that rewrites itself?"
+                },
+                {
+                  "speaker": "Turing",
+                  "text": "Self-modifying code, subroutines stored in memory, even a form of microprogramming. My design is too advanced—the bureaucrats don't understand it. They'll build something simpler and call it progress."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Turing's ACE design (1945) included concepts not widely implemented until the 1960s: microprogramming, subroutine linkage, and hardware-assisted context switching. The full ACE was never built; a simplified 'Pilot ACE' ran in 1950.",
+                  "codeSnippet": "// Turing's ACE innovations (1945)\n// \n// - Stored program architecture\n// - Self-modifying code\n// - Subroutine calling conventions\n// - Hardware stack (conceptual)\n// - Microprogrammed control\n// \n// Ahead of its time:\n// - Full ACE: never built\n// - Pilot ACE: 1950 (simplified)\n// - Ideas mainstream: 1960s-1970s\n// \n// Turing's vision: too advanced for\n// the bureaucracy to understand"
                 }
               ],
               "nextScene": "scene-1-3-4"

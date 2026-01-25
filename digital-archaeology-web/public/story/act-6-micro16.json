@@ -124,19 +124,106 @@
                   "id": "choice-study-8086",
                   "icon": "📐",
                   "title": "Master the Intel 8086",
-                  "description": "The market winner. Segmented memory, 8080 compatibility, and the foundation of the PC revolution."
+                  "description": "The market winner. Segmented memory, 8080 compatibility, and the foundation of the PC revolution.",
+                  "nextScene": "scene-6-1-4a"
                 },
                 {
                   "id": "choice-study-68000",
                   "icon": "✨",
                   "title": "Explore the Motorola 68000",
-                  "description": "The engineer's choice. Clean architecture, 32-bit internals, and linear addressing."
+                  "description": "The engineer's choice. Clean architecture, 32-bit internals, and linear addressing.",
+                  "nextScene": "scene-6-1-4b"
                 },
                 {
                   "id": "choice-roads-not-taken",
                   "icon": "🔮",
                   "title": "Roads Not Taken: What If 68000 Won?",
-                  "description": "Return to your lab and build what computing might have looked like without segmentation."
+                  "description": "Return to your lab and build what computing might have looked like without segmentation.",
+                  "nextScene": "scene-6-1-4c"
+                }
+              ],
+              "nextScene": "scene-6-1-5"
+            },
+            {
+              "id": "scene-6-1-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "The Intel 8086 design documents spread before you. Segment registers and overlapping address spaces."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Morse",
+                  "text": "The genius of segmentation is backward compatibility. An 8080 program thinks it has 64KB of memory. The 8086 gives it exactly that—in one segment. Other segments extend beyond."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But the same address can be written multiple ways?"
+                },
+                {
+                  "speaker": "Morse",
+                  "text": "Yes—0000:0100 and 0010:0000 point to the same byte. Confusing, but necessary. And we added real power: hardware multiply, string ops, 16-bit arithmetic. The 8086 is a workhorse."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 8086's segment:offset addressing created infamous memory model complexity. DOS programs had to choose: tiny model (64KB total), small model (64KB code + 64KB data), medium, compact, large, or huge. Each had different pointer sizes and performance characteristics.",
+                  "codeSnippet": "// DOS memory models\n// \n// TINY:   64KB code + data combined\n// SMALL:  64KB code + 64KB data\n// MEDIUM: 1MB code + 64KB data\n// COMPACT: 64KB code + 1MB data\n// LARGE:  1MB code + 1MB data\n// HUGE:   Large + arrays > 64KB\n// \n// Choice affected performance, complexity,\n// and available memory"
+                }
+              ],
+              "nextScene": "scene-6-1-5"
+            },
+            {
+              "id": "scene-6-1-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A Motorola 68000 engineering sample. Clean, elegant, powerful."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Gunter",
+                  "text": "No segments. Just addresses. A0 through A7 are full 32-bit address registers. Any can point anywhere in the 16MB address space. Simple."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Why didn't this win?"
+                },
+                {
+                  "speaker": "Gunter",
+                  "text": "Timing. IBM needed a chip now, with 8-bit bus compatibility now, from a company they trusted. Intel had the 8088 ready. We were still ramping production. The market doesn't always pick the best design."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 68000's architecture influenced many later designs. Its clean register model and orthogonal instruction set were teaching examples of good CPU design. The Macintosh, Amiga, and Atari ST became beloved platforms partly because of 68000's elegance.",
+                  "codeSnippet": "// 68000 elegance\n// \n// MOVE.L  D0, (A0)+   ; Store and increment\n// MOVE.L  -(A1), D1   ; Decrement and load\n// LEA     8(A2,D3), A4 ; Indexed addressing\n// \n// Any register, any addressing mode\n// No special cases, no exceptions\n// The way CPUs should work"
+                }
+              ],
+              "nextScene": "scene-6-1-5"
+            },
+            {
+              "id": "scene-6-1-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "An alternate timeline. What if IBM had chosen differently?"
+              },
+              "dialogues": [
+                {
+                  "speaker": "Historian",
+                  "text": "In this timeline, the IBM PC uses a 68000. No segmentation headaches. Clean 32-bit upgrade path. Macintosh and PC share an architecture. Software is more portable."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Would computing be different?"
+                },
+                {
+                  "speaker": "Historian",
+                  "text": "Perhaps. No DOS memory battles. Earlier transition to 32-bit. But x86's complexity forced clever optimizations that 68000 never needed. Sometimes constraints breed innovation."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The x86 architecture's quirks led to innovations: the concept of a BIOS abstraction layer, DOS extenders that pushed boundaries, and ultimately the x86 translation layer in modern CPUs. Constraints sometimes drive more creative solutions than clean designs.",
+                  "codeSnippet": "// What x86 constraints produced\n// \n// BIOS: Hardware abstraction layer\n// DOS extenders: Protected mode access from DOS\n// Virtual 8086 mode: Run DOS in protected mode\n// x86 micro-ops: CISC decoded to RISC internally\n// \n// None of these would have been needed\n// on a clean 68000 architecture"
                 }
               ],
               "nextScene": "scene-6-1-5"
@@ -327,19 +414,106 @@
                   "id": "choice-explore-dos",
                   "icon": "💾",
                   "title": "Master MS-DOS",
-                  "description": "Learn the operating system that runs the PC world. Batch files, memory management, interrupt handling."
+                  "description": "Learn the operating system that runs the PC world. Batch files, memory management, interrupt handling.",
+                  "nextScene": "scene-6-2-4a"
                 },
                 {
                   "id": "choice-study-bios",
                   "icon": "🔌",
                   "title": "Understand the BIOS",
-                  "description": "The firmware that makes PCs tick. Hardware abstraction, boot process, interrupt vectors."
+                  "description": "The firmware that makes PCs tick. Hardware abstraction, boot process, interrupt vectors.",
+                  "nextScene": "scene-6-2-4b"
                 },
                 {
                   "id": "choice-write-apps",
                   "icon": "📊",
                   "title": "Write PC Applications",
-                  "description": "Join the software gold rush. Build applications for the platform everyone is buying."
+                  "description": "Join the software gold rush. Build applications for the platform everyone is buying.",
+                  "nextScene": "scene-6-2-4c"
+                }
+              ],
+              "nextScene": "scene-6-2-5"
+            },
+            {
+              "id": "scene-6-2-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "The DOS prompt blinks. A>_ awaits your command."
+              },
+              "dialogues": [
+                {
+                  "speaker": "DOS Expert",
+                  "text": "DOS is simple: load a program, run it, unload it. No multitasking. No protection. The entire machine belongs to whatever program is running."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What about memory management? The 640KB limit?"
+                },
+                {
+                  "speaker": "DOS Expert",
+                  "text": "That's where it gets creative. EMS pages memory through a window. XMS accesses extended memory through a driver. Overlays swap code in and out. We squeeze every byte."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "DOS memory management evolved from simple (use what's there) to complex (EMS, XMS, DPMI). Each scheme tried to work around the 640KB limit without breaking compatibility. The result: HIMEM.SYS, EMM386, and memory optimization became an art form.",
+                  "codeSnippet": "// DOS memory schemes\n// \n// Conventional: 0-640KB (direct access)\n// Upper Memory: 640KB-1MB (adapters, ROM)\n// HMA: 1MB-1MB+64KB (gate A20 trick)\n// Extended (XMS): 1MB+ (protected mode)\n// Expanded (EMS): Bank-switched pages\n// \n// CONFIG.SYS optimization:\n// DEVICE=HIMEM.SYS\n// DEVICE=EMM386.EXE NOEMS\n// DOS=HIGH,UMB"
+                }
+              ],
+              "nextScene": "scene-6-2-5"
+            },
+            {
+              "id": "scene-6-2-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "The BIOS ROM. 8KB of code that makes a PC a PC."
+              },
+              "dialogues": [
+                {
+                  "speaker": "BIOS Engineer",
+                  "text": "The BIOS is the hardware abstraction layer. INT 10h for video. INT 13h for disk. INT 16h for keyboard. Programs call these interrupts instead of touching hardware directly."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So the BIOS makes different hardware look the same?"
+                },
+                {
+                  "speaker": "BIOS Engineer",
+                  "text": "Exactly. Change your video card, your floppy controller, your keyboard—the BIOS adapts. Software doesn't care. That abstraction is why PC clones work."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The BIOS interrupt system became the PC's de facto API. Software called INT 21h for DOS services, INT 10h for video, INT 13h for disk. This interrupt-based design persisted through DOS, early Windows, and influenced UEFI's design decades later.",
+                  "codeSnippet": "// BIOS interrupt services\n// \n// INT 10h - Video services\n//   AH=00: Set video mode\n//   AH=0E: Teletype output\n//   AH=13: Write string\n// \n// INT 13h - Disk services  \n//   AH=02: Read sectors\n//   AH=03: Write sectors\n// \n// INT 16h - Keyboard\n//   AH=00: Read key\n//   AH=01: Check key available"
+                }
+              ],
+              "nextScene": "scene-6-2-5"
+            },
+            {
+              "id": "scene-6-2-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "A software development office, 1983. Lotus 1-2-3 boxes stack to the ceiling. Everyone needs a spreadsheet."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Developer",
+                  "text": "The PC market is exploding. Every business needs word processing, spreadsheets, databases. If you can write good software, you can make a fortune."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What makes software 'good' in this market?"
+                },
+                {
+                  "speaker": "Developer",
+                  "text": "Speed. Efficiency. Every byte of memory matters. Every CPU cycle counts. The best programmers squeeze maximum capability from limited hardware. That's why assembly language still dominates."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The PC software gold rush of 1983-1990 created legendary companies: Lotus, Ashton-Tate, WordPerfect, Borland. Most were written in assembly for speed. The winner in each category often had 2x the performance of competitors.",
+                  "codeSnippet": "// Killer apps of the PC era\n// \n// Lotus 1-2-3: Spreadsheet ($495)\n// - Assembly language for speed\n// - Defined spreadsheet category\n// \n// WordPerfect: Word processor\n// - Function key commands\n// - Reveal codes feature\n// \n// dBASE: Database ($700)\n// - Created the .DBF format\n// - Spawned clones (FoxPro, Clipper)"
                 }
               ],
               "nextScene": "scene-6-2-5"
@@ -682,19 +856,106 @@
                   "id": "choice-master-286",
                   "icon": "🔧",
                   "title": "Master 286 Protected Mode",
-                  "description": "Learn the segment descriptors, privilege levels, and gate mechanisms. Painful but educational."
+                  "description": "Learn the segment descriptors, privilege levels, and gate mechanisms. Painful but educational.",
+                  "nextScene": "scene-6-3-3a"
                 },
                 {
                   "id": "choice-wait-386",
                   "icon": "⏳",
                   "title": "Prepare for the 386",
-                  "description": "Study what's coming: 32-bit flat model, paging, virtual 8086 mode. The future is almost here."
+                  "description": "Study what's coming: 32-bit flat model, paging, virtual 8086 mode. The future is almost here.",
+                  "nextScene": "scene-6-3-3b"
                 },
                 {
                   "id": "choice-explore-alternatives",
                   "icon": "🖥️",
                   "title": "Explore the Macintosh",
-                  "description": "See what the 68000 offers: clean architecture, no segments, toolbox ROM."
+                  "description": "See what the 68000 offers: clean architecture, no segments, toolbox ROM.",
+                  "nextScene": "scene-6-3-3c"
+                }
+              ],
+              "nextScene": "scene-6-3-4"
+            },
+            {
+              "id": "scene-6-3-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "The 286 protected mode documentation. Descriptor tables, privilege rings, gates."
+              },
+              "dialogues": [
+                {
+                  "speaker": "OS Developer",
+                  "text": "The 286's protected mode was ambitious. Four privilege levels. Segment descriptors with access rights. Hardware-enforced memory protection. Everything an operating system needs."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Then why doesn't anyone use it?"
+                },
+                {
+                  "speaker": "OS Developer",
+                  "text": "You can't go back. Once in protected mode, returning to real mode requires a CPU reset. DOS applications don't work. The software ecosystem is trapped in real mode."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 286's inability to cleanly switch from protected to real mode made it impractical for DOS compatibility. Workarounds existed (keyboard controller reset, triple fault) but were slow and awkward. This fundamental flaw limited 286 protected mode adoption.",
+                  "codeSnippet": "// 286 protected mode problem\n// \n// To enter protected mode:\n//   Set PE bit in MSW → works\n// \n// To EXIT protected mode:\n//   Clear PE bit → NOT ALLOWED\n//   Must reset CPU!\n// \n// Workarounds:\n// - Keyboard controller reset (slow)\n// - Triple fault (hacky)\n// \n// Result: DOS programs won't run"
+                }
+              ],
+              "nextScene": "scene-6-3-4"
+            },
+            {
+              "id": "scene-6-3-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Intel's 386 preview documentation. The architecture that will finally deliver on protected mode's promise."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "The 386 fixes everything. 32-bit registers. Flat 4GB address space. And crucially: Virtual 8086 mode. You can run DOS applications inside protected mode."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Virtual 8086? How does that work?"
+                },
+                {
+                  "speaker": "Intel Engineer",
+                  "text": "The 386 emulates multiple 8086 environments within protected mode. Each virtual machine thinks it's running on real hardware. You get protection AND compatibility."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The 386's V86 mode enabled DOS multitaskers like DesqView/386 and eventually Windows 3.0 in 386 Enhanced Mode. Multiple DOS sessions could run simultaneously, protected from each other, with preemptive multitasking. This bridge technology enabled the transition to 32-bit computing.",
+                  "codeSnippet": "// 386 improvements over 286\n// \n// 32-bit registers: EAX, EBX, ECX, EDX...\n// 32-bit addressing: 4GB flat space\n// Paging: 4KB page granularity\n// V86 mode: DOS compatibility\n// \n// Clean mode switching:\n//   Protected → Real: Just clear PE\n//   Protected → V86: Set VM flag\n// \n// Finally usable protected mode!"
+                }
+              ],
+              "nextScene": "scene-6-3-4"
+            },
+            {
+              "id": "scene-6-3-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "A Macintosh development environment. The 68000's clean architecture in action."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Mac Developer",
+                  "text": "No segments. No memory models. Just addresses. I declare a pointer, I use the pointer. The 68000 does what I expect."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But no protected mode? No memory protection?"
+                },
+                {
+                  "speaker": "Mac Developer",
+                  "text": "Not on the Mac. One application at a time, cooperative multitasking later. But the simplicity is worth it. I write code instead of wrestling with segment registers."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Macintosh traded protection for simplicity. Without memory protection, one buggy application could crash the whole system. But the programming model was clean: 24-bit linear addresses, Toolbox ROM for common functions, and consistent APIs.",
+                  "codeSnippet": "// Mac vs PC programming\n// \n// Mac (68000):\n//   char *p = NewPtr(size);\n//   *p = value;  // Just works\n// \n// PC (8086, large model):\n//   char far *p = farmalloc(size);\n//   // Must track segments\n//   // Different pointer types\n//   // Near/far/huge confusion\n// \n// Mac: simpler, less protected\n// PC: complex, more capable later"
                 }
               ],
               "nextScene": "scene-6-3-4"

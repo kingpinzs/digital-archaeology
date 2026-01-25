@@ -139,19 +139,110 @@
                   "id": "choice-watch-counting-board",
                   "icon": "📊",
                   "title": "Watch the Counting Board",
-                  "description": "Observe as Kushim invents the first calculating device—lines in dust with movable stones."
+                  "description": "Observe as Kushim invents the first calculating device—lines in dust with movable stones.",
+                  "nextScene": "scene-0-1-4a"
                 },
                 {
                   "id": "choice-try-yourself",
                   "icon": "🖐️",
                   "title": "Try It Yourself",
-                  "description": "Pick up the pebbles and attempt a calculation. Learn by doing."
+                  "description": "Pick up the pebbles and attempt a calculation. Learn by doing.",
+                  "nextScene": "scene-0-1-4b"
                 },
                 {
                   "id": "choice-question-method",
                   "icon": "❓",
                   "title": "Question the Method",
-                  "description": "Ask Kushim how this is better than counting on fingers or using tokens."
+                  "description": "Ask Kushim how this is better than counting on fingers or using tokens.",
+                  "nextScene": "scene-0-1-4c"
+                }
+              ],
+              "nextScene": "scene-0-1-5"
+            },
+            {
+              "id": "scene-0-1-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Kushim places pebbles along the lines he has drawn. Each line represents a power of ten."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Kushim",
+                  "text": "Watch. This line is ones. This line is tens. This line is hundreds. I place three stones on the ones line, two on the tens. What number is this?"
+                },
+                {
+                  "speaker": "You",
+                  "text": "Twenty-three?"
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "Yes! Now I add four more to the ones line. Seven stones—but we only have five before we must carry. When I reach ten, I remove ten stones and add one to the tens line."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The counting board is the first external memory device for calculation. By externalizing the calculation state, it reduces cognitive load and enables verification. This principle—making computation visible and manipulable—persists through every computing device.",
+                  "codeSnippet": "// Counting board principles\n// \n// Position = place value\n// Stone presence = digit value\n// Movement = arithmetic operation\n// \n// Carry rule:\n// IF stones >= base THEN\n//   remove base stones\n//   add 1 to next position\n// \n// Same principle as digital adders!"
+                }
+              ],
+              "nextScene": "scene-0-1-5"
+            },
+            {
+              "id": "scene-0-1-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Kushim hands you a handful of small, smooth pebbles. The lines are drawn in the dust before you."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Kushim",
+                  "text": "Try adding seventeen and twenty-five. Place the first number, then add the second. Remember: when any line reaches ten stones, carry one to the next line."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So I put seven on the ones line, one on the tens... now add five more to ones..."
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "Twelve stones on the ones line! Too many. Remove ten, add one to tens. Now you have two ones and two tens—plus the two tens from twenty-five. Four tens, two ones: forty-two."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Learning by doing creates procedural knowledge. The physical manipulation of stones builds intuition for place value and carrying—the same operations that digital circuits will perform electronically thousands of years later.",
+                  "codeSnippet": "// Your calculation\n// \n// 17 + 25 = ?\n// \n// Place 17: [1 ten][7 ones]\n// Add 25:   [2 tens][5 ones]\n// \n// Ones: 7 + 5 = 12 >= 10\n//   Remove 10, carry 1 to tens\n//   Ones now: 2\n// \n// Tens: 1 + 2 + 1(carry) = 4\n// \n// Result: 42"
+                }
+              ],
+              "nextScene": "scene-0-1-5"
+            },
+            {
+              "id": "scene-0-1-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "You gesture at the lines and pebbles with skepticism. This seems no more efficient than fingers."
+              },
+              "dialogues": [
+                {
+                  "speaker": "You",
+                  "text": "Honored Kushim, I can count to ten on my fingers. Why do I need pebbles and lines?"
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "Can you count to a thousand on your fingers? Can you add two hundred forty-seven and three hundred sixty-five while your fingers remember both numbers? The board remembers for you."
+                },
+                {
+                  "speaker": "You",
+                  "text": "So it's a kind of... external memory?"
+                },
+                {
+                  "speaker": "Kushim",
+                  "text": "Your mind does the thinking. The board does the remembering. Together, you can calculate far beyond what either could do alone. This is the secret of all tools."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Kushim articulates the fundamental principle of computing tools: separation of processing and storage. Human cognition provides logic and decision-making; external devices provide memory and state representation. Modern computers still follow this division.",
+                  "codeSnippet": "// The fundamental insight\n// \n// Human mind: processing, logic, decisions\n// External tool: memory, state, representation\n// \n// Counting board: external memory\n// Abacus: external memory + faster interface\n// Calculator: external memory + external logic\n// Computer: external memory + external logic +\n//           programmable operations\n// \n// Same principle, scaled up"
                 }
               ],
               "nextScene": "scene-0-1-5"
@@ -498,25 +589,141 @@
                   "id": "choice-basic-operations",
                   "icon": "📚",
                   "title": "Learn Basic Operations",
-                  "description": "Master addition and subtraction with the suanpan. Understand the finger patterns for carrying and borrowing."
+                  "description": "Master addition and subtraction with the suanpan. Understand the finger patterns for carrying and borrowing.",
+                  "nextScene": "scene-0-1c-4a"
                 },
                 {
                   "id": "choice-multiplication",
                   "icon": "✖️",
                   "title": "Study Multiplication",
-                  "description": "Learn how the suanpan handles multiplication using partial products—the ancestor of digital multiply circuits."
+                  "description": "Learn how the suanpan handles multiplication using partial products—the ancestor of digital multiply circuits.",
+                  "nextScene": "scene-0-1c-4b"
                 },
                 {
                   "id": "choice-mental-abacus",
                   "icon": "🧠",
                   "title": "Explore Mental Abacus",
-                  "description": "Discover the technique of visualizing the suanpan internally—calculating without touching beads."
+                  "description": "Discover the technique of visualizing the suanpan internally—calculating without touching beads.",
+                  "nextScene": "scene-0-1c-4c"
                 },
                 {
                   "id": "choice-history",
                   "icon": "📜",
                   "title": "Ask About Origins",
-                  "description": "Learn what Master Zhao knows about how the suanpan came to be invented."
+                  "description": "Learn what Master Zhao knows about how the suanpan came to be invented.",
+                  "nextScene": "scene-0-1c-4d"
+                }
+              ],
+              "nextScene": "scene-0-1c-5"
+            },
+            {
+              "id": "scene-0-1c-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Master Zhao positions your fingers over the suanpan. 'Begin with the proper hand position.'"
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zhao",
+                  "text": "Thumb moves lower beads up. Index finger moves them down. Middle finger moves the upper bead. Each finger has its role—confusion brings errors."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And carrying? When I reach five?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "When lower beads total five, exchange them for one upper bead. When upper and lower together reach ten, clear both and add one to the next column. Your fingers learn this before your mind does."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The suanpan's bi-quinary encoding (one upper bead worth 5, four lower beads worth 1 each) minimizes the total beads needed while keeping carries simple. This encoding reappears in the IBM 650's bi-quinary memory system (1954).",
+                  "codeSnippet": "// Suanpan encoding\n// \n// Upper bead: 5 (one bead)\n// Lower beads: 1,2,3,4 (four beads)\n// \n// To represent 7:\n//   1 upper (5) + 2 lower (2) = 7\n// \n// Carry rules:\n//   5 lower -> 1 upper (clear lower)\n//   2 upper -> 1 in next column (clear both)"
+                }
+              ],
+              "nextScene": "scene-0-1c-5"
+            },
+            {
+              "id": "scene-0-1c-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A multiplication table carved in wood hangs beside the suanpan. Master Zhao demonstrates the partial products method."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zhao",
+                  "text": "To multiply 23 by 47, we decompose: 23 times 7 ones, then 23 times 4 tens. The suanpan accumulates partial products as we work."
+                },
+                {
+                  "speaker": "You",
+                  "text": "The same method I learned for written multiplication?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "Identical! But on the suanpan, you never write intermediate results—the beads hold them. As each partial product completes, you add it to the running total. At the end, the answer appears."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Partial products multiplication became the standard algorithm for mechanical and electronic multipliers. The same decomposition—multiply by each digit, shift by place value, accumulate—is implemented in hardware multipliers today.",
+                  "codeSnippet": "// Partial products multiplication\n// \n// 23 × 47:\n//   23 × 7 = 161    (ones place)\n//   23 × 4 = 92     (tens place)\n// \n// Accumulate with shift:\n//   161 + 920 = 1081\n// \n// Hardware multipliers use identical logic:\n// multiply, shift, accumulate"
+                }
+              ],
+              "nextScene": "scene-0-1c-5"
+            },
+            {
+              "id": "scene-0-1c-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "Master Zhao closes his eyes. His fingers move through empty air as if touching invisible beads."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zhao",
+                  "text": "After decades of practice, the physical beads become unnecessary. I see the suanpan in my mind—visualize the beads, move them mentally, read the result from imagination."
+                },
+                {
+                  "speaker": "You",
+                  "text": "That seems impossible. How can you track all those beads without seeing them?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "The same way you walk without watching your feet. The patterns become automatic. Children who learn mental abacus can calculate faster than those using physical devices—or even calculators."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Mental abacus training creates procedural memory for bead patterns. fMRI studies show that mental calculation experts activate visual-spatial brain regions, not verbal areas—they truly 'see' the beads. Competition champions can mentally add 15 three-digit numbers in seconds.",
+                  "codeSnippet": "// Mental abacus capabilities\n// \n// Trained practitioners can:\n// - Add 15 numbers in < 10 seconds\n// - Perform multi-digit multiplication mentally\n// - Calculate square roots by visualization\n// \n// Brain imaging shows:\n// - Visual-spatial cortex activation\n// - Right hemisphere dominance\n// - Pattern recognition, not verbal counting"
+                }
+              ],
+              "nextScene": "scene-0-1c-5"
+            },
+            {
+              "id": "scene-0-1c-4d",
+              "type": "dialogue",
+              "setting": {
+                "text": "Master Zhao sets down the suanpan reverently. 'You ask about origins. The suanpan has a long history.'"
+              },
+              "dialogues": [
+                {
+                  "speaker": "Zhao",
+                  "text": "The counting board came first—pebbles on marked surfaces. Over centuries, someone thought to string the pebbles on rods, fixing them in place. When the strings became rods in a frame, the abacus was born."
+                },
+                {
+                  "speaker": "You",
+                  "text": "When did that happen?"
+                },
+                {
+                  "speaker": "Zhao",
+                  "text": "The earliest records in China date to the Han Dynasty—perhaps 200 BC. But similar devices appeared in Rome, Japan, Russia. Wherever humans needed to count, they invented counting frames. The suanpan is one branch of a very old tree."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The abacus evolved independently in multiple civilizations: Chinese suanpan, Japanese soroban, Roman calculi, Russian schoty. Each adapted the basic principle—beads on rods—to local counting systems. The convergent evolution suggests the design is nearly optimal for manual calculation.",
+                  "codeSnippet": "// Abacus variants\n// \n// Chinese suanpan: 2/5 beads (base 16 capable)\n// Japanese soroban: 1/4 beads (decimal only)\n// Roman calculi: grooves and counters\n// Russian schoty: 10 beads per row\n// \n// All share:\n// - Physical representation of place value\n// - Manual manipulation of state\n// - Visual verification of result"
                 }
               ],
               "nextScene": "scene-0-1c-5"
@@ -879,19 +1086,106 @@
                   "id": "choice-stepped-drum",
                   "icon": "⚙️",
                   "title": "Stepped Drum Design",
-                  "description": "Choose the more complex mechanism that can handle multiplication. Higher risk, higher reward."
+                  "description": "Choose the more complex mechanism that can handle multiplication. Higher risk, higher reward.",
+                  "nextScene": "scene-0-2-3a"
                 },
                 {
                   "id": "choice-simple-ratchet",
                   "icon": "🔧",
                   "title": "Simple Wheel-and-Ratchet",
-                  "description": "Choose reliability over versatility. Perfect addition is more useful than flawed multiplication."
+                  "description": "Choose reliability over versatility. Perfect addition is more useful than flawed multiplication.",
+                  "nextScene": "scene-0-2-3b"
                 },
                 {
                   "id": "choice-consult-craftsman",
                   "icon": "👷",
                   "title": "Consult the Craftsman",
-                  "description": "Seek advice from the master clockmaker who builds your prototypes. Manufacturing limits design."
+                  "description": "Seek advice from the master clockmaker who builds your prototypes. Manufacturing limits design.",
+                  "nextScene": "scene-0-2-3c"
+                }
+              ],
+              "nextScene": "scene-0-2-4"
+            },
+            {
+              "id": "scene-0-2-3a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Pascal sketches the stepped drum mechanism—a cylinder with teeth of increasing length around its circumference."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Pascal",
+                  "text": "The stepped drum can add different values depending on where it engages. Rotate to the '3' position, it advances the counter by three. To the '7' position, by seven. One mechanism, any digit."
+                },
+                {
+                  "speaker": "You",
+                  "text": "And for multiplication?"
+                },
+                {
+                  "speaker": "Pascal",
+                  "text": "Repeated addition! To multiply by three, add the number three times. The drum makes each addition quick. But the precision required... every tooth must be exact. One error and the entire calculation fails."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The stepped drum (also called Leibniz wheel) became the basis for most mechanical calculators. Leibniz developed it further around 1694. It dominated calculator design until electronic calculators in the 1970s.",
+                  "codeSnippet": "// Stepped drum operation\n// \n// Drum has teeth of lengths 1-9\n// Position selects how many teeth engage\n// \n// To add 7:\n//   Rotate drum to position 7\n//   Turn crank once\n//   7 teeth engage, advance counter by 7\n// \n// Multiplication by repeated addition:\n//   23 × 4 = 23 + 23 + 23 + 23"
+                }
+              ],
+              "nextScene": "scene-0-2-4"
+            },
+            {
+              "id": "scene-0-2-3b",
+              "type": "dialogue",
+              "setting": {
+                "text": "Pascal examines the simpler wheel-and-ratchet design. Each digit wheel connects directly to the next."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Pascal",
+                  "text": "The simple design guarantees one thing: perfect carrying. When a wheel passes from 9 to 0, the ratchet advances the next wheel by one. No accumulated errors."
+                },
+                {
+                  "speaker": "You",
+                  "text": "But without multiplication..."
+                },
+                {
+                  "speaker": "Pascal",
+                  "text": "My father doesn't multiply—he adds. Hundreds of additions per day, thousands of livres to track. A machine that adds perfectly and never tires is worth more than one that multiplies imperfectly."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Pascal chose reliability over capability. The Pascaline's carry mechanism used a weighted falling hammer to provide enough force to advance the next wheel. This 'gravity assist' carry system was remarkably reliable for its time.",
+                  "codeSnippet": "// Pascaline carry mechanism\n// \n// Each digit wheel has:\n// - 10 positions (0-9)\n// - Weighted carry hammer\n// \n// When wheel moves 9->0:\n//   Hammer releases and falls\n//   Falls with gravity's force\n//   Advances next wheel by 1\n// \n// Gravity provides reliable, consistent force"
+                }
+              ],
+              "nextScene": "scene-0-2-4"
+            },
+            {
+              "id": "scene-0-2-3c",
+              "type": "dialogue",
+              "setting": {
+                "text": "Pascal visits the craftsman's workshop. Tools and half-finished mechanisms cover every surface."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Craftsman",
+                  "text": "Young master, I can build whatever you design. But consider: my lathe can hold tolerances of perhaps one part in fifty. Your stepped drum needs one part in five hundred. That's not craftsmanship—that's impossibility."
+                },
+                {
+                  "speaker": "Pascal",
+                  "text": "Then what can you build?"
+                },
+                {
+                  "speaker": "Craftsman",
+                  "text": "Simple gears, reliable ratchets, weighted levers. The Pascaline's current design pushes the limits of what metal can do. Add complexity and you add failure modes."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Manufacturing constraints shaped mechanical calculator design for 300 years. Babbage's Difference Engine failed partly because Victorian machining couldn't meet his tolerances. Only modern CNC machining can build his designs reliably.",
+                  "codeSnippet": "// Manufacturing constraints (1640s)\n// \n// Hand-filed gears: ±2% tolerance\n// Lathe-turned parts: ±1% tolerance\n// Required for stepped drum: ±0.2%\n// \n// Result:\n// - Accumulating errors in complex designs\n// - Simple mechanisms more reliable\n// - Design must match manufacturing capability"
                 }
               ],
               "nextScene": "scene-0-2-4"
@@ -1275,19 +1569,106 @@
                   "id": "choice-study-design",
                   "icon": "📐",
                   "title": "Study Babbage's Design",
-                  "description": "Examine the Analytical Engine's architecture. Understand the mill, store, and control mechanisms."
+                  "description": "Examine the Analytical Engine's architecture. Understand the mill, store, and control mechanisms.",
+                  "nextScene": "scene-0-3-4a"
                 },
                 {
                   "id": "choice-roads-not-taken",
                   "icon": "🔮",
                   "title": "Return to Your Lab",
-                  "description": "What if Babbage's machine could have been built? Travel to your modern lab and construct what Victorian technology could not."
+                  "description": "What if Babbage's machine could have been built? Travel to your modern lab and construct what Victorian technology could not.",
+                  "nextScene": "scene-0-3-4b"
                 },
                 {
                   "id": "choice-ada-notes",
                   "icon": "📝",
                   "title": "Read Ada's Notes",
-                  "description": "Study the first computer program ever written. Understand how algorithms were conceived before computers existed."
+                  "description": "Study the first computer program ever written. Understand how algorithms were conceived before computers existed.",
+                  "nextScene": "scene-0-3-4c"
+                }
+              ],
+              "nextScene": "scene-0-3-5"
+            },
+            {
+              "id": "scene-0-3-4a",
+              "type": "dialogue",
+              "setting": {
+                "text": "Babbage's original plans spread across the table. The Analytical Engine's architecture becomes clear."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Babbage",
+                  "text": "The Mill performs operations—addition, subtraction, multiplication, division. The Store holds numbers awaiting processing. The Card Reader determines what the Mill does with the numbers."
+                },
+                {
+                  "speaker": "You",
+                  "text": "Mill, Store, Card Reader... processor, memory, and program?"
+                },
+                {
+                  "speaker": "Babbage",
+                  "text": "Precisely the same concepts that your electronic machines will use a century hence. The physics changes—gears to vacuum tubes to transistors—but the architecture remains. I saw it first, if I may say so."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "The Analytical Engine's architecture maps directly to modern computers: the Mill = ALU/CPU, the Store = RAM, the Card Reader = program memory/input, the Printer = output. Babbage independently invented the von Neumann architecture 100 years early.",
+                  "codeSnippet": "// Analytical Engine architecture\n// \n// Mill (ALU):\n//   - Four operations: +, -, ×, ÷\n//   - 50-digit precision\n// \n// Store (Memory):\n//   - 1,000 numbers of 50 digits\n//   - ~2.5KB equivalent\n// \n// Control:\n//   - Punch cards (Jacquard loom)\n//   - Operation cards (instructions)\n//   - Variable cards (data addresses)"
+                }
+              ],
+              "nextScene": "scene-0-3-5"
+            },
+            {
+              "id": "scene-0-3-4b",
+              "type": "dialogue",
+              "setting": {
+                "text": "A vision of an alternate history: Victorian computing laboratories filled with brass calculating engines."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Babbage",
+                  "text": "If the government had continued funding... if Clement had been reasonable... we might have built it by 1850. Imagine: automatic computation before the American Civil War."
+                },
+                {
+                  "speaker": "You",
+                  "text": "What would have changed?"
+                },
+                {
+                  "speaker": "Babbage",
+                  "text": "Navigation tables calculated to perfect precision. Astronomical predictions decades ahead. Census tabulation that actually finishes on time. But also: automatic banking, industrial control, perhaps even mechanical thinking machines before the century's end."
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Babbage's failure delayed general-purpose computing by 100 years. Had the Analytical Engine been built, steampunk would have been reality—though mechanical computers would have hit speed limits around 1 operation per second, far slower than electronic systems.",
+                  "codeSnippet": "// What if? (Speculative timeline)\n// \n// 1850: First Analytical Engine operational\n// 1860: Banks adopt automated accounting\n// 1870: Weather prediction attempts\n// 1880: Census processed mechanically\n// 1890: ??\n// \n// Actual timeline:\n// 1890: Hollerith tabulator\n// 1941: Z3 relay computer\n// 1946: ENIAC electronic computer"
+                }
+              ],
+              "nextScene": "scene-0-3-5"
+            },
+            {
+              "id": "scene-0-3-4c",
+              "type": "dialogue",
+              "setting": {
+                "text": "Ada Lovelace's notes on the Analytical Engine. Her translation of Menabrea's article includes extensive annotations—including the first published algorithm."
+              },
+              "dialogues": [
+                {
+                  "speaker": "Ada",
+                  "text": "I have written a plan for the engine to compute Bernoulli numbers. Note G in my translation. It is perhaps the first algorithm ever published for a machine that did not yet exist."
+                },
+                {
+                  "speaker": "You",
+                  "text": "You wrote code for a computer that was never built?"
+                },
+                {
+                  "speaker": "Ada",
+                  "text": "The machine is imaginary but the mathematics is real. I showed how the engine's operations could be sequenced to produce complex results from simple steps. That is what you call 'programming,' is it not?"
+                }
+              ],
+              "technicalNotes": [
+                {
+                  "content": "Ada Lovelace's Note G described an algorithm to compute Bernoulli numbers using the Analytical Engine. It specified loops, conditionals, and variable management—all concepts central to modern programming. She is widely regarded as the first computer programmer.",
+                  "codeSnippet": "// Ada's Bernoulli algorithm (simplified)\n// \n// Note G operations:\n// - Store variable values in columns\n// - Loop with iteration counter\n// - Conditional branching on result\n// - Reuse of intermediate results\n// \n// She also noted:\n// \"The engine might compose elaborate\n//  and scientific pieces of music\n//  of any degree of complexity\"\n// \n// (Predicting computer-generated art)"
                 }
               ],
               "nextScene": "scene-0-3-5"

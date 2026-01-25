@@ -111,7 +111,7 @@ development_status:
   6-6-implement-zoom-controls: done
   6-7-implement-pan-navigation: done
   6-8-show-component-tooltips: done
-  6-9-implement-code-to-circuit-linking: backlog
+  6-9-implement-code-to-circuit-linking: in-progress
   6-10-implement-circuit-to-code-linking: backlog
   6-11-display-signal-values-panel: backlog
   6-12-show-breadcrumb-navigation: backlog
@@ -147,7 +147,7 @@ development_status:
   epic-9-retrospective: optional
 
   # Epic 10: Story Mode Experience
-  epic-10: done
+  epic-10: in-progress
   10-1-implement-story-lab-mode-toggle: done
   10-2-create-story-mode-layout: done
   10-3-create-fixed-navigation-bar: done
@@ -165,7 +165,10 @@ development_status:
   10-15-create-story-progression-engine: done
   10-16-display-era-badge-and-progress: done
   10-17-wire-story-mode-integration: done
-  epic-10-retrospective: done
+  10-18-create-historical-personas-system: backlog
+  10-19-implement-persona-profile-cards: backlog
+  10-20-create-persona-transition-narratives: backlog
+  epic-10-retrospective: optional
 
   # Epic 11: Multi-Stage Architecture
   epic-11: backlog
@@ -287,6 +290,13 @@ development_status:
   21-5-implement-progressive-hints: backlog
   21-6-implement-solution-reveal: backlog
   21-7-track-exercise-completion: backlog
+  21-8-micro4-capstone-bcd-calculator: backlog
+  21-9-micro4-capstone-led-pattern-controller: backlog
+  21-10-micro8-capstone-number-guessing-game: backlog
+  21-11-micro8-capstone-text-adventure: backlog
+  21-12-micro8-capstone-device-controller: backlog
+  21-13-micro16-capstone-terminal-repl: backlog
+  21-14-micro16-capstone-simple-graphics: backlog
   epic-21-retrospective: optional
 
   # Epic 22: FPGA Export Pipeline
@@ -346,3 +356,13 @@ development_status:
   26-9-alternate-timeline-story-content: backlog
   26-10-seamless-story-lab-story-loop: backlog
   epic-26-retrospective: optional
+
+  # Epic 27: Historical Immersion System
+  epic-27: backlog
+  27-1-create-period-documents-library: backlog
+  27-2-implement-era-specific-document-collections: backlog
+  27-3-create-document-viewer-component: backlog
+  27-4-implement-wikipedia-deep-dives-by-era: backlog
+  27-5-link-documents-to-story-scenes: backlog
+  27-6-implement-document-search: backlog
+  epic-27-retrospective: optional

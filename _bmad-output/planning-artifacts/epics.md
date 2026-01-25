@@ -242,8 +242,8 @@ Users can save work, resume sessions, and share files. localStorage/IndexedDB, a
 **FRs covered:** FR31, FR32, FR33, FR34, NFR15, NFR16, NFR17
 
 ### Epic 10: Story Mode Experience ⚡ PARALLEL
-Users experience immersive narrative providing context and motivation. Story/Lab toggle, Story Mode UI with character cards, dialogue, choices, challenge objectives in Lab Mode, era badges, progress tracking.
-**FRs covered:** UX Story Mode requirements
+Users experience immersive narrative providing context and motivation. Story/Lab toggle, Story Mode UI with character cards, dialogue, choices, challenge objectives in Lab Mode, era badges, progress tracking. Historical persona adoption allows users to "become" Ada Lovelace, Turing, Faggin, Wozniak, and other inventors.
+**FRs covered:** UX Story Mode requirements, Historical Personas (from IMMERSIVE_PLATFORM_PLAN.md)
 
 ### Epic 11: Multi-Stage Architecture
 Platform supports multiple CPU stages with stage switching. Stage selector UI, stage-specific syntax/WASM/circuits/examples, unified EmulatorBridge, URL routing.
@@ -286,8 +286,8 @@ Users can access literature, tutorials, and curated multimedia resources. 20 art
 **FRs covered:** Literature requirements, Multimedia resources (from IMMERSIVE_PLATFORM_PLAN.md)
 
 ### Epic 21: Homework & Exercises System
-Users can practice with structured challenges. Exercises per stage (5-12 each), starter code, validation, progressive hints, solution reveal, completion tracking.
-**FRs covered:** Homework requirements
+Users can practice with structured challenges. Exercises per stage (5-12 each), starter code, validation, progressive hints, solution reveal, completion tracking. Includes era-authentic capstone applications (BCD Calculator, Text Adventure, Terminal/REPL) that serve as graduation projects for each CPU stage.
+**FRs covered:** Homework requirements, Era-Authentic Applications (from IMMERSIVE_PLATFORM_PLAN.md)
 
 ### Epic 22: FPGA Export Pipeline
 Users can export designs for real hardware synthesis. Verilog/VHDL export, pin mapping, target board selection, synthesis constraints, build scripts, deployment guides.
@@ -304,6 +304,14 @@ Users can prepare designs for potential fabrication. DRC integration, process no
 ### Epic 25: Community & Sharing
 Users can share designs and learn from others. Design export/import, gallery browser, profiles, comments, forking, version history.
 **FRs covered:** Community sharing requirements
+
+### Epic 26: Core Game Experience
+Users play Digital Archaeology as a time-travel simulation game. First launch lands in Story Mode, story-driven Lab entry, cumulative Lab state, production-ready completion, act unlock system, timeline visualization, alternate timeline branches, time-travel replay, and seamless story-lab-story loop.
+**FRs covered:** Core game experience (from brainstorming)
+
+### Epic 27: Historical Immersion System
+Users experience computing history through authentic primary sources. Period documents library (letters, journals, memos, patents), Wikipedia deep dives organized by era, and curated reference links connecting story content to real historical sources.
+**FRs covered:** Historical immersion (from IMMERSIVE_PLATFORM_PLAN.md)
 
 ---
 
@@ -1921,6 +1929,86 @@ So that I can transition between narrative and hands-on work without issues.
 
 ---
 
+### Story 10.18: Create Historical Personas System
+
+As a user,
+I want to adopt the persona of historical computing pioneers,
+So that I experience their mindset, constraints, and discoveries firsthand.
+
+**Acceptance Criteria:**
+
+**Given** I begin a new era in Story Mode
+**When** the era introduction loads
+**Then** I am introduced to the persona I will adopt (e.g., "You are Federico Faggin. It's 1970...")
+**And** I see the persona's background, motivations, and constraints
+**And** the persona has authentic quotes and speech patterns
+**And** I understand the problem they faced
+
+**Given** I am in persona mode
+**When** I interact with the story
+**Then** dialogue and narration reflect the persona's perspective
+**And** technical challenges are framed as the persona would have experienced them
+**And** I feel the authentic constraints of the era
+
+**Personas to Implement (from IMMERSIVE_PLATFORM_PLAN.md):**
+- Era 0a: Charles Babbage - "Navigation tables are killing sailors"
+- Era 0b: Ada Lovelace - "The machine could compose music..."
+- Era 1: Alan Turing - "What CAN machines compute?"
+- Era 2: Konrad Zuse - Building the Z3 with relays
+- Era 3: Shockley/Bardeen/Brattain - The transistor breakthrough
+- Era 4: Kilby/Noyce - The integrated circuit race
+- Era 5: Federico Faggin - "Busicom needs a calculator chip"
+- Era 6: Steve Wozniak - Making computing personal
+- Era 7: IBM PC Team - The business standard
+- Era 8: Intel 386 Team - 32-bit protected mode
+
+---
+
+### Story 10.19: Implement Persona Profile Cards
+
+As a user,
+I want to see rich persona profiles for each historical figure,
+So that I understand who I am becoming in each era.
+
+**Acceptance Criteria:**
+
+**Given** a persona is introduced
+**When** I view their profile
+**Then** I see their name, years active, and photograph (if available)
+**And** I see their key contribution to computing
+**And** I see notable quotes in their own words
+**And** I see the constraints they faced (technical, economic, political)
+**And** I see what problem they were trying to solve
+
+**Given** I am in the middle of an era
+**When** I access the persona profile
+**Then** I can review my persona's background at any time
+**And** the profile updates with discoveries made during the era
+
+---
+
+### Story 10.20: Create Persona Transition Narratives
+
+As a user,
+I want smooth transitions between historical personas,
+So that I understand how computing evolved through different minds.
+
+**Acceptance Criteria:**
+
+**Given** I complete an era
+**When** I transition to the next era
+**Then** I see a narrative bridge explaining the passage of time
+**And** I understand what happened between eras
+**And** I am introduced to the new persona I will adopt
+**And** the transition explains how the previous era's work enabled this one
+
+**Example Transitions:**
+- Babbage → Ada: "Charles showed me his Engine. I saw something he did not..."
+- Ada → Turing: "A century passed. Ada's vision waited for the mathematics..."
+- Faggin → Wozniak: "The 4004 shipped. But some saw computers for everyone..."
+
+---
+
 ## Epic 11: Multi-Stage Architecture
 
 **Goal:** Platform supports multiple CPU stages with stage switching
@@ -3384,6 +3472,151 @@ So that I see my skill growth.
 
 ---
 
+### Story 21.8: Micro4 Capstone - BCD Calculator
+
+As a user,
+I want to build a working BCD calculator as my Micro4 graduation project,
+So that I experience the authentic constraint that launched the microprocessor.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro4 exercises
+**When** I start the BCD Calculator capstone
+**Then** I receive the "Busicom contract" challenge specification
+**And** I must implement: Add, Subtract, Clear, Memory operations
+**And** I must use BCD format (0-9 per nibble only)
+**And** I must fit the program in 256 nibbles
+**And** the calculator must pass validation tests
+
+**Historical Context:**
+- This is the application that started Intel's microprocessor journey
+- Busicom contracted Intel for a calculator chip in 1969
+- Federico Faggin's 4004 was designed to power this calculator
+- Completing this makes you understand WHY the 4004 was created
+
+---
+
+### Story 21.9: Micro4 Capstone - LED Pattern Controller
+
+As a user,
+I want to build an LED pattern controller,
+So that I experience hardware control with extreme memory constraints.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro4 exercises
+**When** I start the LED Controller capstone
+**Then** I must control a simulated 7-segment display
+**And** I must implement pattern sequences
+**And** I must fit within 256 nibbles
+**And** the controller must display recognizable patterns
+
+---
+
+### Story 21.10: Micro8 Capstone - Number Guessing Game
+
+As a user,
+I want to build a number guessing game for Micro8,
+So that I feel the "luxury" of having 8 registers and subroutines.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro8 exercises
+**When** I start the Guessing Game capstone
+**Then** the computer picks a random number 1-100
+**And** the user can input guesses
+**And** the game responds "Higher" or "Lower"
+**And** the game tracks guess count
+**And** I must use subroutines (contrast with Micro4)
+
+**Historical Context:**
+- One of the first programs many people wrote on early home computers
+- Demonstrates the power of having multiple registers and a stack
+
+---
+
+### Story 21.11: Micro8 Capstone - Text Adventure
+
+As a user,
+I want to build a simple text adventure game,
+So that I experience string handling with limited memory.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro8 exercises
+**When** I start the Text Adventure capstone
+**Then** I create at least 5 connected "rooms"
+**And** I implement N/S/E/W navigation commands
+**And** I handle text input parsing
+**And** I manage game state within 64KB
+**And** the adventure is playable end-to-end
+
+**Historical Context:**
+- Text adventures (Colossal Cave, Zork) were among the first computer games
+- Memory management for string handling was a real challenge
+
+---
+
+### Story 21.12: Micro8 Capstone - Device Controller
+
+As a user,
+I want to build a simulated device controller,
+So that I understand how computers interface with hardware.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro8 exercises
+**When** I start the Device Controller capstone
+**Then** I control a simulated keypad input
+**And** I drive a simulated LED display output
+**And** I implement debouncing and timing
+**And** the controller responds to all keypad inputs correctly
+
+---
+
+### Story 21.13: Micro16 Capstone - Terminal/REPL
+
+As a user,
+I want to build an interactive terminal/REPL,
+So that I understand why we needed 16-bit address space.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro16 exercises
+**When** I start the Terminal capstone
+**Then** I implement a command-line interface
+**And** I parse and execute commands (HELP, ECHO, CALC, MEM, etc.)
+**And** I handle command history
+**And** I manage memory beyond 64KB using segments
+**And** the terminal is fully interactive
+
+**Historical Context:**
+- The jump from 8-bit to 16-bit enabled interactive computing
+- CP/M and early DOS were built on this foundation
+
+---
+
+### Story 21.14: Micro16 Capstone - Simple Graphics
+
+As a user,
+I want to build a simple graphics program,
+So that I understand why more address space enabled visual computing.
+
+**Acceptance Criteria:**
+
+**Given** I have completed Micro16 exercises
+**When** I start the Graphics capstone
+**Then** I draw shapes on a simulated framebuffer
+**And** I implement at least: line, rectangle, circle
+**And** I handle screen coordinate math
+**And** graphics render correctly in the simulator
+
+**Historical Context:**
+- Graphics required large frame buffers (64KB+ for even low resolution)
+- This is why personal computers needed 16-bit and beyond
+
+---
+
 ## Epic 22: FPGA Export Pipeline
 
 **Goal:** Users can export designs for real hardware synthesis
@@ -4131,6 +4364,180 @@ So that it feels like one cohesive experience.
 **Then** my Act 0 capabilities carry forward
 **And** the story references my previous accomplishments
 **And** the experience feels like one continuous game
+
+---
+
+## Epic 27: Historical Immersion System
+
+**Goal:** Users experience computing history through authentic primary sources
+
+**FRs covered:** Historical immersion (from IMMERSIVE_PLATFORM_PLAN.md)
+
+### Story 27.1: Create Period Documents Library
+
+As a user,
+I want access to period-accurate historical documents,
+So that I experience computing history through primary sources.
+
+**Acceptance Criteria:**
+
+**Given** I am in Story Mode
+**When** I access the documents library
+**Then** I see historical documents organized by era
+**And** each document has authentic styling (aged paper, period fonts)
+**And** I can read letters, journal entries, memos, and patents
+**And** documents provide context for the challenges I face
+
+**Document Types:**
+- Letters between historical figures
+- Journal entries and design notes
+- Corporate memos and contracts
+- Patent applications and technical specs
+- Contemporary newspaper articles
+
+---
+
+### Story 27.2: Implement Era-Specific Document Collections
+
+As a user,
+I want documents that match each computing era,
+So that I understand the context of my persona's work.
+
+**Acceptance Criteria:**
+
+**Given** I am in a specific era
+**When** I access that era's documents
+**Then** I see period-appropriate materials for that time
+
+**Era 0 Documents (Mechanical Computing):**
+- Babbage's letters about the Difference Engine
+- Ada Lovelace's notes on the Analytical Engine
+- The Bernoulli numbers algorithm manuscript
+
+**Era 1-2 Documents (Early Electronics):**
+- Turing's "On Computable Numbers" excerpts
+- Zuse's patent applications
+- ENIAC progress reports
+
+**Era 3-4 Documents (Transistor/IC):**
+- Bell Labs memos about the transistor
+- Kilby's lab notebook entries
+- Noyce's integrated circuit patent
+
+**Era 5 Documents (Microprocessor):**
+- Busicom calculator contract
+- Faggin's 4004 design notes
+- Intel marketing memos
+
+**Era 6+ Documents (Personal Computing):**
+- Wozniak's Apple I schematics
+- Homebrew Computer Club newsletters
+- IBM PC project memos
+
+---
+
+### Story 27.3: Create Document Viewer Component
+
+As a user,
+I want an immersive document viewing experience,
+So that historical documents feel authentic.
+
+**Acceptance Criteria:**
+
+**Given** I open a historical document
+**When** the document viewer loads
+**Then** the document is styled to match its era (typewriter font, aged paper, etc.)
+**And** I can zoom and scroll through the document
+**And** I can toggle between "aged" and "clean" views for readability
+**And** key passages can be highlighted and annotated
+**And** I can bookmark important documents
+
+---
+
+### Story 27.4: Implement Wikipedia Deep Dives by Era
+
+As a user,
+I want curated Wikipedia links for each computing era,
+So that I can explore topics in depth.
+
+**Acceptance Criteria:**
+
+**Given** I want to learn more about a topic
+**When** I access Wikipedia deep dives
+**Then** I see curated links organized by era
+**And** each link has a brief description of why it's relevant
+**And** links open in a new tab
+**And** I can track which links I've visited
+
+**Curated Wikipedia Links (from IMMERSIVE_PLATFORM_PLAN.md):**
+
+**Era 0 - Mechanical Computing:**
+- Charles Babbage, Difference Engine, Analytical Engine
+- Ada Lovelace, Jacquard Loom
+
+**Era 1 - Mathematical Foundations:**
+- George Boole, Boolean Algebra
+- Alan Turing, Turing Machine
+- Claude Shannon
+
+**Era 2 - Early Computers:**
+- Konrad Zuse, Z3
+- ENIAC, Colossus Computer
+- Von Neumann Architecture
+
+**Era 3 - Transistors:**
+- Transistor, William Shockley
+- Bell Labs, Semiconductor
+
+**Era 4 - Integrated Circuits:**
+- Integrated Circuit, Jack Kilby, Robert Noyce
+- Moore's Law
+
+**Era 5 - Microprocessors:**
+- Intel 4004, Federico Faggin
+- Microprocessor, Busicom
+
+**Era 6 - Personal Computers:**
+- Altair 8800, Apple I
+- Steve Wozniak, Homebrew Computer Club
+
+**Era 7-8 - IBM PC & Beyond:**
+- IBM PC, Intel 8086, Intel 80386
+- Protected Mode, x86
+
+---
+
+### Story 27.5: Link Documents to Story Scenes
+
+As a user,
+I want relevant documents surfaced during story scenes,
+So that primary sources enhance the narrative.
+
+**Acceptance Criteria:**
+
+**Given** I am reading a story scene
+**When** a historical document is relevant
+**Then** I see a "View Document" link in the scene
+**And** clicking opens the document in the viewer
+**And** the document provides context for the story
+**And** returning to the story resumes where I left off
+
+---
+
+### Story 27.6: Implement Document Search
+
+As a user,
+I want to search across all historical documents,
+So that I can find specific information.
+
+**Acceptance Criteria:**
+
+**Given** I want to find something specific
+**When** I search the document library
+**Then** I can search by keyword, era, or document type
+**And** search results show relevant excerpts
+**And** I can filter results by era or author
+**And** search history is saved for convenience
 
 ---
 

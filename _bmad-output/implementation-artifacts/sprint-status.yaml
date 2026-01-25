@@ -110,7 +110,7 @@ development_status:
   6-5-animate-signal-propagation: done
   6-6-implement-zoom-controls: done
   6-7-implement-pan-navigation: done
-  6-8-show-component-tooltips: backlog
+  6-8-show-component-tooltips: in-progress
   6-9-implement-code-to-circuit-linking: backlog
   6-10-implement-circuit-to-code-linking: backlog
   6-11-display-signal-values-panel: backlog
@@ -326,3 +326,17 @@ development_status:
   25-7-track-version-history: backlog
   25-8-implement-open-source-workflow: backlog
   epic-25-retrospective: optional
+
+  # Epic 26: Core Game Experience
+  epic-26: backlog
+  26-1-first-launch-story-mode-entry: backlog
+  26-2-story-driven-lab-entry: backlog
+  26-3-cumulative-lab-state-persistence: backlog
+  26-4-production-ready-completion-standard: backlog
+  26-5-act-unlock-system: backlog
+  26-6-timeline-visualization-interface: backlog
+  26-7-alternate-timeline-branches: backlog
+  26-8-time-travel-replay: backlog
+  26-9-alternate-timeline-story-content: backlog
+  26-10-seamless-story-lab-story-loop: backlog
+  epic-26-retrospective: optional

@@ -3724,3 +3724,250 @@ So that I can help others learn.
 **And** contributions are reviewed
 **And** accepted contributions are credited
 
+---
+
+## Epic 26: Core Game Experience
+
+**Goal:** User plays Digital Archaeology as a time-travel simulation game, progressing through computing history on the golden path while able to branch into alternate timelines with their own stories and inventions.
+
+**FRs covered:** Core game loop, progression system, timeline visualization, alternate timelines
+
+**Dependencies:** Epic 10 (Story Mode components), Epic 19 (Progress tracking foundations)
+
+---
+
+### Story 26.1: First Launch - Story Mode Entry
+
+As a new player,
+I want to start immediately in the story,
+So that I'm immersed from the first moment.
+
+**Acceptance Criteria:**
+
+**Given** I open Digital Archaeology for the first time
+**When** the application loads
+**Then** I land directly in Story Mode at Act 0, Scene 1
+**And** there is no menu, launcher, or mode selection screen
+**And** the narrative begins immediately
+**And** I am playing the Mechanical Era story
+
+---
+
+### Story 26.2: Story-Driven Lab Entry
+
+As a player in Story Mode,
+I want the story to lead me naturally to building,
+So that I understand why I need to invent things.
+
+**Acceptance Criteria:**
+
+**Given** I am in Story Mode reading the narrative
+**When** the story presents a problem I cannot yet solve
+**Then** "Enter the Lab" is the ONLY way to progress the story
+**And** there is no "Continue" button that skips Lab work
+**And** the story makes clear what problem needs solving
+**And** I understand the context before entering Lab
+
+**Given** I click "Enter the Lab"
+**When** Lab Mode loads
+**Then** I see the problem objectives from the story
+**And** my previous Lab work is loaded (cumulative state)
+**And** the era/context is visible
+
+---
+
+### Story 26.3: Cumulative Lab State Persistence
+
+As a player returning to the Lab,
+I want to continue where I left off,
+So that my work builds on itself like real history.
+
+**Acceptance Criteria:**
+
+**Given** I have previous Lab work saved
+**When** I enter the Lab for a new challenge
+**Then** I see my last working state (code, circuits, designs)
+**And** my progress builds on what I've already created
+**And** new challenges extend previous work (not restart)
+
+**Given** I want to clear old work
+**When** I archive my current work
+**Then** it moves to the archive library
+**And** my active Lab state is cleared
+**And** archived work is accessible but not active
+
+---
+
+### Story 26.4: Production-Ready Completion Standard
+
+As a player completing a challenge,
+I want verification that my solution actually works,
+So that I know I truly solved the problem.
+
+**Acceptance Criteria:**
+
+**Given** I believe my solution is ready
+**When** the system verifies my work
+**Then** actual tests run (inputs produce correct outputs)
+**And** gates/circuits function correctly like real hardware
+**And** code produces correct results when executed
+**And** the "production-ready" standard applies (could this be sold/used?)
+
+**Given** my solution passes verification
+**When** I return to Story Mode
+**Then** the story acknowledges my accomplishment
+**And** I can continue the narrative
+**And** my new capability is unlocked for future challenges
+
+---
+
+### Story 26.5: Act Unlock System
+
+As a player progressing through the game,
+I want a clear sense of advancement,
+So that I feel accomplishment and see what's ahead.
+
+**Acceptance Criteria:**
+
+**Given** I complete 100% of the current act's goals
+**When** the act ends
+**Then** the next act unlocks
+**And** I receive clear feedback of progression
+**And** all previous acts remain accessible for replay
+
+**Given** I have not completed the current act
+**When** I try to access a future act
+**Then** it is locked
+**And** I see what I need to complete to unlock it
+
+---
+
+### Story 26.6: Timeline Visualization Interface
+
+As a player navigating through time,
+I want to see my journey visually,
+So that I understand where I am and where I can go.
+
+**Acceptance Criteria:**
+
+**Given** I want to see my progression
+**When** I open the Timeline interface
+**Then** I see a visual timeline of my complete journey
+**And** I see my current position clearly marked
+**And** I see branch points where I diverged from the golden path
+**And** I see if/when branches rejoin the golden path
+**And** the golden path is visually distinct from alternate timelines
+
+**Given** I want to explore a different time
+**When** I hover over a point on the timeline
+**Then** I can peek into what's there (preview)
+**And** I can click to jump to that point
+
+**Given** the timeline interface
+**When** I interact with it
+**Then** it is expandable/collapsible (not always visible)
+**And** granularity allows navigation to any accessible point
+
+---
+
+### Story 26.7: Alternate Timeline Branches
+
+As a player at a choice point,
+I want to explore "what if" scenarios,
+So that I can experience alternate computing history.
+
+**Acceptance Criteria:**
+
+**Given** I reach a branch point in the story
+**When** I choose an alternate path instead of the golden path
+**Then** I enter an alternate timeline with its own unique story content
+**And** this timeline reflects "what if history went this way"
+**And** the story content is authentic to that alternate path
+
+**Given** I am on an alternate timeline
+**When** I complete challenges
+**Then** I unlock different inventions than the golden path
+**And** these different inventions give me different Lab capabilities
+**And** my tools reflect my timeline's history
+
+**Given** I am on an alternate timeline
+**When** I reach certain points
+**Then** I may rejoin the golden path (if the tech converges)
+**Or** I may continue on a permanent alternate timeline
+**And** the timeline visualization shows this clearly
+
+---
+
+### Story 26.8: Time-Travel Replay
+
+As a player wanting to explore or practice,
+I want to go back to earlier points,
+So that I can try different paths or review past work.
+
+**Acceptance Criteria:**
+
+**Given** I want to revisit an earlier point
+**When** I select a previous point on the timeline
+**Then** I am transported back to that moment
+**And** it's a full replay (I'm back in time, not just viewing)
+**And** I can interact fully with that point in time
+
+**Given** I time-travel back
+**When** I make different choices than before
+**Then** I create a new branch/timeline
+**And** my original forward progress is not lost
+**And** both timelines exist in my game
+
+**Given** I time-travel back
+**When** I want to return to my furthest point
+**Then** I can navigate forward on my original timeline
+**And** all my progress is preserved
+
+---
+
+### Story 26.9: Alternate Timeline Story Content
+
+As a player exploring alternate timelines,
+I want rich alternate history narratives,
+So that each path feels authentic and educational.
+
+**Acceptance Criteria:**
+
+**Given** I branch to an alternate timeline
+**When** I read the story content
+**Then** the narrative reflects the alternate history authentically
+**And** characters, dialogue, and events match "what if" scenario
+**And** technical content explains the alternate inventions
+**And** the story is as rich as the golden path content
+
+**Given** alternate timeline content is needed
+**When** creating new branch points
+**Then** both paths have complete story content
+**And** alternate labs have appropriate challenges
+**And** alternate inventions are historically plausible
+
+---
+
+### Story 26.10: Seamless Story-Lab-Story Loop
+
+As a player experiencing the game,
+I want smooth transitions between story and building,
+So that it feels like one cohesive experience.
+
+**Acceptance Criteria:**
+
+**Given** I complete the end-to-end loop
+**When** I play from Story → Lab → Story
+**Then** transitions are smooth and contextual
+**And** the story setup matches the Lab challenge
+**And** the story resolution acknowledges my Lab work
+**And** my emotional journey feels continuous
+
+**Given** I complete Act 0 fully
+**When** I transition to Act 1
+**Then** my Act 0 capabilities carry forward
+**And** the story references my previous accomplishments
+**And** the experience feels like one continuous game
+
+---
+

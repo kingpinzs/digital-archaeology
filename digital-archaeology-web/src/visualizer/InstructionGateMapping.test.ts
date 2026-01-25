@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   getGatesForInstruction,
   getSignalPathForInstruction,
+  getInstructionsForGate,
   OPCODE_GATE_MAP,
 } from './InstructionGateMapping';
 
@@ -249,7 +250,7 @@ describe('InstructionGateMapping', () => {
     });
 
     it('should have all gate IDs be non-negative integers', () => {
-      for (const [opcode, mapping] of Object.entries(OPCODE_GATE_MAP)) {
+      for (const [, mapping] of Object.entries(OPCODE_GATE_MAP)) {
         for (const gateId of mapping.gates) {
           expect(Number.isInteger(gateId)).toBe(true);
           expect(gateId).toBeGreaterThanOrEqual(0);
@@ -258,7 +259,7 @@ describe('InstructionGateMapping', () => {
     });
 
     it('should have all signal path entries be valid [wireId, bitIndex] pairs', () => {
-      for (const [opcode, mapping] of Object.entries(OPCODE_GATE_MAP)) {
+      for (const [, mapping] of Object.entries(OPCODE_GATE_MAP)) {
         for (const segment of mapping.signalPath) {
           expect(Array.isArray(segment)).toBe(true);
           expect(segment.length).toBe(2);
@@ -267,6 +268,110 @@ describe('InstructionGateMapping', () => {
           expect(segment[0]).toBeGreaterThanOrEqual(0);
           expect(segment[1]).toBeGreaterThanOrEqual(0);
         }
+      }
+    });
+  });
+
+  describe('getInstructionsForGate (Story 6.10 - Circuit-to-Code)', () => {
+    // Gate ID constants from circuit.json (documented for reference):
+    // DECODER_INVERTERS: [4, 5, 6, 7] (DEC_NOT0-3) - used by all 16 instructions
+    // ACCUMULATOR_GATES: [142, 143, 144, 145] (ACC0-3) - used by most instructions
+    // ALU_A_GATES: [27, 28, 29, 30] (ALU_A0-3) - used by arithmetic/logic operations
+    // PC_GATES: [159, 160, 161, 162, 163, 164, 165, 166] (PC0-7) - used by jumps
+    // CTRL_HALT: 111 - used by HLT
+    // ZERO_FLAG: 146 - used by operations that affect zero flag
+
+    it('should return opcodes for decoder inverter gates (used by all instructions)', () => {
+      // Decoder inverter gate 4 is used by all 16 instructions
+      const opcodes = getInstructionsForGate(4);
+      expect(opcodes.length).toBe(16);
+      expect(opcodes).toContain('HLT');
+      expect(opcodes).toContain('LDA');
+      expect(opcodes).toContain('ADD');
+      expect(opcodes).toContain('JMP');
+    });
+
+    it('should return opcodes for ALU A input gates (arithmetic/logic operations)', () => {
+      // ALU_A0 (gate 27) is used by: ADD, SUB, AND, OR, XOR, NOT, SHL, SHR, INC, DEC
+      const opcodes = getInstructionsForGate(27);
+      expect(opcodes.length).toBeGreaterThan(0);
+      expect(opcodes).toContain('ADD');
+      expect(opcodes).toContain('SUB');
+      expect(opcodes).toContain('AND');
+      expect(opcodes).toContain('OR');
+      expect(opcodes).toContain('XOR');
+      expect(opcodes).toContain('NOT');
+      expect(opcodes).toContain('SHL');
+      expect(opcodes).toContain('SHR');
+      expect(opcodes).toContain('INC');
+      expect(opcodes).toContain('DEC');
+      // Should NOT include non-ALU instructions
+      expect(opcodes).not.toContain('LDA');
+      expect(opcodes).not.toContain('STA');
+      expect(opcodes).not.toContain('JMP');
+    });
+
+    it('should return opcodes for accumulator gates (load/store/ALU operations)', () => {
+      // ACC0 (gate 142) is used by: LDA, ADD, SUB, LDI, AND, OR, XOR, NOT, SHL, SHR, INC, DEC
+      const opcodes = getInstructionsForGate(142);
+      expect(opcodes.length).toBeGreaterThan(0);
+      expect(opcodes).toContain('LDA');
+      expect(opcodes).toContain('ADD');
+      expect(opcodes).toContain('LDI');
+      // Should NOT include non-accumulator instructions
+      expect(opcodes).not.toContain('STA');
+      expect(opcodes).not.toContain('JMP');
+      expect(opcodes).not.toContain('HLT');
+    });
+
+    it('should return opcodes for program counter gates (jump instructions)', () => {
+      // PC0 (gate 159) is used by: JMP, JZ
+      const opcodes = getInstructionsForGate(159);
+      expect(opcodes.length).toBe(2);
+      expect(opcodes).toContain('JMP');
+      expect(opcodes).toContain('JZ');
+    });
+
+    it('should return opcodes for CTRL_HALT gate (only HLT)', () => {
+      // CTRL_HALT (gate 111) is used only by HLT
+      const opcodes = getInstructionsForGate(111);
+      expect(opcodes.length).toBe(1);
+      expect(opcodes).toContain('HLT');
+    });
+
+    it('should return opcodes for zero flag gate (conditional and ALU operations)', () => {
+      // ZFLAG (gate 146) is used by: ADD, SUB, JZ
+      const opcodes = getInstructionsForGate(146);
+      expect(opcodes.length).toBeGreaterThan(0);
+      expect(opcodes).toContain('ADD');
+      expect(opcodes).toContain('SUB');
+      expect(opcodes).toContain('JZ');
+    });
+
+    it('should return empty array for unknown gate ID', () => {
+      const opcodes = getInstructionsForGate(99999);
+      expect(opcodes).toEqual([]);
+    });
+
+    it('should return empty array for negative gate ID', () => {
+      const opcodes = getInstructionsForGate(-1);
+      expect(opcodes).toEqual([]);
+    });
+
+    it('should return consistent results on multiple calls (caching works)', () => {
+      const first = getInstructionsForGate(4);
+      const second = getInstructionsForGate(4);
+      expect(first).toEqual(second);
+      // Verify it's actually returning data
+      expect(first.length).toBe(16);
+    });
+
+    it('should not have duplicate opcodes in result', () => {
+      // All results should have unique opcodes
+      for (const gateId of [4, 27, 142, 159]) {
+        const opcodes = getInstructionsForGate(gateId);
+        const unique = [...new Set(opcodes)];
+        expect(opcodes.length).toBe(unique.length);
       }
     });
   });

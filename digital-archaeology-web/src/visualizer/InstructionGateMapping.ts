@@ -464,3 +464,48 @@ export function getSignalPathForInstruction(opcode: string): number[][] {
   const mapping = OPCODE_GATE_MAP[normalized];
   return mapping ? mapping.signalPath : [];
 }
+
+/**
+ * Lazy-initialized reverse mapping from gate ID to opcodes.
+ * Built on first call to getInstructionsForGate() for efficiency.
+ */
+let GATE_INSTRUCTION_MAP: Map<number, string[]> | null = null;
+
+/**
+ * Build the reverse mapping from gate IDs to opcodes.
+ * Each gate ID maps to an array of opcodes that use that gate.
+ */
+function buildReverseMap(): Map<number, string[]> {
+  const map = new Map<number, string[]>();
+  for (const [opcode, { gates }] of Object.entries(OPCODE_GATE_MAP)) {
+    for (const gateId of gates) {
+      const existing = map.get(gateId) || [];
+      if (!existing.includes(opcode)) {
+        existing.push(opcode);
+      }
+      map.set(gateId, existing);
+    }
+  }
+  return map;
+}
+
+/**
+ * Get instruction opcodes that use a given gate.
+ * This is the reverse lookup for circuit-to-code linking (Story 6.10).
+ *
+ * @param gateId - The gate ID from circuit.json
+ * @returns Array of opcodes that use this gate, or empty array if gate not in any mapping
+ *
+ * @example
+ * getInstructionsForGate(111)  // ['HLT'] - CTRL_HALT gate
+ * getInstructionsForGate(142)  // ['LDA', 'ADD', 'SUB', 'LDI', ...] - ACC0 gate
+ * getInstructionsForGate(4)    // All 16 opcodes - DEC_NOT0 (decoder inverter)
+ * getInstructionsForGate(9999) // [] - Unknown gate
+ */
+export function getInstructionsForGate(gateId: number): string[] {
+  // Lazy initialize the reverse map on first call
+  if (!GATE_INSTRUCTION_MAP) {
+    GATE_INSTRUCTION_MAP = buildReverseMap();
+  }
+  return GATE_INSTRUCTION_MAP.get(gateId) || [];
+}

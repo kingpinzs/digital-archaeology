@@ -70,3 +70,6 @@ export type { TooltipConfig } from './GateTooltip';
 // Story 6.9: Code-to-Circuit Linking
 export { getGatesForInstruction, getSignalPathForInstruction, OPCODE_GATE_MAP } from './InstructionGateMapping';
 export type { InstructionMapping } from './InstructionGateMapping';
+
+// Story 6.10: Circuit-to-Code Linking
+export { getInstructionsForGate } from './InstructionGateMapping';

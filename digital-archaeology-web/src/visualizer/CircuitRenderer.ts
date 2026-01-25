@@ -63,6 +63,10 @@ export interface CircuitRendererOptions {
   animation?: AnimationOptions;
   /** Zoom configuration (Story 6.6) */
   zoom?: ZoomOptions;
+  /** Callback when a gate is clicked (Story 6.10) */
+  onGateClick?: (gateId: number, gateName: string) => void;
+  /** Callback when background (not a gate) is clicked (Story 6.10) */
+  onBackgroundClick?: () => void;
 }
 
 /**
@@ -136,6 +140,9 @@ export class CircuitRenderer {
   private highlightedWireSegments: number[][] | null = null;
   private boundClickHandler: ((e: MouseEvent) => void) | null = null;
   private didDragDuringClick: boolean = false;
+
+  // Circuit-to-code linking (Story 6.10)
+  private clickedGateId: number | null = null;
 
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
@@ -407,13 +414,14 @@ export class CircuitRenderer {
   }
 
   /**
-   * Handle click event for clearing code-to-circuit highlights (Story 6.9).
-   * Clears highlights when clicking on empty canvas space (not on a gate).
-   * Ignores clicks that were part of a drag operation.
+   * Handle click event for circuit interaction (Story 6.9, 6.10).
+   * - Gate click: Calls onGateClick callback and sets clickedGateId for persistent highlight
+   * - Background click: Clears highlights and calls onBackgroundClick callback
+   * - Ignores clicks that were part of a drag operation.
    * @private
    */
   private handleClick(e: MouseEvent): void {
-    // Don't clear highlights if this was a drag operation
+    // Don't process click if this was a drag operation
     if (this.didDragDuringClick) {
       this.didDragDuringClick = false;
       return;
@@ -425,9 +433,23 @@ export class CircuitRenderer {
     // Hit test against gates
     const gate = this.hitTestGate(canvasCoords.x, canvasCoords.y);
 
-    // If no gate was clicked, clear the highlights
-    if (!gate) {
+    if (gate) {
+      // Gate was clicked - Story 6.10
+      this.clickedGateId = gate.id;
+      // Trigger re-render to show clicked gate highlight
+      this.render();
+      // Call the callback if provided
+      if (this.options.onGateClick) {
+        this.options.onGateClick(gate.id, gate.name);
+      }
+    } else {
+      // Background was clicked - clear all highlights
+      this.clickedGateId = null;
       this.clearHighlightedGates();
+      // Call the callback if provided
+      if (this.options.onBackgroundClick) {
+        this.options.onBackgroundClick();
+      }
     }
   }
 
@@ -787,7 +809,9 @@ export class CircuitRenderer {
         const isHovered = this.hoveredGateId === gate.id;
 
         // Check if this gate is highlighted for code-to-circuit linking (Story 6.9)
-        const isLinkedHighlight = this.highlightedGateIds.has(gate.id);
+        // Also include clicked gate for circuit-to-code linking (Story 6.10)
+        const isLinkedHighlight =
+          this.highlightedGateIds.has(gate.id) || this.clickedGateId === gate.id;
 
         this.gateRenderer.renderGate(
           this.ctx,
@@ -1132,6 +1156,25 @@ export class CircuitRenderer {
    */
   getHighlightedGateIds(): Set<number> {
     return this.highlightedGateIds;
+  }
+
+  /**
+   * Get the ID of the currently clicked gate (Story 6.10).
+   * @returns The clicked gate ID, or null if no gate is clicked
+   */
+  getClickedGateId(): number | null {
+    return this.clickedGateId;
+  }
+
+  /**
+   * Clear the clicked gate highlight (Story 6.10).
+   * Used when switching to code-to-circuit linking mode.
+   */
+  clearClickedGate(): void {
+    if (this.clickedGateId !== null) {
+      this.clickedGateId = null;
+      this.render();
+    }
   }
 
   /**

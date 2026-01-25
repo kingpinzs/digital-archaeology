@@ -1993,4 +1993,163 @@ describe('Editor', () => {
       editor.destroy();
     });
   });
+
+  describe('highlightInstructionLines (Story 6.10)', () => {
+    it('should add decorations for specified lines', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([3, 7, 12]);
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should create decorations with instruction highlight CSS class', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([5]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { options: { className: string } }[]];
+      const decorations = call[1];
+      expect(decorations[0].options.className).toBe('da-instruction-highlight');
+
+      editor.destroy();
+    });
+
+    it('should create decorations with isWholeLine option', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([5]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { options: { isWholeLine: boolean } }[]];
+      const decorations = call[1];
+      expect(decorations[0].options.isWholeLine).toBe(true);
+
+      editor.destroy();
+    });
+
+    it('should create decorations for each line number', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([5, 10, 15]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], unknown[]];
+      const decorations = call[1];
+      expect(decorations.length).toBe(3);
+
+      editor.destroy();
+    });
+
+    it('should replace previous instruction highlight decorations', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // First call returns IDs
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['instr-id-1', 'instr-id-2']);
+      editor.highlightInstructionLines([3, 7]);
+
+      // Second call should pass previous IDs
+      editor.highlightInstructionLines([5]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const secondCall = calls[1] as unknown as [string[], unknown[]];
+      expect(secondCall[0]).toEqual(['instr-id-1', 'instr-id-2']);
+
+      editor.destroy();
+    });
+
+    it('should create decorations with correct range for each line', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([10]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], { range: { startLineNumber: number; endLineNumber: number } }[]];
+      const decorations = call[1];
+      expect(decorations[0].range.startLineNumber).toBe(10);
+      expect(decorations[0].range.endLineNumber).toBe(10);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.highlightInstructionLines([1, 2, 3])).not.toThrow();
+    });
+
+    it('should handle empty line array', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.highlightInstructionLines([]);
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const call = calls[0] as unknown as [string[], unknown[]];
+      const decorations = call[1];
+      expect(decorations.length).toBe(0);
+
+      editor.destroy();
+    });
+  });
+
+  describe('clearInstructionHighlights (Story 6.10)', () => {
+    it('should call deltaDecorations with empty array', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      editor.clearInstructionHighlights();
+
+      expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledWith([], []);
+
+      editor.destroy();
+    });
+
+    it('should pass previous decoration IDs when clearing', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.deltaDecorations.mockClear();
+
+      // Set decorations first
+      mockEditorInstance.deltaDecorations.mockReturnValueOnce(['instr-id-1']);
+      editor.highlightInstructionLines([5]);
+
+      // Clear decorations
+      editor.clearInstructionHighlights();
+
+      const calls = mockEditorInstance.deltaDecorations.mock.calls;
+      const lastCall = calls[calls.length - 1] as unknown as [string[], unknown[]];
+      expect(lastCall[0]).toEqual(['instr-id-1']);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.clearInstructionHighlights()).not.toThrow();
+    });
+
+    it('should not throw when clearing without previous highlights', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      expect(() => editor.clearInstructionHighlights()).not.toThrow();
+      editor.destroy();
+    });
+  });
 });

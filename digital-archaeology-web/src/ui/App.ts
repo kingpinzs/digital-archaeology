@@ -11,7 +11,7 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { setTheme, initTheme } from './theme';
 import type { ThemeMode } from './theme';
-import { Editor, parseInstruction } from '@editor/index';
+import { Editor, parseInstruction, findLinesWithOpcodes } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
@@ -20,7 +20,7 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
-import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction } from '@visualizer/index';
+import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate } from '@visualizer/index';
 import type { ZoomControlsCallbacks } from '@visualizer/index';
 
 /**
@@ -1040,6 +1040,9 @@ export class App {
           }
         },
       },
+      // Story 6.10: Circuit-to-code linking
+      onGateClick: (gateId, gateName) => this.handleGateClick(gateId, gateName),
+      onBackgroundClick: () => this.handleCircuitBackgroundClick(),
     });
 
     // Mount CircuitRenderer to circuit panel content
@@ -1220,6 +1223,10 @@ export class App {
   private handleEditorLineClick(_lineNumber: number, lineContent: string): void {
     if (!this.circuitRenderer) return;
 
+    // Story 6.10: Clear circuit-to-code highlights when clicking in editor
+    this.editor?.clearInstructionHighlights();
+    this.circuitRenderer.clearClickedGate();
+
     // Parse instruction from line content
     const opcode = parseInstruction(lineContent);
 
@@ -1239,6 +1246,59 @@ export class App {
       // Not an instruction (comment, directive, empty) - clear highlights
       this.circuitRenderer.clearHighlightedGates();
     }
+  }
+
+  /**
+   * Handle gate click for circuit-to-code linking (Story 6.10).
+   * Finds instructions that use the clicked gate and highlights them in the editor.
+   * @param gateId - The ID of the clicked gate
+   * @param _gateName - The name of the clicked gate (for logging/debugging)
+   */
+  private handleGateClick(gateId: number, _gateName: string): void {
+    if (!this.editor) return;
+
+    // Clear code-to-circuit highlights
+    this.circuitRenderer?.clearHighlightedGates();
+
+    // Get opcodes that use this gate
+    const opcodes = getInstructionsForGate(gateId);
+
+    if (opcodes.length > 0) {
+      // Find lines containing these opcodes
+      const editorContent = this.editor.getValue();
+      const matchingLines = findLinesWithOpcodes(editorContent, opcodes);
+
+      if (matchingLines.length > 0) {
+        // Highlight the matching lines in the editor
+        this.editor.highlightInstructionLines(matchingLines);
+      } else {
+        // No matching lines - clear any existing instruction highlights
+        this.editor.clearInstructionHighlights();
+      }
+    } else {
+      // Unknown gate - clear any existing instruction highlights
+      this.editor.clearInstructionHighlights();
+    }
+  }
+
+  /**
+   * Handle circuit background click (Story 6.10).
+   * Clears all bidirectional link highlights.
+   */
+  private handleCircuitBackgroundClick(): void {
+    this.clearAllLinkHighlights();
+  }
+
+  /**
+   * Clear all bidirectional link highlights (Story 6.10).
+   * Clears both code-to-circuit and circuit-to-code highlights.
+   */
+  private clearAllLinkHighlights(): void {
+    // Clear code-to-circuit highlights
+    this.circuitRenderer?.clearHighlightedGates();
+
+    // Clear circuit-to-code highlights
+    this.editor?.clearInstructionHighlights();
   }
 
   /**

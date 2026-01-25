@@ -2,7 +2,7 @@
 // Unit tests for parseInstruction utility (Story 6.9)
 
 import { describe, it, expect } from 'vitest';
-import { parseInstruction } from './parseInstruction';
+import { parseInstruction, findLinesWithOpcodes } from './parseInstruction';
 
 describe('parseInstruction', () => {
   it('should parse simple instruction', () => {
@@ -127,5 +127,81 @@ describe('parseInstruction', () => {
 
   it('should handle leading and trailing whitespace', () => {
     expect(parseInstruction('  LDA 5  ')).toBe('LDA');
+  });
+});
+
+describe('findLinesWithOpcodes (Story 6.10)', () => {
+  it('should find lines with single opcode', () => {
+    const content = 'LDA 5\nADD 3\nSTA 6';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([1]);
+  });
+
+  it('should find lines with multiple opcodes', () => {
+    const content = 'LDA 5\nADD 3\nSTA 6';
+    expect(findLinesWithOpcodes(content, ['LDA', 'STA'])).toEqual([1, 3]);
+  });
+
+  it('should be case insensitive for opcodes in search', () => {
+    const content = 'LDA 5\nADD 3';
+    expect(findLinesWithOpcodes(content, ['lda'])).toEqual([1]);
+  });
+
+  it('should be case insensitive for opcodes in content', () => {
+    const content = 'lda 5\nadd 3';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([1]);
+  });
+
+  it('should return empty array when no matches', () => {
+    const content = 'LDA 5\nADD 3';
+    expect(findLinesWithOpcodes(content, ['JMP'])).toEqual([]);
+  });
+
+  it('should return empty array for empty content', () => {
+    expect(findLinesWithOpcodes('', ['LDA'])).toEqual([]);
+  });
+
+  it('should return empty array for empty opcodes list', () => {
+    expect(findLinesWithOpcodes('LDA 5', [])).toEqual([]);
+  });
+
+  it('should ignore comments when finding instructions', () => {
+    const content = '; LDA 5\nADD 3';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([]);
+  });
+
+  it('should find instruction after label', () => {
+    const content = 'START: LDA 5\nADD 3';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([1]);
+  });
+
+  it('should skip label-only lines', () => {
+    const content = 'LOOP:\nLDA 5';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([2]);
+  });
+
+  it('should skip directive lines', () => {
+    const content = 'ORG $10\nLDA 5';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([2]);
+  });
+
+  it('should find multiple occurrences of same opcode', () => {
+    const content = 'LDA 5\nADD 3\nLDA 6';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([1, 3]);
+  });
+
+  it('should handle mixed line types', () => {
+    const content = '; Header\nORG $10\nSTART:\nLDA 5\nADD 3\n; End\nHLT';
+    expect(findLinesWithOpcodes(content, ['LDA', 'HLT'])).toEqual([4, 7]);
+  });
+
+  it('should handle Windows line endings', () => {
+    const content = 'LDA 5\r\nADD 3\r\nSTA 6';
+    // Note: split('\n') leaves \r attached, but parseInstruction trims it
+    expect(findLinesWithOpcodes(content, ['LDA', 'STA'])).toEqual([1, 3]);
+  });
+
+  it('should return correct 1-based line numbers', () => {
+    const content = '\n\nLDA 5';
+    expect(findLinesWithOpcodes(content, ['LDA'])).toEqual([3]);
   });
 });

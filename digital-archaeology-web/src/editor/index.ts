@@ -11,3 +11,6 @@ export {
 
 // Story 6.9: Line content parser for code-to-circuit linking
 export { parseInstruction } from './parseInstruction';
+
+// Story 6.10: Find lines with specific opcodes for circuit-to-code linking
+export { findLinesWithOpcodes } from './parseInstruction';

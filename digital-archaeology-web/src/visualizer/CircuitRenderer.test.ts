@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CircuitRenderer, CircuitLoadError } from './CircuitRenderer';
-import type { CircuitData } from './types';
+import type { CircuitData, CircuitGate } from './types';
 
 // Type declaration for global fetch mock in Node.js test environment
 declare const global: { fetch: typeof fetch };
@@ -1870,11 +1870,6 @@ describe('CircuitRenderer', () => {
       toJSON: () => ({}),
     } as DOMRect;
 
-    // Helper to get the canvas bounding rect for calculations
-    function getCanvasRect(_r: CircuitRenderer): DOMRect {
-      return originRect;
-    }
-
     describe('screenToCanvas()', () => {
       it('should convert screen coordinates to canvas coordinates at zoom 1.0', () => {
         renderer.mount(container);
@@ -2607,6 +2602,247 @@ describe('CircuitRenderer', () => {
 
         // Highlights should NOT be cleared because this was a drag
         expect(renderer.getHighlightedGateIds().size).toBe(3);
+
+        renderer.destroy();
+      });
+    });
+  });
+
+  // ============================================================================
+  // Story 6.10: Circuit-to-Code Linking Tests
+  // ============================================================================
+  describe('Circuit-to-Code Linking (Story 6.10)', () => {
+    describe('onGateClick callback', () => {
+      it('should call onGateClick when a gate is clicked', () => {
+        const onGateClick = vi.fn();
+        renderer = new CircuitRenderer({ onGateClick });
+        renderer.mount(container);
+
+        // Load circuit with a gate
+        const circuitWithGate: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [{ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithGate });
+
+        // Mock hitTestGate to return the gate
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        mockHitTestGate.mockReturnValue({ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] });
+
+        // Simulate click
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(clickEvent);
+
+        expect(onGateClick).toHaveBeenCalledWith(42, 'TEST_GATE');
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+
+      it('should not call onGateClick when background is clicked', () => {
+        const onGateClick = vi.fn();
+        renderer = new CircuitRenderer({ onGateClick });
+        renderer.mount(container);
+
+        // Simulate click with no gate hit (hitTestGate returns null by default)
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(clickEvent);
+
+        expect(onGateClick).not.toHaveBeenCalled();
+
+        renderer.destroy();
+      });
+    });
+
+    describe('onBackgroundClick callback', () => {
+      it('should call onBackgroundClick when background is clicked', () => {
+        const onBackgroundClick = vi.fn();
+        renderer = new CircuitRenderer({ onBackgroundClick });
+        renderer.mount(container);
+
+        // Simulate click on background (no gate)
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(clickEvent);
+
+        expect(onBackgroundClick).toHaveBeenCalled();
+
+        renderer.destroy();
+      });
+
+      it('should not call onBackgroundClick when a gate is clicked', () => {
+        const onBackgroundClick = vi.fn();
+        renderer = new CircuitRenderer({ onBackgroundClick });
+        renderer.mount(container);
+
+        // Load circuit with a gate
+        const circuitWithGate: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [{ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithGate });
+
+        // Mock hitTestGate to return the gate
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        mockHitTestGate.mockReturnValue({ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] });
+
+        // Simulate click
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(clickEvent);
+
+        expect(onBackgroundClick).not.toHaveBeenCalled();
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+    });
+
+    describe('clickedGateId persistence', () => {
+      it('should set clickedGateId when a gate is clicked', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with a gate
+        const circuitWithGate: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [{ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithGate });
+
+        // Mock hitTestGate to return the gate
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        mockHitTestGate.mockReturnValue({ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] });
+
+        // Simulate click
+        const canvas = container.querySelector('canvas')!;
+        const clickEvent = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(clickEvent);
+
+        expect(renderer.getClickedGateId()).toBe(42);
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+
+      it('should clear clickedGateId when background is clicked', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with a gate
+        const circuitWithGate: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [{ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithGate });
+
+        // Mock hitTestGate to return the gate first
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        mockHitTestGate.mockReturnValue({ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] });
+
+        const canvas = container.querySelector('canvas')!;
+
+        // Click on gate first
+        const gateClick = new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true });
+        canvas.dispatchEvent(gateClick);
+        expect(renderer.getClickedGateId()).toBe(42);
+
+        // Now click on background
+        mockHitTestGate.mockReturnValue(null);
+        const bgClick = new MouseEvent('click', { clientX: 200, clientY: 200, bubbles: true });
+        canvas.dispatchEvent(bgClick);
+        expect(renderer.getClickedGateId()).toBe(null);
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+
+      it('should persist clickedGateId until background is clicked', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with gates
+        const circuitWithGates: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [
+            { id: 1, name: 'GATE1', type: 'AND', inputs: [], outputs: [] },
+            { id: 2, name: 'GATE2', type: 'OR', inputs: [], outputs: [] },
+          ],
+        };
+        renderer.updateState({ circuitData: circuitWithGates });
+
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        const canvas = container.querySelector('canvas')!;
+
+        // Click gate 1
+        mockHitTestGate.mockReturnValue({ id: 1, name: 'GATE1', type: 'AND', inputs: [], outputs: [] });
+        canvas.dispatchEvent(new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true }));
+        expect(renderer.getClickedGateId()).toBe(1);
+
+        // Click gate 2 - should update to gate 2
+        mockHitTestGate.mockReturnValue({ id: 2, name: 'GATE2', type: 'OR', inputs: [], outputs: [] });
+        canvas.dispatchEvent(new MouseEvent('click', { clientX: 150, clientY: 150, bubbles: true }));
+        expect(renderer.getClickedGateId()).toBe(2);
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+    });
+
+    describe('clearClickedGate', () => {
+      it('should clear the clicked gate ID', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // Load circuit with a gate
+        const circuitWithGate: CircuitData = {
+          cycle: 0,
+          stable: true,
+          wires: [],
+          gates: [{ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] }],
+        };
+        renderer.updateState({ circuitData: circuitWithGate });
+
+        // Mock hitTestGate to return the gate
+        const mockHitTestGate = vi.spyOn(renderer as unknown as { hitTestGate: () => CircuitGate | null }, 'hitTestGate');
+        mockHitTestGate.mockReturnValue({ id: 42, name: 'TEST_GATE', type: 'AND', inputs: [], outputs: [] });
+
+        const canvas = container.querySelector('canvas')!;
+        canvas.dispatchEvent(new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true }));
+        expect(renderer.getClickedGateId()).toBe(42);
+
+        // Now clear it
+        renderer.clearClickedGate();
+        expect(renderer.getClickedGateId()).toBe(null);
+
+        mockHitTestGate.mockRestore();
+        renderer.destroy();
+      });
+
+      it('should not re-render if no gate is clicked', () => {
+        renderer = new CircuitRenderer();
+        renderer.mount(container);
+
+        // No gate clicked
+        expect(renderer.getClickedGateId()).toBe(null);
+
+        mockFillRect.mockClear();
+        renderer.clearClickedGate();
+
+        // Should not have triggered a render
+        expect(mockFillRect).not.toHaveBeenCalled();
 
         renderer.destroy();
       });

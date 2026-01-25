@@ -1438,6 +1438,26 @@ body.da-resizing * {
   background: rgba(239, 68, 68, 0.08) !important;
 }
 
+/*
+ * Instruction highlight for circuit-to-code linking (Story 6.10).
+ * Uses the same orange highlight color as code-to-circuit linking for consistency.
+ * Applied to lines containing instructions that use a clicked gate.
+ */
+.da-instruction-highlight {
+  background: rgba(255, 159, 67, 0.2) !important;
+  border-left: 3px solid var(--da-link-highlight);
+}
+
+/*
+ * Glyph margin indicator for circuit-to-code linking (Story 6.10).
+ * Shows a small orange indicator in the editor's left gutter.
+ */
+.da-instruction-glyph {
+  background-color: var(--da-link-highlight);
+  width: 4px !important;
+  margin-left: 3px;
+}
+
 /* =============================================================================
    Rich Error Display Components (Story 3.5)
    Enhanced error display with type badges, code snippets, suggestions, and auto-fix

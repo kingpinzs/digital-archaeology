@@ -1,5 +1,5 @@
 // src/editor/parseInstruction.ts
-// Line content parser utility for code-to-circuit linking (Story 6.9)
+// Line content parser utility for bidirectional code-circuit linking (Story 6.9, 6.10)
 
 /**
  * Directives that are not executable instructions.
@@ -74,4 +74,38 @@ export function parseInstruction(lineContent: string): string | null {
   }
 
   return opcode;
+}
+
+/**
+ * Find all lines in assembly content that contain specific opcodes.
+ * Used for circuit-to-code linking (Story 6.10).
+ *
+ * @param content - The full editor content (multiline string)
+ * @param opcodes - Array of opcodes to search for (case-insensitive)
+ * @returns Array of 1-based line numbers containing matching instructions
+ *
+ * @example
+ * findLinesWithOpcodes('LDA 5\nADD 3\nSTA 6', ['LDA', 'STA'])  // [1, 3]
+ * findLinesWithOpcodes('lda 5\nADD 3', ['LDA'])                // [1]
+ * findLinesWithOpcodes('; comment', ['LDA'])                  // []
+ */
+export function findLinesWithOpcodes(content: string, opcodes: string[]): number[] {
+  if (!content || opcodes.length === 0) {
+    return [];
+  }
+
+  // Normalize opcodes to uppercase for comparison
+  const normalizedOpcodes = new Set(opcodes.map(op => op.toUpperCase()));
+
+  const lines = content.split('\n');
+  const matchingLines: number[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const lineOpcode = parseInstruction(lines[i]);
+    if (lineOpcode && normalizedOpcodes.has(lineOpcode)) {
+      matchingLines.push(i + 1); // Convert to 1-based line number
+    }
+  }
+
+  return matchingLines;
 }

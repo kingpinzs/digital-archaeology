@@ -90,6 +90,7 @@ export class Editor {
   private errorDecorationIds: string[] = [];
   private currentInstructionDecorationIds: string[] = [];
   private breakpointDecorationIds: string[] = [];
+  private instructionHighlightDecorationIds: string[] = []; // Story 6.10
 
   constructor(options?: EditorOptions) {
     this.options = options ?? {};
@@ -473,6 +474,41 @@ export class Editor {
 
     this.breakpointDecorationIds = this.editor.deltaDecorations(
       this.breakpointDecorationIds,
+      []
+    );
+  }
+
+  /**
+   * Highlight instruction lines for circuit-to-code linking (Story 6.10).
+   * Adds orange background to lines containing instructions related to clicked gate.
+   * @param lines - Array of line numbers to highlight (1-based)
+   */
+  highlightInstructionLines(lines: number[]): void {
+    if (!this.editor) return;
+
+    const decorations: monaco.editor.IModelDeltaDecoration[] = lines.map(line => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: true,
+        className: 'da-instruction-highlight',
+        glyphMarginClassName: 'da-instruction-glyph',
+      },
+    }));
+
+    this.instructionHighlightDecorationIds = this.editor.deltaDecorations(
+      this.instructionHighlightDecorationIds,
+      decorations
+    );
+  }
+
+  /**
+   * Clear all instruction highlight decorations from the editor (Story 6.10).
+   */
+  clearInstructionHighlights(): void {
+    if (!this.editor) return;
+
+    this.instructionHighlightDecorationIds = this.editor.deltaDecorations(
+      this.instructionHighlightDecorationIds,
       []
     );
   }

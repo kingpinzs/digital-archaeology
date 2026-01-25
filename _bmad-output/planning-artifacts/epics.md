@@ -282,8 +282,8 @@ Users see their progress through the learning journey. Discovery tracking, act c
 **FRs covered:** Journey tracking requirements
 
 ### Epic 20: Educational Content System
-Users can access literature and tutorials when needed. 20 articles, categories, contextual help, search, reading progress, hint system, technical deep-dives.
-**FRs covered:** Literature requirements
+Users can access literature, tutorials, and curated multimedia resources. 20 articles, categories, contextual help, reading progress, hint system, technical deep-dives, plus curated documentaries, TV shows, YouTube channels, books, museums, and online simulators organized by computing era.
+**FRs covered:** Literature requirements, Multimedia resources (from IMMERSIVE_PLATFORM_PLAN.md)
 
 ### Epic 21: Homework & Exercises System
 Users can practice with structured challenges. Exercises per stage (5-12 each), starter code, validation, progressive hints, solution reveal, completion tracking.
@@ -3092,6 +3092,169 @@ So that I can go deeper on topics.
 **And** I see historical context
 **And** I see design trade-offs
 **And** I see real-world examples
+
+---
+
+### Story 20.7: Curated Documentaries & Films
+
+As a user,
+I want to discover documentaries and films about computing history,
+So that I can deepen my understanding through visual storytelling.
+
+**Acceptance Criteria:**
+
+**Given** I am learning about an era
+**When** I access the "Learn More" resources
+**Then** I see curated documentaries and films for that era
+**And** each entry has title, year, and description
+**And** entries are tagged by era (Turing, PC Era, Modern, etc.)
+**And** I see where to watch (streaming service, YouTube, etc.)
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+- The Imitation Game (2014) - Turing Era
+- Hidden Figures (2016) - Early Computing
+- Pirates of Silicon Valley (1999) - PC Era
+- Triumph of the Nerds (1996) - PC Era documentary
+- The Machine That Changed the World (1992) - All Eras, PBS
+- Revolution OS (2001) - Open Source
+- Silicon Cowboys (2016) - PC Era, Compaq vs IBM
+- General Magic (2018) - Early smartphone/PDA
+- Micro Men (2009) - 8-bit Era, Sinclair vs Acorn
+- Steve Jobs: The Man in the Machine (2015) - Apple history
+- BBS: The Documentary (2005) - Modem Era
+- The Code (2001) - Linux
+
+---
+
+### Story 20.8: Curated TV Shows & Series
+
+As a user,
+I want to discover TV shows about computing history and culture,
+So that I can explore the human stories behind technology.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring computing history
+**When** I access the TV shows section
+**Then** I see curated series relevant to computing
+**And** each entry has title, platform, era, and description
+**And** I can filter by era or theme
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+- Halt and Catch Fire (AMC) - PC Era 1980s drama
+- Silicon Valley (HBO) - Modern startup comedy
+- The Billion Dollar Code (Netflix) - Google Earth origins
+- Devs (Hulu) - Quantum computing thriller
+
+---
+
+### Story 20.9: Curated YouTube Channels & Videos
+
+As a user,
+I want to discover educational YouTube content about CPU building and computing,
+So that I can learn from expert creators in visual format.
+
+**Acceptance Criteria:**
+
+**Given** I want to learn more about a topic
+**When** I access YouTube resources
+**Then** I see curated channels organized by focus area
+**And** I see specific must-watch videos highlighted
+**And** each entry describes what the channel/video covers
+**And** I can filter by topic (hands-on building, history, concepts)
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+
+Channels:
+- Ben Eater - Building computers from scratch, 8-bit breadboard
+- Computerphile - CS concepts explained academically
+- The 8-Bit Guy - Retro 8-bit/16-bit hardware
+- LGR (Lazy Game Reviews) - IBM PC era, DOS
+- Technology Connections - Electronics fundamentals
+- CuriousMarc - Vintage restoration (Apollo, HP)
+- Usagi Electric - Vacuum tube/relay computing
+- Sebastian Lague - Visual CS explanations
+
+Must-Watch Videos:
+- Ben Eater: "Building an 8-bit breadboard computer" series
+- Computerphile: "Turing Machines Explained"
+- CuriousMarc: "Restoring the Apollo Guidance Computer"
+- The 8-Bit Guy: "How Computers Work" series
+
+---
+
+### Story 20.10: Curated Books & Reading List
+
+As a user,
+I want recommended books about computing history,
+So that I can do deeper reading on topics that interest me.
+
+**Acceptance Criteria:**
+
+**Given** I want to read more about computing
+**When** I access the books section
+**Then** I see curated books organized by era/topic
+**And** each entry has title, author, era, and description
+**And** I can see which books relate to my current learning stage
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+- The Innovators (Walter Isaacson) - Full history, Ada to Google
+- Code (Charles Petzold) - How computers work from first principles
+- Soul of a New Machine (Tracy Kidder) - Minicomputer era
+- Hackers (Steven Levy) - PC era hacker culture
+- Fire in the Valley (Freiberger & Swaine) - PC revolution
+- The Dream Machine (M. Mitchell Waldrop) - Licklider and the revolution
+- Turing's Cathedral (George Dyson) - Origins of digital universe
+
+---
+
+### Story 20.11: Museums & Physical Sites
+
+As a user,
+I want to know about museums where I can see real computing history,
+So that I can plan visits to see actual hardware.
+
+**Acceptance Criteria:**
+
+**Given** I want to see computing history in person
+**When** I access the museums section
+**Then** I see museums with computing exhibits
+**And** each entry has name, location, and focus
+**And** I can see which museums have working vintage computers
+**And** I can see which relate to specific eras I'm studying
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+- Computer History Museum (Mountain View, CA) - Comprehensive, all eras
+- Living Computer Museum (Seattle, WA) - Working vintage computers
+- Bletchley Park (UK) - WWII codebreaking, Colossus, Turing
+- Science Museum London (UK) - Babbage's Difference Engine replica
+- Heinz Nixdorf Museum (Germany) - Largest computer museum
+- Computer Museum of America (Atlanta, GA) - Apple, IBM, gaming
+
+---
+
+### Story 20.12: Online Simulators & Interactive Resources
+
+As a user,
+I want to discover online simulators and interactive learning tools,
+So that I can practice and experiment beyond Digital Archaeology.
+
+**Acceptance Criteria:**
+
+**Given** I want more hands-on practice
+**When** I access online resources
+**Then** I see curated simulators and interactive sites
+**And** each entry has name, URL, and description
+**And** I can see which relate to concepts I'm learning
+**And** resources are categorized (CPU simulation, logic gates, Turing machines)
+
+**Curated Content (from IMMERSIVE_PLATFORM_PLAN.md):**
+- Nand2Tetris (nand2tetris.org) - Build computer from NAND gates
+- Visual 6502 (visual6502.org) - Transistor-level 6502 simulation
+- CPU Simulator (cpu-sim.gitlab.io) - MIPS/RISC-V simulation
+- Logic.ly (logic.ly) - Visual logic gate simulator
+- Turing Machine Simulator (turingmachine.io) - Interactive Turing machine
+- MAME (mamedev.org) - Arcade/computer emulation
 
 ---
 

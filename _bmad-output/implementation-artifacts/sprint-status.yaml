@@ -270,6 +270,12 @@ development_status:
   20-4-implement-reading-progress: backlog
   20-5-create-progressive-hint-system: backlog
   20-6-create-technical-deep-dives: backlog
+  20-7-curated-documentaries-films: backlog
+  20-8-curated-tv-shows-series: backlog
+  20-9-curated-youtube-channels-videos: backlog
+  20-10-curated-books-reading-list: backlog
+  20-11-museums-physical-sites: backlog
+  20-12-online-simulators-resources: backlog
   epic-20-retrospective: optional
 
   # Epic 21: Homework & Exercises System

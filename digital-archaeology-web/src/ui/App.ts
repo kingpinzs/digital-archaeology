@@ -20,6 +20,8 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
+import { CircuitRenderer, ZoomControlsToolbar } from '@visualizer/index';
+import type { ZoomControlsCallbacks } from '@visualizer/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -168,6 +170,12 @@ export class App {
   // RuntimeErrorPanel for displaying rich runtime errors (Story 5.10)
   private runtimeErrorPanel: RuntimeErrorPanel | null = null;
 
+  // CircuitRenderer for visualizing circuits (Story 6.6)
+  private circuitRenderer: CircuitRenderer | null = null;
+
+  // ZoomControlsToolbar for circuit zoom controls (Story 6.6)
+  private zoomControlsToolbar: ZoomControlsToolbar | null = null;
+
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
 
@@ -203,6 +211,7 @@ export class App {
     this.destroyMemoryView();
     this.destroyBreakpointsView();
     this.destroyRuntimeErrorPanel();
+    this.destroyCircuitRenderer();
 
     this.container = container;
     this.isMounted = true;
@@ -229,6 +238,7 @@ export class App {
     this.initializeMemoryView();
     this.initializeBreakpointsView();
     this.initializeRuntimeErrorPanel();
+    this.initializeCircuitRenderer();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -975,6 +985,121 @@ export class App {
    */
   getRuntimeErrorPanel(): RuntimeErrorPanel | null {
     return this.runtimeErrorPanel;
+  }
+
+  /**
+   * Initialize the CircuitRenderer and ZoomControlsToolbar in the Circuit panel (Story 6.6).
+   * Mounts the circuit canvas and zoom controls.
+   * Handles errors gracefully if canvas context is unavailable (e.g., in test environments).
+   * @returns void
+   */
+  private initializeCircuitRenderer(): void {
+    if (!this.container) return;
+
+    const circuitContent = this.container.querySelector('.da-circuit-panel .da-panel-content');
+    const circuitHeader = this.container.querySelector('.da-circuit-panel .da-panel-header-container');
+    if (!circuitContent) return;
+
+    // Create zoom callbacks that will wire to CircuitRenderer
+    const zoomCallbacks: ZoomControlsCallbacks = {
+      onZoomIn: () => {
+        if (this.circuitRenderer) {
+          const currentZoom = this.circuitRenderer.getZoom();
+          this.circuitRenderer.setZoom(currentZoom + 0.1);
+        }
+      },
+      onZoomOut: () => {
+        if (this.circuitRenderer) {
+          const currentZoom = this.circuitRenderer.getZoom();
+          this.circuitRenderer.setZoom(currentZoom - 0.1);
+        }
+      },
+      onZoomFit: () => {
+        if (this.circuitRenderer) {
+          this.circuitRenderer.zoomToFit();
+        }
+      },
+      onZoomReset: () => {
+        if (this.circuitRenderer) {
+          this.circuitRenderer.resetZoom();
+        }
+      },
+    };
+
+    // Create ZoomControlsToolbar
+    this.zoomControlsToolbar = new ZoomControlsToolbar(zoomCallbacks);
+
+    // Create CircuitRenderer with onZoomChange callback to update toolbar
+    this.circuitRenderer = new CircuitRenderer({
+      zoom: {
+        onZoomChange: (scale: number, displayPercent: string) => {
+          if (this.zoomControlsToolbar) {
+            this.zoomControlsToolbar.updateState({ zoomPercent: displayPercent });
+          }
+        },
+      },
+    });
+
+    // Mount CircuitRenderer to circuit panel content
+    // Wrap in try-catch to handle environments where canvas context isn't available (e.g., jsdom)
+    try {
+      this.circuitRenderer.mount(circuitContent as HTMLElement);
+    } catch {
+      // Canvas context not available - clean up and continue without circuit visualization
+      this.circuitRenderer = null;
+      this.zoomControlsToolbar.destroy();
+      this.zoomControlsToolbar = null;
+      return;
+    }
+
+    // Mount ZoomControlsToolbar inside the panel header (before close button)
+    if (circuitHeader) {
+      // Find the actual panel header element and its close button
+      const panelHeader = circuitHeader.querySelector('.da-panel-header');
+      const closeBtn = panelHeader?.querySelector('.da-panel-close-btn');
+
+      if (panelHeader && closeBtn) {
+        // Create a container for zoom controls
+        const zoomContainer = document.createElement('div');
+        zoomContainer.className = 'da-circuit-zoom-container';
+        // Insert before the close button
+        panelHeader.insertBefore(zoomContainer, closeBtn);
+        this.zoomControlsToolbar.mount(zoomContainer);
+      }
+    }
+  }
+
+  /**
+   * Destroy the CircuitRenderer and ZoomControlsToolbar (Story 6.6).
+   * @returns void
+   */
+  private destroyCircuitRenderer(): void {
+    if (this.zoomControlsToolbar) {
+      this.zoomControlsToolbar.destroy();
+      this.zoomControlsToolbar = null;
+    }
+    if (this.circuitRenderer) {
+      this.circuitRenderer.destroy();
+      this.circuitRenderer = null;
+    }
+  }
+
+  /**
+   * Get the CircuitRenderer instance (Story 6.6).
+   * Primarily used for testing and external state inspection.
+   * @returns The CircuitRenderer instance or null if not mounted
+   */
+  getCircuitRenderer(): CircuitRenderer | null {
+    return this.circuitRenderer;
+  }
+
+  /**
+   * Get the ZoomControlsToolbar instance (Story 6.6).
+   * Primarily used for testing and external state inspection.
+   * @returns The ZoomControlsToolbar instance or null if not mounted
+   */
+  getZoomControlsToolbar(): ZoomControlsToolbar | null {
+    return this.zoomControlsToolbar;
   }
 
   /**
@@ -2581,6 +2706,9 @@ export class App {
 
     // Destroy RuntimeErrorPanel (Story 5.10)
     this.destroyRuntimeErrorPanel();
+
+    // Destroy CircuitRenderer and ZoomControlsToolbar (Story 6.6)
+    this.destroyCircuitRenderer();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

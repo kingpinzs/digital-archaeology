@@ -303,4 +303,31 @@ export class CircuitLayout {
     this.positions.clear();
     this.wirePositions.clear();
   }
+
+  /**
+   * Get the bounding box of all positioned gates (Story 6.6).
+   * @returns Object with width and height, or null if no gates positioned
+   */
+  getBounds(): { width: number; height: number } | null {
+    if (this.positions.size === 0) {
+      return null;
+    }
+
+    let maxX = 0;
+    let maxY = 0;
+
+    for (const pos of this.positions.values()) {
+      const rightEdge = pos.x + this.config.gateWidth;
+      const bottomEdge = pos.y + this.config.gateHeight;
+
+      if (rightEdge > maxX) maxX = rightEdge;
+      if (bottomEdge > maxY) maxY = bottomEdge;
+    }
+
+    // Add padding to bounds
+    return {
+      width: maxX + this.config.padding,
+      height: maxY + this.config.padding,
+    };
+  }
 }

@@ -1,5 +1,5 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4, 6.5)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4, 6.5, 6.6)
 
 import type { CircuitData } from './types';
 import { CircuitModel } from './CircuitModel';
@@ -10,6 +10,8 @@ import { WireRenderer } from './WireRenderer';
 import { AnimationController } from './AnimationController';
 import { SignalAnimator } from './SignalAnimator';
 import { calculatePulseScale, prefersReducedMotion } from './animationUtils';
+import { ZoomController } from './ZoomController';
+import type { ZoomChangeCallback } from './ZoomController';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -33,6 +35,24 @@ export interface AnimationOptions {
 }
 
 /**
+ * Zoom configuration for CircuitRenderer (Story 6.6).
+ */
+export interface ZoomOptions {
+  /** Initial zoom scale (default: 1.0) */
+  initialScale?: number;
+  /** Minimum zoom scale (default: 0.25) */
+  min?: number;
+  /** Maximum zoom scale (default: 4.0) */
+  max?: number;
+  /** Zoom step increment (default: 0.1) */
+  step?: number;
+  /** Enable mouse wheel zoom (default: true) */
+  wheelZoomEnabled?: boolean;
+  /** Callback when zoom changes */
+  onZoomChange?: ZoomChangeCallback;
+}
+
+/**
  * Options for CircuitRenderer component.
  */
 export interface CircuitRendererOptions {
@@ -40,6 +60,8 @@ export interface CircuitRendererOptions {
   onRenderComplete?: () => void;
   /** Animation configuration (Story 6.5) */
   animation?: AnimationOptions;
+  /** Zoom configuration (Story 6.6) */
+  zoom?: ZoomOptions;
 }
 
 /**
@@ -90,6 +112,10 @@ export class CircuitRenderer {
   private changedGates: Set<number> = new Set();
   private interpolatedWireStates: Map<number, number[]> | null = null;
 
+  // Zoom (Story 6.6)
+  private zoomController: ZoomController;
+  private boundWheelHandler: ((e: WheelEvent) => void) | null = null;
+
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
   private lastLayoutHeight: number = 0;
@@ -105,6 +131,25 @@ export class CircuitRenderer {
   constructor(options?: CircuitRendererOptions) {
     this.options = options ?? {};
     this.boundHandleResize = this.handleResize.bind(this);
+
+    // Initialize zoom controller with options (Story 6.6)
+    // Only pass defined values to avoid overwriting defaults with undefined
+    const zoomOpts = this.options.zoom;
+    const zoomConfig: Partial<{ min: number; max: number; step: number }> = {};
+    if (zoomOpts?.min !== undefined) zoomConfig.min = zoomOpts.min;
+    if (zoomOpts?.max !== undefined) zoomConfig.max = zoomOpts.max;
+    if (zoomOpts?.step !== undefined) zoomConfig.step = zoomOpts.step;
+    this.zoomController = new ZoomController(zoomConfig);
+
+    // Set initial scale if provided
+    if (zoomOpts?.initialScale !== undefined) {
+      this.zoomController.setScale(zoomOpts.initialScale);
+    }
+
+    // Set up zoom change callback
+    if (zoomOpts?.onZoomChange) {
+      this.zoomController.setOnChange(zoomOpts.onZoomChange);
+    }
   }
 
   /**
@@ -146,8 +191,45 @@ export class CircuitRenderer {
     const rect = this.container.getBoundingClientRect();
     this.updateDimensions(rect.width, rect.height);
 
+    // Set up wheel zoom handler (Story 6.6)
+    this.setupWheelZoom();
+
     // Initial render
     this.render();
+  }
+
+  /**
+   * Set up mouse wheel zoom handler.
+   * @private
+   */
+  private setupWheelZoom(): void {
+    if (!this.canvas) return;
+
+    // Check if wheel zoom is enabled (default: true)
+    const wheelZoomEnabled = this.options.zoom?.wheelZoomEnabled !== false;
+
+    this.boundWheelHandler = (e: WheelEvent) => {
+      // Skip if wheel zoom is disabled
+      if (!wheelZoomEnabled) return;
+
+      e.preventDefault();
+
+      // Determine zoom direction (negative deltaY = zoom in)
+      const zoomIn = e.deltaY < 0;
+
+      // Get cursor position relative to canvas
+      const x = e.offsetX;
+      const y = e.offsetY;
+
+      // Zoom at cursor position
+      this.zoomController.zoomAtPoint(x, y, zoomIn);
+
+      // Re-render with new zoom
+      this.render();
+    };
+
+    // Use passive: false to allow preventDefault
+    this.canvas.addEventListener('wheel', this.boundWheelHandler, { passive: false });
   }
 
   /**
@@ -166,6 +248,7 @@ export class CircuitRenderer {
   /**
    * Update canvas dimensions for display and internal rendering.
    * Handles HiDPI displays by scaling the internal canvas size.
+   * Applies zoom scale to the canvas transform.
    * @param width - Display width in CSS pixels
    * @param height - Display height in CSS pixels
    * @private
@@ -188,9 +271,22 @@ export class CircuitRenderer {
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
 
-    // Scale context to match device pixel ratio
+    // Apply transform with device pixel ratio and zoom scale (Story 6.6)
+    this.applyCanvasTransform();
+  }
+
+  /**
+   * Apply canvas transform with device pixel ratio and zoom scale.
+   * @private
+   */
+  private applyCanvasTransform(): void {
+    if (!this.ctx) return;
+
+    const zoom = this.zoomController.getScale();
+    const combinedScale = this.devicePixelRatio * zoom;
+
     this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-    this.ctx.scale(this.devicePixelRatio, this.devicePixelRatio);
+    this.ctx.scale(combinedScale, combinedScale);
   }
 
   /**
@@ -212,10 +308,15 @@ export class CircuitRenderer {
   render(): void {
     if (!this.ctx || !this.canvas) return;
 
+    // Apply canvas transform with current zoom (Story 6.6)
+    this.applyCanvasTransform();
+
     // Clear canvas with theme background
+    // Note: fillRect coordinates are in zoomed space, so we need to account for zoom
     const bgColor = this.getThemeBackground();
     this.ctx.fillStyle = bgColor;
-    this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
+    const zoom = this.zoomController.getScale();
+    this.ctx.fillRect(0, 0, this.displayWidth / zoom, this.displayHeight / zoom);
 
     // Ensure layout is calculated before rendering (Story 6.4)
     this.ensureLayoutCalculated();
@@ -507,6 +608,70 @@ export class CircuitRenderer {
     return this.devicePixelRatio;
   }
 
+  // ============================================================================
+  // Zoom Methods (Story 6.6)
+  // ============================================================================
+
+  /**
+   * Get the current zoom scale.
+   * @returns Current zoom scale (1.0 = 100%)
+   */
+  getZoom(): number {
+    return this.zoomController.getScale();
+  }
+
+  /**
+   * Set the zoom scale and re-render.
+   * @param scale - New zoom scale (clamped to min/max)
+   */
+  setZoom(scale: number): void {
+    const oldScale = this.zoomController.getScale();
+    this.zoomController.setScale(scale);
+    // Only re-render if zoom actually changed and we're mounted
+    if (this.ctx && this.zoomController.getScale() !== oldScale) {
+      this.render();
+    }
+  }
+
+  /**
+   * Reset zoom to 100% (scale = 1.0).
+   */
+  resetZoom(): void {
+    this.zoomController.reset();
+    this.render();
+  }
+
+  /**
+   * Calculate and set zoom to fit the entire circuit in view.
+   * @returns The calculated zoom scale
+   */
+  zoomToFit(): number {
+    if (!this.circuitModel || !this.layout) {
+      return 1.0;
+    }
+
+    // Calculate circuit bounds from layout
+    const bounds = this.layout.getBounds();
+    if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+      return 1.0;
+    }
+
+    return this.zoomController.zoomToFit(
+      bounds.width,
+      bounds.height,
+      this.displayWidth,
+      this.displayHeight
+    );
+  }
+
+  /**
+   * Get the zoom level as a display percentage string.
+   * @returns Formatted string like "100%"
+   */
+  getZoomDisplayPercent(): string {
+    return this.zoomController.getDisplayPercent();
+  }
+
   /**
    * Destroy the component and clean up resources.
    * Removes the canvas and disconnects the resize observer.
@@ -516,6 +681,12 @@ export class CircuitRenderer {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
+    }
+
+    // Clean up zoom wheel listener BEFORE clearing canvas reference (Story 6.6)
+    if (this.canvas && this.boundWheelHandler) {
+      this.canvas.removeEventListener('wheel', this.boundWheelHandler, { passive: false } as EventListenerOptions);
+      this.boundWheelHandler = null;
     }
 
     // Remove canvas from DOM

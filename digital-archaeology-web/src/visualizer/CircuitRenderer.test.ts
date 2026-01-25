@@ -1221,4 +1221,286 @@ describe('CircuitRenderer', () => {
       noAnimRenderer.destroy();
     });
   });
+
+  // Story 6.6: Zoom Controls
+  describe('zoom controls (Story 6.6)', () => {
+    it('should have default zoom of 1.0', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      expect(zoomRenderer.getZoom()).toBe(1.0);
+      zoomRenderer.destroy();
+    });
+
+    it('should set zoom scale', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      zoomRenderer.setZoom(1.5);
+      expect(zoomRenderer.getZoom()).toBe(1.5);
+      zoomRenderer.destroy();
+    });
+
+    it('should clamp zoom to minimum', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      zoomRenderer.setZoom(0.1);
+      expect(zoomRenderer.getZoom()).toBe(0.25);
+      zoomRenderer.destroy();
+    });
+
+    it('should clamp zoom to maximum', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      zoomRenderer.setZoom(5.0);
+      expect(zoomRenderer.getZoom()).toBe(4.0);
+      zoomRenderer.destroy();
+    });
+
+    it('should reset zoom to 1.0', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      zoomRenderer.setZoom(2.5);
+      zoomRenderer.resetZoom();
+      expect(zoomRenderer.getZoom()).toBe(1.0);
+      zoomRenderer.destroy();
+    });
+
+    it('should apply zoom scale to canvas transform', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      mockScale.mockClear();
+
+      zoomRenderer.setZoom(2.0);
+      zoomRenderer.render();
+
+      // Scale should be devicePixelRatio * zoom = 2 * 2 = 4
+      expect(mockScale).toHaveBeenCalledWith(4, 4);
+      zoomRenderer.destroy();
+    });
+
+    it('should call onZoomChange callback when zoom changes', () => {
+      const onZoomChange = vi.fn();
+      const zoomRenderer = new CircuitRenderer({
+        zoom: { onZoomChange },
+      });
+      zoomRenderer.mount(container);
+
+      zoomRenderer.setZoom(1.5);
+
+      expect(onZoomChange).toHaveBeenCalledWith(1.5, '150%');
+
+      zoomRenderer.destroy();
+    });
+
+    it('should not call onZoomChange if zoom did not change', () => {
+      const onZoomChange = vi.fn();
+      const zoomRenderer = new CircuitRenderer({
+        zoom: { onZoomChange },
+      });
+      zoomRenderer.mount(container);
+
+      zoomRenderer.setZoom(1.0); // Same as default
+
+      expect(onZoomChange).not.toHaveBeenCalled();
+
+      zoomRenderer.destroy();
+    });
+
+    it('should accept zoom configuration options', () => {
+      const zoomRenderer = new CircuitRenderer({
+        zoom: {
+          initialScale: 1.5,
+          min: 0.5,
+          max: 3.0,
+        },
+      });
+      zoomRenderer.mount(container);
+
+      expect(zoomRenderer.getZoom()).toBe(1.5);
+
+      // Test new bounds
+      zoomRenderer.setZoom(0.3);
+      expect(zoomRenderer.getZoom()).toBe(0.5);
+
+      zoomRenderer.setZoom(4.0);
+      expect(zoomRenderer.getZoom()).toBe(3.0);
+
+      zoomRenderer.destroy();
+    });
+
+    it('should calculate zoomToFit for circuit content', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+
+      // Load a circuit first
+      const mockCircuit: CircuitData = {
+        gates: [
+          { id: 0, name: 'G1', type: 'AND', inputs: [], outputs: [] },
+          { id: 1, name: 'G2', type: 'OR', inputs: [], outputs: [] },
+        ],
+        wires: [],
+      };
+      zoomRenderer.updateState({ circuitData: mockCircuit });
+
+      const scale = zoomRenderer.zoomToFit();
+
+      // Should return a scale value
+      expect(typeof scale).toBe('number');
+      expect(scale).toBeGreaterThan(0);
+      expect(zoomRenderer.getZoom()).toBe(scale);
+      zoomRenderer.destroy();
+    });
+
+    it('should return 1.0 from zoomToFit when no circuit loaded', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+      const scale = zoomRenderer.zoomToFit();
+      expect(scale).toBe(1.0);
+      zoomRenderer.destroy();
+    });
+
+    it('should get zoom display percentage', () => {
+      const zoomRenderer = new CircuitRenderer();
+      zoomRenderer.mount(container);
+
+      zoomRenderer.setZoom(1.0);
+      expect(zoomRenderer.getZoomDisplayPercent()).toBe('100%');
+
+      zoomRenderer.setZoom(0.5);
+      expect(zoomRenderer.getZoomDisplayPercent()).toBe('50%');
+
+      zoomRenderer.setZoom(2.0);
+      expect(zoomRenderer.getZoomDisplayPercent()).toBe('200%');
+      zoomRenderer.destroy();
+    });
+  });
+
+  describe('wheel zoom handler (Story 6.6)', () => {
+    it('should attach wheel event listener on mount', () => {
+      let wheelEventListener: ((e: WheelEvent) => void) | null = null;
+      const addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(
+        function(this: HTMLCanvasElement, type: string, listener: EventListenerOrEventListenerObject) {
+          if (type === 'wheel') {
+            wheelEventListener = listener as (e: WheelEvent) => void;
+          }
+        }
+      );
+
+      const wheelRenderer = new CircuitRenderer();
+      wheelRenderer.mount(container);
+      expect(wheelEventListener).not.toBeNull();
+
+      wheelRenderer.destroy();
+      addSpy.mockRestore();
+    });
+
+    it('should zoom in on wheel up (negative deltaY)', () => {
+      let wheelEventListener: ((e: WheelEvent) => void) | null = null;
+      const addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(
+        function(this: HTMLCanvasElement, type: string, listener: EventListenerOrEventListenerObject) {
+          if (type === 'wheel') {
+            wheelEventListener = listener as (e: WheelEvent) => void;
+          }
+        }
+      );
+
+      const wheelRenderer = new CircuitRenderer();
+      wheelRenderer.mount(container);
+
+      const wheelEvent = new WheelEvent('wheel', {
+        deltaY: -100,
+        clientX: 400,
+        clientY: 300,
+      });
+      Object.defineProperty(wheelEvent, 'offsetX', { value: 400 });
+      Object.defineProperty(wheelEvent, 'offsetY', { value: 300 });
+
+      wheelEventListener!(wheelEvent);
+
+      expect(wheelRenderer.getZoom()).toBeGreaterThan(1.0);
+
+      wheelRenderer.destroy();
+      addSpy.mockRestore();
+    });
+
+    it('should zoom out on wheel down (positive deltaY)', () => {
+      let wheelEventListener: ((e: WheelEvent) => void) | null = null;
+      const addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(
+        function(this: HTMLCanvasElement, type: string, listener: EventListenerOrEventListenerObject) {
+          if (type === 'wheel') {
+            wheelEventListener = listener as (e: WheelEvent) => void;
+          }
+        }
+      );
+
+      const wheelRenderer = new CircuitRenderer();
+      wheelRenderer.mount(container);
+
+      const wheelEvent = new WheelEvent('wheel', {
+        deltaY: 100,
+        clientX: 400,
+        clientY: 300,
+      });
+      Object.defineProperty(wheelEvent, 'offsetX', { value: 400 });
+      Object.defineProperty(wheelEvent, 'offsetY', { value: 300 });
+
+      wheelEventListener!(wheelEvent);
+
+      expect(wheelRenderer.getZoom()).toBeLessThan(1.0);
+
+      wheelRenderer.destroy();
+      addSpy.mockRestore();
+    });
+
+    it('should disable wheel zoom when wheelZoomEnabled is false', () => {
+      let wheelEventListener: ((e: WheelEvent) => void) | null = null;
+      const addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(
+        function(this: HTMLCanvasElement, type: string, listener: EventListenerOrEventListenerObject) {
+          if (type === 'wheel') {
+            wheelEventListener = listener as (e: WheelEvent) => void;
+          }
+        }
+      );
+
+      const noWheelRenderer = new CircuitRenderer({
+        zoom: { wheelZoomEnabled: false },
+      });
+      noWheelRenderer.mount(container);
+
+      const wheelEvent = new WheelEvent('wheel', {
+        deltaY: -100,
+        clientX: 400,
+        clientY: 300,
+      });
+      Object.defineProperty(wheelEvent, 'offsetX', { value: 400 });
+      Object.defineProperty(wheelEvent, 'offsetY', { value: 300 });
+
+      // Should still attach listener but not change zoom
+      if (wheelEventListener) {
+        wheelEventListener(wheelEvent);
+      }
+
+      expect(noWheelRenderer.getZoom()).toBe(1.0);
+
+      noWheelRenderer.destroy();
+      addSpy.mockRestore();
+    });
+
+    it('should remove wheel listener on destroy', () => {
+      const addSpy = vi.spyOn(HTMLCanvasElement.prototype, 'addEventListener').mockImplementation(() => {});
+      const removeSpy = vi.spyOn(HTMLCanvasElement.prototype, 'removeEventListener');
+
+      const wheelRenderer = new CircuitRenderer();
+      wheelRenderer.mount(container);
+      wheelRenderer.destroy();
+
+      expect(removeSpy).toHaveBeenCalledWith(
+        'wheel',
+        expect.any(Function),
+        expect.any(Object)
+      );
+
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    });
+  });
 });

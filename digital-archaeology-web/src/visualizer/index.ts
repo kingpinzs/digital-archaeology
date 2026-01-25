@@ -52,3 +52,10 @@ export {
   DEFAULT_PULSE_MAX_SCALE,
   DEFAULT_PULSE_DURATION,
 } from './animationUtils';
+
+// Story 6.6: Zoom Controls
+export { ZoomController, DEFAULT_ZOOM_CONFIG } from './ZoomController';
+export type { ZoomControllerConfig, ZoomOffset, ZoomChangeCallback } from './ZoomController';
+export { ZoomControlsToolbar } from './ZoomControlsToolbar';
+export type { ZoomControlsCallbacks, ZoomControlsState } from './ZoomControlsToolbar';
+export type { ZoomOptions } from './CircuitRenderer';

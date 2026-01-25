@@ -73,3 +73,22 @@ export type { InstructionMapping } from './InstructionGateMapping';
 
 // Story 6.10: Circuit-to-Code Linking
 export { getInstructionsForGate } from './InstructionGateMapping';
+
+// Story 6.11: Signal Values Panel
+export { SignalValuesPanel } from './SignalValuesPanel';
+export type { SignalValuesPanelOptions, SignalDefinition } from './SignalValuesPanel';
+export {
+  formatSignalLabel,
+  stateToBinary,
+  stateToDecimal,
+  decimalToHex,
+  formatWireValue,
+  statesEqual,
+} from './signalFormatters';
+
+// Story 6.12: Breadcrumb Navigation
+export { BreadcrumbNav } from './BreadcrumbNav';
+export type { BreadcrumbNavOptions, BreadcrumbItem } from './BreadcrumbNav';
+
+// Story 6.13: CPU-Circuit Integration
+export { CPUCircuitBridge, numberToBitArray } from './CPUCircuitBridge';

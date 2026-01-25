@@ -313,6 +313,30 @@ Users play Digital Archaeology as a time-travel simulation game. First launch la
 Users experience computing history through authentic primary sources. Period documents library (letters, journals, memos, patents), Wikipedia deep dives organized by era, and curated reference links connecting story content to real historical sources.
 **FRs covered:** Historical immersion (from IMMERSIVE_PLATFORM_PLAN.md)
 
+### Epic 28: Stage 0 - Pre-CPU Fundamentals
+Users learn foundational concepts BEFORE building CPUs. Electricity fundamentals (what is current, voltage, resistance), transistor as a switch, logic gates from transistors, boolean algebra as the math of logic, number systems (binary, hex) as fluency not just understanding, and optional hands-on skills (soldering, breadboards, multimeters).
+**FRs covered:** Brainstorming Ideas #28-30 (Pre-CPU Fundamentals, Tools & Physical Skills, Number Systems as Language)
+
+### Epic 29: Full Stack Journey
+Users build the ENTIRE computing stack, not just use tools. Build your own assembler (understand how text becomes machine code), build a simple compiler (high-level language to assembly), build an OS from scratch (bootloader, simple kernel, I/O), culminating in "The Full Stack Moment" where users understand every electron from switch to application.
+**FRs covered:** Brainstorming Ideas #31-34 (Assembler Internals, Compiler Journey, OS From Scratch, Full Stack Moment)
+
+### Epic 30: Computer Ecosystem Understanding
+Users understand WHY each component exists through discovery. Memory Deep Dive (RAM vs ROM vs cache - why all three?), Peripherals & I/O (how computers talk to the world), Buses & Interconnects (the nervous system of computers), with historical context showing how each evolved from necessity.
+**FRs covered:** Brainstorming Ideas #35-37 (Memory Deep Dive, Peripherals & I/O, Buses & Interconnects)
+
+### Epic 31: Alternate Architectures Exploration (The Paradigm Graveyard)
+Users explore "roads not taken" - architectures that lost but might have worked. Explorable alternate paths include: relay computers (slow but anyone can build), analog computing (noise killed it but neural nets revive it), ternary logic (transistors favor binary but quantum might not), stack machines (JVM uses them!), dataflow architectures (GPUs are secretly dataflow), Lisp machines (specialized AI hardware is back), transport-triggered architecture (radically simple), and asynchronous CPUs (no clock = less power, no timing attacks).
+**FRs covered:** Brainstorming Ideas #17, #20 (What's Left on the Floor, The Paradigm Graveyard)
+
+### Epic 32: Historical Path Branches (The Discovery Web)
+Users can explore 8 parallel tracks of interconnected discoveries that led to modern computing. Each track shows how inventions built on each other: Electricity (Thales→Franklin→Volta→Faraday→Edison/Tesla), Mechanical Computing (Abacus→Pascal→Leibniz→Babbage→Zuse), Logic & Mathematics (Aristotle→Boole→Frege→Gödel→Turing), Programming (Lovelace→Hollerith→Hopper→Backus→Ritchie), Communication (Smoke signals→Telegraph→Telephone→Radio→Internet), Switches & Signals (Relays→Vacuum tubes→Transistors→ICs), Memory & Storage (Paper tape→Drums→Core→RAM→Flash), Human-Machine Interface (Punch cards→Terminals→GUI→Touch→Voice).
+**FRs covered:** Brainstorming session "Historical Path Branches" section
+
+### Epic 33: Branch Point What-If Scenarios
+Users explore specific moments where history could have diverged, with playable "what if" content. Key branch points: 1837 (What if Babbage got funding?), 1970s (What if stack machines won over register machines?), 1978 (What if Intel went flat 32-bit instead of segment registers?), 1980s (What if IBM kept PC proprietary like Apple?), 1985 (What if 386 made a clean break from real mode?), 1990s (What if MIPS/SPARC beat x86?), 2000s (What if the multicore pivot went differently?).
+**FRs covered:** Brainstorming session "Key Branch Points in History" section
+
 ---
 
 ## Epic 1: Project Foundation & App Shell
@@ -4544,6 +4568,815 @@ So that I can find specific information.
 **And** search results show relevant excerpts
 **And** I can filter results by era or author
 **And** search history is saved for convenience
+
+---
+
+## Epic 28: Stage 0 - Pre-CPU Fundamentals
+
+**Goal:** Users learn foundational concepts BEFORE building CPUs - starting from "you don't know computers exist"
+
+**FRs covered:** Brainstorming Ideas #28-30
+
+**Dependencies:** None - this is the TRUE beginning of the journey
+
+### Story 28.1: Electricity Fundamentals Module
+
+As a learner starting from zero,
+I want to understand what electricity IS,
+So that I can understand how it powers computation.
+
+**Acceptance Criteria:**
+
+**Given** I am beginning my journey
+**When** I enter the Electricity module
+**Then** I learn through discovery: What is current? What is voltage? What is resistance?
+**And** I see interactive visualizations of electron flow
+**And** I understand Ohm's law through experimentation, not memorization
+**And** I can simulate simple circuits (battery, resistor, LED)
+**And** the module connects to the historical discovery of electricity (Franklin, Volta, Faraday)
+
+**Historical Context:**
+- "You are Benjamin Franklin. It's 1752. What IS this lightning?"
+- Discovery-based learning, not textbook memorization
+
+---
+
+### Story 28.2: Transistor as a Switch
+
+As a learner,
+I want to understand how a transistor works as a switch,
+So that I can see how electricity becomes logic.
+
+**Acceptance Criteria:**
+
+**Given** I understand basic electricity
+**When** I enter the Transistor module
+**Then** I see a transistor as a voltage-controlled switch
+**And** I can toggle it on/off interactively
+**And** I understand: small signal controls large current
+**And** I see the progression: relay → vacuum tube → transistor
+**And** I understand WHY transistors won (size, speed, reliability, power)
+
+**Historical Context:**
+- "You are at Bell Labs, 1947. Vacuum tubes keep burning out. There must be a better way..."
+
+---
+
+### Story 28.3: Logic Gates from Transistors
+
+As a learner,
+I want to build logic gates from transistors,
+So that I understand gates aren't magic boxes.
+
+**Acceptance Criteria:**
+
+**Given** I understand transistors as switches
+**When** I enter the Logic Gates module
+**Then** I BUILD a NOT gate from a transistor (interactive)
+**And** I BUILD an AND gate from transistors
+**And** I BUILD an OR gate from transistors
+**And** I discover NAND and NOR as "universal gates"
+**And** I understand: ALL computation reduces to these simple operations
+
+**Discovery Moment:**
+- "Wait... if NAND can build anything, why do we need other gates?"
+
+---
+
+### Story 28.4: Boolean Algebra as Logic's Mathematics
+
+As a learner,
+I want to understand Boolean algebra,
+So that I can reason about logic mathematically.
+
+**Acceptance Criteria:**
+
+**Given** I can build logic gates
+**When** I enter the Boolean Algebra module
+**Then** I learn AND, OR, NOT as mathematical operations
+**And** I learn truth tables through building, not memorizing
+**And** I understand De Morgan's laws through experimentation
+**And** I can simplify logic expressions
+**And** I connect this to George Boole's original insight (1854)
+
+**Historical Context:**
+- "You are George Boole. Logic has always been philosophy. But what if logic could be MATHEMATICS?"
+
+---
+
+### Story 28.5: Number Systems Fluency
+
+As a learner,
+I want FLUENCY in binary and hexadecimal,
+So that I think in these systems, not translate to decimal.
+
+**Acceptance Criteria:**
+
+**Given** I understand logic gates
+**When** I practice number systems
+**Then** I can count in binary without converting to decimal
+**And** I can add in binary directly
+**And** I understand hex as "compact binary" (4 bits = 1 hex digit)
+**And** I can read hex dumps and understand patterns
+**And** number systems become a LANGUAGE, not a conversion exercise
+
+**Fluency Test:**
+- See "1010" and think "ten" without calculating 8+2
+
+---
+
+### Story 28.6: Tools & Physical Skills (Optional Track)
+
+As a learner who wants hands-on experience,
+I want to learn physical electronics skills,
+So that I can build real circuits, not just simulations.
+
+**Acceptance Criteria:**
+
+**Given** I want to go beyond simulation
+**When** I enter the Physical Skills module
+**Then** I learn breadboard basics (interactive simulation first)
+**And** I learn soldering fundamentals (video tutorials, safety)
+**And** I learn to use a multimeter (measure voltage, current, resistance)
+**And** I understand: what can be safely built at home vs. what needs professional equipment
+**And** I get kit recommendations for each skill level
+
+**Safety First:**
+- Clear guidance on voltage safety (low voltage experiments only)
+- What NOT to do (mains electricity, high voltage)
+
+---
+
+## Epic 29: Full Stack Journey
+
+**Goal:** Users build the ENTIRE computing stack, understanding every layer from switch to application
+
+**FRs covered:** Brainstorming Ideas #31-34
+
+**Dependencies:** Epic 28 (Stage 0), Epics 1-5 (basic CPU understanding)
+
+### Story 29.1: Build Your Own Assembler
+
+As a learner,
+I want to BUILD an assembler from scratch,
+So that I understand how text becomes machine code.
+
+**Acceptance Criteria:**
+
+**Given** I understand CPU instruction encoding
+**When** I build my assembler
+**Then** I implement lexical analysis (tokenizing assembly text)
+**And** I implement parsing (understanding instruction syntax)
+**And** I implement symbol resolution (labels → addresses)
+**And** I implement encoding (instructions → binary)
+**And** my assembler can assemble programs for the CPU I built
+**And** I understand: the assembler is just a translator, not magic
+
+**The Insight:**
+- "An assembler is just pattern matching and number lookup. I could have written this!"
+
+---
+
+### Story 29.2: Build Your Own Disassembler
+
+As a learner,
+I want to build a disassembler,
+So that I can reverse the assembler's process.
+
+**Acceptance Criteria:**
+
+**Given** I built an assembler
+**When** I build a disassembler
+**Then** I implement opcode decoding (binary → instruction type)
+**And** I implement operand extraction (which registers, what address)
+**And** I implement formatting (binary → readable text)
+**And** I can disassemble any program for my CPU
+**And** I understand: disassembly is the assembler in reverse
+
+---
+
+### Story 29.3: Build a Simple Compiler
+
+As a learner,
+I want to build a simple compiler,
+So that I understand how high-level code becomes assembly.
+
+**Acceptance Criteria:**
+
+**Given** I built an assembler
+**When** I build a simple compiler
+**Then** I implement a tiny language (variables, arithmetic, if/else, loops)
+**And** I implement parsing (text → syntax tree)
+**And** I implement code generation (syntax tree → assembly)
+**And** I can compile simple programs to my CPU's assembly
+**And** I understand: compilers are translators with optimization
+
+**The Language:**
+- Start with something TINY (simpler than BASIC)
+- Just enough to understand the concept
+
+---
+
+### Story 29.4: Build a Bootloader
+
+As a learner,
+I want to build a bootloader,
+So that I understand how computers start up.
+
+**Acceptance Criteria:**
+
+**Given** I have a working CPU
+**When** I build a bootloader
+**Then** I understand: CPU starts at a fixed address
+**And** I implement: read program from "storage" (simulated)
+**And** I implement: load program into memory
+**And** I implement: jump to program start
+**And** I understand: the bootloader is the FIRST program that runs
+
+**The Insight:**
+- "The CPU doesn't know what an 'operating system' is. It just executes instructions from address 0."
+
+---
+
+### Story 29.5: Build a Simple Kernel
+
+As a learner,
+I want to build a simple kernel,
+So that I understand what an operating system actually does.
+
+**Acceptance Criteria:**
+
+**Given** I have a bootloader
+**When** I build a simple kernel
+**Then** I implement: hardware abstraction (hide device details)
+**And** I implement: program loading (run user programs)
+**And** I implement: basic I/O (keyboard input, screen output)
+**And** I implement: simple memory management (who gets what memory)
+**And** I understand: the kernel is just a program that manages other programs
+
+**Scope:**
+- NOT a full OS - just enough to understand the concept
+- Single-tasking is fine (no need for multitasking complexity)
+
+---
+
+### Story 29.6: The Full Stack Moment
+
+As a learner who has built everything,
+I want a graduation experience,
+So that I recognize my complete understanding.
+
+**Acceptance Criteria:**
+
+**Given** I have built: gates, CPU, assembler, compiler, bootloader, kernel
+**When** I reach the Full Stack Moment
+**Then** I can trace a high-level program through EVERY layer
+**And** I can explain: source code → compiler → assembly → assembler → binary → CPU execution
+**And** I understand every electron's journey from keystroke to screen pixel
+**And** I receive recognition: "You understand the complete stack"
+
+**The Test:**
+- Write a program in your high-level language
+- Watch it flow through every layer you built
+- Explain each transformation
+
+---
+
+## Epic 30: Computer Ecosystem Understanding
+
+**Goal:** Users understand WHY each component exists, through discovery of the problems they solve
+
+**FRs covered:** Brainstorming Ideas #35-37
+
+**Dependencies:** Epic 4-5 (basic CPU execution), Epic 28 (fundamentals)
+
+### Story 30.1: Memory Deep Dive - Why RAM?
+
+As a learner,
+I want to understand why RAM exists,
+So that I see memory as a solution to a problem.
+
+**Acceptance Criteria:**
+
+**Given** I understand basic CPU execution
+**When** I explore the Memory module
+**Then** I discover: CPU registers are fast but FEW
+**And** I discover: we need MORE storage that's still fast
+**And** I understand RAM as "lots of registers, a bit slower"
+**And** I see the tradeoff: more memory = slower access = cheaper
+**And** I understand the memory hierarchy (registers → cache → RAM → disk)
+
+**Discovery:**
+- "My program is too big for registers. Where do I put data?"
+
+---
+
+### Story 30.2: Memory Deep Dive - Why ROM?
+
+As a learner,
+I want to understand why ROM exists,
+So that I see persistent storage as necessary.
+
+**Acceptance Criteria:**
+
+**Given** I understand RAM
+**When** I explore ROM
+**Then** I discover: RAM loses data when power is off
+**And** I discover: we need memory that SURVIVES power loss
+**And** I understand ROM as "permanent instructions"
+**And** I see the evolution: ROM → PROM → EPROM → EEPROM → Flash
+**And** I understand: the bootloader lives in ROM because it must survive power-off
+
+---
+
+### Story 30.3: Memory Deep Dive - Why Cache?
+
+As a learner,
+I want to understand why cache exists,
+So that I see caching as a speed optimization.
+
+**Acceptance Criteria:**
+
+**Given** I understand RAM speed limitations
+**When** I explore cache
+**Then** I discover: RAM is too slow for fast CPUs
+**And** I discover: small, fast memory between CPU and RAM = cache
+**And** I understand: cache exploits locality (we reuse recent data)
+**And** I see cache hits vs. misses visually
+**And** I understand the cache hierarchy (L1, L2, L3)
+
+**The Insight:**
+- "The CPU would waste cycles waiting for RAM. Cache keeps it fed."
+
+---
+
+### Story 30.4: Peripherals & I/O - Talking to the World
+
+As a learner,
+I want to understand how CPUs communicate with devices,
+So that I see I/O as the bridge between computation and reality.
+
+**Acceptance Criteria:**
+
+**Given** I understand CPU execution
+**When** I explore I/O
+**Then** I understand: CPUs can't directly touch hardware (keyboards, screens, disks)
+**And** I learn about I/O ports and memory-mapped I/O
+**And** I understand interrupts: devices can request CPU attention
+**And** I see how keyboards, displays, and storage connect to the CPU
+**And** I understand device drivers as "translators" between OS and hardware
+
+**Discovery:**
+- "How does pressing a key become a character on screen?"
+
+---
+
+### Story 30.5: Buses & Interconnects - The Nervous System
+
+As a learner,
+I want to understand buses,
+So that I see how components communicate.
+
+**Acceptance Criteria:**
+
+**Given** I understand CPU, memory, and I/O
+**When** I explore buses
+**Then** I understand: address bus (which location), data bus (what data), control bus (read/write)
+**And** I see bus contention: only one device can use the bus at a time
+**And** I understand bus width vs. speed tradeoffs
+**And** I see the evolution: parallel buses → serial buses (PCIe, USB)
+**And** I understand: the bus is the computer's nervous system
+
+**Visual:**
+- Animated buses showing data flowing between components
+
+---
+
+## Epic 31: Alternate Architectures Exploration (The Paradigm Graveyard)
+
+**Goal:** Users explore "roads not taken" - architectures that lost but might have worked, with playable simulations
+
+**FRs covered:** Brainstorming Ideas #17, #20
+
+**Dependencies:** Epic 26 (alternate timeline system), Epic 28-30 (understanding to appreciate alternatives)
+
+### Story 31.1: Relay Computer Exploration
+
+As a learner curious about alternatives,
+I want to explore relay computers,
+So that I understand computing before transistors.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Relay Computer module
+**Then** I can build a relay-based logic gate (interactive)
+**And** I hear the satisfying CLICK of relays switching
+**And** I understand: relays are slow but ANYONE can build them
+**And** I see Zuse's Z3 as the first programmable relay computer
+**And** I can build a simple relay computer in simulation
+**And** I understand: why relays lost (speed, size, power, reliability)
+
+**The Insight:**
+- "I could build a computer from parts at a hardware store. It would be slow, but it would WORK."
+
+---
+
+### Story 31.2: Analog Computing Exploration
+
+As a learner,
+I want to explore analog computers,
+So that I understand computation without digital.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Analog Computer module
+**Then** I understand: analog computers use continuous signals, not 0/1
+**And** I see how analog computers solve differential equations instantly
+**And** I understand: noise and precision killed analog for general computing
+**And** I discover: neural networks are secretly analog-ish
+**And** I understand: analog might return for specific applications
+
+**The Question:**
+- "What if we hadn't abandoned analog? Would AI have happened sooner?"
+
+---
+
+### Story 31.3: Ternary Logic Exploration
+
+As a learner,
+I want to explore ternary (base-3) computing,
+So that I question the assumption of binary.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Ternary module
+**Then** I understand: ternary uses -1, 0, +1 instead of 0, 1
+**And** I see the Soviet Setun computer (the only production ternary machine)
+**And** I understand: ternary is more efficient mathematically
+**And** I discover: transistors favor binary, but optical/quantum might not
+**And** I can build a simple ternary adder in simulation
+
+**The Question:**
+- "Why binary? Is it physics, or is it just what caught on?"
+
+---
+
+### Story 31.4: Stack Machine Exploration
+
+As a learner,
+I want to explore stack-based architectures,
+So that I understand an alternative to register machines.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Stack Machine module
+**Then** I understand: operations pop operands from stack, push results
+**And** I see how stack machines simplify instruction encoding
+**And** I build a simple stack machine in simulation
+**And** I discover: JVM and WebAssembly are stack-based!
+**And** I understand: stack machines lost in hardware but won in virtual machines
+
+**The Twist:**
+- "Wait, my browser runs a stack machine? They didn't really lose!"
+
+---
+
+### Story 31.5: Dataflow Architecture Exploration
+
+As a learner,
+I want to explore dataflow architectures,
+So that I understand computation without sequential control.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Dataflow module
+**Then** I understand: instructions execute when their data is ready, not in sequence
+**And** I see how dataflow naturally parallelizes
+**And** I discover: GPUs are secretly dataflow architectures
+**And** I build a simple dataflow program in simulation
+**And** I understand: dataflow lost for CPUs but won for parallel processing
+
+---
+
+### Story 31.6: Lisp Machine Exploration
+
+As a learner,
+I want to explore Lisp machines,
+So that I understand specialized hardware for specific languages.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Lisp Machine module
+**Then** I understand: Lisp machines ran Lisp directly in hardware
+**And** I see the garbage collector in silicon
+**And** I discover: general-purpose machines won because of economics
+**And** I notice: specialized AI hardware is back (TPUs, NPUs)
+**And** I understand: the Lisp machine idea may return for AI
+
+**The Pattern:**
+- "Specialized hardware lost... until it didn't. History repeats."
+
+---
+
+### Story 31.7: Asynchronous CPU Exploration
+
+As a learner,
+I want to explore clockless computing,
+So that I understand alternatives to the global clock.
+
+**Acceptance Criteria:**
+
+**Given** I am exploring alternate architectures
+**When** I enter the Asynchronous module
+**Then** I understand: most CPUs use a global clock to synchronize
+**And** I see how asynchronous circuits use handshaking instead
+**And** I discover: no clock = less power, no timing attacks
+**And** I build a simple asynchronous circuit in simulation
+**And** I understand: asynchronous is harder to design but has advantages
+
+---
+
+## Epic 32: Historical Path Branches (The Discovery Web)
+
+**Goal:** Users can explore 8 parallel tracks of interconnected discoveries, seeing how inventions built on each other
+
+**FRs covered:** Brainstorming session "Historical Path Branches"
+
+**Dependencies:** Epic 26 (timeline visualization), Epic 27 (historical documents)
+
+### Story 32.1: Electricity Track
+
+As a learner exploring history,
+I want to follow the Electricity track,
+So that I understand how we harnessed this force.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Electricity track
+**Then** I can explore: Thales (static electricity) → Franklin (lightning) → Volta (battery) → Faraday (electromagnetism) → Edison/Tesla (power systems)
+**And** each discoverer has persona content, documents, and interactive experiments
+**And** I see how each discovery enabled the next
+**And** I can branch off to related tracks (Switches & Signals)
+
+---
+
+### Story 32.2: Mechanical Computing Track
+
+As a learner,
+I want to follow the Mechanical Computing track,
+So that I understand calculation before electricity.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Mechanical Computing track
+**Then** I can explore: Abacus → Pascal (Pascaline) → Leibniz (stepped drum) → Babbage (Difference/Analytical Engines) → Zuse (Z1 mechanical)
+**And** each invention has interactive simulations
+**And** I understand: mechanical computing WORKED, economics killed it
+**And** I can branch to Logic & Mathematics (Babbage needed Ada's algorithms)
+
+---
+
+### Story 32.3: Logic & Mathematics Track
+
+As a learner,
+I want to follow the Logic & Mathematics track,
+So that I understand the theoretical foundations.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Logic & Mathematics track
+**Then** I can explore: Aristotle (syllogisms) → Boole (Boolean algebra) → Frege (formal logic) → Gödel (incompleteness) → Turing (computability)
+**And** each concept has interactive explorations
+**And** I understand: the MATH had to exist before the MACHINES
+**And** I see Shannon's bridge: Boolean algebra = electrical circuits
+
+---
+
+### Story 32.4: Programming Track
+
+As a learner,
+I want to follow the Programming track,
+So that I understand how we learned to instruct machines.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Programming track
+**Then** I can explore: Lovelace (first algorithm) → Hollerith (punch cards) → Hopper (compilers) → Backus (FORTRAN) → Ritchie (C/Unix)
+**And** each milestone has code examples in historical context
+**And** I understand: programming evolved from hardware constraints
+**And** I can branch to Human-Machine Interface (programming tools evolved)
+
+---
+
+### Story 32.5: Communication Track
+
+As a learner,
+I want to follow the Communication track,
+So that I understand information transmission.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Communication track
+**Then** I can explore: Smoke signals → Telegraph → Telephone → Radio → Internet
+**And** I see Shannon's information theory as the breakthrough
+**And** I understand: computers are communication devices
+**And** I can branch to Switches & Signals (telegraph relays became logic)
+
+---
+
+### Story 32.6: Switches & Signals Track
+
+As a learner,
+I want to follow the Switches & Signals track,
+So that I understand physical logic evolution.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Switches & Signals track
+**Then** I can explore: Relays → Vacuum tubes → Transistors → Integrated circuits
+**And** each technology has interactive simulations
+**And** I understand the WHY of each transition (speed, size, power, cost)
+**And** I can branch to any related track
+
+---
+
+### Story 32.7: Memory & Storage Track
+
+As a learner,
+I want to follow the Memory & Storage track,
+So that I understand how we learned to remember.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Memory & Storage track
+**Then** I can explore: Paper tape → Magnetic drums → Core memory → Semiconductor RAM → Flash
+**And** I understand each technology's tradeoffs
+**And** I see the constant: faster = more expensive = smaller
+**And** I can branch to related tracks
+
+---
+
+### Story 32.8: Human-Machine Interface Track
+
+As a learner,
+I want to follow the Human-Machine Interface track,
+So that I understand how we talk to computers.
+
+**Acceptance Criteria:**
+
+**Given** I am in the Historical Path Browser
+**When** I select the Human-Machine Interface track
+**Then** I can explore: Punch cards → Teletypes → CRT terminals → GUI → Touch → Voice
+**And** each interface has simulations (use a punch card, operate a teletype)
+**And** I understand: interfaces evolved as computing power grew
+**And** I see the future: AR/VR, brain-computer interfaces
+
+---
+
+## Epic 33: Branch Point What-If Scenarios
+
+**Goal:** Users explore specific moments where history could have diverged, with playable "what if" content
+
+**FRs covered:** Brainstorming session "Key Branch Points in History"
+
+**Dependencies:** Epic 26 (alternate timeline system), Epic 31 (alternate architectures)
+
+### Story 33.1: What If Babbage Got Funding? (1837)
+
+As a learner exploring alternate history,
+I want to explore what if Babbage's Analytical Engine was built,
+So that I understand how history might have changed.
+
+**Acceptance Criteria:**
+
+**Given** I reach the 1837 branch point
+**When** I choose "What if the government funded Babbage?"
+**Then** I enter an alternate timeline where mechanical computing continued
+**And** I see steam-powered computers in the Victorian era
+**And** I explore: programming would have developed differently (punch cards earlier)
+**And** I understand: electronics might have been adopted later
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.2: What If Stack Machines Won? (1970s)
+
+As a learner,
+I want to explore what if stack machines beat register machines,
+So that I understand the architecture decision.
+
+**Acceptance Criteria:**
+
+**Given** I reach the 1970s architecture branch point
+**When** I choose "What if Burroughs stack machines won?"
+**Then** I enter an alternate timeline where stack architecture dominated
+**And** I program a stack-based CPU (simpler instruction set)
+**And** I understand: compilers would be different, optimization would be different
+**And** I see how this connects to modern JVM/WebAssembly
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.3: What If Intel Went Flat 32-bit? (1978)
+
+As a learner,
+I want to explore what if Intel skipped segment registers,
+So that I understand the legacy burden of x86.
+
+**Acceptance Criteria:**
+
+**Given** I reach the 8086 branch point
+**When** I choose "What if Intel went flat 32-bit immediately?"
+**Then** I enter an alternate timeline without segmentation
+**And** I program a simpler, cleaner architecture
+**And** I understand: no DOS real mode, no protected mode transition pain
+**And** I see the tradeoff: would have been harder/more expensive in 1978
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.4: What If IBM Kept PC Proprietary? (1980s)
+
+As a learner,
+I want to explore what if IBM controlled the PC,
+So that I understand how openness shaped computing.
+
+**Acceptance Criteria:**
+
+**Given** I reach the IBM PC branch point
+**When** I choose "What if IBM kept it closed like Apple?"
+**Then** I enter an alternate timeline of proprietary PCs
+**And** I see: no clones, slower innovation, higher prices
+**And** I understand: the "IBM compatible" ecosystem created the PC industry
+**And** I compare to Apple's actually proprietary path
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.5: What If 386 Made a Clean Break? (1985)
+
+As a learner,
+I want to explore what if Intel abandoned real mode,
+So that I understand backward compatibility costs.
+
+**Acceptance Criteria:**
+
+**Given** I reach the 386 branch point
+**When** I choose "What if Intel broke compatibility?"
+**Then** I enter an alternate timeline where 386 was clean 32-bit only
+**And** I program without the real mode baggage
+**And** I understand: DOS software wouldn't run, adoption would be slower
+**And** I see the tradeoff: clean architecture vs. software ecosystem
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.6: What If RISC Won? (1990s)
+
+As a learner,
+I want to explore what if MIPS or SPARC beat x86,
+So that I understand why x86 survived.
+
+**Acceptance Criteria:**
+
+**Given** I reach the RISC/CISC branch point
+**When** I choose "What if MIPS/SPARC won?"
+**Then** I enter an alternate timeline of RISC dominance
+**And** I program a clean RISC architecture for desktop computing
+**And** I understand: x86 won through brute-force engineering (out-of-order, caches)
+**And** I see: ARM (a RISC) eventually won in mobile
+**And** I can return to the golden path when ready
+
+---
+
+### Story 33.7: What If the Multicore Pivot Went Differently? (2000s)
+
+As a learner,
+I want to explore alternatives to the multicore solution,
+So that I understand why we stopped increasing clock speeds.
+
+**Acceptance Criteria:**
+
+**Given** I reach the 2000s power wall branch point
+**When** I choose "What else could have happened?"
+**Then** I explore alternatives: more specialized cores? Different cooling? Quantum earlier?
+**And** I understand: power consumption became the limiting factor
+**And** I see: multiple cores was the pragmatic solution
+**And** I can explore: what if we solved the power problem differently?
+**And** I can return to the golden path when ready
 
 ---
 

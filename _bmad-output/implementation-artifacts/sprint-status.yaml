@@ -111,7 +111,7 @@ development_status:
   6-6-implement-zoom-controls: done
   6-7-implement-pan-navigation: done
   6-8-show-component-tooltips: done
-  6-9-implement-code-to-circuit-linking: in-progress
+  6-9-implement-code-to-circuit-linking: done
   6-10-implement-circuit-to-code-linking: backlog
   6-11-display-signal-values-panel: backlog
   6-12-show-breadcrumb-navigation: backlog
@@ -366,3 +366,66 @@ development_status:
   27-5-link-documents-to-story-scenes: backlog
   27-6-implement-document-search: backlog
   epic-27-retrospective: optional
+
+  # Epic 28: Stage 0 - Pre-CPU Fundamentals
+  epic-28: backlog
+  28-1-electricity-fundamentals-module: backlog
+  28-2-transistor-as-a-switch: backlog
+  28-3-logic-gates-from-transistors: backlog
+  28-4-boolean-algebra-as-logic-mathematics: backlog
+  28-5-number-systems-fluency: backlog
+  28-6-tools-physical-skills-optional: backlog
+  epic-28-retrospective: optional
+
+  # Epic 29: Full Stack Journey
+  epic-29: backlog
+  29-1-build-your-own-assembler: backlog
+  29-2-build-your-own-disassembler: backlog
+  29-3-build-a-simple-compiler: backlog
+  29-4-build-a-bootloader: backlog
+  29-5-build-a-simple-kernel: backlog
+  29-6-the-full-stack-moment: backlog
+  epic-29-retrospective: optional
+
+  # Epic 30: Computer Ecosystem Understanding
+  epic-30: backlog
+  30-1-memory-deep-dive-why-ram: backlog
+  30-2-memory-deep-dive-why-rom: backlog
+  30-3-memory-deep-dive-why-cache: backlog
+  30-4-peripherals-io-talking-to-world: backlog
+  30-5-buses-interconnects-nervous-system: backlog
+  epic-30-retrospective: optional
+
+  # Epic 31: Alternate Architectures Exploration
+  epic-31: backlog
+  31-1-relay-computer-exploration: backlog
+  31-2-analog-computing-exploration: backlog
+  31-3-ternary-logic-exploration: backlog
+  31-4-stack-machine-exploration: backlog
+  31-5-dataflow-architecture-exploration: backlog
+  31-6-lisp-machine-exploration: backlog
+  31-7-asynchronous-cpu-exploration: backlog
+  epic-31-retrospective: optional
+
+  # Epic 32: Historical Path Branches
+  epic-32: backlog
+  32-1-electricity-track: backlog
+  32-2-mechanical-computing-track: backlog
+  32-3-logic-mathematics-track: backlog
+  32-4-programming-track: backlog
+  32-5-communication-track: backlog
+  32-6-switches-signals-track: backlog
+  32-7-memory-storage-track: backlog
+  32-8-human-machine-interface-track: backlog
+  epic-32-retrospective: optional
+
+  # Epic 33: Branch Point What-If Scenarios
+  epic-33: backlog
+  33-1-what-if-babbage-got-funding: backlog
+  33-2-what-if-stack-machines-won: backlog
+  33-3-what-if-intel-went-flat-32bit: backlog
+  33-4-what-if-ibm-kept-pc-proprietary: backlog
+  33-5-what-if-386-made-clean-break: backlog
+  33-6-what-if-risc-won: backlog
+  33-7-what-if-multicore-went-differently: backlog
+  epic-33-retrospective: optional

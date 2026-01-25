@@ -141,7 +141,7 @@ emcc \
   -s EXPORT_ES6=1 \
   -s ENVIRONMENT='worker' \
   -s EXPORTED_FUNCTIONS='["_assemble_source","_get_output","_get_output_size","_get_error","_get_error_line","_malloc","_free"]' \
-  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8"]' \
+  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","stringToUTF8","lengthBytesUTF8","HEAPU8"]' \
   -s ALLOW_MEMORY_GROWTH=1 \
   -s INITIAL_MEMORY=1048576 \
   -s STACK_SIZE=65536 \

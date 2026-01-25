@@ -1,6 +1,6 @@
 # Story 6.6: Implement Zoom Controls
 
-## Status: review
+## Status: done
 
 ## Story
 

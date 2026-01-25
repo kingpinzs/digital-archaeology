@@ -313,75 +313,90 @@ Users can share designs and learn from others. Design export/import, gallery bro
 
 ### Story 1.1: Initialize Vite Project with TypeScript
 
-As a developer,
-I want a properly configured Vite TypeScript project,
-So that I have a modern build system ready for development.
+As a user,
+I want the application to load quickly in my browser,
+So that I can start learning CPU architecture without waiting.
 
 **Acceptance Criteria:**
 
-**Given** an empty project directory
-**When** I run the Vite initialization command
-**Then** a new Vite project with vanilla-ts template is created
-**And** the project compiles without errors
-**And** `npm run dev` starts the development server
-**And** the browser shows the default Vite page
+**Given** I navigate to the application URL
+**When** the page loads
+**Then** the application shell appears within 5 seconds
+**And** no console errors are displayed
+**And** the page is responsive and interactive
+
+**Technical Implementation Notes:**
+- Initialize Vite project with vanilla-ts template
+- Project must compile without errors
+- `npm run dev` starts the development server
 
 ---
 
 ### Story 1.2: Configure Build Dependencies
 
-As a developer,
-I want all required dependencies installed and configured,
-So that I can use WASM, Tailwind, and Monaco in my application.
+As a user,
+I want the application to support code editing and CPU emulation,
+So that I can write assembly and run it in the browser.
 
 **Acceptance Criteria:**
 
-**Given** the initialized Vite project
-**When** I install and configure dependencies
-**Then** tailwindcss, postcss, and autoprefixer are installed
-**And** vite-plugin-wasm and vite-plugin-top-level-await are installed
-**And** monaco-editor is installed
-**And** vite.config.ts includes WASM plugins
-**And** tailwind.config.js is created with custom theme tokens
-**And** postcss.config.js is configured
-**And** the build completes without errors
+**Given** the application is loaded
+**When** I interact with the interface
+**Then** the code editor is responsive and functional
+**And** WebAssembly modules load without errors
+**And** styles render correctly with the design system
+
+**Technical Implementation Notes:**
+- Install tailwindcss, postcss, autoprefixer
+- Install vite-plugin-wasm, vite-plugin-top-level-await
+- Install monaco-editor
+- Configure vite.config.ts with WASM plugins
+- Create tailwind.config.js with custom theme tokens
 
 ---
 
 ### Story 1.3: Create Feature Folder Structure
 
-As a developer,
-I want the project organized by feature folders,
-So that code is modular and easy to navigate.
+As a user,
+I want the application to be well-organized and maintainable,
+So that features work reliably and can be extended over time.
 
 **Acceptance Criteria:**
 
-**Given** the configured Vite project
-**When** I create the folder structure
-**Then** src/ contains folders: editor/, emulator/, visualizer/, debugger/, state/, story/, ui/, types/, utils/
-**And** each folder has an index.ts barrel export file
-**And** public/ contains folders: wasm/, programs/, circuits/, story/
-**And** src/styles/ contains main.css with Tailwind imports
-**And** TypeScript path aliases are configured in tsconfig.json
+**Given** the application codebase
+**When** new features are added
+**Then** code is modular and isolated by feature
+**And** imports resolve correctly across the application
+**And** public assets (WASM, programs, circuits) are accessible
+
+**Technical Implementation Notes:**
+- Create src/ folders: editor/, emulator/, visualizer/, debugger/, state/, story/, ui/, types/, utils/
+- Add index.ts barrel exports to each folder
+- Create public/ folders: wasm/, programs/, circuits/, story/
+- Configure TypeScript path aliases in tsconfig.json
 
 ---
 
 ### Story 1.4: Implement CSS Theme System
 
-As a developer,
-I want a theme system using CSS custom properties,
-So that colors and styles are consistent and themeable.
+As a user,
+I want consistent visual styling across the application,
+So that the interface feels cohesive and professional.
 
 **Acceptance Criteria:**
 
-**Given** the project with Tailwind configured
-**When** I implement the theme system
-**Then** main.css defines all --da-* CSS variables (bg, text, signal, gate colors)
-**And** lab-mode.css defines Lab Mode specific overrides
-**And** story-mode.css defines Story Mode specific overrides (warm gold theme)
-**And** theme.ts in ui/ provides theme switching logic
-**And** the HTML element can have class "lab-mode" or "story-mode"
-**And** colors change appropriately when theme class changes
+**Given** the application is loaded
+**When** I view any component
+**Then** colors and styles are consistent throughout
+**And** the dark theme is applied correctly
+**And** signal colors (high/low) are clearly distinguishable
+
+**Technical Implementation Notes:**
+- Define --da-* CSS variables in main.css (bg, text, signal, gate colors)
+- Create lab-mode.css with Lab Mode specific overrides
+- Create story-mode.css with Story Mode warm gold theme
+- Implement theme.ts with theme switching logic
+- Support "lab-mode" and "story-mode" classes on HTML element
 
 ---
 
@@ -1816,35 +1831,41 @@ So that I know what to accomplish.
 
 ### Story 10.14: Implement Story Content Data Structure
 
-As a developer,
-I want story content in JSON format,
-So that the story engine can render it.
+As a user,
+I want rich narrative content with characters and choices,
+So that I feel immersed in the CPU history journey.
 
 **Acceptance Criteria:**
 
-**Given** story content files exist
-**When** the application loads
-**Then** story JSON is loaded from public/story/
-**And** the structure includes acts, chapters, scenes
-**And** scenes include narrative, characters, choices
-**And** the content is validated against a schema
+**Given** I open Story Mode
+**When** a scene loads
+**Then** the narrative text renders with proper formatting
+**And** character cards display with photos and dialogue
+**And** choice cards appear when decisions are needed
+**And** scene settings provide historical context
+
+**Technical Implementation Notes:**
+- Story JSON loaded from public/story/
+- Structure includes acts, chapters, scenes
+- Scenes include narrative, characters, choices
+- Content validated against schema
 
 ---
 
 ### Story 10.15: Create Story Progression Engine
 
-As a developer,
-I want a story engine to manage state,
-So that user progress is tracked.
+As a user,
+I want my story progress saved automatically,
+So that I can resume where I left off.
 
 **Acceptance Criteria:**
 
-**Given** the user makes choices and progresses
-**When** the story engine runs
-**Then** current position is tracked (act, chapter, scene)
-**And** choices are recorded
-**And** progress is persisted to storage
-**And** the engine can resume from saved position
+**Given** I am progressing through the story
+**When** I make choices or advance scenes
+**Then** my current position (act, chapter, scene) is tracked
+**And** my choices are recorded for later reference
+**And** progress is persisted to browser storage
+**And** when I return, I resume from my saved position
 
 ---
 
@@ -1862,6 +1883,41 @@ So that I feel accomplished.
 **And** I see progress dots for acts (● ○ ○ ○ ○)
 **And** completed acts show filled dots
 **And** the current act is highlighted
+
+---
+
+### Story 10.17: Wire Story Mode Integration
+
+As a user,
+I want Story Mode and Lab Mode to work seamlessly together,
+So that I can transition between narrative and hands-on work without issues.
+
+**Acceptance Criteria:**
+
+**Given** I am in Story Mode
+**When** I click "Enter the Lab"
+**Then** Lab Mode loads with the correct challenge objectives displayed
+**And** the code editor contains any starter code from the story
+**And** my cursor position and editor state are preserved when returning to Story Mode
+
+**Given** I am in Lab Mode with a challenge active
+**When** I complete the challenge objectives
+**Then** I can return to Story Mode to continue the narrative
+**And** my progress is recorded in the story engine
+**And** the story advances to the next scene
+
+**Given** I switch between modes multiple times
+**When** I check my work
+**Then** no state is lost between transitions
+**And** the application remains responsive
+**And** no memory leaks occur from repeated mode switches
+
+**Integration Test Requirements:**
+- Test mode toggle preserves editor content
+- Test challenge completion triggers story progression
+- Test rapid mode switching (10+ times) for stability
+- Test that Story Mode content correctly maps to Lab Mode challenges
+- Test that era badge updates reflect Lab Mode achievements
 
 ---
 

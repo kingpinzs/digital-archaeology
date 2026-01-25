@@ -1,8 +1,25 @@
 // src/visualizer/GateRenderer.ts
-// Gate rendering utility for circuit visualization (Story 6.3, 6.5)
+// Gate rendering utility for circuit visualization (Story 6.3, 6.5, 6.8)
 
 import type { CircuitGate } from './types';
 import { getGateColor, getGateBorderColor, getGateTextColor } from './gateColors';
+
+/**
+ * Default hover highlight color (--da-accent fallback).
+ * Used when CSS variable is not available.
+ */
+const DEFAULT_HOVER_COLOR = '#00b4d8';
+
+/**
+ * Get the hover highlight color from CSS variables.
+ * @returns The hover color string
+ */
+function getHoverColor(): string {
+  if (typeof document === 'undefined') return DEFAULT_HOVER_COLOR;
+  const style = getComputedStyle(document.documentElement);
+  const color = style.getPropertyValue('--da-accent').trim();
+  return color || DEFAULT_HOVER_COLOR;
+}
 
 /**
  * Default pulse scale for gate animation.
@@ -73,6 +90,7 @@ export class GateRenderer {
    * @param width - Optional width override (defaults to config.width)
    * @param height - Optional height override (defaults to config.height)
    * @param pulseScale - Optional scale factor for pulse animation (1.0 = normal, 1.1 = pulsed)
+   * @param isHovered - Optional flag to render hover highlight (Story 6.8)
    */
   renderGate(
     ctx: CanvasRenderingContext2D,
@@ -81,7 +99,8 @@ export class GateRenderer {
     y: number,
     width?: number,
     height?: number,
-    pulseScale: number = 1.0
+    pulseScale: number = 1.0,
+    isHovered: boolean = false
   ): void {
     const baseW = width ?? this.config.width;
     const baseH = height ?? this.config.height;
@@ -94,17 +113,31 @@ export class GateRenderer {
     const adjustedX = x - (w - baseW) / 2;
     const adjustedY = y - (h - baseH) / 2;
 
-    // Fill with gate type color
     // Round corner radius to avoid sub-pixel rendering artifacts
     const cornerRadius = Math.round(this.config.cornerRadius * pulseScale);
+
+    // Draw hover highlight glow effect (Story 6.8)
+    if (isHovered) {
+      ctx.save();
+      ctx.shadowColor = getHoverColor();
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = getHoverColor();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(adjustedX, adjustedY, w, h, cornerRadius);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Fill with gate type color
     ctx.fillStyle = getGateColor(gate.type);
     ctx.beginPath();
     ctx.roundRect(adjustedX, adjustedY, w, h, cornerRadius);
     ctx.fill();
 
     // Draw border (read from CSS variables, fallback to config)
-    ctx.strokeStyle = getGateBorderColor();
-    ctx.lineWidth = this.config.borderWidth;
+    ctx.strokeStyle = isHovered ? getHoverColor() : getGateBorderColor();
+    ctx.lineWidth = isHovered ? 2 : this.config.borderWidth;
     ctx.stroke();
 
     // Draw type label centered in gate (read from CSS variables, fallback to config)

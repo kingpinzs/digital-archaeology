@@ -62,3 +62,7 @@ export type { ZoomOptions } from './CircuitRenderer';
 
 // Story 6.7: Pan Navigation
 export type { ContentBounds, ViewportSize } from './ZoomController';
+
+// Story 6.8: Tooltip and Hover Detection
+export { GateTooltip, formatGateType, formatGateOutput, DEFAULT_TOOLTIP_CONFIG } from './GateTooltip';
+export type { TooltipConfig } from './GateTooltip';

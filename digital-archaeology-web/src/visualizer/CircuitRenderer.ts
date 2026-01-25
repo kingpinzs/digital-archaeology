@@ -1,7 +1,7 @@
 // src/visualizer/CircuitRenderer.ts
-// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4, 6.5, 6.6)
+// Canvas circuit renderer component for visualizing CPU circuits (Story 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8)
 
-import type { CircuitData } from './types';
+import type { CircuitData, CircuitGate } from './types';
 import { CircuitModel } from './CircuitModel';
 import { CircuitLoader, CircuitLoadError } from './CircuitLoader';
 import { GateRenderer } from './GateRenderer';
@@ -12,6 +12,7 @@ import { SignalAnimator } from './SignalAnimator';
 import { calculatePulseScale, prefersReducedMotion } from './animationUtils';
 import { ZoomController } from './ZoomController';
 import type { ZoomChangeCallback } from './ZoomController';
+import { GateTooltip } from './GateTooltip';
 
 /**
  * Default background color matching --da-bg-primary in Lab Mode.
@@ -124,6 +125,12 @@ export class CircuitRenderer {
   private boundMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
   private boundMouseUpHandler: ((e: MouseEvent) => void) | null = null;
 
+  // Tooltip and hover detection (Story 6.8)
+  private tooltip: GateTooltip | null = null;
+  private hoveredGateId: number | null = null;
+  private boundMouseMoveHoverHandler: ((e: MouseEvent) => void) | null = null;
+  private boundMouseLeaveHandler: ((e: MouseEvent) => void) | null = null;
+
   // Layout cache tracking - only recalculate when needed
   private lastLayoutWidth: number = 0;
   private lastLayoutHeight: number = 0;
@@ -204,6 +211,10 @@ export class CircuitRenderer {
 
     // Set up pan handlers (Story 6.7)
     this.setupPanHandlers();
+
+    // Set up tooltip and hover handlers (Story 6.8)
+    this.setupTooltip();
+    this.setupHoverHandlers();
 
     // Update viewport size for pan bounds (Story 6.7)
     this.zoomController.setViewportSize(this.displayWidth, this.displayHeight);
@@ -333,6 +344,164 @@ export class CircuitRenderer {
     } else {
       delete this.canvas.dataset.pan;
     }
+  }
+
+  // ============================================================================
+  // Tooltip and Hover Detection (Story 6.8)
+  // ============================================================================
+
+  /**
+   * Set up the tooltip component (Story 6.8).
+   * @private
+   */
+  private setupTooltip(): void {
+    if (!this.container) return;
+
+    this.tooltip = new GateTooltip();
+    this.tooltip.mount(this.container);
+  }
+
+  /**
+   * Set up hover detection handlers (Story 6.8).
+   * @private
+   */
+  private setupHoverHandlers(): void {
+    if (!this.canvas) return;
+
+    // Bind handlers once and store references for cleanup in destroy()
+    this.boundMouseMoveHoverHandler = this.handleMouseMoveHover.bind(this);
+    this.boundMouseLeaveHandler = this.handleMouseLeave.bind(this);
+
+    this.canvas.addEventListener('mousemove', this.boundMouseMoveHoverHandler);
+    this.canvas.addEventListener('mouseleave', this.boundMouseLeaveHandler);
+  }
+
+  /**
+   * Handle mouse move for hover detection (Story 6.8).
+   * Detects when mouse hovers over gates and shows/hides tooltip.
+   * Skipped during drag operations to avoid interfering with pan.
+   * @private
+   */
+  private handleMouseMoveHover(e: MouseEvent): void {
+    // Don't process hover during drag
+    if (this.isDragging) return;
+
+    // Convert screen to canvas coordinates
+    const canvasCoords = this.screenToCanvas(e.clientX, e.clientY);
+
+    // Hit test against gates
+    const gate = this.hitTestGate(canvasCoords.x, canvasCoords.y);
+
+    // Check if hover state changed
+    const newGateId = gate?.id ?? null;
+    if (newGateId !== this.hoveredGateId) {
+      this.hoveredGateId = newGateId;
+
+      // Update tooltip
+      if (gate && this.tooltip) {
+        // Get wire states from circuit model for output display
+        const wireStates = this.getWireStates();
+        this.tooltip.show(e.clientX, e.clientY, gate, wireStates);
+      } else if (this.tooltip) {
+        this.tooltip.hide();
+      }
+
+      // Re-render to update hover highlight
+      this.render();
+    } else if (gate && this.tooltip?.isVisible()) {
+      // Update tooltip position if still hovering same gate
+      const wireStates = this.getWireStates();
+      this.tooltip.show(e.clientX, e.clientY, gate, wireStates);
+    }
+  }
+
+  /**
+   * Handle mouse leaving the canvas (Story 6.8).
+   * Hides tooltip and clears hover state.
+   * @private
+   */
+  private handleMouseLeave(_e: MouseEvent): void {
+    if (this.hoveredGateId !== null) {
+      this.hoveredGateId = null;
+      this.tooltip?.hide();
+      this.render();
+    }
+  }
+
+  /**
+   * Convert screen coordinates to canvas coordinates (Story 6.8).
+   * Accounts for zoom scale and pan offset.
+   * @param clientX - X coordinate in viewport (screen) pixels
+   * @param clientY - Y coordinate in viewport (screen) pixels
+   * @returns Canvas coordinates
+   */
+  screenToCanvas(clientX: number, clientY: number): { x: number; y: number } {
+    if (!this.canvas) return { x: 0, y: 0 };
+
+    const rect = this.canvas.getBoundingClientRect();
+    const zoom = this.zoomController.getScale();
+    const offset = this.zoomController.getOffset();
+
+    // Convert screen to canvas coordinates
+    // First get position relative to canvas element
+    // Then subtract pan offset and divide by zoom
+    const canvasX = (clientX - rect.left - offset.x) / zoom;
+    const canvasY = (clientY - rect.top - offset.y) / zoom;
+
+    return { x: canvasX, y: canvasY };
+  }
+
+  /**
+   * Hit test against all gates to find one at the given canvas coordinates (Story 6.8).
+   * @param canvasX - X coordinate in canvas space
+   * @param canvasY - Y coordinate in canvas space
+   * @returns The gate at the coordinates, or null if none
+   */
+  hitTestGate(canvasX: number, canvasY: number): CircuitGate | null {
+    if (!this.circuitModel || !this.layout) return null;
+
+    const config = this.layout.getConfig();
+    const { gateWidth, gateHeight } = config;
+
+    for (const gate of this.circuitModel.gates.values()) {
+      const pos = this.layout.getPosition(gate.id);
+      if (!pos) continue;
+
+      // Check if point is within gate bounds
+      if (
+        canvasX >= pos.x &&
+        canvasX <= pos.x + gateWidth &&
+        canvasY >= pos.y &&
+        canvasY <= pos.y + gateHeight
+      ) {
+        return gate;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the ID of the currently hovered gate (Story 6.8).
+   * @returns The hovered gate ID, or null if not hovering
+   */
+  getHoveredGateId(): number | null {
+    return this.hoveredGateId;
+  }
+
+  /**
+   * Get wire states from circuit model for tooltip display (Story 6.8).
+   * @returns Map of wire IDs to state arrays
+   * @private
+   */
+  private getWireStates(): Map<number, number[]> {
+    const states = new Map<number, number[]>();
+    if (!this.circuitModel) return states;
+
+    for (const wire of this.circuitModel.wires.values()) {
+      states.set(wire.id, wire.state);
+    }
+    return states;
   }
 
   /**
@@ -530,6 +699,7 @@ export class CircuitRenderer {
    * Gates are positioned by CircuitLayout and drawn by GateRenderer.
    * Layout calculation is handled by ensureLayoutCalculated().
    * Applies pulse effect during animation for gates with changed outputs.
+   * Applies hover highlight for the currently hovered gate (Story 6.8).
    * @private
    */
   private renderGates(): void {
@@ -554,6 +724,9 @@ export class CircuitRenderer {
         const isActive = enablePulse && this.changedGates.has(gate.id);
         const pulseScale = calculatePulseScale(this.animationProgress, isActive);
 
+        // Check if this gate is hovered (Story 6.8)
+        const isHovered = this.hoveredGateId === gate.id;
+
         this.gateRenderer.renderGate(
           this.ctx,
           gate,
@@ -561,7 +734,8 @@ export class CircuitRenderer {
           position.y,
           layoutConfig.gateWidth,
           layoutConfig.gateHeight,
-          pulseScale
+          pulseScale,
+          isHovered
         );
       }
     }
@@ -859,6 +1033,23 @@ export class CircuitRenderer {
     this.boundMouseMoveHandler = null;
     this.boundMouseUpHandler = null;
     this.isDragging = false;
+
+    // Clean up tooltip and hover handlers BEFORE clearing canvas reference (Story 6.8)
+    if (this.canvas && this.boundMouseMoveHoverHandler) {
+      this.canvas.removeEventListener('mousemove', this.boundMouseMoveHoverHandler);
+    }
+    if (this.canvas && this.boundMouseLeaveHandler) {
+      this.canvas.removeEventListener('mouseleave', this.boundMouseLeaveHandler);
+    }
+    this.boundMouseMoveHoverHandler = null;
+    this.boundMouseLeaveHandler = null;
+    this.hoveredGateId = null;
+
+    // Clean up tooltip (Story 6.8)
+    if (this.tooltip) {
+      this.tooltip.destroy();
+      this.tooltip = null;
+    }
 
     // Remove canvas from DOM
     if (this.canvas && this.canvas.parentNode) {

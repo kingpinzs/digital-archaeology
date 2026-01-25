@@ -110,7 +110,7 @@ development_status:
   6-5-animate-signal-propagation: done
   6-6-implement-zoom-controls: done
   6-7-implement-pan-navigation: done
-  6-8-show-component-tooltips: in-progress
+  6-8-show-component-tooltips: done
   6-9-implement-code-to-circuit-linking: backlog
   6-10-implement-circuit-to-code-linking: backlog
   6-11-display-signal-values-panel: backlog

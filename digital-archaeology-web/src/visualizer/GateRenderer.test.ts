@@ -341,4 +341,178 @@ describe('GateRenderer', () => {
       expect(mockCtx.font).toBe('12px JetBrains Mono, monospace');
     });
   });
+
+  describe('hover highlight (Story 6.8)', () => {
+    // Need to track shadow and stroke properties for hover tests
+    let shadowBlur: number;
+    let shadowColor: string;
+    let strokeStyleHistory: string[];
+    let lineWidthHistory: number[];
+    let saveCalled: boolean;
+    let restoreCalled: boolean;
+
+    const createHoverMockContext = () => {
+      fillStyleHistory = [];
+      strokeStyleHistory = [];
+      lineWidthHistory = [];
+      shadowBlur = 0;
+      shadowColor = '';
+      saveCalled = false;
+      restoreCalled = false;
+
+      const ctx = {
+        fillRect: vi.fn(),
+        beginPath: vi.fn(),
+        roundRect: vi.fn(),
+        fill: vi.fn(),
+        stroke: vi.fn(),
+        fillText: vi.fn(),
+        font: '',
+        textAlign: '' as CanvasTextAlign,
+        textBaseline: '' as CanvasTextBaseline,
+        save: vi.fn(() => { saveCalled = true; }),
+        restore: vi.fn(() => { restoreCalled = true; }),
+      };
+
+      // Track fillStyle
+      let _fillStyle = '';
+      Object.defineProperty(ctx, 'fillStyle', {
+        get: () => _fillStyle,
+        set: (value: string) => {
+          _fillStyle = value;
+          fillStyleHistory.push(value);
+        },
+      });
+
+      // Track strokeStyle
+      let _strokeStyle = '';
+      Object.defineProperty(ctx, 'strokeStyle', {
+        get: () => _strokeStyle,
+        set: (value: string) => {
+          _strokeStyle = value;
+          strokeStyleHistory.push(value);
+        },
+      });
+
+      // Track lineWidth
+      let _lineWidth = 0;
+      Object.defineProperty(ctx, 'lineWidth', {
+        get: () => _lineWidth,
+        set: (value: number) => {
+          _lineWidth = value;
+          lineWidthHistory.push(value);
+        },
+      });
+
+      // Track shadow properties
+      Object.defineProperty(ctx, 'shadowBlur', {
+        get: () => shadowBlur,
+        set: (value: number) => { shadowBlur = value; },
+      });
+
+      Object.defineProperty(ctx, 'shadowColor', {
+        get: () => shadowColor,
+        set: (value: string) => { shadowColor = value; },
+      });
+
+      return ctx as unknown as CanvasRenderingContext2D;
+    };
+
+    beforeEach(() => {
+      mockCtx = createHoverMockContext();
+      // Mock CSS variable for accent color
+      vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        getPropertyValue: (prop: string) => {
+          const colors: Record<string, string> = {
+            '--da-gate-and': '#4ecdc4',
+            '--da-accent': '#00b4d8',
+          };
+          return colors[prop] || '';
+        },
+      } as CSSStyleDeclaration);
+    });
+
+    it('should render normally when isHovered is false', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, false);
+
+      // Should NOT call save/restore for glow effect
+      expect(saveCalled).toBe(false);
+      expect(restoreCalled).toBe(false);
+      // Should use default border width (1)
+      expect(lineWidthHistory).toContain(1);
+    });
+
+    it('should draw glow effect when isHovered is true', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, true);
+
+      // Should call save/restore for glow effect
+      expect(saveCalled).toBe(true);
+      expect(restoreCalled).toBe(true);
+      // Shadow should be set for glow
+      expect(shadowBlur).toBe(8);
+    });
+
+    it('should use accent color for hover border', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, true);
+
+      // Border should use accent color when hovered
+      expect(strokeStyleHistory).toContain('#00b4d8');
+    });
+
+    it('should use thicker border when hovered', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.0, true);
+
+      // Should use lineWidth 2 for hover highlight
+      expect(lineWidthHistory).toContain(2);
+    });
+
+    it('should work with both pulse and hover together', () => {
+      const gate: CircuitGate = {
+        id: 0,
+        name: 'AND1',
+        type: 'AND',
+        inputs: [],
+        outputs: [],
+      };
+
+      renderer.renderGate(mockCtx, gate, 10, 20, 60, 40, 1.1, true);
+
+      // Should have both glow effect and scaled dimensions
+      expect(saveCalled).toBe(true);
+      // Scaled: 60 * 1.1 = 66, 40 * 1.1 = 44
+      expect(mockCtx.roundRect).toHaveBeenCalledWith(7, 18, 66, 44, 4);
+    });
+  });
 });

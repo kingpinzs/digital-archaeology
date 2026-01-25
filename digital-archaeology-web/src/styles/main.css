@@ -432,6 +432,37 @@
   cursor: grabbing;
 }
 
+/* Gate Tooltip (Story 6.8) */
+.da-gate-tooltip {
+  position: absolute;
+  z-index: var(--da-z-tooltip, 200);
+  background-color: var(--da-bg-elevated, #1f2847);
+  border: 1px solid var(--da-text-muted, #8a8a8a);
+  border-radius: 4px;
+  padding: var(--da-space-2, 8px);
+  font-family: var(--da-font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
+  color: var(--da-text-primary, #e4e4e4);
+  max-width: 200px;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.da-gate-tooltip-header {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-gate-tooltip-output {
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+.da-gate-tooltip-stored {
+  color: var(--da-text-muted, #8a8a8a);
+  margin-top: 2px;
+}
+
 /* Zoom Controls (Story 6.6) */
 .da-zoom-controls {
   display: flex;

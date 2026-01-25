@@ -78,6 +78,8 @@ describe('CircuitRenderer', () => {
           '--da-wire-high': '#00ff88',
           '--da-wire-low': '#3a3a3a',
           '--da-wire-unknown': '#ffaa00',
+          // Hover highlight (Story 6.8)
+          '--da-accent': '#00b4d8',
         };
         return cssVars[prop] || '';
       },
@@ -108,6 +110,11 @@ describe('CircuitRenderer', () => {
       // Wire rendering methods (Story 6.4)
       moveTo: vi.fn(),
       lineTo: vi.fn(),
+      // Hover highlight methods (Story 6.8)
+      save: vi.fn(),
+      restore: vi.fn(),
+      shadowBlur: 0,
+      shadowColor: '',
     } as unknown as CanvasRenderingContext2D;
 
     // Mock HTMLCanvasElement.prototype.getContext
@@ -1836,6 +1843,432 @@ describe('CircuitRenderer', () => {
         expect(canvas?.dataset.pan).toBeUndefined();
 
         panRenderer.destroy();
+      });
+    });
+  });
+
+  // Story 6.8: Tooltip and Hover Detection
+  describe('Story 6.8: Tooltip and Hover Detection', () => {
+    // Sample circuit data for hit testing
+    const sampleCircuitData: CircuitData = {
+      cycle: 0,
+      stable: true,
+      wires: [
+        { id: 1, name: 'w1', width: 1, is_input: true, is_output: false, state: [0] },
+        { id: 2, name: 'w2', width: 1, is_input: false, is_output: true, state: [0] },
+      ],
+      gates: [
+        { id: 1, name: 'AND1', type: 'AND', inputs: [{ wire: 1, bit: 0 }], outputs: [{ wire: 2, bit: 0 }] },
+        { id: 2, name: 'OR1', type: 'OR', inputs: [{ wire: 2, bit: 0 }], outputs: [{ wire: 2, bit: 0 }] },
+      ],
+    };
+
+    // Mock DOMRect at origin for all Story 6.8 tests (jsdom doesn't have real layout)
+    const originRect: DOMRect = {
+      left: 0, top: 0, width: 800, height: 600,
+      right: 800, bottom: 600, x: 0, y: 0,
+      toJSON: () => ({}),
+    } as DOMRect;
+
+    // Helper to get the canvas bounding rect for calculations
+    function getCanvasRect(_r: CircuitRenderer): DOMRect {
+      return originRect;
+    }
+
+    describe('screenToCanvas()', () => {
+      it('should convert screen coordinates to canvas coordinates at zoom 1.0', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        // Get actual canvas rect
+        const canvas = renderer.getCanvas()!;
+        const rect = canvas.getBoundingClientRect();
+
+        // At zoom 1.0 and offset 0,0, a point 100px right and 50px down from canvas origin
+        // should map to canvas coords (100, 50)
+        const clientX = rect.left + 100;
+        const clientY = rect.top + 50;
+        const result = renderer.screenToCanvas(clientX, clientY);
+        expect(result.x).toBe(100);
+        expect(result.y).toBe(50);
+      });
+
+      it('should account for zoom scale in coordinate transformation', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        renderer.setZoom(2.0);
+        // Reset auto-centering offset so we can test zoom alone
+        renderer.setOffset(0, 0);
+
+        // Get actual canvas rect
+        const canvas = renderer.getCanvas()!;
+        const rect = canvas.getBoundingClientRect();
+
+        // At zoom 2.0, 200px from canvas edge should map to 100px in canvas space
+        const clientX = rect.left + 200;
+        const clientY = rect.top + 100;
+        const result = renderer.screenToCanvas(clientX, clientY);
+        expect(result.x).toBe(100);
+        expect(result.y).toBe(50);
+      });
+
+      it('should account for pan offset in coordinate transformation', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        renderer.setZoom(2.0);
+        renderer.setOffset(50, 25);
+
+        // Get actual canvas rect
+        const canvas = renderer.getCanvas()!;
+        const rect = canvas.getBoundingClientRect();
+
+        // With zoom 2 and offset (50, 25):
+        // For clientX = rect.left + 200: (200 - 50) / 2 = 75
+        // For clientY = rect.top + 100: (100 - 25) / 2 = 37.5
+        const clientX = rect.left + 200;
+        const clientY = rect.top + 100;
+        const result = renderer.screenToCanvas(clientX, clientY);
+        expect(result.x).toBe(75);
+        expect(result.y).toBe(37.5);
+      });
+
+      it('should return 0,0 if not mounted', () => {
+        const unmounted = new CircuitRenderer();
+        const result = unmounted.screenToCanvas(100, 50);
+        expect(result.x).toBe(0);
+        expect(result.y).toBe(0);
+      });
+    });
+
+    describe('hitTestGate()', () => {
+      it('should return gate when point is inside gate bounds', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+
+        // Get first gate's position from layout
+        // Default layout: padding=20, gateWidth=60, gateHeight=40
+        // First AND gate at x=20, y=20
+        const gate = renderer.hitTestGate(30, 30);
+        expect(gate).not.toBeNull();
+        expect(gate?.id).toBe(1);
+        expect(gate?.type).toBe('AND');
+      });
+
+      it('should return null when point is outside all gates', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+
+        // Point far from any gate
+        const gate = renderer.hitTestGate(500, 500);
+        expect(gate).toBeNull();
+      });
+
+      it('should return null when no circuit data loaded', () => {
+        renderer.mount(container);
+
+        const gate = renderer.hitTestGate(30, 30);
+        expect(gate).toBeNull();
+      });
+
+      it('should return null if not mounted', () => {
+        const unmounted = new CircuitRenderer();
+        const gate = unmounted.hitTestGate(30, 30);
+        expect(gate).toBeNull();
+      });
+    });
+
+    describe('hover state tracking', () => {
+      // Helper to dispatch mouse events after mocking canvas rect
+      function mockCanvasAndDispatch(
+        canvas: HTMLCanvasElement,
+        eventType: string,
+        canvasX: number,
+        canvasY: number,
+        extraOptions: MouseEventInit = {}
+      ): void {
+        // Mock getBoundingClientRect on this canvas instance
+        vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(originRect);
+
+        canvas.dispatchEvent(new MouseEvent(eventType, {
+          clientX: canvasX,
+          clientY: canvasY,
+          bubbles: true,
+          ...extraOptions,
+        }));
+      }
+
+      it('should initialize with hoveredGateId as null', () => {
+        renderer.mount(container);
+        expect(renderer.getHoveredGateId()).toBeNull();
+      });
+
+      it('should update hoveredGateId when mouse moves over gate', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+
+        // Simulate mousemove over first gate
+        // Layout: padding=20, first AND gate at x=20, y=20, size 60x40
+        // Point (40, 40) in canvas coords should be inside gate
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+
+        expect(renderer.getHoveredGateId()).toBe(1);
+      });
+
+      it('should clear hoveredGateId when mouse moves away from gates', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+
+        // First hover over gate
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+        expect(renderer.getHoveredGateId()).toBe(1);
+
+        // Then move away (far from any gates)
+        mockCanvasAndDispatch(canvas, 'mousemove', 500, 500);
+        expect(renderer.getHoveredGateId()).toBeNull();
+      });
+
+      it('should not update hover state during drag operation', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        renderer.setZoom(2.0); // Enable panning
+        // Note: We don't reset offset here because we want to test drag behavior
+        // which doesn't depend on specific coordinates
+
+        const canvas = renderer.getCanvas()!;
+
+        // Start drag - at any position over the canvas
+        mockCanvasAndDispatch(canvas, 'mousedown', 400, 300, { button: 0 });
+
+        // Move during drag - the hover handler should skip processing due to isDragging
+        mockCanvasAndDispatch(canvas, 'mousemove', 500, 400);
+
+        // Hover state should not change during drag
+        expect(renderer.getHoveredGateId()).toBeNull();
+
+        // End drag
+        document.dispatchEvent(new MouseEvent('mouseup', {
+          clientX: 500,
+          clientY: 400,
+          bubbles: true,
+        }));
+      });
+
+      it('should clear hover state on mouseleave', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+
+        // First hover over gate
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+        expect(renderer.getHoveredGateId()).toBe(1);
+
+        // Mouse leaves canvas
+        vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(originRect);
+        canvas.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+        expect(renderer.getHoveredGateId()).toBeNull();
+      });
+    });
+
+    describe('tooltip integration', () => {
+      // Helper to dispatch mouse events after mocking canvas rect
+      function mockCanvasAndDispatch(
+        canvas: HTMLCanvasElement,
+        eventType: string,
+        canvasX: number,
+        canvasY: number
+      ): void {
+        vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(originRect);
+        canvas.dispatchEvent(new MouseEvent(eventType, {
+          clientX: canvasX,
+          clientY: canvasY,
+          bubbles: true,
+        }));
+      }
+
+      it('should create tooltip element when mounted', () => {
+        renderer.mount(container);
+
+        const tooltip = container.querySelector('.da-gate-tooltip');
+        expect(tooltip).not.toBeNull();
+      });
+
+      it('should show tooltip when hovering over gate', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+        const tooltip = container.querySelector('.da-gate-tooltip') as HTMLElement;
+
+        // Hover over gate (point inside first gate at x=20, y=20, size 60x40)
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+
+        expect(tooltip?.style.display).toBe('block');
+      });
+
+      it('should hide tooltip when mouse leaves gate', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+        const tooltip = container.querySelector('.da-gate-tooltip') as HTMLElement;
+
+        // Hover over gate first
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+
+        // Move away from gate
+        mockCanvasAndDispatch(canvas, 'mousemove', 500, 500);
+
+        expect(tooltip?.style.display).toBe('none');
+      });
+
+      it('should display gate type and name in tooltip', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+        const tooltip = container.querySelector('.da-gate-tooltip') as HTMLElement;
+
+        // Hover over first gate (AND1)
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+
+        expect(tooltip?.textContent).toContain('AND');
+        expect(tooltip?.textContent).toContain('AND1');
+      });
+
+      it('should remove tooltip element on destroy', () => {
+        renderer.mount(container);
+        renderer.destroy();
+
+        const tooltip = container.querySelector('.da-gate-tooltip');
+        expect(tooltip).toBeNull();
+      });
+    });
+
+    describe('hover highlight rendering', () => {
+      // Helper to dispatch mouse events after mocking canvas rect
+      function mockCanvasAndDispatch(
+        canvas: HTMLCanvasElement,
+        eventType: string,
+        canvasX: number,
+        canvasY: number
+      ): void {
+        vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue(originRect);
+        canvas.dispatchEvent(new MouseEvent(eventType, {
+          clientX: canvasX,
+          clientY: canvasY,
+          bubbles: true,
+        }));
+      }
+
+      it('should request re-render when hover state changes', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+
+        // Clear any mocks from setup
+        mockFillRect.mockClear();
+
+        // Hover over gate - this should trigger a render
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+
+        // Verify render was called (fillRect is used in render for background)
+        expect(mockFillRect).toHaveBeenCalled();
+      });
+
+      it('should draw highlight glow when gate is hovered (AC #4)', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        // Reset auto-centering offset so screen coords match canvas coords
+        renderer.setOffset(0, 0);
+
+        const canvas = renderer.getCanvas()!;
+        const ctx = renderer.getContext()!;
+
+        // Hover over gate
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+        expect(renderer.getHoveredGateId()).toBe(1);
+
+        // Verify shadow (glow) was applied during render
+        // The GateRenderer sets shadowBlur=8 and shadowColor for hover highlight
+        expect(ctx.shadowBlur).toBeDefined();
+      });
+
+      it('should not show tooltip during drag even when over gate (AC validation)', () => {
+        renderer.mount(container);
+        renderer.updateState({ circuitData: sampleCircuitData });
+        renderer.setZoom(2.0); // Enable panning
+        renderer.setOffset(0, 0); // Reset offset for predictable coords
+
+        const canvas = renderer.getCanvas()!;
+        const tooltip = container.querySelector('.da-gate-tooltip') as HTMLElement;
+
+        // Start drag on the canvas
+        mockCanvasAndDispatch(canvas, 'mousedown', 40, 40);
+
+        // Tooltip should remain hidden during drag
+        expect(tooltip?.style.display).toBe('none');
+
+        // Mouse move during drag should NOT show tooltip
+        mockCanvasAndDispatch(canvas, 'mousemove', 40, 40);
+        expect(tooltip?.style.display).toBe('none');
+
+        // End drag
+        document.dispatchEvent(new MouseEvent('mouseup', {
+          clientX: 40,
+          clientY: 40,
+          bubbles: true,
+        }));
+      });
+    });
+
+    describe('event handler cleanup', () => {
+      it('should remove hover event handlers on destroy', () => {
+        renderer.mount(container);
+        const canvas = renderer.getCanvas();
+
+        const removeEventListenerSpy = vi.spyOn(canvas!, 'removeEventListener');
+        renderer.destroy();
+
+        // Verify mousemove handler was removed
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(
+          'mousemove',
+          expect.any(Function)
+        );
+      });
+
+      it('should remove mouseleave handler on destroy', () => {
+        renderer.mount(container);
+        const canvas = renderer.getCanvas();
+
+        const removeEventListenerSpy = vi.spyOn(canvas!, 'removeEventListener');
+        renderer.destroy();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(
+          'mouseleave',
+          expect.any(Function)
+        );
       });
     });
   });

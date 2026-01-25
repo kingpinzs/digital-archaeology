@@ -15,6 +15,7 @@ export function createAliases(dirname: string): Record<string, string> {
     '@emulator': resolve(dirname, './src/emulator'),
     '@visualizer': resolve(dirname, './src/visualizer'),
     '@debugger': resolve(dirname, './src/debugger'),
+    '@builder': resolve(dirname, './src/builder'),
     '@state': resolve(dirname, './src/state'),
     '@story': resolve(dirname, './src/story'),
     '@ui': resolve(dirname, './src/ui'),

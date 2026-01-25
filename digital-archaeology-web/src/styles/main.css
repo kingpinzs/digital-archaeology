@@ -241,13 +241,86 @@
   color: var(--da-text-primary);
 }
 
-/* Lab Mode Container - 3-panel layout (Story 10.1) */
+/* Lab Mode Container - contains station tabs and station content (Story 10.1) */
 .da-lab-mode-container {
   grid-area: content;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Lab Station Tabs */
+.da-lab-station-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--da-panel-header);
+  border-bottom: 1px solid var(--da-border);
+  flex-shrink: 0;
+}
+
+.da-lab-station-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--da-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+
+.da-lab-station-tab:hover {
+  background: var(--da-bg-hover);
+  color: var(--da-text-primary);
+}
+
+.da-lab-station-tab--active {
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+}
+
+.da-lab-station-tab--active:hover {
+  background: var(--da-accent-hover);
+  color: var(--da-bg-primary);
+}
+
+.da-lab-station-icon {
+  font-size: 14px;
+}
+
+.da-lab-station-label {
+  font-weight: 600;
+}
+
+/* Lab Station Containers */
+.da-lab-station {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Explore Station - 3-panel layout */
+.da-lab-explore-station {
   display: grid;
   grid-template-columns: var(--da-code-panel-width) 1fr var(--da-state-panel-width);
   grid-template-areas: "code circuit state";
-  overflow: hidden;
+}
+
+/* Build Station - 3-panel layout for circuit builder */
+.da-lab-build-station {
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  grid-template-areas: "palette canvas properties";
+}
+
+/* Hidden station - must come after station-specific rules for specificity */
+.da-lab-station.da-lab-station--hidden {
+  display: none;
 }
 
 /* Story Mode mount point (Story 10.1) */
@@ -362,8 +435,8 @@
   display: none;
 }
 
-/* Layout adjustments for hidden panels (Story 10.1: now targets lab-mode-container) */
-.da-app-layout--code-hidden .da-lab-mode-container {
+/* Layout adjustments for hidden panels (Story 10.1: targets explore station) */
+.da-app-layout--code-hidden .da-lab-explore-station {
   grid-template-columns: 0 1fr var(--da-state-panel-width);
 }
 
@@ -371,7 +444,7 @@
   display: none;
 }
 
-.da-app-layout--state-hidden .da-lab-mode-container {
+.da-app-layout--state-hidden .da-lab-explore-station {
   grid-template-columns: var(--da-code-panel-width) 1fr 0;
 }
 
@@ -383,7 +456,7 @@
   display: none;
 }
 
-.da-app-layout--code-hidden.da-app-layout--state-hidden .da-lab-mode-container {
+.da-app-layout--code-hidden.da-app-layout--state-hidden .da-lab-explore-station {
   grid-template-columns: 0 1fr 0;
 }
 
@@ -417,6 +490,7 @@
   flex: 1;
   overflow: hidden;
   padding: 0;
+  position: relative; /* Positioning context for signal values panel overlay */
 }
 
 /* Circuit Canvas (Story 6.1) */
@@ -3976,4 +4050,600 @@ body.da-resizing * {
   .da-story-journal-header {
     border-radius: 0;
   }
+}
+
+/* ============================================
+   Signal Values Panel (Story 6.11)
+   ============================================ */
+
+/* Main panel container - positioned in circuit panel */
+.da-signal-values-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 180px;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  background: var(--da-bg-secondary, #1e1e2e);
+  border: 1px solid var(--da-border, #3a3a4a);
+  border-radius: 6px;
+  padding: 8px;
+  font-family: var(--da-font-mono, 'JetBrains Mono', 'Fira Code', 'Consolas', monospace);
+  font-size: 11px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Section containers */
+.da-signal-section {
+  margin-bottom: 8px;
+}
+
+.da-signal-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section headers */
+.da-signal-section-header {
+  color: var(--da-text-secondary, #a0a0b0);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 0;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--da-border, #3a3a4a);
+  user-select: none;
+}
+
+/* Collapsible section header styling */
+.da-signal-controls .da-signal-section-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.da-signal-controls .da-signal-section-header::before {
+  content: '▼';
+  font-size: 8px;
+  transition: transform 0.2s ease;
+}
+
+.da-signal-controls.collapsed .da-signal-section-header::before {
+  transform: rotate(-90deg);
+}
+
+/* Collapse content visibility */
+.da-signal-controls.collapsed .da-signal-section-content {
+  display: none;
+}
+
+/* Section content */
+.da-signal-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Individual signal row */
+.da-signal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.da-signal-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Signal label */
+.da-signal-label {
+  color: var(--da-text-secondary, #a0a0b0);
+  font-weight: 500;
+  min-width: 50px;
+}
+
+/* Signal value */
+.da-signal-value {
+  color: var(--da-text-primary, #e0e0e0);
+  font-weight: 400;
+  text-align: right;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+/* Change highlight animation */
+.da-signal-value.da-signal-changed {
+  color: var(--da-accent, #d4a574);
+  background: rgba(212, 165, 116, 0.15);
+}
+
+/* Registers section specific styling */
+.da-signal-registers .da-signal-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Control signals - more compact for single-bit values */
+.da-signal-controls .da-signal-value {
+  min-width: 12px;
+  text-align: center;
+}
+
+/* ============================================
+   Breadcrumb Navigation (Story 6.12)
+   ============================================ */
+
+/* Main nav container - positioned in circuit panel header */
+.da-breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+  font-family: var(--da-font-mono, 'JetBrains Mono', 'Fira Code', 'Consolas', monospace);
+  font-size: 11px;
+}
+
+/* Breadcrumb list - horizontal layout */
+.da-breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+/* Individual breadcrumb item */
+.da-breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Separator between items */
+.da-breadcrumb-separator {
+  color: var(--da-text-secondary, #a0a0b0);
+  padding: 0 6px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* Clickable breadcrumb button */
+.da-breadcrumb-link {
+  background: none;
+  border: none;
+  color: var(--da-accent, #d4a574);
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.da-breadcrumb-link:hover {
+  background: rgba(212, 165, 116, 0.15);
+  color: var(--da-accent-hover, #e0b584);
+}
+
+.da-breadcrumb-link:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--da-accent, #d4a574);
+}
+
+.da-breadcrumb-link:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.da-breadcrumb-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--da-accent, #d4a574);
+}
+
+/* Current location (non-clickable) */
+.da-breadcrumb-current span {
+  color: var(--da-text-primary, #e0e0e0);
+  padding: 2px 4px;
+}
+
+/* =============================================================================
+   Circuit Builder Styles
+   Interactive circuit building canvas, palette, and properties panel
+   ============================================================================= */
+
+/* Builder Canvas and Layout (now within Lab Build Station) */
+
+/* Builder Canvas */
+.da-builder-canvas {
+  grid-area: canvas;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
+.da-builder-canvas[data-tool="wire"] {
+  cursor: crosshair;
+}
+
+.da-builder-canvas[data-tool="pan"] {
+  cursor: grab;
+}
+
+.da-builder-canvas[data-tool="pan"][data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.da-builder-canvas[data-tool="delete"] {
+  cursor: not-allowed;
+}
+
+/* Component Palette */
+.da-component-palette {
+  grid-area: palette;
+  background: var(--da-bg-secondary);
+  border-right: 1px solid var(--da-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.da-palette-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--da-border);
+  background: var(--da-panel-header);
+}
+
+.da-palette-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--da-text-secondary);
+  margin: 0;
+}
+
+.da-era-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  font-weight: 600;
+}
+
+.da-palette-section {
+  padding: 12px;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-palette-section:last-child {
+  border-bottom: none;
+}
+
+.da-palette-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--da-text-secondary);
+  margin: 0 0 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.da-palette-hint {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--da-text-secondary);
+  opacity: 0.7;
+}
+
+.da-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.da-palette-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: var(--da-bg-tertiary);
+  border: 1px solid var(--da-border);
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.15s ease;
+}
+
+.da-palette-item:hover {
+  background: var(--da-bg-hover);
+  border-color: var(--da-accent);
+}
+
+.da-palette-item--selected {
+  border-color: var(--da-accent);
+  background: color-mix(in srgb, var(--da-accent) 15%, var(--da-bg-tertiary));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--da-accent) 30%, transparent);
+}
+
+.da-palette-item--locked {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+.da-palette-item--locked:hover {
+  opacity: 0.7;
+}
+
+.da-palette-item--user {
+  border-style: dashed;
+}
+
+.da-palette-item-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--da-text-primary);
+}
+
+.da-palette-item-icon--locked {
+  color: var(--da-text-secondary);
+}
+
+.da-palette-item-label {
+  font-size: 10px;
+  text-align: center;
+  color: var(--da-text-secondary);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Properties Panel */
+.da-properties-panel {
+  grid-area: properties;
+  background: var(--da-bg-secondary);
+  border-left: 1px solid var(--da-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.da-properties-panel--empty .da-properties-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.da-properties-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid var(--da-border);
+  background: var(--da-panel-header);
+}
+
+.da-properties-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--da-text-secondary);
+  margin: 0;
+}
+
+.da-properties-count {
+  font-size: 10px;
+  color: var(--da-text-secondary);
+  background: var(--da-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.da-properties-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.da-properties-empty {
+  text-align: center;
+  color: var(--da-text-secondary);
+  font-size: 12px;
+}
+
+.da-properties-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-properties-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.da-properties-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--da-text-secondary);
+  margin: 0 0 8px 0;
+}
+
+.da-properties-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.da-properties-row:last-child {
+  margin-bottom: 0;
+}
+
+.da-properties-row--indent {
+  padding-left: 12px;
+}
+
+.da-properties-label {
+  font-size: 11px;
+  color: var(--da-text-secondary);
+}
+
+.da-properties-value {
+  font-size: 11px;
+  color: var(--da-text-primary);
+}
+
+.da-properties-value--mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+
+.da-properties-value--signal {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.da-signal-high {
+  background: color-mix(in srgb, var(--da-signal-high) 20%, transparent);
+  color: var(--da-signal-high);
+}
+
+.da-signal-low {
+  background: color-mix(in srgb, var(--da-signal-low) 30%, transparent);
+  color: var(--da-text-secondary);
+}
+
+.da-signal-unknown {
+  background: color-mix(in srgb, var(--da-warning) 20%, transparent);
+  color: var(--da-warning);
+}
+
+.da-properties-input {
+  width: 120px;
+  padding: 4px 8px;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  background: var(--da-bg-primary);
+  color: var(--da-text-primary);
+  font-size: 11px;
+}
+
+.da-properties-input:focus {
+  outline: none;
+  border-color: var(--da-accent);
+}
+
+.da-properties-rotation {
+  display: flex;
+  gap: 4px;
+}
+
+.da-rotation-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  background: var(--da-bg-tertiary);
+  color: var(--da-text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.da-rotation-btn:hover {
+  background: var(--da-bg-hover);
+  color: var(--da-text-primary);
+}
+
+.da-rotation-btn--active {
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  border-color: var(--da-accent);
+}
+
+.da-properties-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  background: var(--da-bg-tertiary);
+  color: var(--da-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.da-properties-btn:hover {
+  background: var(--da-bg-hover);
+}
+
+.da-properties-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.da-properties-btn--primary {
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  border-color: var(--da-accent);
+}
+
+.da-properties-btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+.da-properties-btn--danger {
+  color: var(--da-error);
+  border-color: var(--da-error);
+}
+
+.da-properties-btn--danger:hover {
+  background: color-mix(in srgb, var(--da-error) 15%, var(--da-bg-tertiary));
+}
+
+.da-properties-btn--success {
+  background: var(--da-success);
+  color: var(--da-bg-primary);
+  border-color: var(--da-success);
+}
+
+.da-properties-btn--success:hover {
+  background: var(--da-success-hover);
+}
+
+.da-properties-btn--wide {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.da-properties-btn--wide:last-child {
+  margin-bottom: 0;
+}
+
+.da-properties-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.da-properties-footer {
+  padding: 12px;
+  border-top: 1px solid var(--da-border);
+  background: var(--da-panel-header);
 }

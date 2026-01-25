@@ -240,7 +240,7 @@ describe('ModeToggle', () => {
   });
 
   describe('Task 1: Keyboard Navigation', () => {
-    it('should switch to other mode on ArrowRight', () => {
+    it('should switch to next mode on ArrowRight (wraps to story)', () => {
       modeToggle = new ModeToggle({
         currentMode: 'lab',
         onModeChange: mockOnModeChange,
@@ -250,13 +250,14 @@ describe('ModeToggle', () => {
       const labBtn = container.querySelector('[data-mode="lab"]') as HTMLButtonElement;
       labBtn.focus();
 
+      // ArrowRight from lab (index 1) wraps to story (index 0)
       const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
       labBtn.dispatchEvent(event);
 
       expect(mockOnModeChange).toHaveBeenCalledWith('story');
     });
 
-    it('should switch to other mode on ArrowLeft', () => {
+    it('should switch to previous mode on ArrowLeft (wraps to lab)', () => {
       modeToggle = new ModeToggle({
         currentMode: 'story',
         onModeChange: mockOnModeChange,
@@ -266,6 +267,7 @@ describe('ModeToggle', () => {
       const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
       storyBtn.focus();
 
+      // ArrowLeft from story (index 0) wraps to lab (index 1)
       const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
       storyBtn.dispatchEvent(event);
 

@@ -182,14 +182,25 @@ export class ModeToggle {
     const target = e.target as HTMLElement;
     if (!target.hasAttribute('data-mode')) return;
 
+    const modes: ThemeMode[] = ['story', 'lab'];
+    const currentIndex = modes.indexOf(this.currentMode);
+
     switch (e.key) {
-      case 'ArrowLeft':
+      case 'ArrowLeft': {
+        e.preventDefault();
+        // Move to previous mode (wrap around)
+        const prevIndex = currentIndex === 0 ? modes.length - 1 : currentIndex - 1;
+        const prevMode = modes[prevIndex];
+        this.getButtonForMode(prevMode)?.focus();
+        this.handleModeClick(prevMode);
+        break;
+      }
       case 'ArrowRight': {
         e.preventDefault();
-        // Toggle between the two buttons
-        const nextMode: ThemeMode = this.currentMode === 'story' ? 'lab' : 'story';
-        const nextButton = nextMode === 'story' ? this.storyButton : this.labButton;
-        nextButton?.focus();
+        // Move to next mode (wrap around)
+        const nextIndex = (currentIndex + 1) % modes.length;
+        const nextMode = modes[nextIndex];
+        this.getButtonForMode(nextMode)?.focus();
         this.handleModeClick(nextMode);
         break;
       }
@@ -223,12 +234,23 @@ export class ModeToggle {
   }
 
   /**
+   * Get the button element for a given mode.
+   */
+  private getButtonForMode(mode: ThemeMode): HTMLButtonElement | null {
+    switch (mode) {
+      case 'story': return this.storyButton;
+      case 'lab': return this.labButton;
+    }
+  }
+
+  /**
    * Update active state styling on buttons.
    */
   private updateActiveState(): void {
     if (!this.storyButton || !this.labButton) return;
 
     const isStoryActive = this.currentMode === 'story';
+    const isLabActive = this.currentMode === 'lab';
 
     // Update Story button
     this.storyButton.classList.toggle('da-mode-toggle-btn--active', isStoryActive);
@@ -236,8 +258,8 @@ export class ModeToggle {
     this.storyButton.setAttribute('tabindex', isStoryActive ? '0' : '-1');
 
     // Update Lab button
-    this.labButton.classList.toggle('da-mode-toggle-btn--active', !isStoryActive);
-    this.labButton.setAttribute('aria-selected', String(!isStoryActive));
-    this.labButton.setAttribute('tabindex', !isStoryActive ? '0' : '-1');
+    this.labButton.classList.toggle('da-mode-toggle-btn--active', isLabActive);
+    this.labButton.setAttribute('aria-selected', String(isLabActive));
+    this.labButton.setAttribute('tabindex', isLabActive ? '0' : '-1');
   }
 }

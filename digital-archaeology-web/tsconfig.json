@@ -21,6 +21,7 @@
       "@emulator/*": ["src/emulator/*"],
       "@visualizer/*": ["src/visualizer/*"],
       "@debugger/*": ["src/debugger/*"],
+      "@builder/*": ["src/builder/*"],
       "@state/*": ["src/state/*"],
       "@story/*": ["src/story/*"],
       "@ui/*": ["src/ui/*"],

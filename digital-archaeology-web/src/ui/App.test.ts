@@ -7285,4 +7285,129 @@ describe('App', () => {
       // parseInstruction will return null for empty line, and highlights will be cleared
     });
   });
+
+  describe('SignalValuesPanel Integration (Story 6.11)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('getSignalValuesPanel accessor', () => {
+      it('should return SignalValuesPanel instance after mount', () => {
+        const signalPanel = app.getSignalValuesPanel();
+        expect(signalPanel).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        const newApp = new App();
+        expect(newApp.getSignalValuesPanel()).toBeNull();
+      });
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount SignalValuesPanel in circuit panel content area', () => {
+        const signalPanel = container.querySelector('.da-signal-values-panel');
+        expect(signalPanel).not.toBeNull();
+      });
+
+      it('should create signal panel container', () => {
+        const signalContainer = container.querySelector('.da-signal-panel-container');
+        expect(signalContainer).not.toBeNull();
+      });
+    });
+
+    describe('destroy cleanup', () => {
+      it('should clean up SignalValuesPanel on destroy', () => {
+        expect(app.getSignalValuesPanel()).not.toBeNull();
+        app.destroy();
+        expect(app.getSignalValuesPanel()).toBeNull();
+      });
+    });
+  });
+
+  describe('BreadcrumbNav Integration (Story 6.12)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      addedActions.length = 0;
+      app.mount(container);
+    });
+
+    describe('getBreadcrumbNav accessor', () => {
+      it('should return BreadcrumbNav instance after mount', () => {
+        const breadcrumb = app.getBreadcrumbNav();
+        expect(breadcrumb).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        const newApp = new App();
+        expect(newApp.getBreadcrumbNav()).toBeNull();
+      });
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount BreadcrumbNav in circuit panel header', () => {
+        const breadcrumbNav = container.querySelector('.da-breadcrumb-nav');
+        expect(breadcrumbNav).not.toBeNull();
+      });
+
+      it('should create breadcrumb container in panel header', () => {
+        const breadcrumbContainer = container.querySelector('.da-breadcrumb-container');
+        expect(breadcrumbContainer).not.toBeNull();
+      });
+
+      it('should display initial "CPU" breadcrumb item', () => {
+        const currentItem = container.querySelector('.da-breadcrumb-current span');
+        expect(currentItem?.textContent).toBe('CPU');
+      });
+
+      it('should have accessible navigation with aria-label', () => {
+        const nav = container.querySelector('.da-breadcrumb-nav');
+        expect(nav?.getAttribute('aria-label')).toBe('Circuit navigation');
+      });
+    });
+
+    describe('click callback behavior (AC #2)', () => {
+      it('should reset zoom when breadcrumb is clicked for flat circuit', () => {
+        // Note: In jsdom, canvas context is not available so CircuitRenderer won't mount
+        // This test verifies the breadcrumb component is wired up correctly
+        const breadcrumbNav = app.getBreadcrumbNav();
+        expect(breadcrumbNav).not.toBeNull();
+
+        // Verify initial path is set to CPU
+        const path = breadcrumbNav!.getPath();
+        expect(path.length).toBe(1);
+        expect(path[0].id).toBe('cpu');
+        expect(path[0].level).toBe(0);
+      });
+    });
+
+    describe('destroy cleanup', () => {
+      it('should clean up BreadcrumbNav on destroy', () => {
+        expect(app.getBreadcrumbNav()).not.toBeNull();
+        app.destroy();
+        expect(app.getBreadcrumbNav()).toBeNull();
+      });
+
+      it('should remove breadcrumb DOM elements on destroy', () => {
+        expect(container.querySelector('.da-breadcrumb-nav')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-breadcrumb-nav')).toBeNull();
+      });
+
+      it('should remove breadcrumb container on destroy', () => {
+        expect(container.querySelector('.da-breadcrumb-container')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-breadcrumb-container')).toBeNull();
+      });
+    });
+  });
 });

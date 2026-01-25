@@ -10,7 +10,7 @@ import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { setTheme, initTheme } from './theme';
-import type { ThemeMode } from './theme';
+import type { ThemeMode, LabStation } from './theme';
 import { Editor, parseInstruction, findLinesWithOpcodes } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
@@ -20,8 +20,9 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
-import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate } from '@visualizer/index';
-import type { ZoomControlsCallbacks } from '@visualizer/index';
+import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
+import type { BreadcrumbItem, ZoomControlsCallbacks } from '@visualizer/index';
+import { CircuitBuilder, ComponentPalette } from '@builder/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -84,8 +85,17 @@ export class App {
   // Lab Mode container (the 3-panel layout, Story 10.1)
   private labModeContainer: HTMLElement | null = null;
 
+  // Lab Station state and containers
+  private currentLabStation: LabStation = 'explore';
+  private labExploreStation: HTMLElement | null = null;
+  private labBuildStation: HTMLElement | null = null;
+
   // Story Mode container (Story 10.1)
   private storyModeContainer: StoryModeContainer | null = null;
+
+  // CircuitBuilder instance (for Build station within Lab)
+  private circuitBuilder: CircuitBuilder | null = null;
+  private componentPalette: ComponentPalette | null = null;
 
   private codePanelWidth: number = PANEL_CONSTRAINTS.CODE_DEFAULT;
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
@@ -176,6 +186,19 @@ export class App {
   // ZoomControlsToolbar for circuit zoom controls (Story 6.6)
   private zoomControlsToolbar: ZoomControlsToolbar | null = null;
 
+  // SignalValuesPanel for displaying circuit signal values (Story 6.11)
+  private signalValuesPanel: SignalValuesPanel | null = null;
+
+  // BreadcrumbNav for circuit hierarchy navigation (Story 6.12)
+  private breadcrumbNav: BreadcrumbNav | null = null;
+  private breadcrumbContainer: HTMLElement | null = null;
+
+  // CPUCircuitBridge for mapping emulator state to circuit visualization (Story 6.13)
+  private cpuCircuitBridge: CPUCircuitBridge | null = null;
+
+  // Flag indicating if circuit is loaded and ready (Story 6.13)
+  private circuitLoaded: boolean = false;
+
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
 
@@ -212,6 +235,8 @@ export class App {
     this.destroyBreakpointsView();
     this.destroyRuntimeErrorPanel();
     this.destroyCircuitRenderer();
+    this.destroySignalValuesPanel();
+    this.destroyBreadcrumbNav();
 
     this.container = container;
     this.isMounted = true;
@@ -239,6 +264,8 @@ export class App {
     this.initializeBreakpointsView();
     this.initializeRuntimeErrorPanel();
     this.initializeCircuitRenderer();
+    this.initializeSignalValuesPanel();
+    this.initializeBreadcrumbNav();
     this.updateGridColumns();
     this.updatePanelVisibility();
 
@@ -268,34 +295,71 @@ export class App {
           <!-- MenuBar (with mode toggle) and Toolbar components will be mounted here -->
         </header>
 
-        <!-- Lab Mode Container (3-panel layout, Story 10.1) -->
+        <!-- Lab Mode Container (Story 10.1) -->
         <div id="da-lab-mode-panel" class="da-lab-mode-container da-mode-container">
-          <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
-            <div class="da-panel-header-container">
-              <!-- PanelHeader component will be mounted here -->
-            </div>
-            <div class="da-panel-content">
-              <!-- Content: Epic 2 - Assembly Code Editor -->
-            </div>
-          </aside>
+          <!-- Lab Station Tabs -->
+          <div class="da-lab-station-tabs" role="tablist" aria-label="Lab stations">
+            <button
+              class="da-lab-station-tab da-lab-station-tab--active"
+              data-station="explore"
+              role="tab"
+              aria-selected="true"
+              aria-controls="da-lab-explore-station"
+            >
+              <span class="da-lab-station-icon">🔍</span>
+              <span class="da-lab-station-label">Explore</span>
+            </button>
+            <button
+              class="da-lab-station-tab"
+              data-station="build"
+              role="tab"
+              aria-selected="false"
+              aria-controls="da-lab-build-station"
+            >
+              <span class="da-lab-station-icon">🔧</span>
+              <span class="da-lab-station-label">Build</span>
+            </button>
+          </div>
 
-          <main class="da-circuit-panel" aria-label="Circuit Visualizer Panel">
-            <div class="da-panel-header-container">
-              <!-- PanelHeader component will be mounted here -->
-            </div>
-            <div class="da-panel-content">
-              <!-- Content: Epic 6 - Circuit Visualization -->
-            </div>
-          </main>
+          <!-- Explore Station (3-panel layout - code, circuit viewer, state) -->
+          <div id="da-lab-explore-station" class="da-lab-station da-lab-explore-station" role="tabpanel">
+            <aside class="da-panel da-code-panel" aria-label="Code Editor Panel">
+              <div class="da-panel-header-container">
+                <!-- PanelHeader component will be mounted here -->
+              </div>
+              <div class="da-panel-content">
+                <!-- Content: Epic 2 - Assembly Code Editor -->
+              </div>
+            </aside>
 
-          <aside class="da-panel da-state-panel" aria-label="CPU State Panel">
-            <div class="da-panel-header-container">
-              <!-- PanelHeader component will be mounted here -->
-            </div>
-            <div class="da-panel-content">
-              <!-- Content: Epic 5 - Debugging & State Inspection -->
-            </div>
-          </aside>
+            <main class="da-circuit-panel" aria-label="Circuit Visualizer Panel">
+              <div class="da-panel-header-container">
+                <!-- PanelHeader component will be mounted here -->
+              </div>
+              <div class="da-panel-content">
+                <!-- Content: Epic 6 - Circuit Visualization -->
+              </div>
+            </main>
+
+            <aside class="da-panel da-state-panel" aria-label="CPU State Panel">
+              <div class="da-panel-header-container">
+                <!-- PanelHeader component will be mounted here -->
+              </div>
+              <div class="da-panel-content">
+                <!-- Content: Epic 5 - Debugging & State Inspection -->
+              </div>
+            </aside>
+          </div>
+
+          <!-- Build Station (Circuit Builder - palette, canvas, properties) -->
+          <div id="da-lab-build-station" class="da-lab-station da-lab-build-station da-lab-station--hidden" role="tabpanel">
+            <aside class="da-component-palette" aria-label="Component Palette">
+            </aside>
+            <main class="da-builder-canvas" aria-label="Circuit Canvas">
+            </main>
+            <aside class="da-properties-panel" aria-label="Properties Panel">
+            </aside>
+          </div>
         </div>
 
         <!-- Story Mode Container mount point (Story 10.1) -->
@@ -317,6 +381,61 @@ export class App {
 
     // Cache reference to Lab Mode container (Story 10.1)
     this.labModeContainer = this.container.querySelector('.da-lab-mode-container');
+
+    // Cache references to Lab Station containers
+    this.labExploreStation = this.container.querySelector('.da-lab-explore-station');
+    this.labBuildStation = this.container.querySelector('.da-lab-build-station');
+
+    // Attach lab station tab event listeners
+    this.attachLabStationListeners();
+  }
+
+  /**
+   * Attach event listeners for lab station tabs.
+   */
+  private attachLabStationListeners(): void {
+    const tabs = this.container?.querySelectorAll('.da-lab-station-tab');
+    tabs?.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const station = tab.getAttribute('data-station') as LabStation;
+        if (station && station !== this.currentLabStation) {
+          this.switchLabStation(station);
+        }
+      });
+    });
+  }
+
+  /**
+   * Switch between lab stations (Build / Explore).
+   */
+  private switchLabStation(station: LabStation): void {
+    this.currentLabStation = station;
+
+    // Update tab states
+    const tabs = this.container?.querySelectorAll('.da-lab-station-tab');
+    tabs?.forEach((tab) => {
+      const tabStation = tab.getAttribute('data-station');
+      const isActive = tabStation === station;
+      tab.classList.toggle('da-lab-station-tab--active', isActive);
+      tab.setAttribute('aria-selected', String(isActive));
+    });
+
+    // Show/hide station containers
+    if (station === 'build') {
+      this.labExploreStation?.classList.add('da-lab-station--hidden');
+      this.labBuildStation?.classList.remove('da-lab-station--hidden');
+      // Initialize CircuitBuilder if needed
+      if (!this.circuitBuilder) {
+        this.initializeCircuitBuilder();
+      }
+    } else {
+      this.labBuildStation?.classList.add('da-lab-station--hidden');
+      this.labExploreStation?.classList.remove('da-lab-station--hidden');
+      // Refresh editor layout
+      requestAnimationFrame(() => {
+        this.editor?.layout();
+      });
+    }
   }
 
   /**
@@ -417,8 +536,11 @@ export class App {
     const announcer = this.container.querySelector('.da-sr-announcer') as HTMLElement;
     if (!announcer) return;
 
-    const modeName = mode === 'lab' ? 'Lab' : 'Story';
-    announcer.textContent = `Switched to ${modeName} Mode`;
+    const modeNames: Record<ThemeMode, string> = {
+      lab: 'Lab',
+      story: 'Story',
+    };
+    announcer.textContent = `Switched to ${modeNames[mode]} Mode`;
   }
 
   /**
@@ -476,8 +598,8 @@ export class App {
     // Hide Story Mode container
     this.storyModeContainer?.hide();
 
-    // Refresh editor layout only if we're switching from story mode (container was hidden)
-    if (wasHidden) {
+    // Refresh editor layout only if we're switching from story mode and on explore station
+    if (wasHidden && this.currentLabStation === 'explore') {
       requestAnimationFrame(() => {
         this.editor?.layout();
       });
@@ -494,6 +616,58 @@ export class App {
 
     // Show Story Mode container
     this.storyModeContainer?.show();
+  }
+
+  /**
+   * Initialize the CircuitBuilder component (in Build station).
+   * @returns void
+   */
+  private initializeCircuitBuilder(): void {
+    if (!this.labBuildStation) return;
+
+    const canvasContainer = this.labBuildStation.querySelector('.da-builder-canvas') as HTMLElement;
+    const paletteContainer = this.labBuildStation.querySelector('.da-component-palette') as HTMLElement;
+
+    if (!canvasContainer) return;
+
+    // Create and mount CircuitBuilder
+    this.circuitBuilder = new CircuitBuilder({
+      autoSimulate: true,
+      snapToGrid: true,
+    });
+    this.circuitBuilder.mount(canvasContainer);
+
+    // Create and mount ComponentPalette
+    if (paletteContainer) {
+      this.componentPalette = new ComponentPalette({
+        onComponentSelect: (definition) => {
+          if (this.circuitBuilder) {
+            this.circuitBuilder.startComponentDrop(definition);
+          }
+        },
+        onComponentDragStart: (definition) => {
+          if (this.circuitBuilder) {
+            this.circuitBuilder.startComponentDrop(definition);
+          }
+        },
+      });
+      this.componentPalette.mount(paletteContainer);
+    }
+  }
+
+  /**
+   * Destroy the CircuitBuilder component.
+   * @returns void
+   */
+  private destroyCircuitBuilder(): void {
+    if (this.componentPalette) {
+      this.componentPalette.destroy();
+      this.componentPalette = null;
+    }
+    if (this.circuitBuilder) {
+      this.circuitBuilder.destroy();
+      this.circuitBuilder = null;
+    }
   }
 
   /**
@@ -1057,6 +1231,9 @@ export class App {
       return;
     }
 
+    // Story 6.13: Load the Micro4 circuit and initialize the bridge
+    this.loadCircuitAndInitializeBridge();
+
     // Mount ZoomControlsToolbar inside the panel header (before close button)
     if (circuitHeader) {
       // Find the actual panel header element and its close button
@@ -1087,6 +1264,71 @@ export class App {
       this.circuitRenderer.destroy();
       this.circuitRenderer = null;
     }
+    // Story 6.13: Clean up bridge
+    if (this.cpuCircuitBridge) {
+      this.cpuCircuitBridge.clearCache();
+      this.cpuCircuitBridge = null;
+    }
+    this.circuitLoaded = false;
+  }
+
+  /**
+   * Load the Micro4 circuit and initialize the CPU-Circuit bridge (Story 6.13).
+   * Called after CircuitRenderer is mounted.
+   * Handles errors gracefully by logging and continuing without circuit visualization.
+   * @returns void
+   */
+  private async loadCircuitAndInitializeBridge(): Promise<void> {
+    if (!this.circuitRenderer) return;
+
+    try {
+      // Load the Micro4 circuit JSON
+      await this.circuitRenderer.loadCircuit('/circuits/micro4-circuit.json');
+      this.circuitLoaded = true;
+
+      // Initialize the CPU-Circuit bridge
+      this.cpuCircuitBridge = new CPUCircuitBridge();
+
+      // Update the SignalValuesPanel with initial circuit state
+      this.updateSignalValuesPanel();
+
+      // If we already have CPU state (e.g., program already loaded), sync circuit
+      if (this.cpuState) {
+        this.updateCircuitFromCPUState(this.cpuState, false);
+      }
+
+      console.log('Circuit loaded and bridge initialized');
+    } catch (error) {
+      // Log error but continue - circuit visualization is optional
+      console.error('Failed to load circuit:', error);
+      this.circuitLoaded = false;
+    }
+  }
+
+  /**
+   * Update the circuit visualization from CPU state (Story 6.13).
+   * Maps CPU state to circuit wire states and updates the renderer.
+   * @param cpuState - The current CPU state
+   * @param animate - Whether to animate the transition (false for run mode)
+   */
+  private updateCircuitFromCPUState(cpuState: CPUState, animate: boolean = true): void {
+    if (!this.circuitRenderer || !this.cpuCircuitBridge || !this.circuitLoaded) return;
+
+    const model = this.circuitRenderer.getCircuitModel();
+    if (!model) return;
+
+    // Map CPU state to circuit data
+    const newCircuitData = this.cpuCircuitBridge.mapStateToCircuit(cpuState, model);
+
+    // Update the circuit renderer
+    if (animate) {
+      this.circuitRenderer.animateTransition(newCircuitData);
+    } else {
+      this.circuitRenderer.updateState({ circuitData: newCircuitData });
+    }
+
+    // Update SignalValuesPanel after circuit update
+    this.updateSignalValuesPanel();
   }
 
   /**
@@ -1105,6 +1347,141 @@ export class App {
    */
   getZoomControlsToolbar(): ZoomControlsToolbar | null {
     return this.zoomControlsToolbar;
+  }
+
+  /**
+   * Initialize the SignalValuesPanel in the Circuit panel (Story 6.11).
+   * Mounts as an overlay in the circuit panel content area.
+   * @returns void
+   */
+  private initializeSignalValuesPanel(): void {
+    if (!this.container) return;
+
+    const circuitContent = this.container.querySelector('.da-circuit-panel .da-panel-content');
+    if (!circuitContent) return;
+
+    // Create container for the signal panel (positioned absolutely within circuit content)
+    const signalContainer = document.createElement('div');
+    signalContainer.className = 'da-signal-panel-container';
+    circuitContent.appendChild(signalContainer);
+
+    this.signalValuesPanel = new SignalValuesPanel();
+    this.signalValuesPanel.mount(signalContainer);
+
+    // Initial update if circuit model is already loaded
+    this.updateSignalValuesPanel();
+  }
+
+  /**
+   * Update the SignalValuesPanel with current circuit state (Story 6.11).
+   * Called when circuit state changes (e.g., after step/run).
+   * @returns void
+   */
+  private updateSignalValuesPanel(): void {
+    if (!this.signalValuesPanel || !this.circuitRenderer) return;
+
+    const model = this.circuitRenderer.getCircuitModel();
+    if (model) {
+      this.signalValuesPanel.update(model);
+    }
+  }
+
+  /**
+   * Destroy the SignalValuesPanel (Story 6.11).
+   * @returns void
+   */
+  private destroySignalValuesPanel(): void {
+    if (this.signalValuesPanel) {
+      this.signalValuesPanel.destroy();
+      this.signalValuesPanel = null;
+    }
+  }
+
+  /**
+   * Get the SignalValuesPanel instance (Story 6.11).
+   * Primarily used for testing and external state inspection.
+   * @returns The SignalValuesPanel instance or null if not mounted
+   */
+  getSignalValuesPanel(): SignalValuesPanel | null {
+    return this.signalValuesPanel;
+  }
+
+  /**
+   * Initialize the BreadcrumbNav in the Circuit panel header (Story 6.12).
+   * Positioned between panel title and zoom controls.
+   * @returns void
+   */
+  private initializeBreadcrumbNav(): void {
+    if (!this.container) return;
+
+    const circuitHeader = this.container.querySelector('.da-circuit-panel .da-panel-header-container');
+    if (!circuitHeader) return;
+
+    // Find the panel header and title span
+    const panelHeader = circuitHeader.querySelector('.da-panel-header');
+    const titleSpan = panelHeader?.querySelector('.da-panel-title');
+    const zoomContainer = panelHeader?.querySelector('.da-circuit-zoom-container');
+
+    if (!panelHeader || !titleSpan) return;
+
+    // Create container for breadcrumb nav
+    this.breadcrumbContainer = document.createElement('div');
+    this.breadcrumbContainer.className = 'da-breadcrumb-container';
+
+    // Insert after title span, before zoom controls (or close button if no zoom)
+    if (zoomContainer) {
+      panelHeader.insertBefore(this.breadcrumbContainer, zoomContainer);
+    } else {
+      // Insert after title
+      titleSpan.after(this.breadcrumbContainer);
+    }
+
+    // Create BreadcrumbNav with click callback
+    this.breadcrumbNav = new BreadcrumbNav({
+      separator: '>',
+      onItemClick: (item: BreadcrumbItem) => this.handleBreadcrumbClick(item),
+      initialPath: [{ id: 'cpu', label: 'CPU', level: 0 }],
+    });
+
+    this.breadcrumbNav.mount(this.breadcrumbContainer);
+  }
+
+  /**
+   * Handle breadcrumb item click for navigation (Story 6.12).
+   * For flat circuit, resets to full circuit view.
+   * @param item - The clicked breadcrumb item
+   * @returns void
+   */
+  private handleBreadcrumbClick(item: BreadcrumbItem): void {
+    // For flat circuit structure, clicking any breadcrumb resets to full view
+    if (this.circuitRenderer && item.level === 0) {
+      this.circuitRenderer.resetZoom();
+    }
+    // Future: When circuit supports hierarchy, navigate to that component level
+  }
+
+  /**
+   * Destroy the BreadcrumbNav (Story 6.12).
+   * @returns void
+   */
+  private destroyBreadcrumbNav(): void {
+    if (this.breadcrumbNav) {
+      this.breadcrumbNav.destroy();
+      this.breadcrumbNav = null;
+    }
+    if (this.breadcrumbContainer) {
+      this.breadcrumbContainer.remove();
+      this.breadcrumbContainer = null;
+    }
+  }
+
+  /**
+   * Get the BreadcrumbNav instance (Story 6.12).
+   * Primarily used for testing and external state inspection.
+   * @returns The BreadcrumbNav instance or null if not mounted
+   */
+  getBreadcrumbNav(): BreadcrumbNav | null {
+    return this.breadcrumbNav;
   }
 
   /**
@@ -1486,6 +1863,9 @@ export class App {
         memory: this.cpuState.memory,
         pc: this.cpuState.pc,
       });
+
+      // Story 6.13: Update circuit with initial program state (no animation)
+      this.updateCircuitFromCPUState(this.cpuState, false);
     } catch (error) {
       // Handle load errors
       console.error('Failed to load program into emulator:', error);
@@ -1648,6 +2028,9 @@ export class App {
         memory: this.cpuState.memory,
         pc: this.cpuState.pc,
       });
+
+      // Story 6.13: Update circuit to reset state (no animation for instant feedback)
+      this.updateCircuitFromCPUState(this.cpuState, false);
     } catch (error) {
       console.error('Failed to reset:', error);
       // Reset running state even on error
@@ -1754,6 +2137,9 @@ export class App {
       // Story 5.10: Clear any previous runtime error on successful step
       this.runtimeErrorPanel?.clearError();
 
+      // Story 6.13: Update circuit visualization with animation
+      this.updateCircuitFromCPUState(this.cpuState, true);
+
     } catch (error) {
       console.error('Failed to step:', error);
       // Could update status bar to show error if needed
@@ -1834,6 +2220,9 @@ export class App {
 
       // Update Step Back button state
       this.toolbar?.updateState({ canStepBack: targetIndex > 0 });
+
+      // Story 6.13: Update circuit visualization with animation
+      this.updateCircuitFromCPUState(historicalState, true);
 
     } catch (error) {
       console.error('Failed to step back:', error);
@@ -2006,6 +2395,9 @@ export class App {
           memory: state.memory,
           pc: state.pc,
         });
+
+        // Story 6.13: Update circuit during RUN mode (no animation for performance)
+        this.updateCircuitFromCPUState(state, false);
       }
     });
 
@@ -2763,6 +3155,9 @@ export class App {
     // Destroy story mode container (Story 10.1)
     this.destroyStoryModeContainer();
 
+    // Destroy circuit builder
+    this.destroyCircuitBuilder();
+
     // Destroy toolbar
     this.destroyToolbar();
 
@@ -2801,6 +3196,12 @@ export class App {
 
     // Destroy CircuitRenderer and ZoomControlsToolbar (Story 6.6)
     this.destroyCircuitRenderer();
+
+    // Destroy SignalValuesPanel (Story 6.11)
+    this.destroySignalValuesPanel();
+
+    // Destroy BreadcrumbNav (Story 6.12)
+    this.destroyBreadcrumbNav();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

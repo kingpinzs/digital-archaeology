@@ -11,6 +11,9 @@
 /** Available theme modes */
 export type ThemeMode = 'lab' | 'story';
 
+/** Lab stations within Lab Mode */
+export type LabStation = 'build' | 'explore';
+
 /** CSS class names for each theme */
 const THEME_CLASSES: Record<ThemeMode, string> = {
   lab: 'lab-mode',
@@ -55,6 +58,10 @@ export function getTheme(): ThemeMode {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'lab' || stored === 'story') {
       return stored;
+    }
+    // Migration: treat old 'builder' as 'lab'
+    if (stored === 'builder') {
+      return 'lab';
     }
   } catch {
     // localStorage not available

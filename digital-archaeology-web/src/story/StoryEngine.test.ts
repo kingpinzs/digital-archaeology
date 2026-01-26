@@ -1,12 +1,14 @@
 // src/story/StoryEngine.test.ts
 // Tests for StoryEngine and StoryStorage
 // Story 10.15: Create Story Progression Engine
+// Story 10.18: Create Historical Personas System
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StoryEngine } from './StoryEngine';
 import { StoryStorage, STORY_STORAGE_KEY } from './StoryStorage';
 import type { StoryAct } from './content-types';
 import type { StoryProgress } from './StoryState';
+import type { PersonaData } from './types';
 import { createDefaultProgress } from './StoryState';
 
 // Factory function for creating valid test acts
@@ -469,6 +471,264 @@ describe('StoryState', () => {
       expect(progress.startedAt).toBeGreaterThanOrEqual(before);
       expect(progress.startedAt).toBeLessThanOrEqual(after);
       expect(progress.lastPlayedAt).toBe(progress.startedAt);
+    });
+
+    it('should set currentPersona when provided (Story 10.18)', () => {
+      const persona: PersonaData = {
+        id: 'test-persona',
+        name: 'Test Persona',
+        years: '1900-2000',
+        era: '1950',
+        avatar: '🧪',
+        quote: 'Test quote',
+        background: 'Test background',
+        motivation: 'Test motivation',
+        constraints: [],
+        problem: 'Test problem',
+      };
+      const progress = createDefaultProgress('test-scene', persona);
+
+      expect(progress.currentPersona).toEqual(persona);
+    });
+
+    it('should set currentPersona to null when not provided (Story 10.18)', () => {
+      const progress = createDefaultProgress('test-scene');
+
+      expect(progress.currentPersona).toBeNull();
+    });
+  });
+});
+
+// Story 10.18: Persona Integration Tests
+describe('StoryEngine Persona Integration', () => {
+  let engine: StoryEngine;
+
+  const mockPersona: PersonaData = {
+    id: 'faggin-1971',
+    name: 'Federico Faggin',
+    years: '1941-',
+    era: '1970-1971',
+    avatar: '👨‍🔬',
+    quote: 'The microprocessor was not invented. It was discovered.',
+    background: 'Test background',
+    motivation: 'Test motivation',
+    constraints: [
+      { type: 'technical', description: 'Only 2,300 transistors' },
+    ],
+    problem: 'Can you fit an entire CPU into 2,300 transistors?',
+  };
+
+  const createActsWithPersonas = (): StoryAct[] => [
+    {
+      id: 'act-1',
+      number: 1,
+      title: 'Test Act 1',
+      description: 'Test',
+      era: '1970',
+      cpuStage: 'micro4',
+      persona: mockPersona,
+      chapters: [
+        {
+          id: 'chapter-1-1',
+          number: 1,
+          title: 'Chapter 1',
+          subtitle: 'Subtitle',
+          year: '1970',
+          scenes: [
+            { id: 'scene-1-1-1', type: 'narrative', nextScene: 'scene-2-1-1' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'act-2',
+      number: 2,
+      title: 'Test Act 2',
+      description: 'Test',
+      era: '1980',
+      cpuStage: 'micro8',
+      persona: {
+        ...mockPersona,
+        id: 'different-persona',
+        name: 'Different Persona',
+        era: '1980',
+      },
+      chapters: [
+        {
+          id: 'chapter-2-1',
+          number: 1,
+          title: 'Chapter 1',
+          subtitle: 'Subtitle',
+          year: '1980',
+          scenes: [
+            { id: 'scene-2-1-1', type: 'narrative' },
+          ],
+        },
+      ],
+    },
+  ];
+
+  beforeEach(() => {
+    localStorage.clear();
+    engine = new StoryEngine();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  describe('getCurrentPersona', () => {
+    it('should return null before starting game', () => {
+      engine.initialize(createActsWithPersonas());
+      expect(engine.getCurrentPersona()).toBeNull();
+    });
+
+    it('should return persona after starting game', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+      expect(engine.getCurrentPersona()).toEqual(mockPersona);
+    });
+  });
+
+  describe('getActPersona', () => {
+    it('should return persona for specified act', () => {
+      engine.initialize(createActsWithPersonas());
+      expect(engine.getActPersona(1)).toEqual(mockPersona);
+    });
+
+    it('should return null for act without persona', () => {
+      const acts: StoryAct[] = [
+        {
+          id: 'act-1',
+          number: 1,
+          title: 'Test',
+          description: 'Test',
+          era: '1970',
+          cpuStage: 'micro4',
+          chapters: [
+            {
+              id: 'ch-1',
+              number: 1,
+              title: 'Ch',
+              subtitle: 'Sub',
+              year: '1970',
+              scenes: [{ id: 's-1', type: 'narrative' }],
+            },
+          ],
+        },
+      ];
+      engine.initialize(acts);
+      expect(engine.getActPersona(1)).toBeNull();
+    });
+
+    it('should return null for non-existent act', () => {
+      engine.initialize(createActsWithPersonas());
+      expect(engine.getActPersona(99)).toBeNull();
+    });
+  });
+
+  describe('setCurrentPersona', () => {
+    it('should update current persona', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+      const newPersona = { ...mockPersona, id: 'new-persona', name: 'New' };
+      engine.setCurrentPersona(newPersona);
+      expect(engine.getCurrentPersona()).toEqual(newPersona);
+    });
+
+    it('should throw if no active progress', () => {
+      engine.initialize(createActsWithPersonas());
+      expect(() => engine.setCurrentPersona(mockPersona)).toThrow();
+    });
+
+    it('should dispatch persona-changed event', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      const listener = vi.fn();
+      window.addEventListener('persona-changed', listener);
+
+      const newPersona = { ...mockPersona, id: 'new-persona', name: 'New' };
+      engine.setCurrentPersona(newPersona);
+
+      expect(listener).toHaveBeenCalled();
+      const event = listener.mock.calls[0][0] as CustomEvent;
+      expect(event.detail.persona).toEqual(newPersona);
+      expect(event.detail.previousPersona).toEqual(mockPersona);
+
+      window.removeEventListener('persona-changed', listener);
+    });
+
+    it('should not dispatch event if persona is the same', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      const listener = vi.fn();
+      window.addEventListener('persona-changed', listener);
+
+      // Clear the listener from startNewGame dispatch
+      listener.mockClear();
+
+      // Set the same persona
+      engine.setCurrentPersona(mockPersona);
+
+      expect(listener).not.toHaveBeenCalled();
+
+      window.removeEventListener('persona-changed', listener);
+    });
+  });
+
+  describe('persona on act change', () => {
+    it('should update persona when navigating to different act', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      expect(engine.getCurrentPersona()?.id).toBe('faggin-1971');
+
+      // Navigate to scene in act 2
+      engine.goToScene('scene-2-1-1');
+
+      expect(engine.getCurrentPersona()?.id).toBe('different-persona');
+    });
+
+    it('should dispatch persona-changed on act change', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      const listener = vi.fn();
+      window.addEventListener('persona-changed', listener);
+      listener.mockClear();
+
+      engine.goToScene('scene-2-1-1');
+
+      expect(listener).toHaveBeenCalled();
+      const event = listener.mock.calls[0][0] as CustomEvent;
+      expect(event.detail.persona?.id).toBe('different-persona');
+      expect(event.detail.previousPersona?.id).toBe('faggin-1971');
+
+      window.removeEventListener('persona-changed', listener);
+    });
+  });
+
+  describe('persona persistence', () => {
+    it('should persist persona in progress', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      const progress = engine.getProgress();
+      expect(progress?.currentPersona).toEqual(mockPersona);
+    });
+
+    it('should restore persona on resume', () => {
+      engine.initialize(createActsWithPersonas());
+      engine.startNewGame();
+
+      // Create new engine and resume
+      const engine2 = new StoryEngine();
+      engine2.initialize(createActsWithPersonas());
+      engine2.resume();
+
+      expect(engine2.getCurrentPersona()).toEqual(mockPersona);
     });
   });
 });

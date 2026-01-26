@@ -13,6 +13,23 @@
       "description": "The mechanical age couldn't scale. Gears were slow, expensive, and imprecise. But electricity changed everything. With the click of a relay, signals could travel at the speed of light, and calculations that took hours could be done in seconds. From the 1890 census crisis to WWII's desperate need for computation, electricity would transform calculation into computing.",
       "era": "1890 - 1945",
       "cpuStage": "relay",
+      "persona": {
+        "id": "zuse-1941",
+        "name": "Konrad Zuse",
+        "years": "1910-1995",
+        "era": "1941",
+        "avatar": "🔧",
+        "quote": "The computer was invented to solve problems that did not exist before.",
+        "background": "You are a German civil engineer in Berlin. Tired of endless tedious calculations for aircraft designs, you built the Z1 in your parents' living room. Now the Z3 is nearly complete - the world's first programmable, automatic digital computer.",
+        "motivation": "Engineering calculations consume years of manual labor. If machines can manufacture parts automatically, why not calculate automatically?",
+        "constraints": [
+          { "type": "technical", "description": "Telephone relays click slowly - 5 operations per second at best" },
+          { "type": "economic", "description": "Wartime Germany prioritizes weapons, not computing research" },
+          { "type": "political", "description": "The Nazi regime sees little value in your work" },
+          { "type": "knowledge", "description": "Working in isolation, you've reinvented Boolean logic independently" }
+        ],
+        "problem": "Can relays replace rooms full of human computers?"
+      },
       "chapters": [
         {
           "id": "chapter-1-1",
@@ -21,6 +38,36 @@
           "subtitle": "United States Census Bureau, Washington D.C.",
           "year": "1890",
           "scenes": [
+            {
+              "id": "scene-1-0-persona",
+              "type": "persona",
+              "setting": {
+                "text": "Berlin, Germany, 1941. In a small apartment workshop, surrounded by salvaged telephone relays and hand-drawn circuit diagrams, you are building the world's first programmable digital computer. The war rages outside, but here, mathematics becomes machinery."
+              },
+              "persona": {
+                "id": "zuse-1941",
+                "name": "Konrad Zuse",
+                "years": "1910-1995",
+                "era": "1941",
+                "avatar": "🔧",
+                "quote": "The computer was invented to solve problems that did not exist before.",
+                "background": "You are a German civil engineer in Berlin. Tired of endless tedious calculations for aircraft designs, you built the Z1 in your parents' living room. Now the Z3 is nearly complete - the world's first programmable, automatic digital computer.",
+                "motivation": "Engineering calculations consume years of manual labor. If machines can manufacture parts automatically, why not calculate automatically?",
+                "constraints": [
+                  { "type": "technical", "description": "Telephone relays click slowly - 5 operations per second at best" },
+                  { "type": "economic", "description": "Wartime Germany prioritizes weapons, not computing research" },
+                  { "type": "political", "description": "The Nazi regime sees little value in your work" },
+                  { "type": "knowledge", "description": "Working in isolation, you've reinvented Boolean logic independently" }
+                ],
+                "problem": "Can relays replace rooms full of human computers?"
+              },
+              "narrative": [
+                "Welcome to the Electrification era. Electricity will transform calculation into computing.",
+                "Mechanical computers were limited by the speed of gears and cams. But electrical relays can switch in milliseconds, and signals travel at the speed of light.",
+                "You'll experience this revolution through the eyes of Konrad Zuse, who built the Z3 in his parents' apartment while the world was at war."
+              ],
+              "nextScene": "scene-1-1-0"
+            },
             {
               "id": "scene-1-1-0",
               "type": "narrative",

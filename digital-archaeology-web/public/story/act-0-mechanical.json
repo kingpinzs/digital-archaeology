@@ -13,6 +13,23 @@
       "description": "From ancient Mesopotamia to Victorian England, humanity struggled to automate calculation. Every merchant who made a counting error, every navigator who miscalculated position, every tax collector drowning in ledgers—they all dreamed of a machine that could think in numbers.",
       "era": "3000 BC - 1840s",
       "cpuStage": "mechanical",
+      "persona": {
+        "id": "babbage-1837",
+        "name": "Charles Babbage",
+        "years": "1791-1871",
+        "era": "1837",
+        "avatar": "🎩",
+        "quote": "The engine can arrange and combine its numerical quantities exactly as if they were letters or any other general symbols.",
+        "background": "You are the Lucasian Professor of Mathematics at Cambridge - the same chair held by Newton. After years of tedious calculation errors, you conceived the Difference Engine. Now you dream of something greater.",
+        "motivation": "Mathematical tables are full of errors. Human computers make mistakes. What if a machine could calculate without error - and even program itself?",
+        "constraints": [
+          { "type": "technical", "description": "Victorian-era machining cannot achieve the precision your designs require" },
+          { "type": "economic", "description": "Government funding has dried up after the Difference Engine delays" },
+          { "type": "political", "description": "Society sees you as an eccentric burning through public money" },
+          { "type": "knowledge", "description": "No one understands why a calculating machine needs to be programmable" }
+        ],
+        "problem": "Can you design a machine that computes any mathematical function?"
+      },
       "chapters": [
         {
           "id": "chapter-0-1",
@@ -21,6 +38,36 @@
           "subtitle": "The First Counters",
           "year": "35,000 BC - 3000 BC",
           "scenes": [
+            {
+              "id": "scene-0-1-0",
+              "type": "persona",
+              "setting": {
+                "text": "London, 1837. You stand in the workshop of the world's most ambitious inventor. Gears, cams, and precision-machined brass components surround you. The Analytical Engine—a machine that could compute ANY mathematical function—exists only in notebooks and dreams."
+              },
+              "persona": {
+                "id": "babbage-1837",
+                "name": "Charles Babbage",
+                "years": "1791-1871",
+                "era": "1837",
+                "avatar": "🎩",
+                "quote": "The engine can arrange and combine its numerical quantities exactly as if they were letters or any other general symbols.",
+                "background": "You are the Lucasian Professor of Mathematics at Cambridge - the same chair held by Newton. After years of tedious calculation errors, you conceived the Difference Engine. Now you dream of something greater.",
+                "motivation": "Mathematical tables are full of errors. Human computers make mistakes. What if a machine could calculate without error - and even program itself?",
+                "constraints": [
+                  { "type": "technical", "description": "Victorian-era machining cannot achieve the precision your designs require" },
+                  { "type": "economic", "description": "Government funding has dried up after the Difference Engine delays" },
+                  { "type": "political", "description": "Society sees you as an eccentric burning through public money" },
+                  { "type": "knowledge", "description": "No one understands why a calculating machine needs to be programmable" }
+                ],
+                "problem": "Can you design a machine that computes any mathematical function?"
+              },
+              "narrative": [
+                "Welcome to Digital Archaeology. Your journey through computing history begins here.",
+                "In this act, you'll witness humanity's long struggle to automate calculation—from tally marks on bone to mechanical engines of brass and steel.",
+                "But you won't just observe. You'll experience these challenges through the eyes of Charles Babbage, the visionary who conceived the first programmable computer 100 years before it could be built."
+              ],
+              "nextScene": "scene-0-1-1"
+            },
             {
               "id": "scene-0-1-1",
               "type": "narrative",

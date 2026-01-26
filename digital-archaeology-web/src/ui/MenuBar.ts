@@ -50,6 +50,7 @@ export interface MenuBarCallbacks {
   onViewCodePanel: () => void;
   onViewCircuitPanel: () => void;
   onViewStatePanel: () => void;
+  onViewHdlViewer?: () => void;
   onViewResetLayout: () => void;
   // Debug menu
   onDebugAssemble: () => void;
@@ -101,6 +102,8 @@ const MENU_STRUCTURE: Record<string, MenuItem[]> = {
     { id: 'circuitPanel', label: 'Show Circuit Panel' },
     { id: 'statePanel', label: 'Show State Panel' },
     { id: 'sep1', label: '', separator: true },
+    { id: 'hdlViewer', label: 'HDL Viewer', shortcut: 'Ctrl+Shift+H' },
+    { id: 'sep2', label: '', separator: true },
     { id: 'resetLayout', label: 'Reset Layout' },
   ],
   debug: [
@@ -740,6 +743,9 @@ export class MenuBar {
         break;
       case 'statePanel':
         this.callbacks.onViewStatePanel();
+        break;
+      case 'hdlViewer':
+        this.callbacks.onViewHdlViewer?.();
         break;
       case 'resetLayout':
         this.callbacks.onViewResetLayout();

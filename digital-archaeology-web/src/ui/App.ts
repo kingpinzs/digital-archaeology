@@ -23,6 +23,7 @@ import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
 import type { BreadcrumbItem, ZoomControlsCallbacks } from '@visualizer/index';
 import { CircuitBuilder, ComponentPalette } from '@builder/index';
+import { HdlViewerPanel } from '@hdl/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -199,6 +200,9 @@ export class App {
   // Flag indicating if circuit is loaded and ready (Story 6.13)
   private circuitLoaded: boolean = false;
 
+  // HdlViewerPanel for viewing HDL files (Story 7.1)
+  private hdlViewerPanel: HdlViewerPanel | null = null;
+
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
 
@@ -237,6 +241,7 @@ export class App {
     this.destroyCircuitRenderer();
     this.destroySignalValuesPanel();
     this.destroyBreadcrumbNav();
+    this.destroyHdlViewerPanel();
 
     this.container = container;
     this.isMounted = true;
@@ -473,6 +478,7 @@ export class App {
       onViewCodePanel: () => this.togglePanel('code'),
       onViewCircuitPanel: () => this.togglePanel('circuit'),
       onViewStatePanel: () => this.togglePanel('state'),
+      onViewHdlViewer: () => this.toggleHdlViewer(),
       onViewResetLayout: () => this.resetLayout(),
       // Debug menu
       onDebugAssemble: () => this.handleAssemble(),
@@ -1482,6 +1488,55 @@ export class App {
    */
   getBreadcrumbNav(): BreadcrumbNav | null {
     return this.breadcrumbNav;
+  }
+
+  /**
+   * Initialize the HdlViewerPanel (Story 7.1).
+   * Creates and mounts the panel to the document body.
+   * @returns void
+   */
+  private initHdlViewerPanel(): void {
+    if (this.hdlViewerPanel) return;
+
+    this.hdlViewerPanel = new HdlViewerPanel({
+      onClose: () => {
+        // Optional: update menu state when closed
+      },
+    });
+    this.hdlViewerPanel.mount(document.body);
+  }
+
+  /**
+   * Destroy the HdlViewerPanel (Story 7.1).
+   * @returns void
+   */
+  private destroyHdlViewerPanel(): void {
+    if (this.hdlViewerPanel) {
+      this.hdlViewerPanel.destroy();
+      this.hdlViewerPanel = null;
+    }
+  }
+
+  /**
+   * Toggle the HDL Viewer panel visibility (Story 7.1).
+   * Lazily initializes the panel on first toggle.
+   * @returns void
+   */
+  private toggleHdlViewer(): void {
+    // Lazy initialization
+    if (!this.hdlViewerPanel) {
+      this.initHdlViewerPanel();
+    }
+    this.hdlViewerPanel?.toggle();
+  }
+
+  /**
+   * Get the HdlViewerPanel instance (Story 7.1).
+   * Primarily used for testing.
+   * @returns The HdlViewerPanel instance or null if not initialized
+   */
+  getHdlViewerPanel(): HdlViewerPanel | null {
+    return this.hdlViewerPanel;
   }
 
   /**
@@ -3202,6 +3257,9 @@ export class App {
 
     // Destroy BreadcrumbNav (Story 6.12)
     this.destroyBreadcrumbNav();
+
+    // Destroy HdlViewerPanel (Story 7.1)
+    this.destroyHdlViewerPanel();
 
     // Destroy binary output panel
     this.destroyBinaryOutputPanel();

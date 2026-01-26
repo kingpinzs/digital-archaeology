@@ -2,9 +2,10 @@
 // Tests for YourRolePanel component
 // Story 10.2: Create Story Mode Layout
 // Story 10.4: Create "Your Role" Panel
+// Story 10.18: Create Historical Personas System
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { YourRolePanel } from './YourRolePanel';
-import type { RoleData } from './types';
+import type { RoleData, PersonaData } from './types';
 describe('YourRolePanel', () => {
   let container: HTMLElement;
   let panel: YourRolePanel;
@@ -399,6 +400,134 @@ era: '1971',
       panel.mount(container);
       panel.destroy();
       expect(panel.getElement()).toBeNull();
+    });
+  });
+
+  describe('Story 10.18: Persona Integration', () => {
+    const mockPersona: PersonaData = {
+      id: 'faggin-1971',
+      name: 'Federico Faggin',
+      years: '1941-',
+      era: '1970-1971',
+      avatar: '👨‍🔬',
+      quote: 'The microprocessor was not invented. It was discovered.',
+      background: 'You immigrated from Italy to Silicon Valley in 1968.',
+      motivation: 'Busicom needs custom chips.',
+      constraints: [
+        { type: 'technical', description: 'Only 2,300 transistors possible' },
+      ],
+      problem: 'Can you fit an entire CPU into 2,300 transistors?',
+    };
+
+    it('should update avatar when setPersona is called', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const avatar = container.querySelector('.da-your-role-avatar');
+      expect(avatar?.textContent).toBe('👨‍🔬');
+    });
+
+    it('should update name when setPersona is called', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const name = container.querySelector('.da-your-role-name');
+      expect(name?.textContent).toBe('Federico Faggin');
+    });
+
+    it('should update era when setPersona is called', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const stats = container.querySelector('.da-your-role-stats');
+      expect(stats?.textContent).toContain('1970-1971');
+    });
+
+    it('should update avatar aria-label when setPersona is called', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const avatar = container.querySelector('.da-your-role-avatar');
+      expect(avatar?.getAttribute('aria-label')).toBe('Federico Faggin avatar');
+    });
+
+    it('should return persona via getPersona()', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      expect(panel.getPersona()).toEqual(mockPersona);
+    });
+
+    it('should return null from getPersona() if no persona set', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+
+      expect(panel.getPersona()).toBeNull();
+    });
+
+    it('should reset to defaults when setPersona(null) is called', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+      panel.setPersona(null);
+
+      const avatar = container.querySelector('.da-your-role-avatar');
+      const name = container.querySelector('.da-your-role-name');
+      expect(avatar?.textContent).toBe('👤');
+      expect(name?.textContent).toBe('Junior Engineer');
+    });
+
+    it('should update display on persona-changed event', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+
+      // Dispatch persona-changed event
+      const event = new CustomEvent('persona-changed', {
+        detail: {
+          persona: mockPersona,
+          previousPersona: null,
+        },
+      });
+      window.dispatchEvent(event);
+
+      const avatar = container.querySelector('.da-your-role-avatar');
+      const name = container.querySelector('.da-your-role-name');
+      expect(avatar?.textContent).toBe('👨‍🔬');
+      expect(name?.textContent).toBe('Federico Faggin');
+    });
+
+    it('should remove event listener on destroy', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.destroy();
+
+      // Dispatch event after destroy
+      const event = new CustomEvent('persona-changed', {
+        detail: {
+          persona: mockPersona,
+          previousPersona: null,
+        },
+      });
+      window.dispatchEvent(event);
+
+      // Panel is destroyed, getPersona should return null
+      expect(panel.getPersona()).toBeNull();
+    });
+
+    it('should apply persona data set before mount', () => {
+      panel = new YourRolePanel();
+      panel.setPersona(mockPersona);
+      panel.mount(container);
+
+      const avatar = container.querySelector('.da-your-role-avatar');
+      const name = container.querySelector('.da-your-role-name');
+      expect(avatar?.textContent).toBe('👨‍🔬');
+      expect(name?.textContent).toBe('Federico Faggin');
     });
   });
 });

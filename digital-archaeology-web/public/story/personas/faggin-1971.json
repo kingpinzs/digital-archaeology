@@ -1,0 +1,30 @@
+{
+  "id": "faggin-1971",
+  "name": "Federico Faggin",
+  "years": "1941-",
+  "era": "1970-1971",
+  "avatar": "👨‍🔬",
+  "quote": "The microprocessor was not invented. It was discovered.",
+  "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
+  "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
+  "constraints": [
+    {
+      "type": "technical",
+      "description": "Only 2,300 transistors are possible with current fabrication technology"
+    },
+    {
+      "type": "economic",
+      "description": "Busicom wants calculators, not general-purpose computers"
+    },
+    {
+      "type": "political",
+      "description": "Intel's management sees the company as a memory manufacturer, not a processor company"
+    },
+    {
+      "type": "knowledge",
+      "description": "No one has ever built a CPU this small - you're inventing the field as you go"
+    }
+  ],
+  "problem": "Can you fit an entire CPU into 2,300 transistors?",
+  "speechPattern": "Technical and precise, with occasional Italian expressions. Speaks passionately about silicon gate technology."
+}

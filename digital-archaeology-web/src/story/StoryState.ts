@@ -1,6 +1,9 @@
 // src/story/StoryState.ts
 // State type definitions for the story progression engine
 // Story 10.15: Create Story Progression Engine
+// Story 10.18: Create Historical Personas System
+
+import type { PersonaData } from './types';
 
 /**
  * Represents the current position in the story.
@@ -40,6 +43,8 @@ export interface StoryProgress {
   startedAt: number;
   /** Unix timestamp of last activity */
   lastPlayedAt: number;
+  /** Current persona the user has adopted (Story 10.18) */
+  currentPersona?: PersonaData | null;
 }
 
 /**
@@ -57,8 +62,9 @@ export interface StoryEngineState {
 /**
  * Creates a default StoryProgress for a new user.
  * @param sceneId - The starting scene ID
+ * @param persona - Optional initial persona (Story 10.18)
  */
-export function createDefaultProgress(sceneId: string): StoryProgress {
+export function createDefaultProgress(sceneId: string, persona?: PersonaData | null): StoryProgress {
   const now = Date.now();
   return {
     position: {
@@ -70,6 +76,7 @@ export function createDefaultProgress(sceneId: string): StoryProgress {
     discoveredItems: [],
     startedAt: now,
     lastPlayedAt: now,
+    currentPersona: persona ?? null,
   };
 }
 

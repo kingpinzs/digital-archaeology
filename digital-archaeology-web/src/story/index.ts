@@ -16,7 +16,7 @@ export { TechnicalNote } from './TechnicalNote';
 export { EnterLabButton } from './EnterLabButton';
 export { StoryActionsFooter } from './StoryActionsFooter';
 export { ChallengeObjectives } from './ChallengeObjectives';
-export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData, ChallengeData, ChallengeObjective } from './types';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData, ChallengeData, ChallengeObjective, PersonaConstraint, PersonaData } from './types';
 
 // Story 10.14: Story content data structures and loader
 export { StoryLoader, isStoryAct, isStoryChapter, isStoryScene, isStoryContent, validateStoryContent } from './StoryLoader';
@@ -25,10 +25,13 @@ export { StoryLoadError, StoryValidationError } from './content-types';
 
 // Story 10.15: Story progression engine
 export { StoryEngine } from './StoryEngine';
-export type { StoryStateChangedEvent } from './StoryEngine';
+export type { StoryStateChangedEvent, PersonaChangedEvent } from './StoryEngine';
 export { StoryStorage, STORY_STORAGE_KEY } from './StoryStorage';
 export type { StoryPosition, StoryChoice, StoryProgress, StoryEngineState } from './StoryState';
 export { createDefaultProgress, createDefaultEngineState } from './StoryState';
+
+// Story 10.18: Historical Personas System
+export { PersonaCard } from './PersonaCard';
 
 // Story 10.16: Era badge and progress display
 export { EraBadge } from './EraBadge';

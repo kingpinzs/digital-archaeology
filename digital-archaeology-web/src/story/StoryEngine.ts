@@ -1,9 +1,11 @@
 // src/story/StoryEngine.ts
 // Story progression engine with state management
 // Story 10.15: Create Story Progression Engine
+// Story 10.18: Create Historical Personas System
 
 import type { StoryScene, StoryAct } from './content-types';
 import type { StoryProgress, StoryPosition, StoryChoice, StoryEngineState } from './StoryState';
+import type { PersonaData } from './types';
 import { createDefaultProgress, createDefaultEngineState } from './StoryState';
 import { StoryStorage } from './StoryStorage';
 
@@ -13,6 +15,16 @@ export interface StoryStateChangedEvent extends CustomEvent {
     /** Current progress, or null if cleared */
     progress: StoryProgress | null;
     previousSceneId: string | null;
+  };
+}
+
+/** Custom event type for persona changes (Story 10.18) */
+export interface PersonaChangedEvent extends CustomEvent {
+  detail: {
+    /** The new persona, or null if cleared */
+    persona: PersonaData | null;
+    /** The previous persona, or null if none */
+    previousPersona: PersonaData | null;
   };
 }
 
@@ -83,6 +95,7 @@ export class StoryEngine {
     }
 
     const previousSceneId = this.state.progress?.position.sceneId ?? null;
+    const previousActNumber = this.state.progress?.position.actNumber ?? null;
 
     // Track history for previousScene
     if (previousSceneId) {
@@ -105,6 +118,19 @@ export class StoryEngine {
     } else {
       this.state.progress = createDefaultProgress(sceneId);
       this.state.progress.position = newPosition;
+    }
+
+    // Story 10.18: Check for act change and update persona
+    if (previousActNumber !== entry.actNumber) {
+      const actPersona = this.getActPersona(entry.actNumber);
+      if (actPersona) {
+        const previousPersona = this.state.progress.currentPersona ?? null;
+        this.state.progress = {
+          ...this.state.progress,
+          currentPersona: actPersona,
+        };
+        this.dispatchPersonaChanged(actPersona, previousPersona);
+      }
     }
 
     this.dispatchStateChanged(previousSceneId);
@@ -213,6 +239,53 @@ export class StoryEngine {
   }
 
   /**
+   * Get the current persona.
+   * Story 10.18: Create Historical Personas System
+   */
+  getCurrentPersona(): PersonaData | null {
+    return this.state.progress?.currentPersona ?? null;
+  }
+
+  /**
+   * Set the current persona and dispatch persona-changed event.
+   * Story 10.18: Create Historical Personas System
+   */
+  setCurrentPersona(persona: PersonaData | null): void {
+    if (!this.state.progress) {
+      throw new Error('No active progress. Navigate to a scene first.');
+    }
+
+    const previousPersona = this.state.progress.currentPersona ?? null;
+
+    // Don't dispatch if persona is the same
+    if (previousPersona?.id === persona?.id) {
+      return;
+    }
+
+    this.state.progress = {
+      ...this.state.progress,
+      currentPersona: persona,
+      lastPlayedAt: Date.now(),
+    };
+
+    this.dispatchPersonaChanged(persona, previousPersona);
+    this.saveProgress();
+  }
+
+  /**
+   * Get the persona for a specific act.
+   * Story 10.18: Create Historical Personas System
+   */
+  getActPersona(actNumber: number): PersonaData | null {
+    if (!this.content) {
+      return null;
+    }
+
+    const act = this.content.acts.find(a => a.number === actNumber);
+    return act?.persona ?? null;
+  }
+
+  /**
    * Start a new game from the first scene.
    */
   startNewGame(): void {
@@ -227,8 +300,16 @@ export class StoryEngine {
 
     const firstScene = firstAct.chapters[0].scenes[0];
     this.sceneHistory = [];
-    this.state.progress = createDefaultProgress(firstScene.id);
+
+    // Story 10.18: Initialize with first act's persona
+    const actPersona = firstAct.persona ?? null;
+    this.state.progress = createDefaultProgress(firstScene.id, actPersona);
     this.state.error = null;
+
+    // Dispatch persona-changed if persona exists
+    if (actPersona) {
+      this.dispatchPersonaChanged(actPersona, null);
+    }
 
     this.dispatchStateChanged(null);
     this.saveProgress();
@@ -327,6 +408,22 @@ export class StoryEngine {
         detail: {
           progress: this.state.progress,
           previousSceneId,
+        },
+      });
+      window.dispatchEvent(event);
+    }
+  }
+
+  /**
+   * Dispatch persona-changed event.
+   * Story 10.18: Create Historical Personas System
+   */
+  private dispatchPersonaChanged(persona: PersonaData | null, previousPersona: PersonaData | null): void {
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('persona-changed', {
+        detail: {
+          persona,
+          previousPersona,
         },
       });
       window.dispatchEvent(event);

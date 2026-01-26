@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "description": "Historical personas for Digital Archaeology Story Mode",
+  "personas": [
+    {
+      "id": "babbage-1837",
+      "file": "babbage-1837.json",
+      "act": 0,
+      "cpuStage": "mechanical"
+    },
+    {
+      "id": "zuse-1941",
+      "file": "zuse-1941.json",
+      "act": 1,
+      "cpuStage": "relay"
+    },
+    {
+      "id": "eckert-1946",
+      "file": "eckert-1946.json",
+      "act": 2,
+      "cpuStage": "vacuum"
+    },
+    {
+      "id": "shockley-1955",
+      "file": "shockley-1955.json",
+      "act": 3,
+      "cpuStage": "transistor"
+    },
+    {
+      "id": "faggin-1971",
+      "file": "faggin-1971.json",
+      "act": 4,
+      "cpuStage": "micro4"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 // Story 10.17: Wire Story Mode Integration
 
 import type { StoryScene, StoryChapter, StoryAct } from './content-types';
-import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData } from './types';
+import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData } from './types';
 import { ChapterHeader } from './ChapterHeader';
 import { SceneSetting } from './SceneSetting';
 import { CharacterCard } from './CharacterCard';
@@ -12,6 +12,7 @@ import { ChoiceCard } from './ChoiceCard';
 import { TechnicalNote } from './TechnicalNote';
 import { EnterLabButton } from './EnterLabButton';
 import { StoryActionsFooter } from './StoryActionsFooter';
+import { PersonaCard } from './PersonaCard';
 
 /**
  * Scene render context containing act and chapter information.
@@ -80,6 +81,11 @@ export class SceneRenderer {
       this.renderChapterHeader(context);
     }
 
+    // Render persona card if persona scene (Story 10.18)
+    if (context.scene.type === 'persona' && context.scene.persona) {
+      this.renderPersonaCard(context.scene.persona);
+    }
+
     // Render scene setting if present
     if (context.scene.setting) {
       this.renderSceneSetting(context.scene.setting);
@@ -138,6 +144,20 @@ export class SceneRenderer {
       subtitle: context.chapter.subtitle,
     });
     this.activeComponents.push(header);
+  }
+
+  /**
+   * Render persona card for persona introduction scenes.
+   * Story 10.18: Create Historical Personas System
+   */
+  private renderPersonaCard(persona: PersonaData): void {
+    const personaCard = new PersonaCard();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-persona-mount';
+    this.sceneContainer!.appendChild(mount);
+    personaCard.mount(mount);
+    personaCard.setPersonaData(persona);
+    this.activeComponents.push(personaCard);
   }
 
   /**

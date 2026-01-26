@@ -1,0 +1,30 @@
+{
+  "id": "eckert-1946",
+  "name": "J. Presper Eckert",
+  "years": "1919-1995",
+  "era": "1946",
+  "avatar": "💡",
+  "quote": "ENIAC was the work of many minds, but someone had to make it work.",
+  "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
+  "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
+  "constraints": [
+    {
+      "type": "technical",
+      "description": "18,000 vacuum tubes generate tremendous heat and fail constantly"
+    },
+    {
+      "type": "economic",
+      "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?"
+    },
+    {
+      "type": "political",
+      "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain"
+    },
+    {
+      "type": "knowledge",
+      "description": "Programming requires physically rewiring the machine for each problem"
+    }
+  ],
+  "problem": "Can vacuum tubes replace human minds for any calculation?",
+  "speechPattern": "Precise engineering language. Focused on reliability and practical implementation. Often refers to specific components by name."
+}

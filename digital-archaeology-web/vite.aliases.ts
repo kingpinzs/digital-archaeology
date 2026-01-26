@@ -18,6 +18,7 @@ export function createAliases(dirname: string): Record<string, string> {
     '@builder': resolve(dirname, './src/builder'),
     '@state': resolve(dirname, './src/state'),
     '@story': resolve(dirname, './src/story'),
+    '@hdl': resolve(dirname, './src/hdl'),
     '@ui': resolve(dirname, './src/ui'),
     '@types': resolve(dirname, './src/types'),
     '@utils': resolve(dirname, './src/utils'),

@@ -24,6 +24,7 @@
       "@builder/*": ["src/builder/*"],
       "@state/*": ["src/state/*"],
       "@story/*": ["src/story/*"],
+      "@hdl/*": ["src/hdl/*"],
       "@ui/*": ["src/ui/*"],
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],

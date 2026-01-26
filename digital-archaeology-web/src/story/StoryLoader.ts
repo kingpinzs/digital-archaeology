@@ -28,7 +28,7 @@ const VALID_CPU_STAGES: readonly string[] = [
 ];
 
 /** Valid scene types for type guard validation (must match SceneType type) */
-const VALID_SCENE_TYPES: readonly string[] = ['narrative', 'dialogue', 'choice', 'challenge'];
+const VALID_SCENE_TYPES: readonly string[] = ['narrative', 'dialogue', 'choice', 'challenge', 'persona'];
 
 /**
  * Type guard to check if a value is a valid StoryScene.

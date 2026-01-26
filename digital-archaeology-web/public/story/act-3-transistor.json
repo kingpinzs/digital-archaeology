@@ -13,6 +13,23 @@
       "description": "From Bell Labs to Silicon Valley, trace the invention of the transistor and the integrated circuit—the discoveries that made modern computing possible. Every vacuum tube that burned out, every unreliable connection, every room-sized computer drove engineers toward a singular goal: solid-state switching.",
       "era": "1947 - 1971",
       "cpuStage": "transistor",
+      "persona": {
+        "id": "shockley-1955",
+        "name": "William Shockley",
+        "years": "1910-1989",
+        "era": "1955",
+        "avatar": "🔬",
+        "quote": "The transistor was the first major step in miniaturizing electronics.",
+        "background": "You are a Nobel laureate who led the team that invented the transistor at Bell Labs. Now you've founded Shockley Semiconductor in Palo Alto, bringing the semiconductor revolution to the valley that will bear its name.",
+        "motivation": "Vacuum tubes are hot, fragile, and power-hungry. The transistor changes everything - smaller, faster, more reliable. But can we build entire computers from them?",
+        "constraints": [
+          { "type": "technical", "description": "Transistors are still made one at a time - mass production is difficult" },
+          { "type": "economic", "description": "Each transistor costs more than a vacuum tube - for now" },
+          { "type": "political", "description": "Your employees are brilliant but restless - they'll soon leave to start their own company" },
+          { "type": "knowledge", "description": "The integrated circuit is still years away - circuits must be wired by hand" }
+        ],
+        "problem": "Can transistors make computers small enough for ordinary businesses?"
+      },
       "chapters": [
         {
           "id": "chapter-3-1",
@@ -21,6 +38,36 @@
           "subtitle": "Bell Labs, Murray Hill",
           "year": "1947",
           "scenes": [
+            {
+              "id": "scene-3-0-persona",
+              "type": "persona",
+              "setting": {
+                "text": "Shockley Semiconductor Laboratory, Palo Alto, California, 1955. You've left Bell Labs to start your own company in this quiet fruit-growing valley. The transistor you helped invent will change the world - and this valley will change with it."
+              },
+              "persona": {
+                "id": "shockley-1955",
+                "name": "William Shockley",
+                "years": "1910-1989",
+                "era": "1955",
+                "avatar": "🔬",
+                "quote": "The transistor was the first major step in miniaturizing electronics.",
+                "background": "You are a Nobel laureate who led the team that invented the transistor at Bell Labs. Now you've founded Shockley Semiconductor in Palo Alto, bringing the semiconductor revolution to the valley that will bear its name.",
+                "motivation": "Vacuum tubes are hot, fragile, and power-hungry. The transistor changes everything - smaller, faster, more reliable. But can we build entire computers from them?",
+                "constraints": [
+                  { "type": "technical", "description": "Transistors are still made one at a time - mass production is difficult" },
+                  { "type": "economic", "description": "Each transistor costs more than a vacuum tube - for now" },
+                  { "type": "political", "description": "Your employees are brilliant but restless - they'll soon leave to start their own company" },
+                  { "type": "knowledge", "description": "The integrated circuit is still years away - circuits must be wired by hand" }
+                ],
+                "problem": "Can transistors make computers small enough for ordinary businesses?"
+              },
+              "narrative": [
+                "Welcome to the Solid State Revolution. The transistor will change everything.",
+                "Vacuum tubes were fast but fragile. The transistor is a solid chunk of semiconductor - no vacuum, no filament, almost no power. It can switch a million times faster and last virtually forever.",
+                "You'll experience this transformation through the eyes of William Shockley, whose semiconductor company in Palo Alto would give Silicon Valley its name."
+              ],
+              "nextScene": "scene-3-1-1"
+            },
             {
               "id": "scene-3-1-1",
               "type": "narrative",

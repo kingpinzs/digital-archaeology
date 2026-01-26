@@ -13,6 +13,23 @@
       "description": "In 1969, a Japanese calculator company approaches a small Silicon Valley startup with an impossible request. What emerges will transform computing forever: the microprocessor. At Intel, you'll witness the birth of the computer-on-a-chip.",
       "era": "1969-1971",
       "cpuStage": "micro4",
+      "persona": {
+        "id": "faggin-1971",
+        "name": "Federico Faggin",
+        "years": "1941-",
+        "era": "1970-1971",
+        "avatar": "👨‍🔬",
+        "quote": "The microprocessor was not invented. It was discovered.",
+        "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
+        "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
+        "constraints": [
+          { "type": "technical", "description": "Only 2,300 transistors are possible with current fabrication technology" },
+          { "type": "economic", "description": "Busicom wants calculators, not general-purpose computers" },
+          { "type": "political", "description": "Intel's management sees the company as a memory manufacturer, not a processor company" },
+          { "type": "knowledge", "description": "No one has ever built a CPU this small - you're inventing the field as you go" }
+        ],
+        "problem": "Can you fit an entire CPU into 2,300 transistors?"
+      },
       "chapters": [
         {
           "id": "chapter-4-1",
@@ -21,6 +38,36 @@
           "subtitle": "Busicom's Impossible Request",
           "year": "1969",
           "scenes": [
+            {
+              "id": "scene-4-0-persona",
+              "type": "persona",
+              "setting": {
+                "text": "Intel Corporation, Santa Clara, 1970. In a cramped lab filled with oscilloscopes and logic analyzers, you're attempting the impossible: fitting an entire computer onto a single chip. The 4004 is taking shape, transistor by transistor."
+              },
+              "persona": {
+                "id": "faggin-1971",
+                "name": "Federico Faggin",
+                "years": "1941-",
+                "era": "1970-1971",
+                "avatar": "👨‍🔬",
+                "quote": "The microprocessor was not invented. It was discovered.",
+                "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
+                "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
+                "constraints": [
+                  { "type": "technical", "description": "Only 2,300 transistors are possible with current fabrication technology" },
+                  { "type": "economic", "description": "Busicom wants calculators, not general-purpose computers" },
+                  { "type": "political", "description": "Intel's management sees the company as a memory manufacturer, not a processor company" },
+                  { "type": "knowledge", "description": "No one has ever built a CPU this small - you're inventing the field as you go" }
+                ],
+                "problem": "Can you fit an entire CPU into 2,300 transistors?"
+              },
+              "narrative": [
+                "Welcome to the Microprocessor era. The entire computer is about to fit on a single chip.",
+                "The integrated circuit made computers smaller, but they still required boards full of chips. What if the entire CPU could be just one chip?",
+                "You'll experience this breakthrough through the eyes of Federico Faggin, who designed the Intel 4004 - the world's first commercial microprocessor."
+              ],
+              "nextScene": "scene-4-1-1"
+            },
             {
               "id": "scene-4-1-1",
               "type": "narrative",

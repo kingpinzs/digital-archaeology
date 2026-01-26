@@ -214,6 +214,23 @@
 }
 
 /* =============================================================================
+   Accessibility Utility Classes
+   ============================================================================= */
+
+/* Screen-reader only - visually hidden but accessible */
+.da-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =============================================================================
    Application Layout - CSS Grid Structure
    Story 1.5: Create Basic App Shell with 3-Panel Layout
    Story 1.6: Implement Resizable Panel System
@@ -2627,6 +2644,46 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   Constraint Icons (Story 10.18: Task 8.4)
+   ============================================================================= */
+
+.da-your-role-constraints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--story-border, rgba(212, 165, 116, 0.15));
+}
+
+.da-your-role-constraint {
+  font-size: 14px;
+  cursor: help;
+  transition: transform 0.15s ease;
+}
+
+.da-your-role-constraint:hover {
+  transform: scale(1.2);
+}
+
+/* Constraint type-specific styling */
+.da-your-role-constraint--technical {
+  filter: hue-rotate(0deg);
+}
+
+.da-your-role-constraint--economic {
+  filter: hue-rotate(40deg);
+}
+
+.da-your-role-constraint--political {
+  filter: hue-rotate(200deg);
+}
+
+.da-your-role-constraint--knowledge {
+  filter: hue-rotate(280deg);
+}
+
+/* =============================================================================
    Discoveries Section (Story 10.4)
    ============================================================================= */
 
@@ -3044,6 +3101,206 @@ body.da-resizing * {
 .da-character-card-stat-separator {
   color: var(--story-border, rgba(212, 165, 116, 0.3));
   margin: 0 4px;
+}
+
+/* =============================================================================
+   Persona Card Component (Story 10.18)
+   Displays the historical persona the user adopts - distinct from NPC cards
+   ============================================================================= */
+
+.da-persona-card {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--persona-gold, #d4a574);
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 165, 116, 0.08) 0%,
+    rgba(30, 30, 42, 0.95) 100%
+  );
+  box-shadow: 0 4px 20px rgba(212, 165, 116, 0.15);
+}
+
+.da-persona-card--hidden {
+  display: none;
+}
+
+/* Header: "YOU ARE" + Avatar + Name */
+.da-persona-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.da-persona-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--persona-gold, #d4a574);
+  background: rgba(212, 165, 116, 0.15);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.da-persona-card-avatar {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.da-persona-card-name-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-persona-card-name {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-card-years {
+  font-size: 14px;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+/* Era display - prominent */
+.da-persona-card-era {
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 22px;
+  font-style: italic;
+  color: var(--da-text-secondary, #b0b0b0);
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.da-persona-card-separator {
+  width: 100%;
+  height: 1px;
+  margin: 16px 0;
+  background: linear-gradient(
+    90deg,
+    var(--persona-gold, #d4a574) 0%,
+    transparent 100%
+  );
+}
+
+/* Section styling */
+.da-persona-card-section {
+  margin-bottom: 16px;
+}
+
+.da-persona-card-section-label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+.da-persona-card-background,
+.da-persona-card-motivation {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+/* Constraints badges */
+.da-persona-card-constraints {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.da-constraint-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid;
+}
+
+.da-constraint-badge--technical {
+  border-left-color: var(--da-accent-blue, #4fc3f7);
+}
+
+.da-constraint-badge--economic {
+  border-left-color: var(--persona-gold, #d4a574);
+}
+
+.da-constraint-badge--political {
+  border-left-color: var(--persona-copper, #b87333);
+}
+
+.da-constraint-badge--knowledge {
+  border-left-color: var(--da-accent-purple, #b39ddb);
+}
+
+.da-constraint-badge-icon {
+  font-size: 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.da-constraint-badge-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+/* Challenge section */
+.da-persona-card-challenge {
+  background: rgba(212, 165, 116, 0.08);
+  border: 1px solid rgba(212, 165, 116, 0.25);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.da-persona-card-challenge-label {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-card-problem {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--da-text-primary, #e4e4e4);
+}
+
+/* Quote section */
+.da-persona-card-quote {
+  margin: 0;
+  padding: 16px 20px;
+  border-left: 3px solid var(--persona-gold, #d4a574);
+  background: rgba(212, 165, 116, 0.05);
+  border-radius: 0 6px 6px 0;
+}
+
+.da-persona-card-quote-text {
+  margin: 0;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--da-text-muted, #8a8a8a);
 }
 
 /* =============================================================================
@@ -4646,4 +4903,109 @@ body.da-resizing * {
   padding: 12px;
   border-top: 1px solid var(--da-border);
   background: var(--da-panel-header);
+}
+
+/* ============================================
+   HDL Viewer Panel (Story 7.1)
+   ============================================ */
+
+/* Panel overlay - modal style dialog */
+.da-hdl-viewer-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  max-width: 1000px;
+  height: 80vh;
+  max-height: 800px;
+  background: var(--da-bg-primary, #1a1a2e);
+  border: 1px solid var(--da-border, #3a3a4a);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.da-hdl-viewer-panel--hidden {
+  display: none;
+}
+
+/* Panel header */
+.da-hdl-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--da-panel-header, #12121a);
+  border-bottom: 1px solid var(--da-border, #3a3a4a);
+  flex-shrink: 0;
+}
+
+.da-hdl-viewer-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--da-text-primary, #e0e0e0);
+  font-family: var(--da-font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+}
+
+.da-hdl-viewer-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--da-text-secondary, #a0a0b0);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.da-hdl-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-hdl-viewer-close:focus {
+  outline: 2px solid var(--da-accent, #00b4d8);
+  outline-offset: 2px;
+}
+
+/* Editor container */
+.da-hdl-viewer-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Loading indicator */
+.da-hdl-viewer-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 24px;
+  background: var(--da-bg-secondary, #1e1e2e);
+  border: 1px solid var(--da-border, #3a3a4a);
+  border-radius: 6px;
+  color: var(--da-text-secondary, #a0a0b0);
+  font-family: var(--da-font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: 13px;
+  z-index: 10;
+}
+
+.da-hdl-viewer-loading--hidden {
+  display: none;
+}
+
+.da-hdl-viewer-loading--error {
+  color: var(--da-error, #ff6b6b);
+  border-color: var(--da-error, #ff6b6b);
 }

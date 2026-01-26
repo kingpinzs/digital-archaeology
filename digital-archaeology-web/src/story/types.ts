@@ -8,6 +8,7 @@
 // Story 10.9: Create Choice Card Component
 // Story 10.10: Create Technical Note Component
 // Story 10.13: Create Challenge Objectives in Lab Mode
+// Story 10.18: Create Historical Personas System
 
 /**
  * Represents a discovery badge earned by the player.
@@ -145,4 +146,45 @@ export interface ChallengeData {
   title: string;
   /** List of objectives to complete */
   objectives: ChallengeObjective[];
+}
+
+/**
+ * Represents a constraint faced by a historical persona.
+ * Story 10.18: Create Historical Personas System
+ */
+export interface PersonaConstraint {
+  /** Type of constraint affecting the persona */
+  type: 'technical' | 'economic' | 'political' | 'knowledge';
+  /** Description of the constraint */
+  description: string;
+}
+
+/**
+ * Represents a historical computing pioneer persona that the user adopts.
+ * Used for immersive storytelling where the user "becomes" a historical figure.
+ * Story 10.18: Create Historical Personas System
+ */
+export interface PersonaData {
+  /** Unique identifier (e.g., "faggin-1971") */
+  id: string;
+  /** Full name (e.g., "Federico Faggin") */
+  name: string;
+  /** Birth year or years active (e.g., "1941-") */
+  years: string;
+  /** Era string (e.g., "1970-1971") */
+  era: string;
+  /** Avatar emoji */
+  avatar: string;
+  /** Authentic quote from this person */
+  quote: string;
+  /** Background/biography paragraph */
+  background: string;
+  /** What drove them (motivation) */
+  motivation: string;
+  /** Constraints they faced */
+  constraints: PersonaConstraint[];
+  /** The problem they were trying to solve */
+  problem: string;
+  /** Optional: speech pattern hints for dialogue */
+  speechPattern?: string;
 }

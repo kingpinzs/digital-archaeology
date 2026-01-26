@@ -13,6 +13,23 @@
       "description": "The vacuum tube unlocked electronic speed—but ENIAC, the first general-purpose electronic computer, filled a room and consumed enough power to dim the lights of Philadelphia. From hardwired programs to stored instructions, from military secrets to commercial products, the electronic giants would define what a computer could be.",
       "era": "1945 - 1955",
       "cpuStage": "vacuum",
+      "persona": {
+        "id": "eckert-1946",
+        "name": "J. Presper Eckert",
+        "years": "1919-1995",
+        "era": "1946",
+        "avatar": "💡",
+        "quote": "ENIAC was the work of many minds, but someone had to make it work.",
+        "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
+        "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
+        "constraints": [
+          { "type": "technical", "description": "18,000 vacuum tubes generate tremendous heat and fail constantly" },
+          { "type": "economic", "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?" },
+          { "type": "political", "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain" },
+          { "type": "knowledge", "description": "Programming requires physically rewiring the machine for each problem" }
+        ],
+        "problem": "Can vacuum tubes replace human minds for any calculation?"
+      },
       "chapters": [
         {
           "id": "chapter-2-1",
@@ -21,6 +38,36 @@
           "subtitle": "Moore School of Electrical Engineering, Philadelphia",
           "year": "1945",
           "scenes": [
+            {
+              "id": "scene-2-0-persona",
+              "type": "persona",
+              "setting": {
+                "text": "Moore School of Electrical Engineering, Philadelphia, 1946. You stand before the largest, most complex electronic machine ever built. 18,000 vacuum tubes glow orange, consuming enough power to dim the lights across the city. This is ENIAC - and you helped build it."
+              },
+              "persona": {
+                "id": "eckert-1946",
+                "name": "J. Presper Eckert",
+                "years": "1919-1995",
+                "era": "1946",
+                "avatar": "💡",
+                "quote": "ENIAC was the work of many minds, but someone had to make it work.",
+                "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
+                "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
+                "constraints": [
+                  { "type": "technical", "description": "18,000 vacuum tubes generate tremendous heat and fail constantly" },
+                  { "type": "economic", "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?" },
+                  { "type": "political", "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain" },
+                  { "type": "knowledge", "description": "Programming requires physically rewiring the machine for each problem" }
+                ],
+                "problem": "Can vacuum tubes replace human minds for any calculation?"
+              },
+              "narrative": [
+                "Welcome to the Electronic Giants era. Vacuum tubes made computing electronic.",
+                "Where relays clicked at a few operations per second, vacuum tubes could switch thousands of times faster. But they came with a price: heat, power, and constant failure.",
+                "You'll experience this era through the eyes of J. Presper Eckert, the engineering genius who made ENIAC work."
+              ],
+              "nextScene": "scene-2-1-1"
+            },
             {
               "id": "scene-2-1-1",
               "type": "narrative",

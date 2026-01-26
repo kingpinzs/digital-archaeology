@@ -9,6 +9,7 @@ import type {
   ChoiceData,
   TechnicalNoteData,
   ChallengeData,
+  PersonaData,
 } from './types';
 
 /**
@@ -24,7 +25,7 @@ export interface StoryMetadata {
 }
 
 /** Valid scene types determining which content is primary */
-export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge';
+export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona';
 
 /**
  * Represents a scene within a chapter.
@@ -49,6 +50,8 @@ export interface StoryScene {
   technicalNotes?: TechnicalNoteData[];
   /** Challenge objectives for Lab Mode */
   challenge?: ChallengeData;
+  /** Persona data for persona introduction scenes (Story 10.18) */
+  persona?: PersonaData;
   /** ID of the next scene (for linear progression) */
   nextScene?: string;
 }
@@ -122,6 +125,8 @@ export interface StoryAct {
   cpuStage: CpuStage;
   /** Chapters within this act */
   chapters: StoryChapter[];
+  /** Historical persona the user adopts for this act (Story 10.18) */
+  persona?: PersonaData;
 }
 
 /**

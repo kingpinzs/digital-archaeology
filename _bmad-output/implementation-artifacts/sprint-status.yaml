@@ -119,8 +119,8 @@ development_status:
   epic-6-retrospective: done
 
   # Epic 7: HDL Editor & Management
-  epic-7: backlog
-  7-1-create-hdl-viewer-panel: backlog
+  epic-7: in-progress
+  7-1-create-hdl-viewer-panel: done
   7-2-implement-hdl-syntax-highlighting: backlog
   7-3-enable-hdl-editing: backlog
   7-4-implement-hdl-validation: backlog
@@ -166,7 +166,7 @@ development_status:
   10-15-create-story-progression-engine: done
   10-16-display-era-badge-and-progress: done
   10-17-wire-story-mode-integration: done
-  10-18-create-historical-personas-system: backlog
+  10-18-create-historical-personas-system: done
   10-19-implement-persona-profile-cards: backlog
   10-20-create-persona-transition-narratives: backlog
   10-21-historical-mindset-time-travel: backlog

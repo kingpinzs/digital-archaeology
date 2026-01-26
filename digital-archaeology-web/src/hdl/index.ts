@@ -26,7 +26,8 @@ export { HdlViewerPanel, resetHdlThemeRegistration } from './HdlViewerPanel';
 
 /**
  * HDL Viewer Panel Types
- * @see HdlViewerPanelOptions - Configuration options (hdlPath, onClose, onLoad, onError)
+ * @see HdlViewerPanelOptions - Configuration options (hdlPath, onClose, onLoad, onError, onSave, onEditModeChange)
+ * Story 7.3: Added onSave and onEditModeChange callbacks for edit mode
  */
 export type { HdlViewerPanelOptions } from './HdlViewerPanel';
 

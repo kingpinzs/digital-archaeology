@@ -15,6 +15,9 @@ vi.mock('monaco-editor', () => ({
       getValue: vi.fn(() => ''),
       focus: vi.fn(),
       getModel: vi.fn(() => null),
+      // Story 7.3: Add updateOptions and onDidChangeModelContent for edit mode
+      updateOptions: vi.fn(),
+      onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
     })),
     defineTheme: vi.fn(),
   },
@@ -126,6 +129,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should add hidden class when hidden', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => '# HDL content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       panel = new HdlViewerPanel();
       panel.mount(container);
       await panel.show();
@@ -136,6 +151,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should return correct visibility state', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => '# HDL content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       panel = new HdlViewerPanel();
       panel.mount(container);
 
@@ -149,6 +176,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should toggle visibility', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => '# HDL content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       panel = new HdlViewerPanel();
       panel.mount(container);
 
@@ -160,6 +199,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should call onClose callback when hidden', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => '# HDL content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       const onClose = vi.fn();
       panel = new HdlViewerPanel({ onClose });
       panel.mount(container);
@@ -178,6 +229,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should not reload content on subsequent shows', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => '# HDL content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       panel = new HdlViewerPanel();
       panel.mount(container);
 
@@ -191,7 +254,18 @@ describe('HdlViewerPanel', () => {
   });
 
   describe('close button', () => {
-    it('should hide panel when close button clicked', async () => {
+    it('should hide panel when close button clicked (no unsaved changes)', async () => {
+      const monaco = await import('monaco-editor');
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => 'content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       mockFetch.mockResolvedValue({
         ok: true,
         text: () => Promise.resolve('content'),
@@ -216,7 +290,19 @@ describe('HdlViewerPanel', () => {
       } as Response);
     });
 
-    it('should close panel on Escape key when visible', async () => {
+    it('should close panel on Escape key when visible (no unsaved changes)', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => 'content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       panel = new HdlViewerPanel();
       panel.mount(container);
       await panel.show();
@@ -416,6 +502,8 @@ describe('HdlViewerPanel', () => {
         getValue: vi.fn(() => ''),
         focus: vi.fn(),
         getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
       } as unknown as ReturnType<typeof monaco.editor.create>);
 
       // Need to remount to get new mock
@@ -436,6 +524,8 @@ describe('HdlViewerPanel', () => {
         getValue: mockGetValue,
         focus: vi.fn(),
         getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
       } as unknown as ReturnType<typeof monaco.editor.create>);
 
       panel = new HdlViewerPanel();
@@ -462,6 +552,18 @@ describe('HdlViewerPanel', () => {
     });
 
     it('should restore focus to previously focused element on hide', async () => {
+      const monaco = await import('monaco-editor');
+      // Mock getValue to return same content as loaded (no unsaved changes)
+      vi.mocked(monaco.editor.create).mockReturnValueOnce({
+        dispose: vi.fn(),
+        setValue: vi.fn(),
+        getValue: vi.fn(() => 'content'),
+        focus: vi.fn(),
+        getModel: vi.fn(() => null),
+        updateOptions: vi.fn(),
+        onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+      } as unknown as ReturnType<typeof monaco.editor.create>);
+
       // Create a button to focus before showing panel
       const focusableButton = document.createElement('button');
       focusableButton.id = 'test-focus-button';
@@ -482,6 +584,528 @@ describe('HdlViewerPanel', () => {
 
       // Cleanup
       focusableButton.remove();
+    });
+  });
+
+  // Story 7.3: Enable HDL Editing
+  describe('edit mode (Story 7.3)', () => {
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve('# HDL content'),
+      } as Response);
+    });
+
+    describe('edit mode state management', () => {
+      it('should start in view mode (not editing)', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        expect(panel.isEditMode()).toBe(false);
+      });
+
+      it('should track original content for dirty detection', async () => {
+        const monaco = await import('monaco-editor');
+        const loadedContent = '# HDL content';
+
+        // Mock getValue to return the loaded content
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => loadedContent),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(loadedContent),
+        } as Response);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        await panel.show();
+
+        // After loading, original content should be tracked, so no unsaved changes
+        expect(panel.hasUnsavedChanges()).toBe(false);
+      });
+
+      it('should accept onSave callback in options', () => {
+        const onSave = vi.fn();
+        panel = new HdlViewerPanel({ onSave });
+        panel.mount(container);
+
+        // Should not throw
+        expect(panel).toBeDefined();
+      });
+
+      it('should accept onEditModeChange callback in options', () => {
+        const onEditModeChange = vi.fn();
+        panel = new HdlViewerPanel({ onEditModeChange });
+        panel.mount(container);
+
+        // Should not throw
+        expect(panel).toBeDefined();
+      });
+    });
+
+    describe('edit toggle button', () => {
+      it('should create edit toggle button in header', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle');
+        expect(editButton).not.toBeNull();
+      });
+
+      it('should show "Edit" text when in view mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle');
+        expect(editButton?.textContent).toBe('Edit');
+      });
+
+      it('should have aria-pressed="false" when in view mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle');
+        expect(editButton?.getAttribute('aria-pressed')).toBe('false');
+      });
+
+      it('should toggle edit mode when clicked', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle') as HTMLButtonElement;
+        editButton?.click();
+
+        expect(panel.isEditMode()).toBe(true);
+      });
+
+      it('should show "View" text when in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle') as HTMLButtonElement;
+        editButton?.click();
+
+        expect(editButton?.textContent).toBe('View');
+      });
+
+      it('should have aria-pressed="true" when in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle') as HTMLButtonElement;
+        editButton?.click();
+
+        expect(editButton?.getAttribute('aria-pressed')).toBe('true');
+      });
+    });
+
+    describe('toggleEditMode', () => {
+      it('should update Monaco editor readOnly option', async () => {
+        const monaco = await import('monaco-editor');
+        const mockUpdateOptions = vi.fn();
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => ''),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: mockUpdateOptions,
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        expect(mockUpdateOptions).toHaveBeenCalledWith({ readOnly: false });
+      });
+
+      it('should update panel title to "HDL Editor" when in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const title = container.querySelector('.da-hdl-viewer-title');
+        expect(title?.textContent).toContain('HDL Editor');
+      });
+
+      it('should update panel title to "HDL Viewer" when in view mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode(); // Enter edit mode
+        panel.toggleEditMode(); // Return to view mode
+
+        const title = container.querySelector('.da-hdl-viewer-title');
+        expect(title?.textContent).toBe('HDL Viewer');
+      });
+
+      it('should call onEditModeChange callback', () => {
+        const onEditModeChange = vi.fn();
+        panel = new HdlViewerPanel({ onEditModeChange });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        expect(onEditModeChange).toHaveBeenCalledWith(true);
+      });
+
+      it('should add editing class to panel when in edit mode (Task 8.4)', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const panelElement = container.querySelector('.da-hdl-viewer-panel');
+        expect(panelElement?.classList.contains('da-hdl-viewer-panel--editing')).toBe(false);
+
+        panel.toggleEditMode();
+        expect(panelElement?.classList.contains('da-hdl-viewer-panel--editing')).toBe(true);
+
+        panel.toggleEditMode();
+        expect(panelElement?.classList.contains('da-hdl-viewer-panel--editing')).toBe(false);
+      });
+    });
+
+    describe('unsaved changes indicator', () => {
+      it('should create dirty indicator element', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const dirtyIndicator = container.querySelector('.da-hdl-viewer-dirty');
+        expect(dirtyIndicator).not.toBeNull();
+      });
+
+      it('should hide dirty indicator when no unsaved changes', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const dirtyIndicator = container.querySelector('.da-hdl-viewer-dirty');
+        expect(dirtyIndicator?.classList.contains('da-hdl-viewer-dirty--hidden')).toBe(true);
+      });
+
+      it('should show dirty indicator when content changes', async () => {
+        const monaco = await import('monaco-editor');
+        let contentChangeCallback: (() => void) | null = null;
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'modified content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn((cb) => {
+            contentChangeCallback = cb;
+            return { dispose: vi.fn() };
+          }),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        // Simulate content change
+        contentChangeCallback?.();
+
+        expect(panel.hasUnsavedChanges()).toBe(true);
+        const dirtyIndicator = container.querySelector('.da-hdl-viewer-dirty');
+        expect(dirtyIndicator?.classList.contains('da-hdl-viewer-dirty--hidden')).toBe(false);
+      });
+    });
+
+    describe('save button', () => {
+      it('should create save button in header', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const saveButton = container.querySelector('.da-hdl-viewer-save');
+        expect(saveButton).not.toBeNull();
+      });
+
+      it('should be disabled when no unsaved changes', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const saveButton = container.querySelector('.da-hdl-viewer-save');
+        expect(saveButton?.getAttribute('aria-disabled')).toBe('true');
+      });
+
+      it('should be hidden when not in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const saveButton = container.querySelector('.da-hdl-viewer-save');
+        expect(saveButton?.classList.contains('da-hdl-viewer-save--hidden')).toBe(true);
+      });
+
+      it('should be visible when in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const saveButton = container.querySelector('.da-hdl-viewer-save');
+        expect(saveButton?.classList.contains('da-hdl-viewer-save--hidden')).toBe(false);
+      });
+
+      it('should not call onSave when clicked while disabled (no changes)', async () => {
+        const monaco = await import('monaco-editor');
+        // Mock getValue to return same as original content (no changes)
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => '# HDL content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve('# HDL content'),
+        } as Response);
+
+        const onSave = vi.fn();
+        panel = new HdlViewerPanel({ onSave });
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        // Save button should be disabled (no changes)
+        const saveButton = container.querySelector('.da-hdl-viewer-save') as HTMLButtonElement;
+        expect(saveButton?.getAttribute('aria-disabled')).toBe('true');
+
+        // Click the disabled button
+        saveButton?.click();
+
+        // onSave should NOT be called because there are no changes
+        expect(onSave).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('saveContent', () => {
+      it('should call onSave callback with content', async () => {
+        const monaco = await import('monaco-editor');
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'saved content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onSave = vi.fn();
+        panel = new HdlViewerPanel({ onSave });
+        panel.mount(container);
+        panel.saveContent();
+
+        expect(onSave).toHaveBeenCalledWith('saved content');
+      });
+
+      it('should clear dirty indicator after save', async () => {
+        const monaco = await import('monaco-editor');
+        let contentChangeCallback: (() => void) | null = null;
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'modified content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn((cb) => {
+            contentChangeCallback = cb;
+            return { dispose: vi.fn() };
+          }),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        // Simulate content change
+        contentChangeCallback?.();
+        expect(panel.hasUnsavedChanges()).toBe(true);
+
+        // Save
+        panel.saveContent();
+        expect(panel.hasUnsavedChanges()).toBe(false);
+      });
+    });
+
+    describe('keyboard shortcuts', () => {
+      it('should save on Ctrl+S in edit mode', async () => {
+        const onSave = vi.fn();
+        panel = new HdlViewerPanel({ onSave });
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true }));
+
+        expect(onSave).toHaveBeenCalled();
+      });
+
+      it('should not save on Ctrl+S in view mode', async () => {
+        const onSave = vi.fn();
+        panel = new HdlViewerPanel({ onSave });
+        panel.mount(container);
+        await panel.show();
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true }));
+
+        expect(onSave).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('close with unsaved changes', () => {
+      it('should prompt before closing with unsaved changes', async () => {
+        const monaco = await import('monaco-editor');
+        let contentChangeCallback: (() => void) | null = null;
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'modified content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn((cb) => {
+            contentChangeCallback = cb;
+            return { dispose: vi.fn() };
+          }),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        // Mock window.confirm
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        // Simulate content change
+        contentChangeCallback?.();
+
+        // Try to hide - should prompt
+        panel.hide();
+
+        expect(confirmSpy).toHaveBeenCalled();
+        // Panel should still be visible because user cancelled
+        expect(panel.isVisible()).toBe(true);
+
+        confirmSpy.mockRestore();
+      });
+
+      it('should close when user confirms discard', async () => {
+        const monaco = await import('monaco-editor');
+        let contentChangeCallback: (() => void) | null = null;
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'modified content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn((cb) => {
+            contentChangeCallback = cb;
+            return { dispose: vi.fn() };
+          }),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        // Mock window.confirm to return true
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        // Simulate content change
+        contentChangeCallback?.();
+
+        // Try to hide - should succeed because user confirms
+        panel.hide();
+
+        expect(panel.isVisible()).toBe(false);
+
+        confirmSpy.mockRestore();
+      });
+
+      it('should close without prompt using forceClose', async () => {
+        const monaco = await import('monaco-editor');
+        let contentChangeCallback: (() => void) | null = null;
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'modified content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn((cb) => {
+            contentChangeCallback = cb;
+            return { dispose: vi.fn() };
+          }),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        // Simulate content change
+        contentChangeCallback?.();
+
+        // Force close without prompt
+        panel.forceClose();
+
+        expect(panel.isVisible()).toBe(false);
+      });
+
+      it('should reset edit mode state when forceClose is called', async () => {
+        const monaco = await import('monaco-editor');
+        const mockUpdateOptions = vi.fn();
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => '# HDL content'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => null),
+          updateOptions: mockUpdateOptions,
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        expect(panel.isEditMode()).toBe(true);
+
+        // Force close
+        panel.forceClose();
+
+        // Edit mode should be reset
+        expect(panel.isEditMode()).toBe(false);
+
+        // UI elements should be reset
+        const editButton = container.querySelector('.da-hdl-viewer-edit-toggle');
+        expect(editButton?.textContent).toBe('Edit');
+        expect(editButton?.getAttribute('aria-pressed')).toBe('false');
+
+        const title = container.querySelector('.da-hdl-viewer-title');
+        expect(title?.textContent).toBe('HDL Viewer');
+
+        const saveButton = container.querySelector('.da-hdl-viewer-save');
+        expect(saveButton?.classList.contains('da-hdl-viewer-save--hidden')).toBe(true);
+
+        const panelElement = container.querySelector('.da-hdl-viewer-panel');
+        expect(panelElement?.classList.contains('da-hdl-viewer-panel--editing')).toBe(false);
+      });
     });
   });
 });

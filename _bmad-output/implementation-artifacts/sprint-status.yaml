@@ -122,7 +122,7 @@ development_status:
   epic-7: in-progress
   7-1-create-hdl-viewer-panel: done
   7-2-implement-hdl-syntax-highlighting: done
-  7-3-enable-hdl-editing: backlog
+  7-3-enable-hdl-editing: done
   7-4-implement-hdl-validation: backlog
   7-5-reload-visualizer-after-hdl-changes: backlog
   epic-7-retrospective: optional

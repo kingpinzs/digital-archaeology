@@ -5009,3 +5009,103 @@ body.da-resizing * {
   color: var(--da-error, #ff6b6b);
   border-color: var(--da-error, #ff6b6b);
 }
+
+/* Story 7.3: Edit Mode Styles */
+
+.da-hdl-viewer-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.da-hdl-viewer-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.da-hdl-viewer-edit-toggle {
+  padding: 4px 12px;
+  background: var(--da-button-bg, #404060);
+  color: var(--da-text-primary, #e0e0e0);
+  border: 1px solid var(--da-border, #505070);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.da-hdl-viewer-edit-toggle:hover {
+  background: var(--da-button-hover, #505070);
+}
+
+.da-hdl-viewer-edit-toggle:focus {
+  outline: 2px solid var(--da-accent, #00b4d8);
+  outline-offset: 2px;
+}
+
+.da-hdl-viewer-edit-toggle[aria-pressed="true"] {
+  background: var(--da-accent, #00b4d8);
+  color: var(--da-bg-primary, #1a1a2e);
+  border-color: var(--da-accent, #00b4d8);
+}
+
+.da-hdl-viewer-save {
+  padding: 4px 12px;
+  background: var(--da-success, #50fa7b);
+  color: var(--da-bg-primary, #1a1a2e);
+  border: 1px solid var(--da-success, #50fa7b);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.da-hdl-viewer-save:hover:not([aria-disabled="true"]) {
+  background: #6dff91;
+}
+
+.da-hdl-viewer-save:focus {
+  outline: 2px solid var(--da-accent, #00b4d8);
+  outline-offset: 2px;
+}
+
+.da-hdl-viewer-save[aria-disabled="true"],
+.da-hdl-viewer-save--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.da-hdl-viewer-save--hidden {
+  display: none;
+}
+
+.da-hdl-viewer-dirty {
+  color: var(--da-warning, #ffb86c);
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 4px;
+  animation: da-pulse 1.5s ease-in-out infinite;
+}
+
+.da-hdl-viewer-dirty--hidden {
+  display: none;
+}
+
+@keyframes da-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Story 7.3 Task 8.4: Edit mode header styling */
+.da-hdl-viewer-panel--editing .da-hdl-viewer-header {
+  background: linear-gradient(180deg, #2a2a50 0%, #252542 100%);
+  border-bottom-color: var(--da-accent, #00b4d8);
+}

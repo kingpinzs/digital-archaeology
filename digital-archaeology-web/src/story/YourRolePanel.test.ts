@@ -3,7 +3,7 @@
 // Story 10.2: Create Story Mode Layout
 // Story 10.4: Create "Your Role" Panel
 // Story 10.18: Create Historical Personas System
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { YourRolePanel } from './YourRolePanel';
 import type { RoleData, PersonaData } from './types';
 describe('YourRolePanel', () => {
@@ -528,6 +528,277 @@ era: '1971',
       const name = container.querySelector('.da-your-role-name');
       expect(avatar?.textContent).toBe('👨‍🔬');
       expect(name?.textContent).toBe('Federico Faggin');
+    });
+  });
+
+  describe('Story 10.19: View Persona Button (Task 4)', () => {
+    const mockPersona: PersonaData = {
+      id: 'faggin-1971',
+      name: 'Federico Faggin',
+      years: '1941-',
+      era: '1970-1971',
+      avatar: '👨‍🔬',
+      quote: 'The microprocessor was not invented. It was discovered.',
+      background: 'You immigrated from Italy to Silicon Valley in 1968.',
+      motivation: 'Busicom needs custom chips.',
+      constraints: [
+        { type: 'technical', description: 'Only 2,300 transistors possible' },
+      ],
+      problem: 'Can you fit an entire CPU into 2,300 transistors?',
+    };
+
+    it('should render view persona button when persona is set', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const button = container.querySelector('.da-view-persona-button');
+      expect(button).not.toBeNull();
+    });
+
+    it('should hide button when no persona is set', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+
+      const button = container.querySelector('.da-view-persona-button');
+      expect(button?.classList.contains('da-hidden') || button === null).toBe(true);
+    });
+
+    it('should show persona avatar as icon in button', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const button = container.querySelector('.da-view-persona-button');
+      expect(button?.textContent).toContain('👨‍🔬');
+    });
+
+    it('should have aria-label for accessibility', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const button = container.querySelector('.da-view-persona-button');
+      expect(button?.getAttribute('aria-label')).toBe('View persona profile');
+    });
+
+    it('should dispatch view-persona-requested event when clicked', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      const button = container.querySelector('.da-view-persona-button') as HTMLElement;
+      button?.click();
+
+      expect(listener).toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+    });
+
+    it('should include persona data in dispatched event', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      let eventDetail: PersonaData | null = null;
+      const listener = (event: Event) => {
+        eventDetail = (event as CustomEvent).detail.persona;
+      };
+      window.addEventListener('view-persona-requested', listener);
+
+      const button = container.querySelector('.da-view-persona-button') as HTMLElement;
+      button?.click();
+
+      expect(eventDetail).toEqual(mockPersona);
+      window.removeEventListener('view-persona-requested', listener);
+    });
+
+    it('should hide button when persona is cleared', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      // Button should be visible
+      let button = container.querySelector('.da-view-persona-button');
+      expect(button?.classList.contains('da-hidden')).toBe(false);
+
+      // Clear persona
+      panel.setPersona(null);
+
+      // Button should be hidden
+      button = container.querySelector('.da-view-persona-button');
+      expect(button?.classList.contains('da-hidden')).toBe(true);
+    });
+
+    it('should update button icon when persona changes', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      // Initial persona icon
+      let button = container.querySelector('.da-view-persona-button');
+      expect(button?.textContent).toContain('👨‍🔬');
+
+      // Change persona
+      const newPersona: PersonaData = {
+        ...mockPersona,
+        id: 'babbage-1837',
+        name: 'Charles Babbage',
+        avatar: '🎩',
+      };
+      panel.setPersona(newPersona);
+
+      // Button should update
+      button = container.querySelector('.da-view-persona-button');
+      expect(button?.textContent).toContain('🎩');
+    });
+  });
+
+  describe('Story 10.19: Keyboard Shortcut (Task 4.3)', () => {
+    const mockPersona: PersonaData = {
+      id: 'faggin-1971',
+      name: 'Federico Faggin',
+      years: '1941-',
+      era: '1970-1971',
+      avatar: '👨‍🔬',
+      quote: 'The microprocessor was not invented. It was discovered.',
+      background: 'You immigrated from Italy to Silicon Valley in 1968.',
+      motivation: 'Busicom needs custom chips.',
+      constraints: [
+        { type: 'technical', description: 'Only 2,300 transistors possible' },
+      ],
+      problem: 'Can you fit an entire CPU into 2,300 transistors?',
+    };
+
+    it('should dispatch view-persona-requested on P key when persona is set', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      document.dispatchEvent(event);
+
+      expect(listener).toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+    });
+
+    it('should also work with uppercase P key', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      const event = new KeyboardEvent('keydown', { key: 'P', bubbles: true });
+      document.dispatchEvent(event);
+
+      expect(listener).toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+    });
+
+    it('should not dispatch event when no persona is set', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      document.dispatchEvent(event);
+
+      expect(listener).not.toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+    });
+
+    it('should not trigger when typing in input field', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      // Create an input field and focus it
+      const input = document.createElement('input');
+      container.appendChild(input);
+      input.focus();
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      // Dispatch from input
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      input.dispatchEvent(event);
+
+      expect(listener).not.toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+      input.remove();
+    });
+
+    it('should not trigger when typing in textarea field', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      // Create a textarea field and focus it (Code Review Fix: M3)
+      const textarea = document.createElement('textarea');
+      container.appendChild(textarea);
+      textarea.focus();
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      // Dispatch from textarea
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      textarea.dispatchEvent(event);
+
+      expect(listener).not.toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+      textarea.remove();
+    });
+
+    it('should not trigger when typing in contentEditable element', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+
+      // Create a contentEditable element and focus it (Code Review Fix: L2)
+      const editable = document.createElement('div');
+      editable.contentEditable = 'true';
+      editable.tabIndex = 0; // Make it focusable
+      container.appendChild(editable);
+      editable.focus();
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      // Dispatch from contentEditable - the event target will be the editable element
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      // Dispatch from the editable element so event.target is the editable
+      editable.dispatchEvent(event);
+
+      expect(listener).not.toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
+      editable.remove();
+    });
+
+    it('should remove keyboard listener on destroy', () => {
+      panel = new YourRolePanel();
+      panel.mount(container);
+      panel.setPersona(mockPersona);
+      panel.destroy();
+
+      const listener = vi.fn();
+      window.addEventListener('view-persona-requested', listener);
+
+      const event = new KeyboardEvent('keydown', { key: 'p', bubbles: true });
+      document.dispatchEvent(event);
+
+      expect(listener).not.toHaveBeenCalled();
+      window.removeEventListener('view-persona-requested', listener);
     });
   });
 });

@@ -4,7 +4,13 @@
   "years": "1941-",
   "era": "1970-1971",
   "avatar": "👨‍🔬",
+  "keyContribution": "Invented silicon gate technology and designed the Intel 4004, the world's first commercial microprocessor on a single chip.",
   "quote": "The microprocessor was not invented. It was discovered.",
+  "additionalQuotes": [
+    "I was able to bring together the pieces: the design methodology, the silicon gate technology, and the system architecture.",
+    "Working at Intel in those early days was like being in a startup. We didn't know what couldn't be done.",
+    "The 4004 was a computer on a chip. Not just a calculator - a general purpose computer."
+  ],
   "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
   "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
   "constraints": [

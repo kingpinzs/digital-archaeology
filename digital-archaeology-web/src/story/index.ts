@@ -33,6 +33,9 @@ export { createDefaultProgress, createDefaultEngineState } from './StoryState';
 // Story 10.18: Historical Personas System
 export { PersonaCard } from './PersonaCard';
 
+// Story 10.19: Persona Profile Panel
+export { PersonaProfilePanel } from './PersonaProfilePanel';
+
 // Story 10.16: Era badge and progress display
 export { EraBadge } from './EraBadge';
 export { ProgressDots } from './ProgressDots';

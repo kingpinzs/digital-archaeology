@@ -36,6 +36,10 @@ export class YourRolePanel {
 
   // Event handler for cleanup
   private boundHandlePersonaChanged: ((event: Event) => void) | null = null;
+  private boundHandleKeyDown: ((event: KeyboardEvent) => void) | null = null;
+
+  // View Persona button element reference (Story 10.19)
+  private viewPersonaButton: HTMLElement | null = null;
 
   /**
    * Mount the panel to a DOM element.
@@ -49,6 +53,10 @@ export class YourRolePanel {
     // Subscribe to persona-changed events (Story 10.18)
     this.boundHandlePersonaChanged = this.handlePersonaChanged.bind(this);
     window.addEventListener('persona-changed', this.boundHandlePersonaChanged);
+
+    // Subscribe to keyboard events for 'P' shortcut (Story 10.19: Task 4.3)
+    this.boundHandleKeyDown = this.handleKeyDown.bind(this);
+    document.addEventListener('keydown', this.boundHandleKeyDown);
 
     // Apply any persona data set before mount
     if (this.personaData) {
@@ -93,8 +101,50 @@ export class YourRolePanel {
   }
 
   /**
+   * Handle keyboard events for 'P' shortcut.
+   * Story 10.19: Task 4.3 - Add keyboard shortcut (P key when in Story Mode)
+   */
+  private handleKeyDown(event: KeyboardEvent): void {
+    // Only respond to 'P' key when persona is set
+    if ((event.key === 'p' || event.key === 'P') && this.personaData) {
+      // Don't trigger when typing in input/textarea fields or contentEditable elements
+      const target = event.target as HTMLElement;
+      if (target && target.tagName) {
+        const isEditable =
+          target.isContentEditable ||
+          (target as HTMLElement).contentEditable === 'true' ||
+          (target.getAttribute && target.getAttribute('contenteditable') === 'true');
+        if (
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          isEditable
+        ) {
+          return;
+        }
+      }
+
+      this.dispatchViewPersonaEvent();
+    }
+  }
+
+  /**
+   * Dispatch the view-persona-requested event.
+   * Story 10.19: Task 4
+   */
+  private dispatchViewPersonaEvent(): void {
+    if (!this.personaData) return;
+
+    const event = new CustomEvent('view-persona-requested', {
+      detail: { persona: this.personaData },
+      bubbles: true,
+    });
+    window.dispatchEvent(event);
+  }
+
+  /**
    * Update display with current persona data.
    * Story 10.18: Create Historical Personas System
+   * Story 10.19: Task 4 - Update view persona button
    */
   private updatePersonaDisplay(): void {
     if (!this.element) return;
@@ -119,6 +169,9 @@ export class YourRolePanel {
       // Update constraints icons (Task 8.4)
       this.updateConstraintIcons();
 
+      // Show and update view persona button (Story 10.19: Task 4)
+      this.updateViewPersonaButton();
+
       // Announce persona change via aria-live region (Issue #4)
       if (this.liveRegion) {
         this.liveRegion.textContent = `You are now ${this.personaData.name}, ${this.personaData.era}`;
@@ -138,10 +191,32 @@ export class YourRolePanel {
       // Clear constraints when no persona
       this.clearConstraintIcons();
 
+      // Hide view persona button (Story 10.19: Task 4)
+      if (this.viewPersonaButton) {
+        this.viewPersonaButton.classList.add('da-hidden');
+      }
+
       // Clear live region when persona removed
       if (this.liveRegion) {
         this.liveRegion.textContent = '';
       }
+    }
+  }
+
+  /**
+   * Update the view persona button state and icon.
+   * Story 10.19: Task 4.1, 4.5
+   */
+  private updateViewPersonaButton(): void {
+    if (!this.viewPersonaButton || !this.personaData) return;
+
+    // Show the button
+    this.viewPersonaButton.classList.remove('da-hidden');
+
+    // Update the icon to match current persona's avatar
+    const iconElement = this.viewPersonaButton.querySelector('.da-view-persona-icon');
+    if (iconElement) {
+      iconElement.textContent = this.personaData.avatar;
     }
   }
 
@@ -324,6 +399,30 @@ export class YourRolePanel {
     avatarSection.appendChild(roleName);
     avatarSection.appendChild(roleLocation);
 
+    // View Persona button (Story 10.19: Task 4)
+    const viewPersonaButton = document.createElement('button');
+    viewPersonaButton.className = 'da-view-persona-button da-hidden';
+    viewPersonaButton.setAttribute('type', 'button');
+    viewPersonaButton.setAttribute('aria-label', 'View persona profile');
+
+    const buttonIcon = document.createElement('span');
+    buttonIcon.className = 'da-view-persona-icon';
+    buttonIcon.textContent = '👤';
+
+    const buttonText = document.createElement('span');
+    buttonText.className = 'da-view-persona-text';
+    buttonText.textContent = 'View Profile';
+
+    viewPersonaButton.appendChild(buttonIcon);
+    viewPersonaButton.appendChild(buttonText);
+
+    viewPersonaButton.addEventListener('click', () => {
+      this.dispatchViewPersonaEvent();
+    });
+
+    this.viewPersonaButton = viewPersonaButton;
+    avatarSection.appendChild(viewPersonaButton);
+
     // Stats section
     const stats = document.createElement('div');
     stats.className = 'da-your-role-stats';
@@ -469,6 +568,12 @@ export class YourRolePanel {
       this.boundHandlePersonaChanged = null;
     }
 
+    // Remove keyboard event listener (Story 10.19: Task 4.3)
+    if (this.boundHandleKeyDown) {
+      document.removeEventListener('keydown', this.boundHandleKeyDown);
+      this.boundHandleKeyDown = null;
+    }
+
     if (this.element) {
       this.element.remove();
       this.element = null;
@@ -485,5 +590,6 @@ export class YourRolePanel {
     this.badgesContainer = null;
     this.constraintsContainer = null;
     this.liveRegion = null;
+    this.viewPersonaButton = null;
   }
 }

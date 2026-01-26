@@ -3304,6 +3304,426 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   View Persona Button (Story 10.19: Task 4, Task 5)
+   Button in YourRolePanel to open PersonaProfilePanel
+   ============================================================================= */
+
+.da-view-persona-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(212, 165, 116, 0.1);
+  border: 1px solid var(--persona-gold, #d4a574);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--persona-gold, #d4a574);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.da-view-persona-button:hover {
+  background: rgba(212, 165, 116, 0.2);
+  transform: translateY(-1px);
+}
+
+.da-view-persona-button:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+.da-view-persona-button:active {
+  transform: translateY(0);
+}
+
+.da-view-persona-icon {
+  font-size: 16px;
+}
+
+.da-view-persona-text {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* =============================================================================
+   Persona Profile Panel (Story 10.19: Task 5)
+   Modal panel for detailed persona profile view
+   ============================================================================= */
+
+.da-persona-profile-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.da-persona-profile-backdrop--visible {
+  opacity: 1;
+}
+
+.da-persona-profile-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--da-surface, #1e1e1e);
+  border: 1px solid var(--persona-gold, #d4a574);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.da-persona-profile-panel--visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.da-persona-profile-panel--hidden {
+  display: none;
+}
+
+/* Panel Header */
+.da-persona-profile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid rgba(212, 165, 116, 0.2);
+}
+
+.da-persona-profile-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.da-persona-profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  font-size: 48px;
+  background: rgba(212, 165, 116, 0.1);
+  border: 2px solid var(--persona-gold, #d4a574);
+  border-radius: 50%;
+}
+
+.da-persona-profile-name-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.da-persona-profile-name {
+  margin: 0;
+  font-family: var(--story-font-heading, 'Playfair Display', serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-profile-years {
+  margin: 0;
+  font-size: 14px;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+.da-persona-profile-era {
+  margin: 0;
+  font-size: 13px;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+/* Close Button */
+.da-persona-profile-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--da-text-muted, #8a8a8a);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.da-persona-profile-close:hover {
+  color: var(--persona-gold, #d4a574);
+  border-color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-profile-close:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+/* Panel Body */
+.da-persona-profile-body {
+  padding: 20px 24px 24px;
+}
+
+/* Section Styles */
+.da-persona-profile-section {
+  margin-bottom: 20px;
+}
+
+.da-persona-profile-section:last-child {
+  margin-bottom: 0;
+}
+
+.da-persona-profile-section-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--persona-gold, #d4a574);
+}
+
+/* Key Contribution (highlighted) */
+.da-persona-profile-contribution {
+  padding: 12px 16px;
+  background: rgba(212, 165, 116, 0.08);
+  border-left: 3px solid var(--persona-gold, #d4a574);
+  border-radius: 0 6px 6px 0;
+}
+
+.da-persona-profile-contribution-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+/* Background and Motivation */
+.da-persona-profile-background,
+.da-persona-profile-motivation {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+/* Constraints */
+.da-persona-profile-constraints {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.da-constraint-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.da-constraint-badge-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.da-constraint-badge-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+/* Constraint type colors */
+.da-constraint-badge--technical {
+  border-color: rgba(74, 158, 255, 0.3);
+}
+
+.da-constraint-badge--economic {
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.da-constraint-badge--political {
+  border-color: rgba(156, 39, 176, 0.3);
+}
+
+.da-constraint-badge--knowledge {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+/* Challenge Section */
+.da-persona-profile-challenge {
+  padding: 12px 16px;
+  background: rgba(212, 165, 116, 0.05);
+  border: 1px dashed rgba(212, 165, 116, 0.3);
+  border-radius: 6px;
+}
+
+.da-persona-profile-challenge-text {
+  margin: 0;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+/* Discoveries Section */
+.da-persona-profile-discoveries {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.da-persona-profile-discovery-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.da-persona-profile-discovery-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--da-success, #4caf50);
+}
+
+.da-persona-profile-discovery-badge-icon {
+  font-size: 14px;
+}
+
+.da-persona-profile-no-discoveries {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+/* Discovery animation (Code Review Fix: H2) */
+@keyframes da-discovery-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.da-persona-profile-discovery-badge--new {
+  animation: da-discovery-appear 0.4s ease-out forwards;
+}
+
+.da-persona-profile-discovery-item {
+  opacity: 0;
+  animation: da-discovery-appear 0.4s ease-out forwards;
+}
+
+.da-persona-profile-discovery-item:nth-child(1) { animation-delay: 0ms; }
+.da-persona-profile-discovery-item:nth-child(2) { animation-delay: 100ms; }
+.da-persona-profile-discovery-item:nth-child(3) { animation-delay: 200ms; }
+.da-persona-profile-discovery-item:nth-child(4) { animation-delay: 300ms; }
+.da-persona-profile-discovery-item:nth-child(5) { animation-delay: 400ms; }
+
+/* Quotes Section with Carousel */
+.da-persona-profile-quotes {
+  padding: 16px;
+  background: rgba(212, 165, 116, 0.05);
+  border-left: 3px solid var(--persona-gold, #d4a574);
+  border-radius: 0 6px 6px 0;
+}
+
+.da-persona-profile-quote-text {
+  margin: 0 0 12px;
+  font-family: var(--story-font-narrative, 'Crimson Text', serif);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--da-text-secondary, #b0b0b0);
+}
+
+.da-persona-profile-quote-text::before {
+  content: '"';
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-profile-quote-text::after {
+  content: '"';
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-profile-quote-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.da-persona-profile-quote-prev,
+.da-persona-profile-quote-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--da-text-muted, #8a8a8a);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.da-persona-profile-quote-prev:hover,
+.da-persona-profile-quote-next:hover {
+  color: var(--persona-gold, #d4a574);
+  border-color: var(--persona-gold, #d4a574);
+}
+
+.da-persona-profile-quote-prev:focus,
+.da-persona-profile-quote-next:focus {
+  outline: 2px solid var(--persona-gold, #d4a574);
+  outline-offset: 2px;
+}
+
+.da-persona-profile-quote-indicator {
+  font-size: 12px;
+  color: var(--da-text-muted, #8a8a8a);
+}
+
+/* =============================================================================
    Dialogue Block Component (Story 10.8)
    ============================================================================= */
 

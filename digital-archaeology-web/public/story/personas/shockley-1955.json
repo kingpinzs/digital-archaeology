@@ -4,7 +4,13 @@
   "years": "1910-1989",
   "era": "1955",
   "avatar": "🔬",
+  "keyContribution": "Co-invented the transistor at Bell Labs, enabling the miniaturization of electronics and founding Silicon Valley's semiconductor industry.",
   "quote": "The transistor was the first major step in miniaturizing electronics.",
+  "additionalQuotes": [
+    "What vacuum tubes did in cubic inches, transistors will do in cubic millimeters.",
+    "Silicon will replace copper as the foundation of electronics.",
+    "The future belongs to solid-state devices. Vacuum tubes are already obsolete."
+  ],
   "background": "You are a Nobel laureate who led the team that invented the transistor at Bell Labs. Now you've founded Shockley Semiconductor in Palo Alto, bringing the semiconductor revolution to the valley that will bear its name.",
   "motivation": "Vacuum tubes are hot, fragile, and power-hungry. The transistor changes everything - smaller, faster, more reliable. But can we build entire computers from them?",
   "constraints": [

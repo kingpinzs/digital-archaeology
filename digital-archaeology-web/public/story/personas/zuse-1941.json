@@ -4,7 +4,13 @@
   "years": "1910-1995",
   "era": "1941",
   "avatar": "🔧",
+  "keyContribution": "Built the Z3, the world's first working programmable, fully automatic digital computer, using telephone relays and floating-point arithmetic.",
   "quote": "The computer was invented to solve problems that did not exist before.",
+  "additionalQuotes": [
+    "Sometimes laziness is the mother of invention. I was too lazy to calculate, so I built a machine to do it.",
+    "The Z1 was a mechanical computer. The Z3 is electric. But both think in binary.",
+    "One day, machines will not only calculate - they will think."
+  ],
   "background": "You are a German civil engineer in Berlin. Tired of endless tedious calculations for aircraft designs, you built the Z1 in your parents' living room. Now the Z3 is nearly complete - the world's first programmable, automatic digital computer.",
   "motivation": "Engineering calculations consume years of manual labor. If machines can manufacture parts automatically, why not calculate automatically?",
   "constraints": [

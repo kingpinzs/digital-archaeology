@@ -163,6 +163,7 @@ export interface PersonaConstraint {
  * Represents a historical computing pioneer persona that the user adopts.
  * Used for immersive storytelling where the user "becomes" a historical figure.
  * Story 10.18: Create Historical Personas System
+ * Story 10.19: Implement Persona Profile Cards - Extended with keyContribution, photograph, additionalQuotes, discoveriesUnlocked
  */
 export interface PersonaData {
   /** Unique identifier (e.g., "faggin-1971") */
@@ -187,4 +188,14 @@ export interface PersonaData {
   problem: string;
   /** Optional: speech pattern hints for dialogue */
   speechPattern?: string;
+
+  // Story 10.19: Extended fields for Persona Profile Cards
+  /** 1-2 sentence summary of their main achievement (Story 10.19) */
+  keyContribution?: string;
+  /** URL to historical photograph, uses avatar as fallback if not provided (Story 10.19) */
+  photograph?: string;
+  /** Additional authentic quotes for carousel display (Story 10.19) */
+  additionalQuotes?: string[];
+  /** Discovery IDs unlocked during this era, updated dynamically (Story 10.19) */
+  discoveriesUnlocked?: string[];
 }

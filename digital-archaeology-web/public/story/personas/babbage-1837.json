@@ -4,7 +4,13 @@
   "years": "1791-1871",
   "era": "1837",
   "avatar": "🎩",
+  "keyContribution": "Conceived the Analytical Engine - the first design for a general-purpose programmable computer, complete with memory, arithmetic unit, and conditional branching.",
   "quote": "The engine can arrange and combine its numerical quantities exactly as if they were letters or any other general symbols.",
+  "additionalQuotes": [
+    "On two occasions I have been asked, 'If you put into the machine wrong figures, will the right answers come out?' I am not able rightly to apprehend the kind of confusion of ideas that could provoke such a question.",
+    "The whole of arithmetic now appeared within the grasp of mechanism.",
+    "I wish to God these calculations had been executed by steam."
+  ],
   "background": "You are the Lucasian Professor of Mathematics at Cambridge - the same chair held by Newton. After years of tedious calculation errors, you conceived the Difference Engine. Now you dream of something greater.",
   "motivation": "Mathematical tables are full of errors. Human computers make mistakes. What if a machine could calculate without error - and even program itself?",
   "constraints": [

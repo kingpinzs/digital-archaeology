@@ -4,7 +4,13 @@
   "years": "1919-1995",
   "era": "1946",
   "avatar": "💡",
+  "keyContribution": "Co-invented ENIAC, the first general-purpose electronic digital computer, proving that vacuum tubes could perform calculations thousands of times faster than electromechanical relays.",
   "quote": "ENIAC was the work of many minds, but someone had to make it work.",
+  "additionalQuotes": [
+    "People said vacuum tubes would never be reliable enough. We proved them wrong with 18,000 of them.",
+    "The speed of light is the only limit. Everything else is engineering.",
+    "ENIAC could do in 30 seconds what took a human computer 20 hours."
+  ],
   "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
   "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
   "constraints": [

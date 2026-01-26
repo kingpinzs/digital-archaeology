@@ -29,3 +29,19 @@ export { HdlViewerPanel, resetHdlThemeRegistration } from './HdlViewerPanel';
  * @see HdlViewerPanelOptions - Configuration options (hdlPath, onClose, onLoad, onError)
  */
 export type { HdlViewerPanelOptions } from './HdlViewerPanel';
+
+/**
+ * M4HDL Language Definition - Monaco syntax highlighting for HDL files
+ * Story 7.2: Implement HDL Syntax Highlighting
+ * @see registerM4hdlLanguage - Function to register language with Monaco
+ * @see resetM4hdlLanguageRegistration - Testing utility to reset registration state
+ * @see m4hdlLanguageId - Language identifier ('m4hdl')
+ * @see m4hdlMonarchLanguage - Monarch tokenizer definition
+ */
+export {
+  registerM4hdlLanguage,
+  resetM4hdlLanguageRegistration,
+  m4hdlLanguageId,
+  m4hdlLanguageConfiguration,
+  m4hdlMonarchLanguage,
+} from './m4hdl-language';

@@ -4,6 +4,7 @@
 
 import * as monaco from 'monaco-editor';
 import { HdlLoader, DEFAULT_HDL_PATH } from './HdlLoader';
+import { registerM4hdlLanguage, m4hdlLanguageId } from './m4hdl-language';
 
 /**
  * Configuration options for HdlViewerPanel.
@@ -126,6 +127,9 @@ export class HdlViewerPanel {
    * Register the HDL viewer theme if not already registered.
    */
   private registerTheme(): void {
+    // Register M4HDL language before theme (Story 7.2)
+    registerM4hdlLanguage();
+
     if (hdlThemeRegistered) return;
 
     monaco.editor.defineTheme('da-dark-hdl', {
@@ -134,6 +138,20 @@ export class HdlViewerPanel {
       rules: [
         // Comments (muted gray-blue)
         { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
+        // Keywords (wire) - cyan
+        { token: 'keyword', foreground: '8be9fd' },
+        // Gate types (and, or, not) - pink/magenta
+        { token: 'keyword.control', foreground: 'ff79c6' },
+        // Directives (input:, output:, module) - orange
+        { token: 'directive', foreground: 'ffb86c' },
+        // Identifiers (wire names, gate names) - default foreground
+        { token: 'identifier', foreground: 'f8f8f2' },
+        // Numbers (bit-widths, hex, decimal) - purple
+        { token: 'number', foreground: 'bd93f9' },
+        { token: 'number.hex', foreground: 'bd93f9' },
+        { token: 'number.binary', foreground: 'bd93f9' },
+        // Delimiters - subtle gray
+        { token: 'delimiter', foreground: 'a0a0b0' },
       ],
       colors: { ...DA_DARK_THEME_COLORS },
     });
@@ -198,7 +216,7 @@ export class HdlViewerPanel {
 
     this.editor = monaco.editor.create(this.editorContainer, {
       value: '',
-      language: 'text', // Syntax highlighting in Story 7.2
+      language: m4hdlLanguageId, // Story 7.2: HDL syntax highlighting
       theme: 'da-dark-hdl',
       automaticLayout: true,
       minimap: { enabled: true, scale: 1 },

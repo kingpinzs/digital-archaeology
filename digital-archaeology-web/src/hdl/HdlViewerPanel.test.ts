@@ -4,6 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HdlViewerPanel, resetHdlThemeRegistration } from './HdlViewerPanel';
+import { resetM4hdlLanguageRegistration } from './m4hdl-language';
 
 // Mock monaco-editor
 vi.mock('monaco-editor', () => ({
@@ -16,6 +17,12 @@ vi.mock('monaco-editor', () => ({
       getModel: vi.fn(() => null),
     })),
     defineTheme: vi.fn(),
+  },
+  // Add languages mock for m4hdl-language integration (Story 7.2)
+  languages: {
+    register: vi.fn(),
+    setLanguageConfiguration: vi.fn(),
+    setMonarchTokensProvider: vi.fn(),
   },
 }));
 
@@ -31,6 +38,7 @@ describe('HdlViewerPanel', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     resetHdlThemeRegistration();
+    resetM4hdlLanguageRegistration();
     mockFetch.mockReset();
   });
 
@@ -309,6 +317,51 @@ describe('HdlViewerPanel', () => {
         expect.anything(),
         expect.objectContaining({
           readOnly: true,
+        })
+      );
+    });
+  });
+
+  describe('syntax highlighting (Story 7.2)', () => {
+    it('should create Monaco editor with m4hdl language', async () => {
+      const monaco = await import('monaco-editor');
+      panel = new HdlViewerPanel();
+      panel.mount(container);
+
+      expect(monaco.editor.create).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          language: 'm4hdl',
+        })
+      );
+    });
+
+    it('should register M4HDL language before creating editor', async () => {
+      const monaco = await import('monaco-editor');
+      panel = new HdlViewerPanel();
+      panel.mount(container);
+
+      // Language registration should have been called
+      expect(monaco.languages.register).toHaveBeenCalledWith({ id: 'm4hdl' });
+      expect(monaco.languages.setMonarchTokensProvider).toHaveBeenCalled();
+    });
+
+    it('should define theme with syntax highlighting rules', async () => {
+      const monaco = await import('monaco-editor');
+      panel = new HdlViewerPanel();
+      panel.mount(container);
+
+      expect(monaco.editor.defineTheme).toHaveBeenCalledWith(
+        'da-dark-hdl',
+        expect.objectContaining({
+          rules: expect.arrayContaining([
+            expect.objectContaining({ token: 'comment' }),
+            expect.objectContaining({ token: 'keyword' }),
+            expect.objectContaining({ token: 'keyword.control' }),
+            expect.objectContaining({ token: 'directive' }),
+            expect.objectContaining({ token: 'identifier' }),
+            expect.objectContaining({ token: 'number' }),
+          ]),
         })
       );
     });

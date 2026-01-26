@@ -46,3 +46,18 @@ export {
   m4hdlLanguageConfiguration,
   m4hdlMonarchLanguage,
 } from './m4hdl-language';
+
+/**
+ * HDL Validator - Validates M4HDL syntax and semantics
+ * Story 7.4: Implement HDL Validation
+ * @see HdlValidator - Class for validating HDL content
+ * @see HdlValidationResult - Result with valid flag, errors, and warnings
+ * @see HdlValidationError - Error with line, column, message, severity
+ * @see HdlValidationSeverity - 'error' | 'warning'
+ */
+export { HdlValidator } from './HdlValidator';
+export type {
+  HdlValidationResult,
+  HdlValidationError,
+  HdlValidationSeverity,
+} from './HdlValidator';

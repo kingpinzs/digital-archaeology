@@ -5,6 +5,7 @@
 import * as monaco from 'monaco-editor';
 import { HdlLoader, DEFAULT_HDL_PATH } from './HdlLoader';
 import { registerM4hdlLanguage, m4hdlLanguageId } from './m4hdl-language';
+import { HdlValidator, HdlValidationResult } from './HdlValidator';
 
 /**
  * Configuration options for HdlViewerPanel.
@@ -22,6 +23,8 @@ export interface HdlViewerPanelOptions {
   onSave?: (content: string) => void;
   /** Callback when edit mode changes (Story 7.3) */
   onEditModeChange?: (editing: boolean) => void;
+  /** Callback when HDL is validated (Story 7.4) */
+  onValidate?: (result: HdlValidationResult) => void;
 }
 
 /**
@@ -87,6 +90,13 @@ export class HdlViewerPanel {
   private dirtyIndicator: HTMLElement | null = null;
   private titleElement: HTMLElement | null = null;
   private contentChangeDisposable: monaco.IDisposable | null = null;
+
+  // Story 7.4: Validation state
+  private validateButton: HTMLButtonElement | null = null;
+  private validationResultsContainer: HTMLElement | null = null;
+  private validator: HdlValidator = new HdlValidator();
+  private isValidating = false;
+  private lastValidationResult: HdlValidationResult | null = null;
 
   constructor(options: HdlViewerPanelOptions = {}) {
     this.options = options;
@@ -212,6 +222,13 @@ export class HdlViewerPanel {
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'da-hdl-viewer-buttons';
 
+    // Validate button (Story 7.4) - only visible in edit mode
+    this.validateButton = document.createElement('button');
+    this.validateButton.className = 'da-hdl-viewer-validate da-hdl-viewer-validate--hidden';
+    this.validateButton.textContent = 'Validate';
+    this.validateButton.setAttribute('aria-label', 'Validate HDL syntax');
+    this.validateButton.addEventListener('click', () => this.validateContent());
+
     // Edit toggle button (Story 7.3)
     this.editToggleButton = document.createElement('button');
     this.editToggleButton.className = 'da-hdl-viewer-edit-toggle';
@@ -239,6 +256,7 @@ export class HdlViewerPanel {
     closeButton.textContent = '\u00D7'; // × character
     closeButton.addEventListener('click', () => this.hide());
 
+    buttonContainer.appendChild(this.validateButton);
     buttonContainer.appendChild(this.editToggleButton);
     buttonContainer.appendChild(this.saveButton);
     buttonContainer.appendChild(closeButton);
@@ -256,9 +274,16 @@ export class HdlViewerPanel {
     loading.setAttribute('aria-live', 'polite');
     loading.textContent = 'Loading HDL file...';
 
+    // Story 7.4: Validation results container
+    this.validationResultsContainer = document.createElement('div');
+    this.validationResultsContainer.className = 'da-hdl-viewer-validation-results da-hdl-viewer-validation-results--hidden';
+    this.validationResultsContainer.setAttribute('role', 'status');
+    this.validationResultsContainer.setAttribute('aria-live', 'polite');
+
     // Assemble panel
     this.panelElement.appendChild(header);
     this.panelElement.appendChild(this.editorContainer);
+    this.panelElement.appendChild(this.validationResultsContainer);
     this.panelElement.appendChild(loading);
 
     this.container.appendChild(this.panelElement);
@@ -306,11 +331,13 @@ export class HdlViewerPanel {
     // Story 7.3: Listen for content changes
     this.contentChangeDisposable = this.editor.onDidChangeModelContent(() => {
       this.updateDirtyIndicator();
+      // Story 7.4: Clear stale validation markers on content change
+      this.clearValidationMarkers();
     });
   }
 
   /**
-   * Set up keyboard handling for Escape key and Ctrl+S.
+   * Set up keyboard handling for Escape key, Ctrl+S, and Ctrl+Shift+V.
    */
   private setupKeyboardHandling(): void {
     this.boundKeydownHandler = (e: KeyboardEvent) => {
@@ -321,6 +348,11 @@ export class HdlViewerPanel {
       if ((e.ctrlKey || e.metaKey) && e.key === 's' && this.visible && this.editMode) {
         e.preventDefault();
         this.saveContent();
+      }
+      // Story 7.4: Ctrl+Shift+V / Cmd+Shift+V to validate in edit mode
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'V' && this.visible && this.editMode) {
+        e.preventDefault();
+        this.validateContent();
       }
     };
     document.addEventListener('keydown', this.boundKeydownHandler);
@@ -548,6 +580,15 @@ export class HdlViewerPanel {
       }
     }
 
+    // Story 7.4: Show/hide validate button
+    if (this.validateButton) {
+      if (this.editMode) {
+        this.validateButton.classList.remove('da-hdl-viewer-validate--hidden');
+      } else {
+        this.validateButton.classList.add('da-hdl-viewer-validate--hidden');
+      }
+    }
+
     // Story 7.3 Task 8.4: Toggle edit mode styling on panel (subtle header background change)
     if (this.panelElement) {
       if (this.editMode) {
@@ -595,6 +636,7 @@ export class HdlViewerPanel {
    * Story 7.3: Updates originalContent to match current content, clears the
    * dirty indicator, announces the save to screen readers, and calls the
    * onSave callback with the content. Safe to call even with no changes.
+   * Story 7.4: Auto-validates on save.
    */
   saveContent(): void {
     const content = this.editor?.getValue() ?? '';
@@ -605,11 +647,223 @@ export class HdlViewerPanel {
     // Clear dirty indicator
     this.updateDirtyIndicator();
 
+    // Story 7.4: Auto-validate on save
+    this.validateContent();
+
     // Announce save
     this.announce('Changes saved');
 
     // Call callback
     this.options.onSave?.(content);
+  }
+
+  // ============================================
+  // Story 7.4: Validation Methods
+  // ============================================
+
+  /**
+   * Validate the current HDL content.
+   * Story 7.4: Parses HDL, shows errors/warnings, sets Monaco markers.
+   */
+  validateContent(): void {
+    if (this.isValidating) return;
+
+    const content = this.editor?.getValue() ?? '';
+    this.isValidating = true;
+
+    // Update validate button to loading state
+    if (this.validateButton) {
+      this.validateButton.textContent = 'Validating...';
+      this.validateButton.setAttribute('aria-disabled', 'true');
+    }
+
+    // Perform validation (synchronous for now, could be async later)
+    const result = this.validator.validate(content);
+    this.lastValidationResult = result;
+
+    // Update Monaco markers
+    this.setValidationMarkers(result);
+
+    // Display results
+    this.displayValidationResults(result);
+
+    // Restore validate button
+    if (this.validateButton) {
+      this.validateButton.textContent = 'Validate';
+      this.validateButton.setAttribute('aria-disabled', 'false');
+    }
+
+    this.isValidating = false;
+
+    // Announce result
+    if (result.valid) {
+      this.announce('HDL validation passed: no errors found');
+    } else {
+      this.announce(`HDL validation failed: ${result.errors.length} error${result.errors.length === 1 ? '' : 's'} found`);
+    }
+
+    // Call callback
+    this.options.onValidate?.(result);
+  }
+
+  /**
+   * Get the last validation result.
+   * Story 7.4: Returns null if no validation has been performed.
+   */
+  getLastValidationResult(): HdlValidationResult | null {
+    return this.lastValidationResult;
+  }
+
+  /**
+   * Set Monaco editor markers for validation errors.
+   * Story 7.4: Highlights errors inline in the editor.
+   */
+  private setValidationMarkers(result: HdlValidationResult): void {
+    if (!this.editor) return;
+
+    const model = this.editor.getModel();
+    if (!model) return;
+
+    // Convert errors and warnings to Monaco markers
+    const markers: monaco.editor.IMarkerData[] = [
+      ...result.errors.map((error) => ({
+        startLineNumber: error.line,
+        startColumn: error.column,
+        endLineNumber: error.line,
+        endColumn: model.getLineMaxColumn(error.line),
+        message: error.message,
+        severity: monaco.MarkerSeverity.Error,
+      })),
+      ...result.warnings.map((warning) => ({
+        startLineNumber: warning.line,
+        startColumn: warning.column,
+        endLineNumber: warning.line,
+        endColumn: model.getLineMaxColumn(warning.line),
+        message: warning.message,
+        severity: monaco.MarkerSeverity.Warning,
+      })),
+    ];
+
+    monaco.editor.setModelMarkers(model, 'hdl-validation', markers);
+  }
+
+  /**
+   * Clear validation markers from the editor.
+   * Story 7.4: Called when content changes to clear stale markers.
+   */
+  private clearValidationMarkers(): void {
+    if (!this.editor) return;
+
+    const model = this.editor.getModel();
+    if (!model) return;
+
+    monaco.editor.setModelMarkers(model, 'hdl-validation', []);
+  }
+
+  /**
+   * Display validation results in the results container.
+   * Story 7.4: Shows success or error list with clickable items.
+   */
+  private displayValidationResults(result: HdlValidationResult): void {
+    if (!this.validationResultsContainer) return;
+
+    // Clear previous results
+    this.validationResultsContainer.innerHTML = '';
+    this.validationResultsContainer.classList.remove('da-hdl-viewer-validation-results--hidden');
+
+    if (result.valid && result.warnings.length === 0) {
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'da-hdl-viewer-validation-success';
+      successDiv.innerHTML = '<span class="da-hdl-viewer-validation-icon">✓</span> HDL is valid (no errors)';
+      this.validationResultsContainer.appendChild(successDiv);
+    } else {
+      // Show error count header
+      if (result.errors.length > 0) {
+        const errorHeader = document.createElement('div');
+        errorHeader.className = 'da-hdl-viewer-validation-header da-hdl-viewer-validation-error';
+        errorHeader.innerHTML = `<span class="da-hdl-viewer-validation-icon">✗</span> ${result.errors.length} error${result.errors.length === 1 ? '' : 's'} found:`;
+        this.validationResultsContainer.appendChild(errorHeader);
+
+        // Show error list
+        const errorList = document.createElement('ul');
+        errorList.className = 'da-hdl-viewer-validation-list';
+        for (const error of result.errors) {
+          const errorItem = this.createValidationItem(error, 'error');
+          errorList.appendChild(errorItem);
+        }
+        this.validationResultsContainer.appendChild(errorList);
+      }
+
+      // Show warnings if any
+      if (result.warnings.length > 0) {
+        const warningHeader = document.createElement('div');
+        warningHeader.className = 'da-hdl-viewer-validation-header da-hdl-viewer-validation-warning';
+        warningHeader.innerHTML = `<span class="da-hdl-viewer-validation-icon">⚠</span> ${result.warnings.length} warning${result.warnings.length === 1 ? '' : 's'}:`;
+        this.validationResultsContainer.appendChild(warningHeader);
+
+        const warningList = document.createElement('ul');
+        warningList.className = 'da-hdl-viewer-validation-list';
+        for (const warning of result.warnings) {
+          const warningItem = this.createValidationItem(warning, 'warning');
+          warningList.appendChild(warningItem);
+        }
+        this.validationResultsContainer.appendChild(warningList);
+      }
+    }
+  }
+
+  /**
+   * Create a clickable validation item element.
+   * Story 7.4: Clicking jumps to the error line in the editor.
+   */
+  private createValidationItem(
+    item: { line: number; column: number; message: string },
+    type: 'error' | 'warning'
+  ): HTMLLIElement {
+    const li = document.createElement('li');
+    li.className = `da-hdl-viewer-validation-item da-hdl-viewer-validation-item--${type}`;
+    li.setAttribute('role', 'button');
+    li.setAttribute('tabindex', '0');
+    li.setAttribute('aria-label', `Line ${item.line}: ${item.message}. Press Enter to jump to line.`);
+
+    const lineSpan = document.createElement('span');
+    lineSpan.className = 'da-hdl-viewer-validation-line';
+    lineSpan.textContent = `Line ${item.line}:`;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'da-hdl-viewer-validation-message';
+    messageSpan.textContent = item.message;
+
+    li.appendChild(lineSpan);
+    li.appendChild(messageSpan);
+
+    // Click to jump to line
+    const jumpToLine = () => {
+      this.jumpToLine(item.line, item.column);
+    };
+
+    li.addEventListener('click', jumpToLine);
+    li.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        jumpToLine();
+      }
+    });
+
+    return li;
+  }
+
+  /**
+   * Jump to a specific line in the editor.
+   * Story 7.4: Reveals line in center and sets cursor position.
+   */
+  jumpToLine(lineNumber: number, column: number = 1): void {
+    if (!this.editor) return;
+
+    this.editor.revealLineInCenter(lineNumber);
+    this.editor.setPosition({ lineNumber, column });
+    this.editor.focus();
   }
 
   /**
@@ -641,6 +895,12 @@ export class HdlViewerPanel {
     this.saveButton = null;
     this.dirtyIndicator = null;
     this.titleElement = null;
+
+    // Story 7.4: Clean up validation elements
+    this.validateButton = null;
+    this.validationResultsContainer = null;
+    this.lastValidationResult = null;
+    this.isValidating = false;
 
     // Remove announcer element
     this.announcerElement?.remove();

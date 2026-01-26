@@ -5109,3 +5109,129 @@ body.da-resizing * {
   background: linear-gradient(180deg, #2a2a50 0%, #252542 100%);
   border-bottom-color: var(--da-accent, #00b4d8);
 }
+
+/* ============================================
+   Story 7.4: HDL Validation Styles
+   ============================================ */
+
+/* Validate button */
+.da-hdl-viewer-validate {
+  padding: 4px 12px;
+  background: var(--da-button-bg, #404060);
+  color: var(--da-text-primary, #e0e0e0);
+  border: 1px solid var(--da-border, #505070);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease;
+}
+
+.da-hdl-viewer-validate:hover:not([aria-disabled="true"]) {
+  background: var(--da-button-hover, #505070);
+}
+
+.da-hdl-viewer-validate:focus {
+  outline: 2px solid var(--da-accent, #00b4d8);
+  outline-offset: 2px;
+}
+
+.da-hdl-viewer-validate[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.da-hdl-viewer-validate--hidden {
+  display: none;
+}
+
+/* Validation results container */
+.da-hdl-viewer-validation-results {
+  padding: 8px 12px;
+  background: var(--da-bg-tertiary, #1a1a30);
+  border-top: 1px solid var(--da-border, #404060);
+  max-height: 150px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.da-hdl-viewer-validation-results--hidden {
+  display: none;
+}
+
+/* Success message */
+.da-hdl-viewer-validation-success {
+  color: var(--da-success, #50fa7b);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+/* Error/warning headers */
+.da-hdl-viewer-validation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-weight: 600;
+}
+
+.da-hdl-viewer-validation-header.da-hdl-viewer-validation-error {
+  color: var(--da-error, #ff5555);
+}
+
+.da-hdl-viewer-validation-header.da-hdl-viewer-validation-warning {
+  color: var(--da-warning, #ffb86c);
+}
+
+/* Validation icon */
+.da-hdl-viewer-validation-icon {
+  font-size: 14px;
+}
+
+/* Validation list */
+.da-hdl-viewer-validation-list {
+  list-style: none;
+  margin: 4px 0 8px 0;
+  padding: 0;
+}
+
+/* Validation item (clickable) */
+.da-hdl-viewer-validation-item {
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.da-hdl-viewer-validation-item:hover,
+.da-hdl-viewer-validation-item:focus {
+  background: var(--da-bg-secondary, #252542);
+  outline: none;
+}
+
+.da-hdl-viewer-validation-item:focus {
+  box-shadow: 0 0 0 2px var(--da-accent, #00b4d8);
+}
+
+.da-hdl-viewer-validation-item--error .da-hdl-viewer-validation-line {
+  color: var(--da-error, #ff5555);
+}
+
+.da-hdl-viewer-validation-item--warning .da-hdl-viewer-validation-line {
+  color: var(--da-warning, #ffb86c);
+}
+
+/* Line number */
+.da-hdl-viewer-validation-line {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Error/warning message */
+.da-hdl-viewer-validation-message {
+  color: var(--da-text-primary, #e0e0e0);
+}

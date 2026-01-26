@@ -20,12 +20,21 @@ vi.mock('monaco-editor', () => ({
       onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
     })),
     defineTheme: vi.fn(),
+    // Story 7.4: Add setModelMarkers for validation
+    setModelMarkers: vi.fn(),
   },
   // Add languages mock for m4hdl-language integration (Story 7.2)
   languages: {
     register: vi.fn(),
     setLanguageConfiguration: vi.fn(),
     setMonarchTokensProvider: vi.fn(),
+  },
+  // Story 7.4: Add MarkerSeverity for validation markers
+  MarkerSeverity: {
+    Error: 8,
+    Warning: 4,
+    Info: 2,
+    Hint: 1,
   },
 }));
 
@@ -1105,6 +1114,355 @@ describe('HdlViewerPanel', () => {
 
         const panelElement = container.querySelector('.da-hdl-viewer-panel');
         expect(panelElement?.classList.contains('da-hdl-viewer-panel--editing')).toBe(false);
+      });
+    });
+  });
+
+  // ============================================
+  // Story 7.4: Validation Tests
+  // ============================================
+  describe('validation (Story 7.4)', () => {
+    describe('validate button', () => {
+      it('should have validate button hidden by default', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const validateButton = container.querySelector('.da-hdl-viewer-validate');
+        expect(validateButton).not.toBeNull();
+        expect(validateButton?.classList.contains('da-hdl-viewer-validate--hidden')).toBe(true);
+      });
+
+      it('should show validate button in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const validateButton = container.querySelector('.da-hdl-viewer-validate');
+        expect(validateButton?.classList.contains('da-hdl-viewer-validate--hidden')).toBe(false);
+      });
+
+      it('should hide validate button when exiting edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode(); // Enter edit mode
+        panel.toggleEditMode(); // Exit edit mode
+
+        const validateButton = container.querySelector('.da-hdl-viewer-validate');
+        expect(validateButton?.classList.contains('da-hdl-viewer-validate--hidden')).toBe(true);
+      });
+
+      it('should trigger validation when validate button is clicked', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a\nwire b\nand g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onValidate = vi.fn();
+        panel = new HdlViewerPanel({ onValidate });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const validateButton = container.querySelector('.da-hdl-viewer-validate') as HTMLButtonElement;
+        validateButton?.click();
+
+        expect(onValidate).toHaveBeenCalled();
+        const result = onValidate.mock.calls[0][0];
+        expect(result.valid).toBe(false); // 'c' is undefined
+      });
+    });
+
+    describe('validateContent method', () => {
+      it('should return valid result for correct HDL', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a\nwire b\nwire c\nand g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const result = panel.getLastValidationResult();
+        expect(result?.valid).toBe(true);
+        expect(result?.errors).toHaveLength(0);
+      });
+
+      it('should detect errors in invalid HDL', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a\nand g1 (input: a, undefined_wire; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const result = panel.getLastValidationResult();
+        expect(result?.valid).toBe(false);
+        expect(result?.errors.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('validation results display', () => {
+      it('should show validation results container after validation', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const resultsContainer = container.querySelector('.da-hdl-viewer-validation-results');
+        expect(resultsContainer?.classList.contains('da-hdl-viewer-validation-results--hidden')).toBe(false);
+      });
+
+      it('should show success message for valid HDL', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a\nwire b\nwire c\nand g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const successMessage = container.querySelector('.da-hdl-viewer-validation-success');
+        expect(successMessage).not.toBeNull();
+        expect(successMessage?.textContent).toContain('valid');
+      });
+
+      it('should show error list for invalid HDL', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'and g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const errorList = container.querySelector('.da-hdl-viewer-validation-list');
+        expect(errorList).not.toBeNull();
+
+        const errorItems = container.querySelectorAll('.da-hdl-viewer-validation-item');
+        expect(errorItems.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('Monaco markers', () => {
+      it('should set Monaco markers on validation errors', async () => {
+        const monaco = await import('monaco-editor');
+        const mockModel = {
+          getLineMaxColumn: vi.fn(() => 20),
+        };
+        const mockSetModelMarkers = vi.fn();
+        vi.mocked(monaco.editor.setModelMarkers).mockImplementation(mockSetModelMarkers);
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'and g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: vi.fn(() => mockModel),
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        expect(mockSetModelMarkers).toHaveBeenCalled();
+        const call = mockSetModelMarkers.mock.calls[0];
+        expect(call[1]).toBe('hdl-validation');
+        expect(call[2].length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('jump to line', () => {
+      it('should jump to line when clicking error item', async () => {
+        const monaco = await import('monaco-editor');
+        const mockRevealLine = vi.fn();
+        const mockSetPosition = vi.fn();
+        const mockFocus = vi.fn();
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'and g1 (input: a, b; output: c)'),
+          focus: mockFocus,
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: mockRevealLine,
+          setPosition: mockSetPosition,
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.validateContent();
+
+        const errorItem = container.querySelector('.da-hdl-viewer-validation-item') as HTMLElement;
+        expect(errorItem).not.toBeNull();
+
+        errorItem?.click();
+
+        expect(mockRevealLine).toHaveBeenCalled();
+        expect(mockSetPosition).toHaveBeenCalled();
+        expect(mockFocus).toHaveBeenCalled();
+      });
+    });
+
+    describe('keyboard shortcut', () => {
+      it('should trigger validation on Ctrl+Shift+V in edit mode', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onValidate = vi.fn();
+        panel = new HdlViewerPanel({ onValidate });
+        panel.mount(container);
+        await panel.show();
+        panel.toggleEditMode();
+
+        // Simulate Ctrl+Shift+V
+        const event = new KeyboardEvent('keydown', {
+          key: 'V',
+          ctrlKey: true,
+          shiftKey: true,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        expect(onValidate).toHaveBeenCalled();
+      });
+
+      it('should not trigger validation on Ctrl+Shift+V in view mode', () => {
+        const onValidate = vi.fn();
+        panel = new HdlViewerPanel({ onValidate });
+        panel.mount(container);
+
+        // Simulate Ctrl+Shift+V without entering edit mode
+        const event = new KeyboardEvent('keydown', {
+          key: 'V',
+          ctrlKey: true,
+          shiftKey: true,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        expect(onValidate).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('save triggers validation', () => {
+      it('should auto-validate when saving', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onValidate = vi.fn();
+        panel = new HdlViewerPanel({ onValidate });
+        panel.mount(container);
+        panel.toggleEditMode();
+        panel.saveContent();
+
+        expect(onValidate).toHaveBeenCalled();
       });
     });
   });

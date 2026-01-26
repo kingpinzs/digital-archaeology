@@ -61,3 +61,29 @@ export type {
   HdlValidationError,
   HdlValidationSeverity,
 } from './HdlValidator';
+
+/**
+ * HDL Parser - Parses M4HDL content into an Abstract Syntax Tree
+ * Story 7.6: Implement HDL-to-Circuit Regeneration
+ * @see HdlParser - Class for parsing HDL content to AST
+ * @see HdlAst - AST with wires, gates, and errors arrays
+ * @see HdlWireNode - Wire declaration (name, width, isInput, isOutput)
+ * @see HdlGateNode - Gate instantiation (type, name, inputs, outputs)
+ * @see HdlWireRef - Wire reference with optional bit index
+ * @see HdlParseError - Parse error with line and message
+ */
+export { HdlParser } from './HdlParser';
+export type {
+  HdlAst,
+  HdlWireNode,
+  HdlGateNode,
+  HdlWireRef,
+  HdlParseError,
+} from './HdlParser';
+
+/**
+ * HDL to Circuit Generator - Converts AST to CircuitData for visualization
+ * Story 7.6: Implement HDL-to-Circuit Regeneration
+ * @see HdlToCircuitGenerator - Class for generating CircuitData from AST
+ */
+export { HdlToCircuitGenerator } from './HdlToCircuitGenerator';

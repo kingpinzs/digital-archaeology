@@ -125,7 +125,8 @@ development_status:
   7-3-enable-hdl-editing: done
   7-4-implement-hdl-validation: done
   7-5-reload-visualizer-after-hdl-changes: done
-  epic-7-retrospective: optional
+  7-6-implement-hdl-to-circuit-regeneration: done
+  epic-7-retrospective: done
 
   # Epic 8: Example Programs
   epic-8: backlog
@@ -167,7 +168,7 @@ development_status:
   10-16-display-era-badge-and-progress: done
   10-17-wire-story-mode-integration: done
   10-18-create-historical-personas-system: done
-  10-19-implement-persona-profile-cards: backlog
+  10-19-implement-persona-profile-cards: ready-for-dev
   10-20-create-persona-transition-narratives: backlog
   10-21-historical-mindset-time-travel: backlog
   10-22-decision-maker-builder-mode: backlog

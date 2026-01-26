@@ -1628,8 +1628,15 @@ describe('HdlViewerPanel', () => {
 
         // Should have validated first
         expect(onValidate).toHaveBeenCalled();
-        // Should have called reload callback with content
-        expect(onReloadCircuit).toHaveBeenCalledWith('wire a\nwire b\nwire c\nand g1 (input: a, b; output: c)');
+        // Story 7.6: Should have called reload callback with generated CircuitData
+        expect(onReloadCircuit).toHaveBeenCalled();
+        const callArg = onReloadCircuit.mock.calls[0][0];
+        expect(callArg).toHaveProperty('cycle', 0);
+        expect(callArg).toHaveProperty('stable', true);
+        expect(callArg).toHaveProperty('wires');
+        expect(callArg).toHaveProperty('gates');
+        expect(callArg.wires).toHaveLength(3); // wire a, wire b, wire c
+        expect(callArg.gates).toHaveLength(1); // and g1
       });
 
       it('should not call onReloadCircuit if validation fails', async () => {
@@ -1762,7 +1769,8 @@ describe('HdlViewerPanel', () => {
         await new Promise((resolve) => setTimeout(resolve, 60));
 
         const announcer = document.body.querySelector('.da-sr-only[role="status"]');
-        expect(announcer?.textContent).toContain('Circuit reloaded successfully');
+        // Story 7.6: Updated announcement message
+        expect(announcer?.textContent).toContain('Circuit regenerated and reloaded successfully');
       });
 
       it('should announce reload failure to screen reader', async () => {
@@ -1793,7 +1801,8 @@ describe('HdlViewerPanel', () => {
         await new Promise((resolve) => setTimeout(resolve, 60));
 
         const announcer = document.body.querySelector('.da-sr-only[role="status"]');
-        expect(announcer?.textContent).toContain('Circuit reload failed');
+        // Story 7.6: Updated announcement message
+        expect(announcer?.textContent).toContain('Circuit regeneration failed');
       });
 
       it('should not reload if already reloading', async () => {

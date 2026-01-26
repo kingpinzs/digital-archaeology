@@ -21,7 +21,7 @@ import { StoryModeContainer } from '@story/index';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
-import type { BreadcrumbItem, ZoomControlsCallbacks } from '@visualizer/index';
+import type { BreadcrumbItem, ZoomControlsCallbacks, CircuitData } from '@visualizer/index';
 import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 
@@ -1502,11 +1502,10 @@ export class App {
       onClose: () => {
         // Optional: update menu state when closed
       },
-      // Story 7.5: Reload circuit when HDL changes
-      // Note: content parameter unused in MVP (Option C) - circuit JSON is reloaded
-      // from the existing file path, assuming external regeneration has occurred
-      onReloadCircuit: async (_content: string): Promise<void> => {
-        await this.reloadCircuit();
+      // Story 7.5/7.6: Reload circuit when HDL changes
+      // Story 7.6: Now receives generated CircuitData from HdlParser + HdlToCircuitGenerator
+      onReloadCircuit: async (circuitData: CircuitData): Promise<void> => {
+        await this.reloadCircuitWithData(circuitData);
       },
     });
     this.hdlViewerPanel.mount(document.body);
@@ -1533,6 +1532,42 @@ export class App {
 
     // Re-load the circuit and reinitialize the bridge
     await this.loadCircuitAndInitializeBridge();
+  }
+
+  /**
+   * Reload circuit visualization with generated CircuitData (Story 7.6).
+   * Unlike reloadCircuit() which loads from JSON file, this method accepts
+   * CircuitData directly from the HDL parser/generator pipeline.
+   * @param circuitData - CircuitData generated from parsed HDL
+   * @returns Promise<void>
+   */
+  private async reloadCircuitWithData(circuitData: CircuitData): Promise<void> {
+    if (!this.circuitRenderer) {
+      throw new Error('Circuit renderer not initialized');
+    }
+
+    // Clear existing circuit state
+    this.circuitLoaded = false;
+
+    // Clean up existing bridge
+    if (this.cpuCircuitBridge) {
+      this.cpuCircuitBridge = null;
+    }
+
+    // Update the circuit renderer with new circuit data
+    this.circuitRenderer.updateState({ circuitData });
+    this.circuitLoaded = true;
+
+    // Re-initialize the CPU-Circuit bridge
+    this.cpuCircuitBridge = new CPUCircuitBridge();
+
+    // Update the SignalValuesPanel with new circuit state
+    this.updateSignalValuesPanel();
+
+    // If we already have CPU state, sync circuit
+    if (this.cpuState) {
+      this.updateCircuitFromCPUState(this.cpuState, false);
+    }
   }
 
   /**

@@ -6,6 +6,9 @@ import * as monaco from 'monaco-editor';
 import { HdlLoader, DEFAULT_HDL_PATH } from './HdlLoader';
 import { registerM4hdlLanguage, m4hdlLanguageId } from './m4hdl-language';
 import { HdlValidator, HdlValidationResult } from './HdlValidator';
+import { HdlParser } from './HdlParser';
+import { HdlToCircuitGenerator } from './HdlToCircuitGenerator';
+import { CircuitData } from '../visualizer/types';
 
 /**
  * Configuration options for HdlViewerPanel.
@@ -25,8 +28,8 @@ export interface HdlViewerPanelOptions {
   onEditModeChange?: (editing: boolean) => void;
   /** Callback when HDL is validated (Story 7.4) */
   onValidate?: (result: HdlValidationResult) => void;
-  /** Callback when circuit reload is requested (Story 7.5) */
-  onReloadCircuit?: (content: string) => Promise<void>;
+  /** Callback when circuit reload is requested (Story 7.5, updated 7.6) */
+  onReloadCircuit?: (circuitData: CircuitData) => Promise<void>;
 }
 
 /**
@@ -99,6 +102,10 @@ export class HdlViewerPanel {
   private validator: HdlValidator = new HdlValidator();
   private isValidating = false;
   private lastValidationResult: HdlValidationResult | null = null;
+
+  // Story 7.6: HDL parsing and circuit generation
+  private parser: HdlParser = new HdlParser();
+  private circuitGenerator: HdlToCircuitGenerator = new HdlToCircuitGenerator();
 
   // Story 7.5: Reload circuit state
   private reloadButton: HTMLButtonElement | null = null;
@@ -930,6 +937,7 @@ export class HdlViewerPanel {
   /**
    * Reload the circuit with the current HDL content.
    * Story 7.5: Validates content first, then calls onReloadCircuit callback.
+   * Story 7.6: Parses HDL and generates CircuitData before calling callback.
    */
   async reloadCircuit(): Promise<void> {
     // Don't reload if already reloading
@@ -966,14 +974,27 @@ export class HdlViewerPanel {
     }
 
     try {
-      // Call the reload callback
-      await this.options.onReloadCircuit?.(content);
+      // Story 7.6: Parse HDL to AST
+      const ast = this.parser.parse(content);
+
+      // Check for parse errors (shouldn't happen if validation passed, but be safe)
+      if (ast.errors.length > 0) {
+        throw new Error(`HDL parsing failed: ${ast.errors[0].message}`);
+      }
+
+      // Story 7.6: Generate CircuitData from AST
+      const circuitData = this.circuitGenerator.generate(ast);
+
+      // Call the reload callback with generated circuit data
+      await this.options.onReloadCircuit?.(circuitData);
 
       // Announce success
-      this.announce('Circuit reloaded successfully');
+      this.announce('Circuit regenerated and reloaded successfully');
     } catch (error) {
       // Announce failure
-      this.announce('Circuit reload failed');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.announce(`Circuit regeneration failed: ${errorMessage}`);
+      console.error('Circuit regeneration error:', error);
     } finally {
       // Restore button state
       this.isReloading = false;

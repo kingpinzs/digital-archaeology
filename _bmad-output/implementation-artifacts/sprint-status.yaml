@@ -119,12 +119,12 @@ development_status:
   epic-6-retrospective: done
 
   # Epic 7: HDL Editor & Management
-  epic-7: in-progress
+  epic-7: done
   7-1-create-hdl-viewer-panel: done
   7-2-implement-hdl-syntax-highlighting: done
   7-3-enable-hdl-editing: done
   7-4-implement-hdl-validation: done
-  7-5-reload-visualizer-after-hdl-changes: backlog
+  7-5-reload-visualizer-after-hdl-changes: done
   epic-7-retrospective: optional
 
   # Epic 8: Example Programs

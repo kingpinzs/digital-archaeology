@@ -25,6 +25,8 @@ export interface HdlViewerPanelOptions {
   onEditModeChange?: (editing: boolean) => void;
   /** Callback when HDL is validated (Story 7.4) */
   onValidate?: (result: HdlValidationResult) => void;
+  /** Callback when circuit reload is requested (Story 7.5) */
+  onReloadCircuit?: (content: string) => Promise<void>;
 }
 
 /**
@@ -97,6 +99,10 @@ export class HdlViewerPanel {
   private validator: HdlValidator = new HdlValidator();
   private isValidating = false;
   private lastValidationResult: HdlValidationResult | null = null;
+
+  // Story 7.5: Reload circuit state
+  private reloadButton: HTMLButtonElement | null = null;
+  private isReloading = false;
 
   constructor(options: HdlViewerPanelOptions = {}) {
     this.options = options;
@@ -234,6 +240,19 @@ export class HdlViewerPanel {
       }
     });
 
+    // Reload Circuit button (Story 7.5) - only visible in edit mode
+    this.reloadButton = document.createElement('button');
+    this.reloadButton.className = 'da-hdl-viewer-reload da-hdl-viewer-reload--hidden';
+    this.reloadButton.textContent = 'Reload Circuit';
+    this.reloadButton.setAttribute('aria-label', 'Reload circuit visualization');
+    this.reloadButton.setAttribute('aria-disabled', 'false');
+    this.reloadButton.addEventListener('click', () => {
+      // Only reload if not already reloading (aria-disabled is just visual)
+      if (!this.isReloading) {
+        this.reloadCircuit();
+      }
+    });
+
     // Edit toggle button (Story 7.3)
     this.editToggleButton = document.createElement('button');
     this.editToggleButton.className = 'da-hdl-viewer-edit-toggle';
@@ -262,6 +281,7 @@ export class HdlViewerPanel {
     closeButton.addEventListener('click', () => this.hide());
 
     buttonContainer.appendChild(this.validateButton);
+    buttonContainer.appendChild(this.reloadButton);
     buttonContainer.appendChild(this.editToggleButton);
     buttonContainer.appendChild(this.saveButton);
     buttonContainer.appendChild(closeButton);
@@ -485,6 +505,18 @@ export class HdlViewerPanel {
       if (this.validateButton) {
         this.validateButton.classList.add('da-hdl-viewer-validate--hidden');
       }
+
+      // Story 7.5: Hide reload button when exiting edit mode on close
+      if (this.reloadButton) {
+        this.reloadButton.classList.add('da-hdl-viewer-reload--hidden');
+      }
+    }
+
+    // Story 7.5: Reset reload state on close
+    this.isReloading = false;
+    if (this.reloadButton) {
+      this.reloadButton.textContent = 'Reload Circuit';
+      this.reloadButton.setAttribute('aria-disabled', 'false');
     }
 
     // Story 7.4: Hide validation results on close
@@ -606,6 +638,15 @@ export class HdlViewerPanel {
         this.validateButton.classList.remove('da-hdl-viewer-validate--hidden');
       } else {
         this.validateButton.classList.add('da-hdl-viewer-validate--hidden');
+      }
+    }
+
+    // Story 7.5: Show/hide reload button
+    if (this.reloadButton) {
+      if (this.editMode) {
+        this.reloadButton.classList.remove('da-hdl-viewer-reload--hidden');
+      } else {
+        this.reloadButton.classList.add('da-hdl-viewer-reload--hidden');
       }
     }
 
@@ -887,6 +928,65 @@ export class HdlViewerPanel {
   }
 
   /**
+   * Reload the circuit with the current HDL content.
+   * Story 7.5: Validates content first, then calls onReloadCircuit callback.
+   */
+  async reloadCircuit(): Promise<void> {
+    // Don't reload if already reloading
+    if (this.isReloading) return;
+
+    const content = this.editor?.getValue() ?? '';
+
+    // Validate content first
+    const result = this.validator.validate(content);
+    this.setValidationMarkers(result);
+    this.displayValidationResults(result);
+    this.lastValidationResult = result;
+
+    // Announce and call validation callback
+    this.announce(
+      result.valid
+        ? 'HDL validation passed: no errors found'
+        : `HDL validation failed: ${result.errors.length} error(s) found`
+    );
+    this.options.onValidate?.(result);
+
+    // Don't reload if validation failed
+    if (!result.valid) {
+      return;
+    }
+
+    // Set reloading state
+    this.isReloading = true;
+
+    // Update button to loading state
+    if (this.reloadButton) {
+      this.reloadButton.textContent = 'Reloading...';
+      this.reloadButton.setAttribute('aria-disabled', 'true');
+    }
+
+    try {
+      // Call the reload callback
+      await this.options.onReloadCircuit?.(content);
+
+      // Announce success
+      this.announce('Circuit reloaded successfully');
+    } catch (error) {
+      // Announce failure
+      this.announce('Circuit reload failed');
+    } finally {
+      // Restore button state
+      this.isReloading = false;
+      if (this.reloadButton) {
+        this.reloadButton.textContent = 'Reload Circuit';
+        this.reloadButton.setAttribute('aria-disabled', 'false');
+        // Return focus to reload button for accessibility
+        this.reloadButton.focus();
+      }
+    }
+  }
+
+  /**
    * Destroy the panel and clean up resources.
    */
   destroy(): void {
@@ -921,6 +1021,10 @@ export class HdlViewerPanel {
     this.validationResultsContainer = null;
     this.lastValidationResult = null;
     this.isValidating = false;
+
+    // Story 7.5: Clean up reload elements
+    this.reloadButton = null;
+    this.isReloading = false;
 
     // Remove announcer element
     this.announcerElement?.remove();

@@ -1502,8 +1502,37 @@ export class App {
       onClose: () => {
         // Optional: update menu state when closed
       },
+      // Story 7.5: Reload circuit when HDL changes
+      // Note: content parameter unused in MVP (Option C) - circuit JSON is reloaded
+      // from the existing file path, assuming external regeneration has occurred
+      onReloadCircuit: async (_content: string): Promise<void> => {
+        await this.reloadCircuit();
+      },
     });
     this.hdlViewerPanel.mount(document.body);
+  }
+
+  /**
+   * Reload the circuit visualization (Story 7.5).
+   * Re-loads the circuit JSON file and reinitializes the bridge.
+   * For MVP, this assumes the circuit file has been regenerated externally.
+   * @returns Promise<void>
+   */
+  private async reloadCircuit(): Promise<void> {
+    if (!this.circuitRenderer) {
+      throw new Error('Circuit renderer not initialized');
+    }
+
+    // Clear existing circuit state
+    this.circuitLoaded = false;
+
+    // Clean up existing bridge
+    if (this.cpuCircuitBridge) {
+      this.cpuCircuitBridge = null;
+    }
+
+    // Re-load the circuit and reinitialize the bridge
+    await this.loadCircuitAndInitializeBridge();
   }
 
   /**

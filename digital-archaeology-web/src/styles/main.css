@@ -5144,6 +5144,40 @@ body.da-resizing * {
   display: none;
 }
 
+/* ============================================
+   Story 7.5: Reload Circuit Button Styles
+   ============================================ */
+
+/* Reload Circuit button */
+.da-hdl-viewer-reload {
+  padding: 4px 12px;
+  background: var(--da-button-bg, #404060);
+  color: var(--da-text-primary, #e0e0e0);
+  border: 1px solid var(--da-border, #505070);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease;
+}
+
+.da-hdl-viewer-reload:hover:not([aria-disabled="true"]) {
+  background: var(--da-button-hover, #505070);
+}
+
+.da-hdl-viewer-reload:focus {
+  outline: 2px solid var(--da-accent, #00b4d8);
+  outline-offset: 2px;
+}
+
+.da-hdl-viewer-reload[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.da-hdl-viewer-reload--hidden {
+  display: none;
+}
+
 /* Validation results container */
 .da-hdl-viewer-validation-results {
   padding: 8px 12px;

@@ -1550,4 +1550,372 @@ describe('HdlViewerPanel', () => {
       });
     });
   });
+
+  // ============================================
+  // Story 7.5: Reload Circuit Tests
+  // ============================================
+  describe('reload circuit (Story 7.5)', () => {
+    describe('reload button', () => {
+      it('should create reload button in header', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton).not.toBeNull();
+      });
+
+      it('should be hidden in view mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton?.classList.contains('da-hdl-viewer-reload--hidden')).toBe(true);
+      });
+
+      it('should be visible in edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton?.classList.contains('da-hdl-viewer-reload--hidden')).toBe(false);
+      });
+
+      it('should be hidden when exiting edit mode', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+        panel.toggleEditMode(); // Enter edit mode
+        panel.toggleEditMode(); // Exit edit mode
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton?.classList.contains('da-hdl-viewer-reload--hidden')).toBe(true);
+      });
+
+      it('should have correct aria-label', () => {
+        panel = new HdlViewerPanel();
+        panel.mount(container);
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton?.getAttribute('aria-label')).toBe('Reload circuit visualization');
+      });
+    });
+
+    describe('reloadCircuit method', () => {
+      it('should validate content before calling onReloadCircuit', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a\nwire b\nwire c\nand g1 (input: a, b; output: c)'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockResolvedValue(undefined);
+        const onValidate = vi.fn();
+        panel = new HdlViewerPanel({ onReloadCircuit, onValidate });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        await panel.reloadCircuit();
+
+        // Should have validated first
+        expect(onValidate).toHaveBeenCalled();
+        // Should have called reload callback with content
+        expect(onReloadCircuit).toHaveBeenCalledWith('wire a\nwire b\nwire c\nand g1 (input: a, b; output: c)');
+      });
+
+      it('should not call onReloadCircuit if validation fails', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'and g1 (input: undefined_wire; output: c)'), // Invalid HDL
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockResolvedValue(undefined);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        await panel.reloadCircuit();
+
+        // Should NOT call reload callback because validation failed
+        expect(onReloadCircuit).not.toHaveBeenCalled();
+      });
+
+      it('should return focus to reload button after completion', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockResolvedValue(undefined);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload') as HTMLButtonElement;
+        const focusSpy = vi.spyOn(reloadButton, 'focus');
+
+        await panel.reloadCircuit();
+
+        // Focus should be returned to reload button
+        expect(focusSpy).toHaveBeenCalled();
+      });
+
+      it('should show loading state during reload', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        let resolveReload: () => void;
+        const reloadPromise = new Promise<void>((resolve) => {
+          resolveReload = resolve;
+        });
+        const onReloadCircuit = vi.fn().mockReturnValue(reloadPromise);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        // Start reload (don't await yet)
+        const reloadCall = panel.reloadCircuit();
+
+        // Button should be disabled during reload
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload');
+        expect(reloadButton?.getAttribute('aria-disabled')).toBe('true');
+        expect(reloadButton?.textContent).toBe('Reloading...');
+
+        // Resolve the reload
+        resolveReload!();
+        await reloadCall;
+
+        // Button should be restored
+        expect(reloadButton?.getAttribute('aria-disabled')).toBe('false');
+        expect(reloadButton?.textContent).toBe('Reload Circuit');
+      });
+
+      it('should announce reload success to screen reader', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockResolvedValue(undefined);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        await panel.reloadCircuit();
+
+        // Wait for the announcement timeout
+        await new Promise((resolve) => setTimeout(resolve, 60));
+
+        const announcer = document.body.querySelector('.da-sr-only[role="status"]');
+        expect(announcer?.textContent).toContain('Circuit reloaded successfully');
+      });
+
+      it('should announce reload failure to screen reader', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockRejectedValue(new Error('Circuit load failed'));
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        await panel.reloadCircuit();
+
+        // Wait for the announcement timeout
+        await new Promise((resolve) => setTimeout(resolve, 60));
+
+        const announcer = document.body.querySelector('.da-sr-only[role="status"]');
+        expect(announcer?.textContent).toContain('Circuit reload failed');
+      });
+
+      it('should not reload if already reloading', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        let resolveReload: () => void;
+        const reloadPromise = new Promise<void>((resolve) => {
+          resolveReload = resolve;
+        });
+        const onReloadCircuit = vi.fn().mockReturnValue(reloadPromise);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        // Start first reload
+        const firstReload = panel.reloadCircuit();
+
+        // Try to start second reload while first is in progress
+        const secondReload = panel.reloadCircuit();
+
+        // Resolve the first reload
+        resolveReload!();
+        await firstReload;
+        await secondReload;
+
+        // Should only have been called once
+        expect(onReloadCircuit).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('reload button click', () => {
+      it('should trigger reloadCircuit when clicked', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        const onReloadCircuit = vi.fn().mockResolvedValue(undefined);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload') as HTMLButtonElement;
+        reloadButton?.click();
+
+        // Wait for async operation
+        await vi.waitFor(() => {
+          expect(onReloadCircuit).toHaveBeenCalled();
+        });
+      });
+
+      it('should not trigger reloadCircuit when button clicked while already reloading', async () => {
+        const monaco = await import('monaco-editor');
+        const mockGetModel = vi.fn(() => ({
+          getLineMaxColumn: vi.fn(() => 20),
+        }));
+        vi.mocked(monaco.editor.create).mockReturnValueOnce({
+          dispose: vi.fn(),
+          setValue: vi.fn(),
+          getValue: vi.fn(() => 'wire a'),
+          focus: vi.fn(),
+          getModel: mockGetModel,
+          updateOptions: vi.fn(),
+          onDidChangeModelContent: vi.fn(() => ({ dispose: vi.fn() })),
+          revealLineInCenter: vi.fn(),
+          setPosition: vi.fn(),
+        } as unknown as ReturnType<typeof monaco.editor.create>);
+
+        let resolveReload: () => void;
+        const reloadPromise = new Promise<void>((resolve) => {
+          resolveReload = resolve;
+        });
+        const onReloadCircuit = vi.fn().mockReturnValue(reloadPromise);
+        panel = new HdlViewerPanel({ onReloadCircuit });
+        panel.mount(container);
+        panel.toggleEditMode();
+
+        const reloadButton = container.querySelector('.da-hdl-viewer-reload') as HTMLButtonElement;
+
+        // Start first reload via button click
+        reloadButton?.click();
+
+        // Click button again while reload is in progress
+        reloadButton?.click();
+        reloadButton?.click();
+
+        // Resolve the reload
+        resolveReload!();
+
+        // Wait for completion
+        await vi.waitFor(() => {
+          expect(reloadButton?.getAttribute('aria-disabled')).toBe('false');
+        });
+
+        // Should only have been called once despite multiple clicks
+        expect(onReloadCircuit).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
 });

@@ -5,10 +5,11 @@
 import * as monaco from 'monaco-editor';
 import { HdlLoader, DEFAULT_HDL_PATH } from './HdlLoader';
 import { registerM4hdlLanguage, m4hdlLanguageId } from './m4hdl-language';
-import { HdlValidator, HdlValidationResult } from './HdlValidator';
+import { HdlValidator } from './HdlValidator';
+import type { HdlValidationResult } from './HdlValidator';
 import { HdlParser } from './HdlParser';
 import { HdlToCircuitGenerator } from './HdlToCircuitGenerator';
-import { CircuitData } from '../visualizer/types';
+import type { CircuitData } from '../visualizer/types';
 
 /**
  * Configuration options for HdlViewerPanel.

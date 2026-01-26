@@ -4,8 +4,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { HdlToCircuitGenerator } from './HdlToCircuitGenerator';
-import { HdlAst, HdlWireNode, HdlGateNode } from './HdlParser';
-import { CircuitData, CircuitWire, CircuitGate } from '../visualizer/types';
+import type { HdlAst } from './HdlParser';
 
 describe('HdlToCircuitGenerator', () => {
   let generator: HdlToCircuitGenerator;

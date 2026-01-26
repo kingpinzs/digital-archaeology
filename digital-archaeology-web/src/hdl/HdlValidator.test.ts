@@ -3,8 +3,8 @@
 // Story 7.4: Implement HDL Validation
 
 import { describe, it, expect } from 'vitest';
-import {
-  HdlValidator,
+import { HdlValidator } from './HdlValidator';
+import type {
   HdlValidationResult,
   HdlValidationError,
   HdlValidationSeverity,

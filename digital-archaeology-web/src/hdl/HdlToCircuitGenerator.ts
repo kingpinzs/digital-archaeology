@@ -2,8 +2,8 @@
 // HDL to Circuit Generator - Converts AST to CircuitData for visualization
 // Story 7.6: Implement HDL-to-Circuit Regeneration - Task 2
 
-import { HdlAst, HdlWireNode, HdlGateNode, HdlWireRef } from './HdlParser';
-import { CircuitData, CircuitWire, CircuitGate, GatePort } from '../visualizer/types';
+import type { HdlAst, HdlWireNode, HdlGateNode, HdlWireRef } from './HdlParser';
+import type { CircuitData, CircuitWire, CircuitGate, GatePort } from '../visualizer/types';
 
 /**
  * Generates CircuitData from an HdlAst for circuit visualization.

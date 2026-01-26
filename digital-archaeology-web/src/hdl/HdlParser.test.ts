@@ -3,7 +3,7 @@
 // Story 7.6: Implement HDL-to-Circuit Regeneration - Task 5
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { HdlParser, HdlAst, HdlWireNode, HdlGateNode, HdlParseError } from './HdlParser';
+import { HdlParser } from './HdlParser';
 
 describe('HdlParser', () => {
   let parser: HdlParser;

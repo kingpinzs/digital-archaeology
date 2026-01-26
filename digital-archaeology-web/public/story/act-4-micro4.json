@@ -13,6 +13,23 @@
       "description": "In 1969, a Japanese calculator company approaches a small Silicon Valley startup with an impossible request. What emerges will transform computing forever: the microprocessor. At Intel, you'll witness the birth of the computer-on-a-chip.",
       "era": "1969-1971",
       "cpuStage": "micro4",
+      "transition": {
+        "outgoingPersonaId": "shockley-1955",
+        "incomingPersonaId": "faggin-1971",
+        "yearsElapsed": 16,
+        "outgoingEra": "Transistor",
+        "incomingEra": "Microprocessor",
+        "narrative": [
+          "The transistor transformed computing, but circuits still required thousands of hand-wired connections.",
+          "Shockley's brilliant engineers—the 'traitorous eight'—left to found Fairchild, then Intel.",
+          "Each generation packed more transistors onto silicon. Integrated circuits replaced discrete components.",
+          "But could an entire computer fit on a single chip?",
+          "16 years passed.",
+          "Federico Faggin, an Italian immigrant with a vision of silicon gate technology, was about to find out."
+        ],
+        "outgoingQuote": "The future belongs to solid-state devices. Vacuum tubes are already obsolete.",
+        "incomingQuote": "The 4004 was a computer on a chip. Not just a calculator - a general purpose computer."
+      },
       "persona": {
         "id": "faggin-1971",
         "name": "Federico Faggin",

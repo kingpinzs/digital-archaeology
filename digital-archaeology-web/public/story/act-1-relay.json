@@ -13,6 +13,23 @@
       "description": "The mechanical age couldn't scale. Gears were slow, expensive, and imprecise. But electricity changed everything. With the click of a relay, signals could travel at the speed of light, and calculations that took hours could be done in seconds. From the 1890 census crisis to WWII's desperate need for computation, electricity would transform calculation into computing.",
       "era": "1890 - 1945",
       "cpuStage": "relay",
+      "transition": {
+        "outgoingPersonaId": "babbage-1837",
+        "incomingPersonaId": "zuse-1941",
+        "yearsElapsed": 104,
+        "outgoingEra": "Mechanical",
+        "incomingEra": "Relay",
+        "narrative": [
+          "Charles Babbage's dream of the Analytical Engine died with him in 1871.",
+          "The world wasn't ready. Victorian-era precision couldn't build what his mind conceived.",
+          "But the idea persisted. In books. In mathematical papers. In dreams of machines that could think.",
+          "104 years passed.",
+          "In 1935, a young German civil engineering student named Konrad Zuse grew tired of endless calculations.",
+          "He began building something that echoed Babbage's vision—but using telephone relays instead of gears."
+        ],
+        "outgoingQuote": "The whole of arithmetic now appeared within the grasp of mechanism.",
+        "incomingQuote": "Sometimes laziness is the mother of invention. I was too lazy to calculate, so I built a machine to do it."
+      },
       "persona": {
         "id": "zuse-1941",
         "name": "Konrad Zuse",

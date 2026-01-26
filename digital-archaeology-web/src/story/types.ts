@@ -199,3 +199,27 @@ export interface PersonaData {
   /** Discovery IDs unlocked during this era, updated dynamically (Story 10.19) */
   discoveriesUnlocked?: string[];
 }
+
+/**
+ * Represents transition data between historical eras/personas.
+ * Used for narrative bridges when moving between acts.
+ * Story 10.20: Create Persona Transition Narratives
+ */
+export interface TransitionData {
+  /** Outgoing persona ID (e.g., "babbage-1837") */
+  outgoingPersonaId: string;
+  /** Incoming persona ID (e.g., "zuse-1941") */
+  incomingPersonaId: string;
+  /** Years elapsed between eras (e.g., 104 for 1837→1941) */
+  yearsElapsed: number;
+  /** Narrative paragraphs explaining the passage of time */
+  narrative: string[];
+  /** Quote from outgoing persona about their legacy */
+  outgoingQuote?: string;
+  /** Quote from incoming persona about their inspiration */
+  incomingQuote?: string;
+  /** Era label for outgoing persona (e.g., "Mechanical") */
+  outgoingEra: string;
+  /** Era label for incoming persona (e.g., "Relay") */
+  incomingEra: string;
+}

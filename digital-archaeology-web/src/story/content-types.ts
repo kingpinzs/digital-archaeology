@@ -10,6 +10,7 @@ import type {
   TechnicalNoteData,
   ChallengeData,
   PersonaData,
+  TransitionData,
 } from './types';
 
 /**
@@ -25,7 +26,7 @@ export interface StoryMetadata {
 }
 
 /** Valid scene types determining which content is primary */
-export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona';
+export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona' | 'transition';
 
 /**
  * Represents a scene within a chapter.
@@ -127,6 +128,8 @@ export interface StoryAct {
   chapters: StoryChapter[];
   /** Historical persona the user adopts for this act (Story 10.18) */
   persona?: PersonaData;
+  /** Transition narrative from previous era to this one (Story 10.20) */
+  transition?: TransitionData;
 }
 
 /**

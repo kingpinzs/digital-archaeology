@@ -28,7 +28,25 @@ const VALID_CPU_STAGES: readonly string[] = [
 ];
 
 /** Valid scene types for type guard validation (must match SceneType type) */
-const VALID_SCENE_TYPES: readonly string[] = ['narrative', 'dialogue', 'choice', 'challenge', 'persona'];
+const VALID_SCENE_TYPES: readonly string[] = ['narrative', 'dialogue', 'choice', 'challenge', 'persona', 'transition'];
+
+/**
+ * Type guard to check if a value is valid TransitionData.
+ * Issue 4 fix: validates optional transition field structure.
+ */
+function isTransitionData(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+
+  return (
+    typeof obj.outgoingPersonaId === 'string' &&
+    typeof obj.incomingPersonaId === 'string' &&
+    typeof obj.yearsElapsed === 'number' &&
+    Array.isArray(obj.narrative) &&
+    typeof obj.outgoingEra === 'string' &&
+    typeof obj.incomingEra === 'string'
+  );
+}
 
 /**
  * Type guard to check if a value is a valid StoryScene.
@@ -88,6 +106,9 @@ export function isStoryAct(value: unknown): value is StoryAct {
   for (const chapter of obj.chapters) {
     if (!isStoryChapter(chapter)) return false;
   }
+
+  // Validate optional transition field if present (Issue 4 fix)
+  if (obj.transition !== undefined && !isTransitionData(obj.transition)) return false;
 
   return true;
 }

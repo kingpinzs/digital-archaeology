@@ -13,6 +13,23 @@
       "description": "The vacuum tube unlocked electronic speed—but ENIAC, the first general-purpose electronic computer, filled a room and consumed enough power to dim the lights of Philadelphia. From hardwired programs to stored instructions, from military secrets to commercial products, the electronic giants would define what a computer could be.",
       "era": "1945 - 1955",
       "cpuStage": "vacuum",
+      "transition": {
+        "outgoingPersonaId": "zuse-1941",
+        "incomingPersonaId": "eckert-1946",
+        "yearsElapsed": 5,
+        "outgoingEra": "Relay",
+        "incomingEra": "Vacuum Tube",
+        "narrative": [
+          "Konrad Zuse's Z3 proved that programmable computers could work.",
+          "But war consumed Europe. Zuse's work remained unknown, his machines destroyed in bombing raids.",
+          "Meanwhile, in Philadelphia, a different team faced a different crisis.",
+          "The US Army needed 3,000 trajectory tables for new weapons—each taking 20 hours of human calculation.",
+          "5 years passed.",
+          "J. Presper Eckert and John Mauchly built something unprecedented: ENIAC—18,000 vacuum tubes thinking at electronic speed."
+        ],
+        "outgoingQuote": "One day, machines will not only calculate - they will think.",
+        "incomingQuote": "The speed of light is the only limit. Everything else is engineering."
+      },
       "persona": {
         "id": "eckert-1946",
         "name": "J. Presper Eckert",

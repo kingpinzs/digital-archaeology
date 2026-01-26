@@ -13,6 +13,23 @@
       "description": "From Bell Labs to Silicon Valley, trace the invention of the transistor and the integrated circuit—the discoveries that made modern computing possible. Every vacuum tube that burned out, every unreliable connection, every room-sized computer drove engineers toward a singular goal: solid-state switching.",
       "era": "1947 - 1971",
       "cpuStage": "transistor",
+      "transition": {
+        "outgoingPersonaId": "eckert-1946",
+        "incomingPersonaId": "shockley-1955",
+        "yearsElapsed": 9,
+        "outgoingEra": "Vacuum Tube",
+        "incomingEra": "Transistor",
+        "narrative": [
+          "ENIAC proved that electronic computers could outthink any human calculator.",
+          "But 18,000 vacuum tubes burned hot, failed often, and filled entire rooms.",
+          "At Bell Labs, a different kind of revolution was brewing.",
+          "Three scientists—Bardeen, Brattain, and Shockley—sought a solid-state alternative to the vacuum tube.",
+          "9 years passed.",
+          "William Shockley brought the transistor to California, founding an industry in a valley that would bear silicon's name."
+        ],
+        "outgoingQuote": "ENIAC could do in 30 seconds what took a human computer 20 hours.",
+        "incomingQuote": "What vacuum tubes did in cubic inches, transistors will do in cubic millimeters."
+      },
       "persona": {
         "id": "shockley-1955",
         "name": "William Shockley",

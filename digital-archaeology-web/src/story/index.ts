@@ -36,6 +36,11 @@ export { PersonaCard } from './PersonaCard';
 // Story 10.19: Persona Profile Panel
 export { PersonaProfilePanel } from './PersonaProfilePanel';
 
+// Story 10.20: Persona Transition Narratives
+export { PersonaTransitionPanel } from './PersonaTransitionPanel';
+export type { PersonaTransitionPanelOptions } from './PersonaTransitionPanel';
+export type { TransitionData } from './types';
+
 // Story 10.16: Era badge and progress display
 export { EraBadge } from './EraBadge';
 export { ProgressDots } from './ProgressDots';

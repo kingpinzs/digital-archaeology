@@ -1512,29 +1512,6 @@ export class App {
   }
 
   /**
-   * Reload the circuit visualization (Story 7.5).
-   * Re-loads the circuit JSON file and reinitializes the bridge.
-   * For MVP, this assumes the circuit file has been regenerated externally.
-   * @returns Promise<void>
-   */
-  private async reloadCircuit(): Promise<void> {
-    if (!this.circuitRenderer) {
-      throw new Error('Circuit renderer not initialized');
-    }
-
-    // Clear existing circuit state
-    this.circuitLoaded = false;
-
-    // Clean up existing bridge
-    if (this.cpuCircuitBridge) {
-      this.cpuCircuitBridge = null;
-    }
-
-    // Re-load the circuit and reinitialize the bridge
-    await this.loadCircuitAndInitializeBridge();
-  }
-
-  /**
    * Reload circuit visualization with generated CircuitData (Story 7.6).
    * Unlike reloadCircuit() which loads from JSON file, this method accepts
    * CircuitData directly from the HDL parser/generator pipeline.

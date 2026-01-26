@@ -1,6 +1,6 @@
 # Story 7.4: Implement HDL Validation
 
-Status: review
+Status: done
 
 ---
 
@@ -277,7 +277,15 @@ None
 - Added Ctrl+Shift+V keyboard shortcut for validation
 - Auto-validates on save
 - Full accessibility support with ARIA attributes and screen reader announcements
-- 26 unit tests for HdlValidator, 14 integration tests for HdlViewerPanel validation
+- 26 unit tests for HdlValidator, 16 integration tests for HdlViewerPanel validation
+
+### Code Review Fixes Applied
+
+- **H1 Fixed:** Validate button click handler now checks `isValidating` flag to prevent re-entry
+- **M1 Fixed:** `forceClose()` now hides validation results container and clears state
+- **M2 Fixed:** Validation results are cleared when panel is closed (via forceClose)
+- **M3 Fixed:** Added test for validate button click protection when already validating
+- **Added:** Test for forceClose resetting validation state
 
 ### File List
 

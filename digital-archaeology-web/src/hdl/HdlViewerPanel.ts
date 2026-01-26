@@ -227,7 +227,12 @@ export class HdlViewerPanel {
     this.validateButton.className = 'da-hdl-viewer-validate da-hdl-viewer-validate--hidden';
     this.validateButton.textContent = 'Validate';
     this.validateButton.setAttribute('aria-label', 'Validate HDL syntax');
-    this.validateButton.addEventListener('click', () => this.validateContent());
+    this.validateButton.addEventListener('click', () => {
+      // Only validate if not already validating (aria-disabled is just visual)
+      if (!this.isValidating) {
+        this.validateContent();
+      }
+    });
 
     // Edit toggle button (Story 7.3)
     this.editToggleButton = document.createElement('button');
@@ -475,7 +480,22 @@ export class HdlViewerPanel {
       }
       // Remove edit mode styling from header
       this.panelElement.classList.remove('da-hdl-viewer-panel--editing');
+
+      // Story 7.4: Hide validate button when exiting edit mode on close
+      if (this.validateButton) {
+        this.validateButton.classList.add('da-hdl-viewer-validate--hidden');
+      }
     }
+
+    // Story 7.4: Hide validation results on close
+    if (this.validationResultsContainer) {
+      this.validationResultsContainer.classList.add('da-hdl-viewer-validation-results--hidden');
+      this.validationResultsContainer.innerHTML = '';
+    }
+    this.lastValidationResult = null;
+
+    // Story 7.4: Clear Monaco validation markers on close
+    this.clearValidationMarkers();
 
     // Announce to screen readers
     this.announce('HDL Viewer panel closed');

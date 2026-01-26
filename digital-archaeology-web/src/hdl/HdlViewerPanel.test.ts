@@ -799,7 +799,7 @@ describe('HdlViewerPanel', () => {
 
       it('should show dirty indicator when content changes', async () => {
         const monaco = await import('monaco-editor');
-        let contentChangeCallback: (() => void) | null = null;
+        let contentChangeCallback: (() => void) | undefined;
         vi.mocked(monaco.editor.create).mockReturnValueOnce({
           dispose: vi.fn(),
           setValue: vi.fn(),
@@ -919,7 +919,7 @@ describe('HdlViewerPanel', () => {
 
       it('should clear dirty indicator after save', async () => {
         const monaco = await import('monaco-editor');
-        let contentChangeCallback: (() => void) | null = null;
+        let contentChangeCallback: (() => void) | undefined;
         vi.mocked(monaco.editor.create).mockReturnValueOnce({
           dispose: vi.fn(),
           setValue: vi.fn(),
@@ -975,7 +975,7 @@ describe('HdlViewerPanel', () => {
     describe('close with unsaved changes', () => {
       it('should prompt before closing with unsaved changes', async () => {
         const monaco = await import('monaco-editor');
-        let contentChangeCallback: (() => void) | null = null;
+        let contentChangeCallback: (() => void) | undefined;
         vi.mocked(monaco.editor.create).mockReturnValueOnce({
           dispose: vi.fn(),
           setValue: vi.fn(),
@@ -1012,7 +1012,7 @@ describe('HdlViewerPanel', () => {
 
       it('should close when user confirms discard', async () => {
         const monaco = await import('monaco-editor');
-        let contentChangeCallback: (() => void) | null = null;
+        let contentChangeCallback: (() => void) | undefined;
         vi.mocked(monaco.editor.create).mockReturnValueOnce({
           dispose: vi.fn(),
           setValue: vi.fn(),
@@ -1047,7 +1047,7 @@ describe('HdlViewerPanel', () => {
 
       it('should close without prompt using forceClose', async () => {
         const monaco = await import('monaco-editor');
-        let contentChangeCallback: (() => void) | null = null;
+        let contentChangeCallback: (() => void) | undefined;
         vi.mocked(monaco.editor.create).mockReturnValueOnce({
           dispose: vi.fn(),
           setValue: vi.fn(),

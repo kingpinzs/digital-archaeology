@@ -101,7 +101,7 @@ describe('m4hdl-language', () => {
       );
       // Verify regex is hardcoded, not using @portLabels
       expect(portLabelRule).toBeDefined();
-      const regex = portLabelRule?.[0] as RegExp;
+      const regex = (portLabelRule as any)?.[0] as RegExp;
       expect(regex.source).toBe('\\b(input|output):');
       // portLabels array exists for documentation purposes
       expect(portLabels.length).toBe(2);
@@ -127,7 +127,7 @@ describe('m4hdl-language', () => {
         );
         expect(commentRule).toBeDefined();
         // Verify the regex pattern exists for # comments
-        const regex = commentRule?.[0] as RegExp;
+        const regex = (commentRule as any)?.[0] as RegExp;
         expect(regex).toBeInstanceOf(RegExp);
         expect(regex.source).toContain('#');
         // The tokenizer handles whitespace separately, so # comments work inline
@@ -143,7 +143,7 @@ describe('m4hdl-language', () => {
             rule[0].source.includes(':')
         );
         expect(bitWidthRule).toBeDefined();
-        const regex = bitWidthRule?.[0] as RegExp;
+        const regex = (bitWidthRule as any)?.[0] as RegExp;
         expect(regex.test('[7:0]')).toBe(true);
         expect(regex.test('[3:0]')).toBe(true);
         expect(regex.test('[15:8]')).toBe(true);
@@ -158,7 +158,7 @@ describe('m4hdl-language', () => {
             rule[0].source === '\\[\\d+\\]'
         );
         expect(bitIndexRule).toBeDefined();
-        const regex = bitIndexRule?.[0] as RegExp;
+        const regex = (bitIndexRule as any)?.[0] as RegExp;
         expect(regex.test('[0]')).toBe(true);
         expect(regex.test('[7]')).toBe(true);
       });
@@ -171,7 +171,7 @@ describe('m4hdl-language', () => {
             rule[0] instanceof RegExp
         );
         expect(hexRule).toBeDefined();
-        const regex = hexRule?.[0] as RegExp;
+        const regex = (hexRule as any)?.[0] as RegExp;
         expect(regex.test('0xFF')).toBe(true);
         expect(regex.test('0x00')).toBe(true);
         expect(regex.test('0xABCD')).toBe(true);
@@ -186,7 +186,7 @@ describe('m4hdl-language', () => {
             rule[0].source === '\\d+'
         );
         expect(decimalRule).toBeDefined();
-        const regex = decimalRule?.[0] as RegExp;
+        const regex = (decimalRule as any)?.[0] as RegExp;
         expect(regex.test('123')).toBe(true);
         expect(regex.test('0')).toBe(true);
       });
@@ -200,7 +200,7 @@ describe('m4hdl-language', () => {
             rule[0].source.includes('input|output')
         );
         expect(portLabelRule).toBeDefined();
-        const regex = portLabelRule?.[0] as RegExp;
+        const regex = (portLabelRule as any)?.[0] as RegExp;
         expect(regex.test('input:')).toBe(true);
         expect(regex.test('output:')).toBe(true);
       });
@@ -215,7 +215,7 @@ describe('m4hdl-language', () => {
             'cases' in rule[1]
         );
         expect(identifierRule).toBeDefined();
-        const cases = (identifierRule?.[1] as { cases: Record<string, string> }).cases;
+        const cases = ((identifierRule as any)?.[1] as { cases: Record<string, string> }).cases;
         expect(cases['@keywords']).toBe('keyword');
         expect(cases['@gateTypes']).toBe('keyword.control');
         expect(cases['@directives']).toBe('directive');
@@ -227,7 +227,7 @@ describe('m4hdl-language', () => {
           (rule) => Array.isArray(rule) && rule[1] === 'delimiter'
         );
         expect(delimiterRule).toBeDefined();
-        const regex = delimiterRule?.[0] as RegExp;
+        const regex = (delimiterRule as any)?.[0] as RegExp;
         expect(regex.test(';')).toBe(true);
         expect(regex.test(',')).toBe(true);
         expect(regex.test('(')).toBe(true);

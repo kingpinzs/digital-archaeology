@@ -732,3 +732,263 @@ describe('StoryEngine Persona Integration', () => {
     });
   });
 });
+
+// Story 10.21: Mindset Integration Tests
+import { MindsetProvider } from './MindsetProvider';
+import type { MindsetContext } from './types';
+
+describe('StoryEngine Mindset Integration', () => {
+  let engine: StoryEngine;
+
+  const mockMindset: MindsetContext = {
+    year: 1971,
+    knownTechnology: ['transistor', 'integrated circuit'],
+    unknownTechnology: ['internet', 'smartphone'],
+    activeProblems: [
+      {
+        statement: 'How to put a CPU on a single chip?',
+        motivation: 'Reduce cost and power consumption',
+      },
+    ],
+    constraints: [
+      {
+        type: 'technical',
+        description: 'Limited transistor count',
+        limitation: '2300 transistors max',
+      },
+    ],
+    impossibilities: ['1GB RAM', 'GHz clock speeds'],
+    historicalPerspective: {
+      currentKnowledge: 'You are at Intel, working on the first microprocessor.',
+      futureBlind: 'You do not know if this idea will succeed.',
+    },
+  };
+
+  const mockMindset2: MindsetContext = {
+    year: 1980,
+    knownTechnology: ['8-bit microprocessor', 'floppy disk'],
+    unknownTechnology: ['internet', 'smartphone', 'SSD'],
+    activeProblems: [
+      {
+        statement: 'How to make computers affordable for homes?',
+        motivation: 'Expand the market beyond hobbyists',
+      },
+    ],
+    constraints: [
+      {
+        type: 'technical',
+        description: '64KB address space',
+        limitation: 'Programs must fit in limited memory',
+      },
+    ],
+    impossibilities: ['gigabyte storage', 'wireless networking'],
+    historicalPerspective: {
+      currentKnowledge: 'Personal computers are a new phenomenon.',
+      futureBlind: 'You do not know if this is just a fad.',
+    },
+  };
+
+  const createActsWithMindsets = (): StoryAct[] => [
+    {
+      id: 'act-1',
+      number: 1,
+      title: 'Test Act 1',
+      description: 'Test',
+      era: '1971',
+      cpuStage: 'micro4',
+      mindset: mockMindset,
+      chapters: [
+        {
+          id: 'chapter-1-1',
+          number: 1,
+          title: 'Chapter 1',
+          subtitle: 'Subtitle',
+          year: '1971',
+          scenes: [
+            { id: 'scene-1-1-1', type: 'narrative', nextScene: 'scene-2-1-1' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'act-2',
+      number: 2,
+      title: 'Test Act 2',
+      description: 'Test',
+      era: '1980',
+      cpuStage: 'micro8',
+      mindset: mockMindset2,
+      chapters: [
+        {
+          id: 'chapter-2-1',
+          number: 1,
+          title: 'Chapter 1',
+          subtitle: 'Subtitle',
+          year: '1980',
+          scenes: [
+            { id: 'scene-2-1-1', type: 'narrative' },
+          ],
+        },
+      ],
+    },
+  ];
+
+  beforeEach(() => {
+    localStorage.clear();
+    MindsetProvider.resetInstance();
+    engine = new StoryEngine();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    MindsetProvider.resetInstance();
+  });
+
+  describe('getCurrentMindset', () => {
+    it('should return null before starting game', () => {
+      engine.initialize(createActsWithMindsets());
+      expect(engine.getCurrentMindset()).toBeNull();
+    });
+
+    it('should return mindset after starting game', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+      expect(engine.getCurrentMindset()).toEqual(mockMindset);
+    });
+  });
+
+  describe('getActMindset', () => {
+    it('should return mindset for specified act', () => {
+      engine.initialize(createActsWithMindsets());
+      expect(engine.getActMindset(1)).toEqual(mockMindset);
+    });
+
+    it('should return null for act without mindset', () => {
+      const acts: StoryAct[] = [
+        {
+          id: 'act-1',
+          number: 1,
+          title: 'Test',
+          description: 'Test',
+          era: '1970',
+          cpuStage: 'micro4',
+          chapters: [
+            {
+              id: 'ch-1',
+              number: 1,
+              title: 'Ch',
+              subtitle: 'Sub',
+              year: '1970',
+              scenes: [{ id: 's-1', type: 'narrative' }],
+            },
+          ],
+        },
+      ];
+      engine.initialize(acts);
+      expect(engine.getActMindset(1)).toBeNull();
+    });
+
+    it('should return null for non-existent act', () => {
+      engine.initialize(createActsWithMindsets());
+      expect(engine.getActMindset(99)).toBeNull();
+    });
+  });
+
+  describe('mindset on act change', () => {
+    it('should update mindset when navigating to different act', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+
+      expect(engine.getCurrentMindset()?.year).toBe(1971);
+
+      // Navigate to scene in act 2
+      engine.goToScene('scene-2-1-1');
+
+      expect(engine.getCurrentMindset()?.year).toBe(1980);
+    });
+
+    it('should dispatch mindset-changed on act change', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+
+      const listener = vi.fn();
+      window.addEventListener('mindset-changed', listener);
+
+      engine.goToScene('scene-2-1-1');
+
+      expect(listener).toHaveBeenCalled();
+      const event = listener.mock.calls[0][0] as CustomEvent;
+      expect(event.detail.mindset?.year).toBe(1980);
+      expect(event.detail.previousMindset?.year).toBe(1971);
+      expect(event.detail.actNumber).toBe(2);
+
+      window.removeEventListener('mindset-changed', listener);
+    });
+
+    it('should update MindsetProvider global state', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+
+      const provider = MindsetProvider.getInstance();
+      expect(provider.getCurrentMindset()?.year).toBe(1971);
+
+      engine.goToScene('scene-2-1-1');
+
+      expect(provider.getCurrentMindset()?.year).toBe(1980);
+    });
+  });
+
+  describe('startNewGame with mindset', () => {
+    it('should initialize mindset from first act', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+
+      expect(engine.getCurrentMindset()).toEqual(mockMindset);
+    });
+
+    it('should dispatch mindset-changed event on start', () => {
+      engine.initialize(createActsWithMindsets());
+
+      const listener = vi.fn();
+      window.addEventListener('mindset-changed', listener);
+
+      engine.startNewGame();
+
+      expect(listener).toHaveBeenCalled();
+      const event = listener.mock.calls[0][0] as CustomEvent;
+      expect(event.detail.mindset).toEqual(mockMindset);
+      expect(event.detail.previousMindset).toBeNull();
+
+      window.removeEventListener('mindset-changed', listener);
+    });
+  });
+
+  describe('resume with mindset', () => {
+    it('should initialize mindset from current act when resuming', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+      engine.goToScene('scene-2-1-1'); // Move to act 2
+
+      // Simulate page refresh - new engine instance
+      MindsetProvider.resetInstance();
+      const engine2 = new StoryEngine();
+      engine2.initialize(createActsWithMindsets());
+      engine2.resume();
+
+      expect(engine2.getCurrentMindset()?.year).toBe(1980);
+    });
+
+    it('should initialize mindset from first act when resuming at start', () => {
+      engine.initialize(createActsWithMindsets());
+      engine.startNewGame();
+
+      // Simulate page refresh - new engine instance
+      MindsetProvider.resetInstance();
+      const engine2 = new StoryEngine();
+      engine2.initialize(createActsWithMindsets());
+      engine2.resume();
+
+      expect(engine2.getCurrentMindset()?.year).toBe(1971);
+    });
+  });
+});

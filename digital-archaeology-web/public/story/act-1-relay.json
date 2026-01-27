@@ -40,10 +40,22 @@
         "background": "You are a German civil engineer in Berlin. Tired of endless tedious calculations for aircraft designs, you built the Z1 in your parents' living room. Now the Z3 is nearly complete - the world's first programmable, automatic digital computer.",
         "motivation": "Engineering calculations consume years of manual labor. If machines can manufacture parts automatically, why not calculate automatically?",
         "constraints": [
-          { "type": "technical", "description": "Telephone relays click slowly - 5 operations per second at best" },
-          { "type": "economic", "description": "Wartime Germany prioritizes weapons, not computing research" },
-          { "type": "political", "description": "The Nazi regime sees little value in your work" },
-          { "type": "knowledge", "description": "Working in isolation, you've reinvented Boolean logic independently" }
+          {
+            "type": "technical",
+            "description": "Telephone relays click slowly - 5 operations per second at best"
+          },
+          {
+            "type": "economic",
+            "description": "Wartime Germany prioritizes weapons, not computing research"
+          },
+          {
+            "type": "political",
+            "description": "The Nazi regime sees little value in your work"
+          },
+          {
+            "type": "knowledge",
+            "description": "Working in isolation, you've reinvented Boolean logic independently"
+          }
         ],
         "problem": "Can relays replace rooms full of human computers?"
       },
@@ -71,10 +83,22 @@
                 "background": "You are a German civil engineer in Berlin. Tired of endless tedious calculations for aircraft designs, you built the Z1 in your parents' living room. Now the Z3 is nearly complete - the world's first programmable, automatic digital computer.",
                 "motivation": "Engineering calculations consume years of manual labor. If machines can manufacture parts automatically, why not calculate automatically?",
                 "constraints": [
-                  { "type": "technical", "description": "Telephone relays click slowly - 5 operations per second at best" },
-                  { "type": "economic", "description": "Wartime Germany prioritizes weapons, not computing research" },
-                  { "type": "political", "description": "The Nazi regime sees little value in your work" },
-                  { "type": "knowledge", "description": "Working in isolation, you've reinvented Boolean logic independently" }
+                  {
+                    "type": "technical",
+                    "description": "Telephone relays click slowly - 5 operations per second at best"
+                  },
+                  {
+                    "type": "economic",
+                    "description": "Wartime Germany prioritizes weapons, not computing research"
+                  },
+                  {
+                    "type": "political",
+                    "description": "The Nazi regime sees little value in your work"
+                  },
+                  {
+                    "type": "knowledge",
+                    "description": "Working in isolation, you've reinvented Boolean logic independently"
+                  }
                 ],
                 "problem": "Can relays replace rooms full of human computers?"
               },
@@ -103,8 +127,14 @@
                   "title": "Mathematician & Logician",
                   "bio": "A self-educated English mathematician who became professor at Queen's College Cork. His Boolean algebra would become the mathematical foundation of digital computing—though he never lived to see it applied to machines.",
                   "stats": [
-                    { "label": "Key Work", "value": "The Laws of Thought (1854)" },
-                    { "label": "Legacy", "value": "Boolean algebra in every CPU" }
+                    {
+                      "label": "Key Work",
+                      "value": "The Laws of Thought (1854)"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Boolean algebra in every CPU"
+                    }
                   ]
                 }
               ],
@@ -134,8 +164,14 @@
                   "title": "Superintendent of the Census",
                   "bio": "A man caught between political pressure and mathematical reality. The Constitution requires a census every ten years. The math says it's impossible. Porter needs a miracle—or a machine.",
                   "stats": [
-                    { "label": "Problem", "value": "10-year deadline, 12-year workload" },
-                    { "label": "Budget", "value": "Insufficient for the scale" }
+                    {
+                      "label": "Problem",
+                      "value": "10-year deadline, 12-year workload"
+                    },
+                    {
+                      "label": "Budget",
+                      "value": "Insufficient for the scale"
+                    }
                   ]
                 }
               ],
@@ -170,8 +206,14 @@
                   "title": "Inventor & Engineer",
                   "bio": "German-American inventor who worked briefly at the Census Bureau and saw the tabulation nightmare firsthand. His solution combines punch cards (borrowed from Jacquard looms) with electrical sensing—a machine that can 'read' data.",
                   "stats": [
-                    { "label": "Inspiration", "value": "Train conductor tickets" },
-                    { "label": "Key Insight", "value": "Electricity can detect holes" }
+                    {
+                      "label": "Inspiration",
+                      "value": "Train conductor tickets"
+                    },
+                    {
+                      "label": "Key Insight",
+                      "value": "Electricity can detect holes"
+                    }
                   ]
                 }
               ],
@@ -342,11 +384,31 @@
               "challenge": {
                 "title": "DESIGN AND RUN A TABULATION",
                 "objectives": [
-                  { "id": "obj-1", "text": "Design a punch card encoding for census data", "completed": false },
-                  { "id": "obj-2", "text": "Understand binary representation (hole = 1, no hole = 0)", "completed": false },
-                  { "id": "obj-3", "text": "Configure counters for specific queries", "completed": false },
-                  { "id": "obj-4", "text": "Process a batch of cards through the tabulator", "completed": false },
-                  { "id": "obj-5", "text": "Generate a cross-tabulation report", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Design a punch card encoding for census data",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Understand binary representation (hole = 1, no hole = 0)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Configure counters for specific queries",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Process a batch of cards through the tabulator",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Generate a cross-tabulation report",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -414,8 +476,14 @@
                   "title": "Civil Engineer & Inventor",
                   "bio": "A practical engineer who hated tedious calculation so much that he invented the programmable computer to avoid it. Working in isolation, Zuse independently developed binary arithmetic, floating-point numbers, and stored-program concepts.",
                   "stats": [
-                    { "label": "Motivation", "value": "Laziness (his own word)" },
-                    { "label": "Innovation", "value": "Binary, floating-point, programs" }
+                    {
+                      "label": "Motivation",
+                      "value": "Laziness (his own word)"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Binary, floating-point, programs"
+                    }
                   ]
                 }
               ],
@@ -590,11 +658,31 @@
               "challenge": {
                 "title": "BUILD RELAY-BASED BINARY ARITHMETIC",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement AND/OR/NOT using relays", "completed": false },
-                  { "id": "obj-2", "text": "Build a half-adder from relay logic", "completed": false },
-                  { "id": "obj-3", "text": "Chain half-adders into a full adder", "completed": false },
-                  { "id": "obj-4", "text": "Create a 4-bit binary adder", "completed": false },
-                  { "id": "obj-5", "text": "Demonstrate: 0101 + 0011 = 1000 (5 + 3 = 8)", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement AND/OR/NOT using relays",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Build a half-adder from relay logic",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Chain half-adders into a full adder",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Create a 4-bit binary adder",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Demonstrate: 0101 + 0011 = 1000 (5 + 3 = 8)",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -650,8 +738,14 @@
                   "title": "Bell Labs Research Mathematician",
                   "bio": "A telephone engineer who built computing circuits from surplus relays on his kitchen table. His Complex Number Calculator was the first machine to perform remote computation—the ancestor of every networked computer.",
                   "stats": [
-                    { "label": "First Demo", "value": "Remote computing, 1940" },
-                    { "label": "Innovation", "value": "Networked computation" }
+                    {
+                      "label": "First Demo",
+                      "value": "Remote computing, 1940"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Networked computation"
+                    }
                   ]
                 }
               ],
@@ -696,8 +790,14 @@
                   "title": "Engineer, General Post Office",
                   "bio": "A telephone engineer who believed vacuum tubes could be reliable if used correctly—running continuously rather than being switched on and off. His Colossus would be the world's first electronic digital computer.",
                   "stats": [
-                    { "label": "Key Insight", "value": "Tubes fail when switched, not when running" },
-                    { "label": "Opposition", "value": "Everyone thought it was impossible" }
+                    {
+                      "label": "Key Insight",
+                      "value": "Tubes fail when switched, not when running"
+                    },
+                    {
+                      "label": "Opposition",
+                      "value": "Everyone thought it was impossible"
+                    }
                   ]
                 },
                 {
@@ -706,8 +806,14 @@
                   "title": "Mathematician, Codebreaker",
                   "bio": "The genius who laid the theoretical foundations of computation. His 1936 paper described a universal computing machine. At Bletchley, he applied that theory to break Enigma.",
                   "stats": [
-                    { "label": "Contribution", "value": "Bombe machine, universal computation theory" },
-                    { "label": "Tragedy", "value": "Persecuted for homosexuality after the war" }
+                    {
+                      "label": "Contribution",
+                      "value": "Bombe machine, universal computation theory"
+                    },
+                    {
+                      "label": "Tragedy",
+                      "value": "Persecuted for homosexuality after the war"
+                    }
                   ]
                 }
               ],
@@ -875,11 +981,31 @@
               "challenge": {
                 "title": "BUILD VACUUM TUBE LOGIC",
                 "objectives": [
-                  { "id": "obj-1", "text": "Understand triode operation (grid, cathode, plate)", "completed": false },
-                  { "id": "obj-2", "text": "Implement NOT gate using triode cutoff", "completed": false },
-                  { "id": "obj-3", "text": "Build NAND gate from triodes", "completed": false },
-                  { "id": "obj-4", "text": "Create a counting circuit (flip-flop)", "completed": false },
-                  { "id": "obj-5", "text": "Demonstrate electronic-speed switching", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Understand triode operation (grid, cathode, plate)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement NOT gate using triode cutoff",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Build NAND gate from triodes",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Create a counting circuit (flip-flop)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Demonstrate electronic-speed switching",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -939,8 +1065,14 @@
                   "title": "Commander, Harvard Computation Laboratory",
                   "bio": "A physicist who dreamed of a general-purpose calculating machine and persuaded IBM to build it. The Mark I was the last great electromechanical computer—and the training ground for the first programmers.",
                   "stats": [
-                    { "label": "Vision", "value": "Automatic mathematical computation" },
-                    { "label": "Legacy", "value": "Mark I - IV computers" }
+                    {
+                      "label": "Vision",
+                      "value": "Automatic mathematical computation"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Mark I - IV computers"
+                    }
                   ]
                 },
                 {
@@ -949,8 +1081,14 @@
                   "title": "Lieutenant, US Navy Reserve",
                   "bio": "A mathematician and Navy officer who became one of the first programmers. She would later invent the first compiler and coin the term 'debugging' after removing a moth from the Mark II. Her influence on programming languages would be incalculable.",
                   "stats": [
-                    { "label": "Innovation", "value": "First compiler (A-0), COBOL" },
-                    { "label": "Famous Quote", "value": "'It's easier to ask forgiveness than permission'" }
+                    {
+                      "label": "Innovation",
+                      "value": "First compiler (A-0), COBOL"
+                    },
+                    {
+                      "label": "Famous Quote",
+                      "value": "'It's easier to ask forgiveness than permission'"
+                    }
                   ]
                 }
               ],
@@ -1004,7 +1142,63 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1943,
+        "knownTechnology": [
+          "relay",
+          "telephone switch",
+          "punched cards",
+          "teletype",
+          "vacuum tube"
+        ],
+        "unknownTechnology": [
+          "transistor",
+          "integrated circuit",
+          "microprocessor",
+          "personal computer",
+          "internet",
+          "smartphone",
+          "SSD"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How can we build a calculating machine fast enough for wartime needs?",
+            "motivation": "Artillery tables require millions of calculations. Cryptographic codes must be broken in hours, not weeks."
+          },
+          {
+            "statement": "How can we make switches more reliable?",
+            "motivation": "Electromechanical relays fail constantly. A machine with thousands of relays spends more time broken than working."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Relays are slow and unreliable",
+            "limitation": "Maximum switching speed of ~100 Hz"
+          },
+          {
+            "type": "material",
+            "description": "Components are bulky and power-hungry",
+            "limitation": "A relay computer fills a room"
+          },
+          {
+            "type": "economic",
+            "description": "Wartime resources are limited",
+            "limitation": "Every vacuum tube diverts resources from the war effort"
+          }
+        ],
+        "impossibilities": [
+          "miniaturization below room-size",
+          "solid-state electronics",
+          "permanent memory storage",
+          "personal computers"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the midst of World War II. Electromechanical relay computers like the Harvard Mark I and Zuse Z3 represent the cutting edge. Vacuum tubes offer speed but unreliability. The transistor has not been invented.",
+          "futureBlind": "You cannot know if electronic computers will ever be reliable. Perhaps electromechanical computing is the practical limit. Will there be a role for such machines after the war ends?"
+        }
+      }
     }
   ]
 }

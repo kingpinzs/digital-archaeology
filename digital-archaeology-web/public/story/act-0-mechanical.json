@@ -14,21 +14,29 @@
       "era": "3000 BC - 1840s",
       "cpuStage": "mechanical",
       "persona": {
-        "id": "babbage-1837",
-        "name": "Charles Babbage",
-        "years": "1791-1871",
-        "era": "1837",
-        "avatar": "🎩",
-        "quote": "The engine can arrange and combine its numerical quantities exactly as if they were letters or any other general symbols.",
-        "background": "You are the Lucasian Professor of Mathematics at Cambridge - the same chair held by Newton. After years of tedious calculation errors, you conceived the Difference Engine. Now you dream of something greater.",
-        "motivation": "Mathematical tables are full of errors. Human computers make mistakes. What if a machine could calculate without error - and even program itself?",
+        "id": "first-counter-35000bc",
+        "name": "The First Counter",
+        "years": "~35,000 BC",
+        "era": "35,000 BC",
+        "avatar": "🌙",
+        "quote": "Twenty-nine nights since the moon was dark. I will not forget.",
+        "background": "In the Lebombo Mountains of what will one day be called Swaziland, you survive by knowing. Knowing when the herds move. Knowing when fruits ripen. Knowing how much you owe and are owed. Memory fails. But marks on bone do not.",
+        "motivation": "The elders trade goods. They argue about debts. Who owes what? How many moons since the last gathering? You need a way to remember numbers that outlasts memory.",
         "constraints": [
-          { "type": "technical", "description": "Victorian-era machining cannot achieve the precision your designs require" },
-          { "type": "economic", "description": "Government funding has dried up after the Difference Engine delays" },
-          { "type": "political", "description": "Society sees you as an eccentric burning through public money" },
-          { "type": "knowledge", "description": "No one understands why a calculating machine needs to be programmable" }
+          {
+            "type": "technical",
+            "description": "No writing system exists—only marks and scratches"
+          },
+          {
+            "type": "knowledge",
+            "description": "No concept of 'numbers' as abstract entities—only quantities of things"
+          },
+          {
+            "type": "material",
+            "description": "Only bone, stone, and wood to work with"
+          }
         ],
-        "problem": "Can you design a machine that computes any mathematical function?"
+        "problem": "How do you remember a quantity when you cannot write?"
       },
       "chapters": [
         {
@@ -42,29 +50,37 @@
               "id": "scene-0-1-0",
               "type": "persona",
               "setting": {
-                "text": "London, 1837. You stand in the workshop of the world's most ambitious inventor. Gears, cams, and precision-machined brass components surround you. The Analytical Engine—a machine that could compute ANY mathematical function—exists only in notebooks and dreams."
+                "text": "The Lebombo Mountains, southern Africa, ~35,000 BC. Firelight casts dancing shadows on cave walls. The smell of smoke and animal hides fills the air. Outside, the vast African night stretches endlessly, the moon a silver crescent overhead. Inside, you sit by the fire, a baboon's leg bone in your weathered hands."
               },
               "persona": {
-                "id": "babbage-1837",
-                "name": "Charles Babbage",
-                "years": "1791-1871",
-                "era": "1837",
-                "avatar": "🎩",
-                "quote": "The engine can arrange and combine its numerical quantities exactly as if they were letters or any other general symbols.",
-                "background": "You are the Lucasian Professor of Mathematics at Cambridge - the same chair held by Newton. After years of tedious calculation errors, you conceived the Difference Engine. Now you dream of something greater.",
-                "motivation": "Mathematical tables are full of errors. Human computers make mistakes. What if a machine could calculate without error - and even program itself?",
+                "id": "first-counter-35000bc",
+                "name": "The First Counter",
+                "years": "~35,000 BC",
+                "era": "35,000 BC",
+                "avatar": "🌙",
+                "quote": "Twenty-nine nights since the moon was dark. I will not forget.",
+                "background": "In the Lebombo Mountains of what will one day be called Swaziland, you survive by knowing. Knowing when the herds move. Knowing when fruits ripen. Knowing how much you owe and are owed. Memory fails. But marks on bone do not.",
+                "motivation": "The elders trade goods. They argue about debts. Who owes what? How many moons since the last gathering? You need a way to remember numbers that outlasts memory.",
                 "constraints": [
-                  { "type": "technical", "description": "Victorian-era machining cannot achieve the precision your designs require" },
-                  { "type": "economic", "description": "Government funding has dried up after the Difference Engine delays" },
-                  { "type": "political", "description": "Society sees you as an eccentric burning through public money" },
-                  { "type": "knowledge", "description": "No one understands why a calculating machine needs to be programmable" }
+                  {
+                    "type": "technical",
+                    "description": "No writing system exists—only marks and scratches"
+                  },
+                  {
+                    "type": "knowledge",
+                    "description": "No concept of 'numbers' as abstract entities—only quantities of things"
+                  },
+                  {
+                    "type": "material",
+                    "description": "Only bone, stone, and wood to work with"
+                  }
                 ],
-                "problem": "Can you design a machine that computes any mathematical function?"
+                "problem": "How do you remember a quantity when you cannot write?"
               },
               "narrative": [
-                "Welcome to Digital Archaeology. Your journey through computing history begins here.",
-                "In this act, you'll witness humanity's long struggle to automate calculation—from tally marks on bone to mechanical engines of brass and steel.",
-                "But you won't just observe. You'll experience these challenges through the eyes of Charles Babbage, the visionary who conceived the first programmable computer 100 years before it could be built."
+                "Welcome to Digital Archaeology. Your journey through computing history begins here—at the very beginning.",
+                "Long before cities, before writing, before agriculture, humans faced a fundamental challenge: how to remember quantities. How many days until the herds return? How many fish do I owe the elder? How many moons since the last gathering?",
+                "You are about to experience the birth of counting itself. Not as a distant observer, but as someone who NEEDS it to survive."
               ],
               "nextScene": "scene-0-1-1"
             },
@@ -86,9 +102,18 @@
                   "title": "The First Counter",
                   "bio": "We know nothing about them—not their name, not their language, not even their gender. Only that they carved 29 marks into a bone, and those marks survived for 35,000 years. They are the ancestor of all accountants, all mathematicians, all programmers.",
                   "stats": [
-                    { "label": "Era", "value": "~35,000 BC" },
-                    { "label": "Location", "value": "Lebombo Mountains, Swaziland" },
-                    { "label": "Legacy", "value": "Oldest mathematical artifact" }
+                    {
+                      "label": "Era",
+                      "value": "~35,000 BC"
+                    },
+                    {
+                      "label": "Location",
+                      "value": "Lebombo Mountains, Swaziland"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Oldest mathematical artifact"
+                    }
                   ]
                 }
               ],
@@ -118,9 +143,18 @@
                   "title": "Token Keeper of the Zagros",
                   "bio": "The shepherds and farmers of the Fertile Crescent invented token-based accounting around 8000 BC. Each shape encoded both quantity and type—a separate 'data type' for grain, oil, livestock. This abstraction would evolve into writing itself.",
                   "stats": [
-                    { "label": "Era", "value": "~8,000 BC" },
-                    { "label": "Innovation", "value": "Clay tokens for accounting" },
-                    { "label": "Insight", "value": "Shape encodes meaning" }
+                    {
+                      "label": "Era",
+                      "value": "~8,000 BC"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Clay tokens for accounting"
+                    },
+                    {
+                      "label": "Insight",
+                      "value": "Shape encodes meaning"
+                    }
                   ]
                 }
               ],
@@ -150,9 +184,18 @@
                   "title": "Temple Accountant of Uruk",
                   "bio": "The earliest name recorded in writing belongs not to a king or god, but to an accountant. Around 3100 BC, Kushim signed clay tablets recording barley transactions. Writing was invented not for poetry or law—but for counting.",
                   "stats": [
-                    { "label": "Era", "value": "~3100 BC" },
-                    { "label": "Claim to fame", "value": "First named person in history" },
-                    { "label": "Profession", "value": "Accountant" }
+                    {
+                      "label": "Era",
+                      "value": "~3100 BC"
+                    },
+                    {
+                      "label": "Claim to fame",
+                      "value": "First named person in history"
+                    },
+                    {
+                      "label": "Profession",
+                      "value": "Accountant"
+                    }
                   ]
                 }
               ],
@@ -332,11 +375,31 @@
               "challenge": {
                 "title": "MASTER THE COUNTING BOARD",
                 "objectives": [
-                  { "id": "obj-1", "text": "Understand positional lines (ones, tens, hundreds)", "completed": false },
-                  { "id": "obj-2", "text": "Represent 147 using pebbles on lines", "completed": false },
-                  { "id": "obj-3", "text": "Perform subtraction by removing pebbles", "completed": false },
-                  { "id": "obj-4", "text": "Handle borrowing when a column is empty", "completed": false },
-                  { "id": "obj-5", "text": "Calculate 147 - 89 = 58", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Understand positional lines (ones, tens, hundreds)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Represent 147 using pebbles on lines",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Perform subtraction by removing pebbles",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Handle borrowing when a column is empty",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Calculate 147 - 89 = 58",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -404,9 +467,18 @@
                   "title": "Royal Accountant of Karnak",
                   "bio": "Chief calculator for the Temple of Amun-Ra. Amenhotep oversees the tribute of a dozen conquered peoples, converting their varied goods into standardized units. His counting table has been in his family for six generations.",
                   "stats": [
-                    { "label": "Era", "value": "~1400 BC (18th Dynasty)" },
-                    { "label": "System", "value": "Hieratic numerals, base-10" },
-                    { "label": "Direction", "value": "Right to left" }
+                    {
+                      "label": "Era",
+                      "value": "~1400 BC (18th Dynasty)"
+                    },
+                    {
+                      "label": "System",
+                      "value": "Hieratic numerals, base-10"
+                    },
+                    {
+                      "label": "Direction",
+                      "value": "Right to left"
+                    }
                   ]
                 }
               ],
@@ -436,9 +508,18 @@
                   "title": "Mathematician of Syracuse",
                   "bio": "History's greatest ancient mathematician, Archimedes calculated pi, invented the screw pump, and designed war machines. Legend says he also contemplated improvements to the counting board—though his designs, if they existed, are lost.",
                   "stats": [
-                    { "label": "Era", "value": "287-212 BC" },
-                    { "label": "Genius", "value": "Mathematics, Engineering, Physics" },
-                    { "label": "Famous for", "value": "\"Eureka!\" and defending Syracuse" }
+                    {
+                      "label": "Era",
+                      "value": "287-212 BC"
+                    },
+                    {
+                      "label": "Genius",
+                      "value": "Mathematics, Engineering, Physics"
+                    },
+                    {
+                      "label": "Famous for",
+                      "value": "\"Eureka!\" and defending Syracuse"
+                    }
                   ]
                 }
               ],
@@ -468,9 +549,18 @@
                   "title": "Tax Collector of Gallia",
                   "bio": "Roman publicani (tax collectors) were notorious for efficiency—and greed. Their hand-held abaci allowed rapid calculation anywhere in the Empire. Cotta has assessed tribute from Britannia to Syria.",
                   "stats": [
-                    { "label": "Era", "value": "~50 BC" },
-                    { "label": "Tool", "value": "Roman hand-abacus" },
-                    { "label": "System", "value": "Bi-quinary (5+2)" }
+                    {
+                      "label": "Era",
+                      "value": "~50 BC"
+                    },
+                    {
+                      "label": "Tool",
+                      "value": "Roman hand-abacus"
+                    },
+                    {
+                      "label": "System",
+                      "value": "Bi-quinary (5+2)"
+                    }
                   ]
                 }
               ],
@@ -547,9 +637,18 @@
                   "title": "Inventor of the Suanpan",
                   "bio": "Like the inventor of the wheel or the discoverer of fire, the creator of the bead abacus is lost to history. Sometime between 200 BC and 200 AD, a Chinese craftsman combined counting rods, positional notation, and fixed beads into a device that would endure for millennia.",
                   "stats": [
-                    { "label": "Era", "value": "~200 BC to 200 AD" },
-                    { "label": "Innovation", "value": "Beads on rods in frame" },
-                    { "label": "Legacy", "value": "2000+ years of continuous use" }
+                    {
+                      "label": "Era",
+                      "value": "~200 BC to 200 AD"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Beads on rods in frame"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "2000+ years of continuous use"
+                    }
                   ]
                 }
               ],
@@ -607,9 +706,18 @@
                   "title": "Suanpan Craftsman",
                   "bio": "A second-generation suanpan maker. Zhao's father was among the first to manufacture the devices in quantity. Now his workshop supplies merchants across the empire. He has trained hundreds of students in the art of rapid calculation.",
                   "stats": [
-                    { "label": "Craft", "value": "Suanpan construction" },
-                    { "label": "Standard design", "value": "2/5 beads, 13 rods" },
-                    { "label": "Philosophy", "value": "\"The fingers remember\"" }
+                    {
+                      "label": "Craft",
+                      "value": "Suanpan construction"
+                    },
+                    {
+                      "label": "Standard design",
+                      "value": "2/5 beads, 13 rods"
+                    },
+                    {
+                      "label": "Philosophy",
+                      "value": "\"The fingers remember\""
+                    }
                   ]
                 }
               ],
@@ -788,11 +896,31 @@
               "challenge": {
                 "title": "MASTER THE SUANPAN",
                 "objectives": [
-                  { "id": "obj-1", "text": "Understand the 2/5 bead encoding system", "completed": false },
-                  { "id": "obj-2", "text": "Represent 3,456 on the suanpan", "completed": false },
-                  { "id": "obj-3", "text": "Add 2,789 using proper finger techniques", "completed": false },
-                  { "id": "obj-4", "text": "Subtract 4,123 with borrowing across columns", "completed": false },
-                  { "id": "obj-5", "text": "Verify final answer: 2,122 taels", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Understand the 2/5 bead encoding system",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Represent 3,456 on the suanpan",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Add 2,789 using proper finger techniques",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Subtract 4,123 with borrowing across columns",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Verify final answer: 2,122 taels",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -887,9 +1015,18 @@
                   "title": "Father of Zero",
                   "bio": "Indian mathematician and astronomer who first defined zero as a number and established the rules for its arithmetic. His work laid the foundation for the positional number system that makes all modern computing possible.",
                   "stats": [
-                    { "label": "Era", "value": "598-668 AD" },
-                    { "label": "Location", "value": "Ujjain, India" },
-                    { "label": "Legacy", "value": "Zero as a number" }
+                    {
+                      "label": "Era",
+                      "value": "598-668 AD"
+                    },
+                    {
+                      "label": "Location",
+                      "value": "Ujjain, India"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Zero as a number"
+                    }
                   ]
                 }
               ]
@@ -931,9 +1068,18 @@
                   "title": "Father of Algebra",
                   "bio": "Persian mathematician whose works introduced Hindu-Arabic numerals and zero to the Islamic world. His name gives us 'algorithm'; his book title 'al-jabr' gives us 'algebra.' He bridged Indian and Western mathematics.",
                   "stats": [
-                    { "label": "Era", "value": "780-850 AD" },
-                    { "label": "Location", "value": "Baghdad" },
-                    { "label": "Legacy", "value": "'Algorithm' and 'Algebra'" }
+                    {
+                      "label": "Era",
+                      "value": "780-850 AD"
+                    },
+                    {
+                      "label": "Location",
+                      "value": "Baghdad"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "'Algorithm' and 'Algebra'"
+                    }
                   ]
                 }
               ]
@@ -975,9 +1121,18 @@
                   "title": "Leonardo Bonacci",
                   "bio": "Italian mathematician who introduced Hindu-Arabic numerals to Europe through his 1202 book Liber Abaci. Though best known today for the Fibonacci sequence, his greater contribution was bringing zero to the West.",
                   "stats": [
-                    { "label": "Era", "value": "1170-1250 AD" },
-                    { "label": "Location", "value": "Pisa, Italy" },
-                    { "label": "Legacy", "value": "Brought zero to Europe" }
+                    {
+                      "label": "Era",
+                      "value": "1170-1250 AD"
+                    },
+                    {
+                      "label": "Location",
+                      "value": "Pisa, Italy"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Brought zero to Europe"
+                    }
                   ]
                 }
               ]
@@ -1048,9 +1203,18 @@
                   "title": "Professor of Hebrew & Astronomy",
                   "bio": "A polymath at Tübingen, Schickard invented the first mechanical calculator in 1623—nearly 20 years before Pascal. His machine was lost when Schickard died of plague in 1635. Only letters to Kepler preserved his achievement.",
                   "stats": [
-                    { "label": "First Calculator", "value": "1623" },
-                    { "label": "Predates Pascal", "value": "19 years" },
-                    { "label": "Fate", "value": "Died of plague 1635" }
+                    {
+                      "label": "First Calculator",
+                      "value": "1623"
+                    },
+                    {
+                      "label": "Predates Pascal",
+                      "value": "19 years"
+                    },
+                    {
+                      "label": "Fate",
+                      "value": "Died of plague 1635"
+                    }
                   ]
                 }
               ],
@@ -1080,8 +1244,14 @@
                   "title": "Mathematician & Inventor",
                   "bio": "At 19, Blaise Pascal is already a mathematical prodigy who proved important theorems of geometry at 16. Watching his father struggle with tax calculations, he conceives of a machine that could automate addition.",
                   "stats": [
-                    { "label": "Age", "value": "19" },
-                    { "label": "Genius", "value": "Mathematics, Physics, Philosophy" }
+                    {
+                      "label": "Age",
+                      "value": "19"
+                    },
+                    {
+                      "label": "Genius",
+                      "value": "Mathematics, Physics, Philosophy"
+                    }
                   ]
                 }
               ],
@@ -1250,10 +1420,26 @@
               "challenge": {
                 "title": "BUILD THE PASCALINE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Design a number wheel with 10 positions (0-9)", "completed": false },
-                  { "id": "obj-2", "text": "Implement the carry mechanism using a sautoir lever", "completed": false },
-                  { "id": "obj-3", "text": "Chain multiple wheels to handle larger numbers", "completed": false },
-                  { "id": "obj-4", "text": "Test: 00199 + 00001 should show 00200", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Design a number wheel with 10 positions (0-9)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement the carry mechanism using a sautoir lever",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Chain multiple wheels to handle larger numbers",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Test: 00199 + 00001 should show 00200",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -1311,9 +1497,18 @@
                   "title": "Philosopher & Mathematician",
                   "bio": "Leibniz invented calculus (simultaneously with Newton), discovered binary arithmetic, built the Stepped Reckoner calculating machine, and dreamed of universal logical computation. His binary system would become the foundation of all digital computers.",
                   "stats": [
-                    { "label": "Binary System", "value": "Invented 1679" },
-                    { "label": "Insight", "value": "Two symbols encode everything" },
-                    { "label": "Legacy", "value": "Foundation of digital computing" }
+                    {
+                      "label": "Binary System",
+                      "value": "Invented 1679"
+                    },
+                    {
+                      "label": "Insight",
+                      "value": "Two symbols encode everything"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Foundation of digital computing"
+                    }
                   ]
                 }
               ],
@@ -1343,9 +1538,18 @@
                   "title": "World's First Multiplying Calculator",
                   "bio": "Leibniz's mechanical marvel used a stepped drum (Leibniz wheel) to perform all four arithmetic operations. The design was so clever that stepped drums remained in mechanical calculators until the 1970s.",
                   "stats": [
-                    { "label": "Operations", "value": "+, -, ×, ÷" },
-                    { "label": "Digits", "value": "12-digit capacity" },
-                    { "label": "Legacy", "value": "Stepped drum used for 280 years" }
+                    {
+                      "label": "Operations",
+                      "value": "+, -, ×, ÷"
+                    },
+                    {
+                      "label": "Digits",
+                      "value": "12-digit capacity"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Stepped drum used for 280 years"
+                    }
                   ]
                 }
               ],
@@ -1384,9 +1588,18 @@
                   "title": "Master Weaver & Inventor",
                   "bio": "Son of a weaver, Jacquard spent years perfecting an automated loom that could weave any pattern. His punch card system was the first mechanical 'program'—and it would inspire Babbage, Hollerith, and early computer scientists.",
                   "stats": [
-                    { "label": "Innovation", "value": "Punch card programming" },
-                    { "label": "Loom adoption", "value": "11,000 by 1812" },
-                    { "label": "Legacy", "value": "Inspired all stored-program computing" }
+                    {
+                      "label": "Innovation",
+                      "value": "Punch card programming"
+                    },
+                    {
+                      "label": "Loom adoption",
+                      "value": "11,000 by 1812"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Inspired all stored-program computing"
+                    }
                   ]
                 }
               ],
@@ -1416,9 +1629,18 @@
                   "title": "The First Machine-Readable Programs",
                   "bio": "Jacquard's punch cards were the first stored programs in history. Each hole encoded a binary decision: lift or don't lift. Linked in sequence, they could encode infinitely complex patterns—or, later, infinitely complex computations.",
                   "stats": [
-                    { "label": "Encoding", "value": "Binary: hole or no hole" },
-                    { "label": "Typical card", "value": "~400 possible holes" },
-                    { "label": "Pattern storage", "value": "Thousands of cards linked" }
+                    {
+                      "label": "Encoding",
+                      "value": "Binary: hole or no hole"
+                    },
+                    {
+                      "label": "Typical card",
+                      "value": "~400 possible holes"
+                    },
+                    {
+                      "label": "Pattern storage",
+                      "value": "Thousands of cards linked"
+                    }
                   ]
                 }
               ],
@@ -1448,9 +1670,18 @@
                   "title": "Programming Made Visible",
                   "bio": "This famous woven portrait required 24,000 punch cards and demonstrated that punch card 'programs' could encode arbitrary complexity. Charles Babbage owned a copy and showed it to visitors as proof that machines could process complex information.",
                   "stats": [
-                    { "label": "Cards used", "value": "24,000" },
-                    { "label": "Resolution", "value": "Mistaken for engraving" },
-                    { "label": "Impact", "value": "Inspired Babbage's design" }
+                    {
+                      "label": "Cards used",
+                      "value": "24,000"
+                    },
+                    {
+                      "label": "Resolution",
+                      "value": "Mistaken for engraving"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Inspired Babbage's design"
+                    }
                   ]
                 }
               ],
@@ -1480,9 +1711,18 @@
                   "title": "Inventor of the Arithmometer",
                   "bio": "A French inventor and insurance executive who created the first mass-produced mechanical calculator. His Arithmometer remained in production for nearly a century (1851-1915), proving mechanical calculation could be a practical business tool.",
                   "stats": [
-                    { "label": "Invention", "value": "Arithmometer (1820)" },
-                    { "label": "Production", "value": "1851-1915" },
-                    { "label": "Impact", "value": "First commercial calculator" }
+                    {
+                      "label": "Invention",
+                      "value": "Arithmometer (1820)"
+                    },
+                    {
+                      "label": "Production",
+                      "value": "1851-1915"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "First commercial calculator"
+                    }
                   ]
                 }
               ],
@@ -1521,8 +1761,14 @@
                   "title": "Mathematician & Engineer",
                   "bio": "Lucasian Professor of Mathematics at Cambridge (Newton's old chair), Babbage is brilliant, irascible, and obsessed with precision. He has already designed the Difference Engine; now he dreams of the Analytical Engine.",
                   "stats": [
-                    { "label": "Obsession", "value": "Eliminating Error" },
-                    { "label": "Temperament", "value": "Genius, Difficult" }
+                    {
+                      "label": "Obsession",
+                      "value": "Eliminating Error"
+                    },
+                    {
+                      "label": "Temperament",
+                      "value": "Genius, Difficult"
+                    }
                   ]
                 }
               ],
@@ -1551,8 +1797,14 @@
                   "title": "Mathematician & Visionary",
                   "bio": "Ada King, Countess of Lovelace, is the only legitimate child of Lord Byron. Her mother ensured she studied mathematics to counteract any inherited 'poetic' madness. Ada sees further than Babbage himself.",
                   "stats": [
-                    { "label": "Insight", "value": "Pattern Recognition, Abstraction" },
-                    { "label": "Vision", "value": "The machine could compose music" }
+                    {
+                      "label": "Insight",
+                      "value": "Pattern Recognition, Abstraction"
+                    },
+                    {
+                      "label": "Vision",
+                      "value": "The machine could compose music"
+                    }
                   ]
                 }
               ],
@@ -1737,11 +1989,31 @@
               "challenge": {
                 "title": "BUILD THE ANALYTICAL ENGINE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Design the Store: memory columns with gear-based digits", "completed": false },
-                  { "id": "obj-2", "text": "Design the Mill: arithmetic unit with carry chain", "completed": false },
-                  { "id": "obj-3", "text": "Implement card-based instruction input", "completed": false },
-                  { "id": "obj-4", "text": "Add conditional branching (skip cards if zero)", "completed": false },
-                  { "id": "obj-5", "text": "Execute Ada's Bernoulli algorithm", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Design the Store: memory columns with gear-based digits",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Design the Mill: arithmetic unit with carry chain",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Implement card-based instruction input",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Add conditional branching (skip cards if zero)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Execute Ada's Bernoulli algorithm",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -1781,7 +2053,67 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1840,
+        "knownTechnology": [
+          "abacus",
+          "mechanical calculator",
+          "difference engine",
+          "gears",
+          "cams",
+          "levers",
+          "logarithm tables"
+        ],
+        "unknownTechnology": [
+          "electricity",
+          "electronics",
+          "transistor",
+          "integrated circuit",
+          "computer",
+          "software",
+          "programming language",
+          "internet",
+          "smartphone"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How can we automate complex calculations without human error?",
+            "motivation": "Navigation tables contain thousands of errors that cost lives at sea. Astronomical predictions require months of tedious calculation."
+          },
+          {
+            "statement": "How can we build a machine that follows a sequence of operations?",
+            "motivation": "Current calculators do one operation at a time. We need machines that can follow a plan."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "All mechanisms must be purely mechanical",
+            "limitation": "No electrical components exist"
+          },
+          {
+            "type": "material",
+            "description": "Manufacturing precision is limited",
+            "limitation": "Gears cannot be made to tolerances better than 0.001 inches"
+          },
+          {
+            "type": "economic",
+            "description": "Complex machines require vast resources",
+            "limitation": "Government funding depends on proving practical utility"
+          }
+        ],
+        "impossibilities": [
+          "electrical computation",
+          "stored programs in memory",
+          "automatic data storage",
+          "wireless communication"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the age of steam and clockwork. Electricity is a laboratory curiosity. The most advanced calculating device is the Jacquard loom, which uses punched cards to control weaving patterns. Charles Babbage dreams of an Analytical Engine that could be programmed, but no one has built one.",
+          "futureBlind": "You cannot know if mechanical computation will ever be practical. The Difference Engine project has failed. Perhaps calculation machines are simply impossible."
+        }
+      }
     }
   ]
 }

@@ -40,10 +40,22 @@
         "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
         "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
         "constraints": [
-          { "type": "technical", "description": "18,000 vacuum tubes generate tremendous heat and fail constantly" },
-          { "type": "economic", "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?" },
-          { "type": "political", "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain" },
-          { "type": "knowledge", "description": "Programming requires physically rewiring the machine for each problem" }
+          {
+            "type": "technical",
+            "description": "18,000 vacuum tubes generate tremendous heat and fail constantly"
+          },
+          {
+            "type": "economic",
+            "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?"
+          },
+          {
+            "type": "political",
+            "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain"
+          },
+          {
+            "type": "knowledge",
+            "description": "Programming requires physically rewiring the machine for each problem"
+          }
         ],
         "problem": "Can vacuum tubes replace human minds for any calculation?"
       },
@@ -71,10 +83,22 @@
                 "background": "You are the chief engineer at the Moore School of Engineering. Working with John Mauchly, you've just unveiled ENIAC - a 30-ton electronic brain that can calculate artillery tables in seconds instead of days.",
                 "motivation": "The war proved that vacuum tubes could think faster than any relay. Now the question is: what else can we make these electronic brains do?",
                 "constraints": [
-                  { "type": "technical", "description": "18,000 vacuum tubes generate tremendous heat and fail constantly" },
-                  { "type": "economic", "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?" },
-                  { "type": "political", "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain" },
-                  { "type": "knowledge", "description": "Programming requires physically rewiring the machine for each problem" }
+                  {
+                    "type": "technical",
+                    "description": "18,000 vacuum tubes generate tremendous heat and fail constantly"
+                  },
+                  {
+                    "type": "economic",
+                    "description": "ENIAC cost nearly $500,000 - who else could afford such a machine?"
+                  },
+                  {
+                    "type": "political",
+                    "description": "The Army funded ENIAC for ballistics; peacetime uses are uncertain"
+                  },
+                  {
+                    "type": "knowledge",
+                    "description": "Programming requires physically rewiring the machine for each problem"
+                  }
                 ],
                 "problem": "Can vacuum tubes replace human minds for any calculation?"
               },
@@ -103,8 +127,14 @@
                   "title": "Principal Consultant, ENIAC Project",
                   "bio": "A physics professor who dreamed of electronic computation after working with weather data. Mauchly saw that electronic switching could revolutionize calculation. He proposed ENIAC to the Army, partnering with engineer Presper Eckert to build it.",
                   "stats": [
-                    { "label": "Vision", "value": "Electronic computation for science" },
-                    { "label": "Challenge", "value": "Convincing skeptics it would work" }
+                    {
+                      "label": "Vision",
+                      "value": "Electronic computation for science"
+                    },
+                    {
+                      "label": "Challenge",
+                      "value": "Convincing skeptics it would work"
+                    }
                   ]
                 },
                 {
@@ -113,8 +143,14 @@
                   "title": "Chief Engineer, ENIAC Project",
                   "bio": "The engineering genius who made ENIAC possible. Eckert solved the reliability problem by running tubes below their rated voltages and designing fault-tolerant circuits. His attention to detail turned an impossible dream into working hardware.",
                   "stats": [
-                    { "label": "Genius", "value": "Electronic circuit design" },
-                    { "label": "Obsession", "value": "Reliability through over-engineering" }
+                    {
+                      "label": "Genius",
+                      "value": "Electronic circuit design"
+                    },
+                    {
+                      "label": "Obsession",
+                      "value": "Reliability through over-engineering"
+                    }
                   ]
                 }
               ],
@@ -144,8 +180,14 @@
                   "title": "Programmer, ENIAC Project",
                   "bio": "One of the six original ENIAC programmers. Jean and her colleagues learned the machine by studying its logical diagrams—no programming manual existed. They invented debugging techniques, created subroutines, and established the foundations of software engineering.",
                   "stats": [
-                    { "label": "Role", "value": "Lead programmer, problem decomposition" },
-                    { "label": "Innovation", "value": "Debugging, modular programming" }
+                    {
+                      "label": "Role",
+                      "value": "Lead programmer, problem decomposition"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Debugging, modular programming"
+                    }
                   ]
                 },
                 {
@@ -154,8 +196,14 @@
                   "title": "Programmer, ENIAC Project",
                   "bio": "Co-programmer who would later become Betty Holberton. Known for her work on ENIAC's Master Programmer and for proposing the breakpoint debugging technique. She later helped design COBOL and FORTRAN.",
                   "stats": [
-                    { "label": "Invention", "value": "Breakpoints for debugging" },
-                    { "label": "Later work", "value": "COBOL, FORTRAN standards" }
+                    {
+                      "label": "Invention",
+                      "value": "Breakpoints for debugging"
+                    },
+                    {
+                      "label": "Later work",
+                      "value": "COBOL, FORTRAN standards"
+                    }
                   ]
                 }
               ],
@@ -194,8 +242,14 @@
                   "title": "Mathematician, Consultant",
                   "bio": "Possibly the greatest mathematical genius of the 20th century. Von Neumann made fundamental contributions to quantum mechanics, game theory, nuclear physics, and computer science. His 'First Draft of a Report on EDVAC' defined the stored-program architecture.",
                   "stats": [
-                    { "label": "Legend", "value": "Photographic memory, instant insight" },
-                    { "label": "Contribution", "value": "Von Neumann architecture" }
+                    {
+                      "label": "Legend",
+                      "value": "Photographic memory, instant insight"
+                    },
+                    {
+                      "label": "Contribution",
+                      "value": "Von Neumann architecture"
+                    }
                   ]
                 }
               ],
@@ -346,11 +400,31 @@
               "challenge": {
                 "title": "BUILD A VACUUM TUBE ACCUMULATOR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement a flip-flop (bistable circuit) from tubes", "completed": false },
-                  { "id": "obj-2", "text": "Chain flip-flops into a 4-bit register", "completed": false },
-                  { "id": "obj-3", "text": "Add increment logic (counting circuit)", "completed": false },
-                  { "id": "obj-4", "text": "Add a pulse input for parallel loading", "completed": false },
-                  { "id": "obj-5", "text": "Demonstrate: store, increment, clear operations", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement a flip-flop (bistable circuit) from tubes",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Chain flip-flops into a 4-bit register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Add increment logic (counting circuit)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Add a pulse input for parallel loading",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Demonstrate: store, increment, clear operations",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -598,12 +672,36 @@
               "challenge": {
                 "title": "BUILD THE FETCH-EXECUTE CYCLE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement the program counter (PC) register", "completed": false },
-                  { "id": "obj-2", "text": "Fetch instruction from memory at address PC", "completed": false },
-                  { "id": "obj-3", "text": "Decode instruction into operation and operands", "completed": false },
-                  { "id": "obj-4", "text": "Execute the operation (load, store, add, jump)", "completed": false },
-                  { "id": "obj-5", "text": "Update PC and repeat", "completed": false },
-                  { "id": "obj-6", "text": "Run a simple program: add two numbers in memory", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement the program counter (PC) register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Fetch instruction from memory at address PC",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Decode instruction into operation and operands",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Execute the operation (load, store, add, jump)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Update PC and repeat",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Run a simple program: add two numbers in memory",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -671,8 +769,14 @@
                   "title": "Professor of Engineering, Manchester",
                   "bio": "Inventor of the Williams tube—a CRT-based memory that could store bits as dots on a screen. This breakthrough solved the memory problem that plagued all early computers.",
                   "stats": [
-                    { "label": "Innovation", "value": "Williams tube memory" },
-                    { "label": "Significance", "value": "First practical random-access memory" }
+                    {
+                      "label": "Innovation",
+                      "value": "Williams tube memory"
+                    },
+                    {
+                      "label": "Significance",
+                      "value": "First practical random-access memory"
+                    }
                   ]
                 },
                 {
@@ -681,8 +785,14 @@
                   "title": "Lecturer, Manchester",
                   "bio": "Designed and built the Manchester Baby with Williams. Kilburn wrote the first program ever to run on a stored-program computer—a 17-instruction routine to find factors.",
                   "stats": [
-                    { "label": "First Program", "value": "Factor-finding, June 1948" },
-                    { "label": "Instructions", "value": "17 lines of code" }
+                    {
+                      "label": "First Program",
+                      "value": "Factor-finding, June 1948"
+                    },
+                    {
+                      "label": "Instructions",
+                      "value": "17 lines of code"
+                    }
                   ]
                 }
               ],
@@ -712,8 +822,14 @@
                   "title": "Director, Cambridge Computing Laboratory",
                   "bio": "Built EDSAC in under three years by focusing on simplicity and practicality. Wilkes later invented microprogramming, a technique still used in modern CPUs.",
                   "stats": [
-                    { "label": "Achievement", "value": "First practical stored-program computer" },
-                    { "label": "Later Work", "value": "Microprogramming, cache memory" }
+                    {
+                      "label": "Achievement",
+                      "value": "First practical stored-program computer"
+                    },
+                    {
+                      "label": "Later Work",
+                      "value": "Microprogramming, cache memory"
+                    }
                   ]
                 },
                 {
@@ -722,8 +838,14 @@
                   "title": "Researcher, Birkbeck College",
                   "bio": "Co-invented assembly language and wrote the first assembler. Her work on the ARC computer and its programming language made programming accessible to non-specialists. Also contributed to the first neural network simulation.",
                   "stats": [
-                    { "label": "Innovation", "value": "Assembly language, first assembler" },
-                    { "label": "Legacy", "value": "Made programming human-readable" }
+                    {
+                      "label": "Innovation",
+                      "value": "Assembly language, first assembler"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Made programming human-readable"
+                    }
                   ]
                 }
               ],
@@ -836,8 +958,14 @@
                   "title": "CEO, Remington Rand",
                   "bio": "The businessman who saved UNIVAC. When Eckert and Mauchly's company ran out of money, Rand bought it, providing the resources to complete UNIVAC. He saw computers as the future of data processing.",
                   "stats": [
-                    { "label": "Vision", "value": "Computers as business machines" },
-                    { "label": "Investment", "value": "Millions in unproven technology" }
+                    {
+                      "label": "Vision",
+                      "value": "Computers as business machines"
+                    },
+                    {
+                      "label": "Investment",
+                      "value": "Millions in unproven technology"
+                    }
                   ]
                 }
               ],
@@ -1031,11 +1159,31 @@
               "challenge": {
                 "title": "OPERATE THE UNIVAC",
                 "objectives": [
-                  { "id": "obj-1", "text": "Load a program from magnetic tape", "completed": false },
-                  { "id": "obj-2", "text": "Set initial values in memory", "completed": false },
-                  { "id": "obj-3", "text": "Execute the program", "completed": false },
-                  { "id": "obj-4", "text": "Interpret the output", "completed": false },
-                  { "id": "obj-5", "text": "Debug a simple error", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Load a program from magnetic tape",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Set initial values in memory",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Execute the program",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Interpret the output",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Debug a simple error",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -1080,7 +1228,64 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1952,
+        "knownTechnology": [
+          "vacuum tube",
+          "magnetic drum",
+          "magnetic tape",
+          "punched cards",
+          "ENIAC",
+          "UNIVAC"
+        ],
+        "unknownTechnology": [
+          "transistor computer",
+          "integrated circuit",
+          "microprocessor",
+          "personal computer",
+          "internet",
+          "smartphone",
+          "hard drive"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How can we make computers more reliable?",
+            "motivation": "ENIAC uses 18,000 vacuum tubes. On average, one fails every few hours. Debugging is a nightmare."
+          },
+          {
+            "statement": "How can we program computers without rewiring them?",
+            "motivation": "Changing ENIACs program takes days of cable switching. Stored-program machines offer hope."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Vacuum tubes are fragile and hot",
+            "limitation": "Room-sized air conditioning required"
+          },
+          {
+            "type": "knowledge",
+            "description": "Programming is new and experimental",
+            "limitation": "No high-level languages exist yet"
+          },
+          {
+            "type": "economic",
+            "description": "Computers cost millions of dollars",
+            "limitation": "Only governments and large corporations can afford them"
+          }
+        ],
+        "impossibilities": [
+          "desktop computers",
+          "solid-state memory",
+          "real-time graphics",
+          "networking between machines"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the dawn of the electronic computer age. UNIVAC has just predicted the 1952 election. Vacuum tubes provide speed but endless maintenance headaches. The transistor exists but is a laboratory curiosity, unreliable and expensive.",
+          "futureBlind": "You cannot know if computers will ever be affordable for small businesses. Perhaps only governments will ever need them. Will there be enough programmers to make use of these machines?"
+        }
+      }
     }
   ]
 }

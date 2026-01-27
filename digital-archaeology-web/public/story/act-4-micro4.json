@@ -40,10 +40,22 @@
         "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
         "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
         "constraints": [
-          { "type": "technical", "description": "Only 2,300 transistors are possible with current fabrication technology" },
-          { "type": "economic", "description": "Busicom wants calculators, not general-purpose computers" },
-          { "type": "political", "description": "Intel's management sees the company as a memory manufacturer, not a processor company" },
-          { "type": "knowledge", "description": "No one has ever built a CPU this small - you're inventing the field as you go" }
+          {
+            "type": "technical",
+            "description": "Only 2,300 transistors are possible with current fabrication technology"
+          },
+          {
+            "type": "economic",
+            "description": "Busicom wants calculators, not general-purpose computers"
+          },
+          {
+            "type": "political",
+            "description": "Intel's management sees the company as a memory manufacturer, not a processor company"
+          },
+          {
+            "type": "knowledge",
+            "description": "No one has ever built a CPU this small - you're inventing the field as you go"
+          }
         ],
         "problem": "Can you fit an entire CPU into 2,300 transistors?"
       },
@@ -71,10 +83,22 @@
                 "background": "You immigrated from Italy to Silicon Valley in 1968, bringing expertise in MOS transistor design from Fairchild. Intel hired you to lead the 4004 project - a custom chip for Busicom calculators.",
                 "motivation": "Busicom needs a dozen custom chips for their calculators. But what if one programmable chip could replace them all? The engineers at Intel think you're crazy, but you see a future where a single chip is a complete computer.",
                 "constraints": [
-                  { "type": "technical", "description": "Only 2,300 transistors are possible with current fabrication technology" },
-                  { "type": "economic", "description": "Busicom wants calculators, not general-purpose computers" },
-                  { "type": "political", "description": "Intel's management sees the company as a memory manufacturer, not a processor company" },
-                  { "type": "knowledge", "description": "No one has ever built a CPU this small - you're inventing the field as you go" }
+                  {
+                    "type": "technical",
+                    "description": "Only 2,300 transistors are possible with current fabrication technology"
+                  },
+                  {
+                    "type": "economic",
+                    "description": "Busicom wants calculators, not general-purpose computers"
+                  },
+                  {
+                    "type": "political",
+                    "description": "Intel's management sees the company as a memory manufacturer, not a processor company"
+                  },
+                  {
+                    "type": "knowledge",
+                    "description": "No one has ever built a CPU this small - you're inventing the field as you go"
+                  }
                 ],
                 "problem": "Can you fit an entire CPU into 2,300 transistors?"
               },
@@ -103,9 +127,18 @@
                   "title": "Intel Co-Founder",
                   "bio": "Co-inventor of the integrated circuit, Noyce left Fairchild to start Intel with Gordon Moore. Known as the 'Mayor of Silicon Valley' for his charisma and vision. His leadership style emphasizes flat hierarchies and empowering engineers.",
                   "stats": [
-                    { "label": "Era", "value": "1927-1990" },
-                    { "label": "Achievement", "value": "Co-invented the IC" },
-                    { "label": "Company", "value": "Intel Co-Founder (1968)" }
+                    {
+                      "label": "Era",
+                      "value": "1927-1990"
+                    },
+                    {
+                      "label": "Achievement",
+                      "value": "Co-invented the IC"
+                    },
+                    {
+                      "label": "Company",
+                      "value": "Intel Co-Founder (1968)"
+                    }
                   ]
                 },
                 {
@@ -114,9 +147,18 @@
                   "title": "Intel Co-Founder",
                   "bio": "The chemist and physicist who predicted that transistor density would double every two years - 'Moore's Law.' At Intel, he focuses on the manufacturing process while Noyce handles business development.",
                   "stats": [
-                    { "label": "Era", "value": "1929-2023" },
-                    { "label": "Famous for", "value": "Moore's Law (1965)" },
-                    { "label": "Background", "value": "Caltech PhD, Chemistry" }
+                    {
+                      "label": "Era",
+                      "value": "1929-2023"
+                    },
+                    {
+                      "label": "Famous for",
+                      "value": "Moore's Law (1965)"
+                    },
+                    {
+                      "label": "Background",
+                      "value": "Caltech PhD, Chemistry"
+                    }
                   ]
                 }
               ],
@@ -156,9 +198,18 @@
                   "title": "Busicom Engineer",
                   "bio": "A brilliant young engineer who designed Busicom's calculator logic. Shima's detailed specifications will become crucial to the 4004's development. He will later join Intel to help complete the chip.",
                   "stats": [
-                    { "label": "Role", "value": "Calculator Logic Designer" },
-                    { "label": "Company", "value": "Busicom (Japan)" },
-                    { "label": "Later", "value": "Joined Intel, then Zilog" }
+                    {
+                      "label": "Role",
+                      "value": "Calculator Logic Designer"
+                    },
+                    {
+                      "label": "Company",
+                      "value": "Busicom (Japan)"
+                    },
+                    {
+                      "label": "Later",
+                      "value": "Joined Intel, then Zilog"
+                    }
                   ]
                 }
               ],
@@ -192,9 +243,18 @@
                   "title": "Intel Application Engineer",
                   "bio": "A Stanford PhD who joined Intel to explore new applications for semiconductor technology. His insight - replacing custom hardware with a programmable processor - will define the future of computing. He's not a chip designer, but a systems thinker.",
                   "stats": [
-                    { "label": "Background", "value": "Stanford PhD, EE" },
-                    { "label": "Role", "value": "Application Engineer" },
-                    { "label": "Key Insight", "value": "General-purpose CPU concept" }
+                    {
+                      "label": "Background",
+                      "value": "Stanford PhD, EE"
+                    },
+                    {
+                      "label": "Role",
+                      "value": "Application Engineer"
+                    },
+                    {
+                      "label": "Key Insight",
+                      "value": "General-purpose CPU concept"
+                    }
                   ]
                 }
               ],
@@ -471,9 +531,18 @@
                   "title": "Project Lead, 4004",
                   "bio": "An Italian physicist who invented silicon gate technology at Fairchild. Faggin combines theoretical brilliance with hands-on chip design skills. He will personally design every transistor of the 4004, working 16-hour days to meet the deadline.",
                   "stats": [
-                    { "label": "Background", "value": "University of Padua, Physics" },
-                    { "label": "Invention", "value": "Silicon Gate MOS Process" },
-                    { "label": "Work ethic", "value": "Legendary (16-hour days)" }
+                    {
+                      "label": "Background",
+                      "value": "University of Padua, Physics"
+                    },
+                    {
+                      "label": "Invention",
+                      "value": "Silicon Gate MOS Process"
+                    },
+                    {
+                      "label": "Work ethic",
+                      "value": "Legendary (16-hour days)"
+                    }
                   ]
                 }
               ],
@@ -528,11 +597,31 @@
               "challenge": {
                 "title": "BUILD THE 4004 ALU",
                 "objectives": [
-                  { "id": "obj-1", "text": "Create 4-bit adder with carry chain", "completed": false },
-                  { "id": "obj-2", "text": "Implement subtraction using complement", "completed": false },
-                  { "id": "obj-3", "text": "Add AND/OR logic operations", "completed": false },
-                  { "id": "obj-4", "text": "Connect to accumulator register", "completed": false },
-                  { "id": "obj-5", "text": "Test with BCD arithmetic (0-9)", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Create 4-bit adder with carry chain",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement subtraction using complement",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Add AND/OR logic operations",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Connect to accumulator register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Test with BCD arithmetic (0-9)",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -899,10 +988,22 @@
                   "title": "What Comes Next",
                   "bio": "The 4004 was just the beginning. Its descendants - the 8008, 8080, 8086, and beyond - will create industries worth trillions of dollars. Every smartphone, laptop, car, and smart device traces its lineage to this moment.",
                   "stats": [
-                    { "label": "4004 (1971)", "value": "2,300 transistors" },
-                    { "label": "8086 (1978)", "value": "29,000 transistors" },
-                    { "label": "Pentium (1993)", "value": "3.1 million transistors" },
-                    { "label": "Modern CPU (2025)", "value": "100+ billion transistors" }
+                    {
+                      "label": "4004 (1971)",
+                      "value": "2,300 transistors"
+                    },
+                    {
+                      "label": "8086 (1978)",
+                      "value": "29,000 transistors"
+                    },
+                    {
+                      "label": "Pentium (1993)",
+                      "value": "3.1 million transistors"
+                    },
+                    {
+                      "label": "Modern CPU (2025)",
+                      "value": "100+ billion transistors"
+                    }
                   ]
                 }
               ],
@@ -921,12 +1022,36 @@
               "challenge": {
                 "title": "BUILD YOUR OWN MICROPROCESSOR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Create 4-bit ALU with add/subtract/logic", "completed": false },
-                  { "id": "obj-2", "text": "Implement 16-entry register file", "completed": false },
-                  { "id": "obj-3", "text": "Build program counter with branch support", "completed": false },
-                  { "id": "obj-4", "text": "Design instruction decoder for 8+ opcodes", "completed": false },
-                  { "id": "obj-5", "text": "Connect components with control FSM", "completed": false },
-                  { "id": "obj-6", "text": "Run test program: multiply two numbers", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Create 4-bit ALU with add/subtract/logic",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement 16-entry register file",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Build program counter with branch support",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Design instruction decoder for 8+ opcodes",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Connect components with control FSM",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Run test program: multiply two numbers",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -972,7 +1097,65 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1971,
+        "knownTechnology": [
+          "integrated circuit",
+          "minicomputer",
+          "calculator chip",
+          "TTL logic",
+          "magnetic core memory",
+          "BASIC"
+        ],
+        "unknownTechnology": [
+          "microcomputer",
+          "personal computer",
+          "internet",
+          "smartphone",
+          "flash memory",
+          "gigabyte storage",
+          "touchscreen",
+          "Wi-Fi"
+        ],
+        "activeProblems": [
+          {
+            "statement": "Can we put an entire CPU on a single chip?",
+            "motivation": "Custom calculator chips require redesign for each application. A general-purpose processor could serve many needs."
+          },
+          {
+            "statement": "How do we program a 4-bit processor?",
+            "motivation": "Traditional assembly assumes 8 bits or more. We need new techniques for cramped address spaces."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Chip complexity is limited",
+            "limitation": "Only 2,300 transistors fit on one chip"
+          },
+          {
+            "type": "knowledge",
+            "description": "Microprocessor design is new",
+            "limitation": "No established methodologies exist"
+          },
+          {
+            "type": "economic",
+            "description": "Calculator market drives development",
+            "limitation": "Must compete with dedicated calculator chips on price"
+          }
+        ],
+        "impossibilities": [
+          "32-bit processors",
+          "megabytes of on-chip cache",
+          "gigahertz clock speeds",
+          "smartphone applications"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are at Intel, working on what will become the 4004. Calculators drive the chip market. The idea of a general-purpose processor on a chip is revolutionary. Ted Hoff has proposed the architecture, and Federico Faggin is leading the silicon design.",
+          "futureBlind": "You cannot know if the microprocessor concept will succeed commercially. Perhaps dedicated chips will always be cheaper. Will anyone want a programmable chip in their calculator?"
+        }
+      }
     }
   ]
 }

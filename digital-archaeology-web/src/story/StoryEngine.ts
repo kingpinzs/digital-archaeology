@@ -2,12 +2,14 @@
 // Story progression engine with state management
 // Story 10.15: Create Story Progression Engine
 // Story 10.18: Create Historical Personas System
+// Story 10.21: Historical Mindset Time-Travel
 
 import type { StoryScene, StoryAct } from './content-types';
 import type { StoryProgress, StoryPosition, StoryChoice, StoryEngineState } from './StoryState';
-import type { PersonaData } from './types';
+import type { PersonaData, MindsetContext } from './types';
 import { createDefaultProgress, createDefaultEngineState } from './StoryState';
 import { StoryStorage } from './StoryStorage';
+import { MindsetProvider } from './MindsetProvider';
 
 /** Custom event type for story state changes */
 export interface StoryStateChangedEvent extends CustomEvent {
@@ -25,6 +27,18 @@ export interface PersonaChangedEvent extends CustomEvent {
     persona: PersonaData | null;
     /** The previous persona, or null if none */
     previousPersona: PersonaData | null;
+  };
+}
+
+/** Custom event type for mindset changes (Story 10.21) */
+export interface MindsetChangedEvent extends CustomEvent {
+  detail: {
+    /** The new mindset context, or null if cleared */
+    mindset: MindsetContext | null;
+    /** The previous mindset context, or null if none */
+    previousMindset: MindsetContext | null;
+    /** Act number for the new mindset */
+    actNumber: number;
   };
 }
 
@@ -130,6 +144,14 @@ export class StoryEngine {
           currentPersona: actPersona,
         };
         this.dispatchPersonaChanged(actPersona, previousPersona);
+      }
+
+      // Story 10.21: Update mindset context on act change
+      const actMindset = this.getActMindset(entry.actNumber);
+      const previousMindset = MindsetProvider.getInstance().getCurrentMindset();
+      if (actMindset) {
+        MindsetProvider.getInstance().setMindset(actMindset);
+        this.dispatchMindsetChanged(actMindset, previousMindset, entry.actNumber);
       }
     }
 
@@ -286,6 +308,27 @@ export class StoryEngine {
   }
 
   /**
+   * Get the mindset context for a specific act.
+   * Story 10.21: Historical Mindset Time-Travel
+   */
+  getActMindset(actNumber: number): MindsetContext | null {
+    if (!this.content) {
+      return null;
+    }
+
+    const act = this.content.acts.find(a => a.number === actNumber);
+    return act?.mindset ?? null;
+  }
+
+  /**
+   * Get the current mindset context from the MindsetProvider.
+   * Story 10.21: Historical Mindset Time-Travel
+   */
+  getCurrentMindset(): MindsetContext | null {
+    return MindsetProvider.getInstance().getCurrentMindset();
+  }
+
+  /**
    * Start a new game from the first scene.
    */
   startNewGame(): void {
@@ -311,6 +354,13 @@ export class StoryEngine {
       this.dispatchPersonaChanged(actPersona, null);
     }
 
+    // Story 10.21: Initialize with first act's mindset
+    const actMindset = firstAct.mindset ?? null;
+    if (actMindset) {
+      MindsetProvider.getInstance().setMindset(actMindset);
+      this.dispatchMindsetChanged(actMindset, null, firstAct.number);
+    }
+
     this.dispatchStateChanged(null);
     this.saveProgress();
   }
@@ -327,6 +377,13 @@ export class StoryEngine {
       const entry = this.content.sceneIndex.get(savedProgress.position.sceneId);
       if (entry) {
         this.state.progress = savedProgress;
+
+        // Story 10.21: Initialize mindset from current act when resuming
+        const actMindset = this.getActMindset(entry.actNumber);
+        if (actMindset) {
+          MindsetProvider.getInstance().setMindset(actMindset);
+        }
+
         this.dispatchStateChanged(null);
         return true;
       }
@@ -424,6 +481,27 @@ export class StoryEngine {
         detail: {
           persona,
           previousPersona,
+        },
+      });
+      window.dispatchEvent(event);
+    }
+  }
+
+  /**
+   * Dispatch mindset-changed event.
+   * Story 10.21: Historical Mindset Time-Travel
+   */
+  private dispatchMindsetChanged(
+    mindset: MindsetContext | null,
+    previousMindset: MindsetContext | null,
+    actNumber: number
+  ): void {
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('mindset-changed', {
+        detail: {
+          mindset,
+          previousMindset,
+          actNumber,
         },
       });
       window.dispatchEvent(event);

@@ -1,11 +1,13 @@
 // src/story/SceneRenderer.test.ts
 // Tests for SceneRenderer component
 // Story 10.17: Wire Story Mode Integration
+// Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SceneRenderer } from './SceneRenderer';
 import type { SceneRenderContext } from './SceneRenderer';
 import type { StoryAct, StoryChapter, StoryScene } from './content-types';
+import { MindsetProvider } from './MindsetProvider';
 
 describe('SceneRenderer', () => {
   let container: HTMLElement;
@@ -383,6 +385,242 @@ describe('SceneRenderer', () => {
       const allNarratives = container.querySelectorAll('.da-scene-narrative-text');
       expect(allNarratives.length).toBe(1);
       expect(allNarratives[0].textContent).toBe('Scene 2');
+    });
+  });
+
+  // Story 10.21: Anachronism Filtering Tests
+  describe('Anachronism Filtering', () => {
+    beforeEach(() => {
+      MindsetProvider.resetInstance();
+    });
+
+    afterEach(() => {
+      MindsetProvider.resetInstance();
+    });
+
+    it('should not filter text when filtering is disabled', () => {
+      const context = createContext({
+        scene: createMockScene({
+          narrative: ['We need a smartphone to solve this problem.'],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const narrative = container.querySelector('.da-scene-narrative-text');
+      expect(narrative?.textContent).toBe('We need a smartphone to solve this problem.');
+    });
+
+    it('should not filter text when no mindset is set', () => {
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          narrative: ['We need a smartphone to solve this problem.'],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const narrative = container.querySelector('.da-scene-narrative-text');
+      expect(narrative?.textContent).toBe('We need a smartphone to solve this problem.');
+    });
+
+    it('should filter anachronistic terms in narrative when enabled', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: ['transistor'],
+        unknownTechnology: ['smartphone'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          narrative: ['We need a smartphone to solve this problem.'],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const narrative = container.querySelector('.da-scene-narrative-text');
+      // The anachronism filter should replace 'smartphone' with period-appropriate term
+      expect(narrative?.textContent).not.toContain('smartphone');
+    });
+
+    it('should filter anachronistic terms in dialogues', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['internet'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          dialogues: [{ speaker: 'Dr. Chen', text: 'We could use the internet.' }],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const dialogue = container.querySelector('.da-dialogue-block-text');
+      expect(dialogue?.textContent).not.toContain('internet');
+    });
+
+    it('should not filter speaker names in dialogues', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['internet'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          dialogues: [{ speaker: 'Dr. Chen', text: 'Hello.' }],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const speaker = container.querySelector('.da-dialogue-block-speaker');
+      expect(speaker?.textContent).toContain('Dr. Chen');
+    });
+
+    it('should disable filtering when set to false', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['smartphone'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      renderer.setAnachronismFiltering(false);
+
+      const context = createContext({
+        scene: createMockScene({
+          narrative: ['We need a smartphone to solve this problem.'],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const narrative = container.querySelector('.da-scene-narrative-text');
+      expect(narrative?.textContent).toBe('We need a smartphone to solve this problem.');
+    });
+
+    it('should filter anachronistic terms in scene settings', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['smartphone'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          setting: { text: 'The lab contains a smartphone charging station.' },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const setting = container.querySelector('.da-scene-setting');
+      expect(setting?.textContent).not.toContain('smartphone');
+    });
+
+    it('should filter anachronistic terms in technical note content', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['internet'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          technicalNotes: [
+            { content: 'Data transmission via internet protocols.' },
+          ],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const noteContent = container.querySelector('.da-technical-note-content');
+      expect(noteContent?.textContent).not.toContain('internet');
+    });
+
+    it('should NOT filter code snippets in technical notes', () => {
+      const provider = MindsetProvider.getInstance();
+      provider.setMindset({
+        year: 1971,
+        knownTechnology: [],
+        unknownTechnology: ['internet'],
+        activeProblems: [],
+        constraints: [],
+        impossibilities: [],
+        historicalPerspective: {
+          currentKnowledge: 'Test',
+          futureBlind: 'Test',
+        },
+      });
+
+      renderer.setAnachronismFiltering(true);
+      const context = createContext({
+        scene: createMockScene({
+          technicalNotes: [
+            {
+              content: 'The code below shows network setup.',
+              codeSnippet: 'internet.connect(); // Connect to internet',
+            },
+          ],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const codeSnippet = container.querySelector('.da-technical-note-code');
+      // Code snippets should NOT be filtered - they are era-specific technical details
+      expect(codeSnippet?.textContent).toContain('internet');
     });
   });
 });

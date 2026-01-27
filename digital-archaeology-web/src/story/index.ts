@@ -25,7 +25,7 @@ export { StoryLoadError, StoryValidationError } from './content-types';
 
 // Story 10.15: Story progression engine
 export { StoryEngine } from './StoryEngine';
-export type { StoryStateChangedEvent, PersonaChangedEvent } from './StoryEngine';
+export type { StoryStateChangedEvent, PersonaChangedEvent, MindsetChangedEvent } from './StoryEngine';
 export { StoryStorage, STORY_STORAGE_KEY } from './StoryStorage';
 export type { StoryPosition, StoryChoice, StoryProgress, StoryEngineState } from './StoryState';
 export { createDefaultProgress, createDefaultEngineState } from './StoryState';
@@ -60,3 +60,13 @@ export type { StoryBrowserCallbacks, StoryBrowserData } from './StoryBrowser';
 // Phase 3: Story Journal for journey log
 export { StoryJournal } from './StoryJournal';
 export type { StoryJournalCallbacks, StoryJournalData } from './StoryJournal';
+
+// Story 10.21: Historical Mindset Time-Travel
+export { MindsetProvider } from './MindsetProvider';
+export { EraContextPanel } from './EraContextPanel';
+export { HistoricalDecisionCard } from './HistoricalDecisionCard';
+export { AnachronismFilter, createEraFilter } from './AnachronismFilter';
+export { MindsetIntroScene } from './MindsetIntroScene';
+export type { MindsetIntroSceneOptions } from './MindsetIntroScene';
+export type { AnachronismResult, AnachronismMatch, AnachronismFilterOptions } from './AnachronismFilter';
+export type { MindsetContext, EraTechnology, EraConstraint, EraProblem, HistoricalOption, HistoricalDecision } from './types';

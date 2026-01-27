@@ -1,0 +1,282 @@
+{
+  "technologies": [
+    {
+      "name": "vacuum tube",
+      "yearInvented": 1904,
+      "yearCommon": 1920,
+      "predecessors": ["relay"],
+      "periodTerms": [
+        { "year": 1904, "term": "thermionic valve" },
+        { "year": 1920, "term": "vacuum tube" }
+      ]
+    },
+    {
+      "name": "transistor",
+      "yearInvented": 1947,
+      "yearCommon": 1955,
+      "predecessors": ["vacuum tube"],
+      "periodTerms": [
+        { "year": 1947, "term": "transfer resistor" },
+        { "year": 1950, "term": "transistor" }
+      ]
+    },
+    {
+      "name": "integrated circuit",
+      "yearInvented": 1958,
+      "yearCommon": 1965,
+      "predecessors": ["discrete transistor"],
+      "periodTerms": [
+        { "year": 1958, "term": "solid circuit" },
+        { "year": 1960, "term": "integrated circuit" },
+        { "year": 1965, "term": "IC" }
+      ]
+    },
+    {
+      "name": "microprocessor",
+      "yearInvented": 1971,
+      "yearCommon": 1975,
+      "predecessors": ["integrated circuit", "calculator chip"],
+      "periodTerms": [
+        { "year": 1971, "term": "computer on a chip" },
+        { "year": 1974, "term": "microprocessor" },
+        { "year": 1975, "term": "CPU chip" }
+      ]
+    },
+    {
+      "name": "segment registers",
+      "yearInvented": 1978,
+      "yearCommon": 1979,
+      "predecessors": ["bank switching"],
+      "periodTerms": [
+        { "year": 1978, "term": "segment registers" }
+      ]
+    },
+    {
+      "name": "DRAM",
+      "yearInvented": 1966,
+      "yearCommon": 1970,
+      "predecessors": ["magnetic core memory"],
+      "periodTerms": [
+        { "year": 1966, "term": "dynamic memory" },
+        { "year": 1970, "term": "DRAM" }
+      ]
+    },
+    {
+      "name": "magnetic core memory",
+      "yearInvented": 1951,
+      "yearCommon": 1955,
+      "predecessors": ["delay line memory", "Williams tube"],
+      "periodTerms": [
+        { "year": 1951, "term": "core memory" },
+        { "year": 1955, "term": "magnetic core" }
+      ]
+    },
+    {
+      "name": "ROM",
+      "yearInvented": 1956,
+      "yearCommon": 1965,
+      "predecessors": ["diode matrix"],
+      "periodTerms": [
+        { "year": 1956, "term": "read-only storage" },
+        { "year": 1965, "term": "ROM" }
+      ]
+    },
+    {
+      "name": "EPROM",
+      "yearInvented": 1971,
+      "yearCommon": 1975,
+      "predecessors": ["ROM", "PROM"],
+      "periodTerms": [
+        { "year": 1971, "term": "erasable PROM" },
+        { "year": 1975, "term": "EPROM" }
+      ]
+    },
+    {
+      "name": "cache memory",
+      "yearInvented": 1965,
+      "yearCommon": 1970,
+      "predecessors": ["scratchpad memory"],
+      "periodTerms": [
+        { "year": 1965, "term": "slave memory" },
+        { "year": 1968, "term": "cache" }
+      ]
+    },
+    {
+      "name": "virtual memory",
+      "yearInvented": 1959,
+      "yearCommon": 1970,
+      "predecessors": ["overlay"],
+      "periodTerms": [
+        { "year": 1959, "term": "one-level storage" },
+        { "year": 1970, "term": "virtual memory" }
+      ]
+    },
+    {
+      "name": "pipelining",
+      "yearInvented": 1961,
+      "yearCommon": 1975,
+      "predecessors": ["sequential execution"],
+      "periodTerms": [
+        { "year": 1961, "term": "instruction overlap" },
+        { "year": 1975, "term": "pipelining" }
+      ]
+    },
+    {
+      "name": "RISC",
+      "yearInvented": 1980,
+      "yearCommon": 1985,
+      "predecessors": ["CISC"],
+      "periodTerms": [
+        { "year": 1980, "term": "reduced instruction set" },
+        { "year": 1985, "term": "RISC" }
+      ]
+    },
+    {
+      "name": "CISC",
+      "yearInvented": 1970,
+      "yearCommon": 1975,
+      "predecessors": ["simple instruction set"],
+      "periodTerms": [
+        { "year": 1970, "term": "complex instruction set" },
+        { "year": 1980, "term": "CISC" }
+      ]
+    },
+    {
+      "name": "floppy disk",
+      "yearInvented": 1967,
+      "yearCommon": 1972,
+      "predecessors": ["magnetic tape"],
+      "periodTerms": [
+        { "year": 1967, "term": "diskette" },
+        { "year": 1972, "term": "floppy disk" }
+      ]
+    },
+    {
+      "name": "hard disk",
+      "yearInvented": 1956,
+      "yearCommon": 1965,
+      "predecessors": ["magnetic drum"],
+      "periodTerms": [
+        { "year": 1956, "term": "disk file" },
+        { "year": 1965, "term": "hard disk" }
+      ]
+    },
+    {
+      "name": "ethernet",
+      "yearInvented": 1973,
+      "yearCommon": 1980,
+      "predecessors": ["token ring", "ARPANET"],
+      "periodTerms": [
+        { "year": 1973, "term": "Ethernet" }
+      ]
+    },
+    {
+      "name": "GUI",
+      "yearInvented": 1968,
+      "yearCommon": 1984,
+      "predecessors": ["command line"],
+      "periodTerms": [
+        { "year": 1968, "term": "graphical display" },
+        { "year": 1973, "term": "graphical user interface" },
+        { "year": 1984, "term": "GUI" }
+      ]
+    },
+    {
+      "name": "mouse",
+      "yearInvented": 1964,
+      "yearCommon": 1984,
+      "predecessors": ["light pen", "trackball"],
+      "periodTerms": [
+        { "year": 1964, "term": "X-Y position indicator" },
+        { "year": 1968, "term": "mouse" }
+      ]
+    },
+    {
+      "name": "LCD",
+      "yearInvented": 1968,
+      "yearCommon": 1980,
+      "predecessors": ["CRT", "LED display"],
+      "periodTerms": [
+        { "year": 1968, "term": "liquid crystal display" },
+        { "year": 1980, "term": "LCD" }
+      ]
+    },
+    {
+      "name": "USB",
+      "yearInvented": 1996,
+      "yearCommon": 2000,
+      "predecessors": ["serial port", "parallel port"],
+      "periodTerms": [
+        { "year": 1996, "term": "Universal Serial Bus" },
+        { "year": 2000, "term": "USB" }
+      ]
+    },
+    {
+      "name": "flash memory",
+      "yearInvented": 1984,
+      "yearCommon": 1995,
+      "predecessors": ["EPROM", "EEPROM"],
+      "periodTerms": [
+        { "year": 1984, "term": "flash EEPROM" },
+        { "year": 1995, "term": "flash memory" }
+      ]
+    },
+    {
+      "name": "SSD",
+      "yearInvented": 1991,
+      "yearCommon": 2008,
+      "predecessors": ["hard disk", "flash memory"],
+      "periodTerms": [
+        { "year": 1991, "term": "solid-state disk" },
+        { "year": 2008, "term": "SSD" }
+      ]
+    },
+    {
+      "name": "multi-core processor",
+      "yearInvented": 2001,
+      "yearCommon": 2006,
+      "predecessors": ["single-core processor"],
+      "periodTerms": [
+        { "year": 2001, "term": "chip multiprocessor" },
+        { "year": 2006, "term": "multi-core" }
+      ]
+    },
+    {
+      "name": "64-bit processor",
+      "yearInvented": 1991,
+      "yearCommon": 2003,
+      "predecessors": ["32-bit processor"],
+      "periodTerms": [
+        { "year": 1991, "term": "64-bit architecture" },
+        { "year": 2003, "term": "64-bit processor" }
+      ]
+    }
+  ],
+  "terminology": [
+    { "modern": "personal computer", "earliest": 1975, "before": "minicomputer" },
+    { "modern": "internet", "earliest": 1990, "before": "ARPANET" },
+    { "modern": "cloud computing", "earliest": 2006, "before": "timesharing" },
+    { "modern": "smartphone", "earliest": 2007, "before": "mobile phone" },
+    { "modern": "laptop", "earliest": 1981, "before": "portable computer" },
+    { "modern": "email", "earliest": 1971, "before": "electronic message" },
+    { "modern": "web browser", "earliest": 1990, "before": "terminal" },
+    { "modern": "app", "earliest": 2008, "before": "program" },
+    { "modern": "WiFi", "earliest": 1999, "before": "wireless LAN" },
+    { "modern": "Bluetooth", "earliest": 1998, "before": "infrared" },
+    { "modern": "GPS", "earliest": 1993, "before": "navigation system" },
+    { "modern": "touchscreen", "earliest": 1982, "before": "display" },
+    { "modern": "gigabyte", "earliest": 1980, "before": "megabytes" },
+    { "modern": "terabyte", "earliest": 1997, "before": "gigabytes" },
+    { "modern": "software", "earliest": 1958, "before": "program" },
+    { "modern": "bug", "earliest": 1947, "before": "fault" },
+    { "modern": "debug", "earliest": 1947, "before": "troubleshoot" },
+    { "modern": "byte", "earliest": 1956, "before": "character" },
+    { "modern": "bit", "earliest": 1948, "before": "binary digit" },
+    { "modern": "algorithm", "earliest": 1950, "before": "procedure" },
+    { "modern": "database", "earliest": 1963, "before": "data file" },
+    { "modern": "operating system", "earliest": 1956, "before": "monitor program" },
+    { "modern": "kernel", "earliest": 1969, "before": "supervisor" },
+    { "modern": "compiler", "earliest": 1952, "before": "translator" },
+    { "modern": "assembler", "earliest": 1949, "before": "symbolic coder" }
+  ]
+}

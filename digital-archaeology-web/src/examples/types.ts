@@ -7,6 +7,11 @@
 export type ExampleCategory = 'arithmetic' | 'loops' | 'algorithms' | 'bitwise' | 'reference';
 
 /**
+ * Difficulty level for learners.
+ */
+export type ExampleDifficulty = 'beginner' | 'intermediate' | 'advanced';
+
+/**
  * Metadata for a single example program.
  */
 export interface ExampleProgram {
@@ -18,6 +23,10 @@ export interface ExampleProgram {
   category: ExampleCategory;
   /** Brief description shown in tooltip */
   description: string;
+  /** Concepts this program demonstrates */
+  concepts: string[];
+  /** Difficulty level for learners */
+  difficulty: ExampleDifficulty;
 }
 
 /**
@@ -51,3 +60,21 @@ export const CATEGORY_ORDER: ExampleCategory[] = [
   'bitwise',
   'reference',
 ];
+
+/**
+ * Display labels for difficulty levels.
+ */
+export const DIFFICULTY_LABELS: Record<ExampleDifficulty, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+};
+
+/**
+ * CSS variable names for difficulty level colors.
+ */
+export const DIFFICULTY_COLORS: Record<ExampleDifficulty, string> = {
+  beginner: 'var(--da-success)',
+  intermediate: 'var(--da-warning)',
+  advanced: 'var(--da-error)',
+};

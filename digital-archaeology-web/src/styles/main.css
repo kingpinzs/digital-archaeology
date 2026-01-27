@@ -1291,6 +1291,84 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   Example Tooltip (Story 8.3)
+   ============================================================================= */
+
+.da-example-tooltip {
+  position: fixed;
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-radius: 6px;
+  padding: 12px;
+  max-width: 280px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+}
+
+.da-example-tooltip--visible {
+  opacity: 1;
+}
+
+.da-example-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.da-example-tooltip-name {
+  font-weight: 600;
+  color: var(--da-text-primary);
+  font-size: 13px;
+}
+
+.da-example-tooltip-difficulty {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Difficulty badge colors */
+.da-difficulty-beginner {
+  color: var(--da-success);
+}
+
+.da-difficulty-intermediate {
+  color: var(--da-warning);
+}
+
+.da-difficulty-advanced {
+  color: var(--da-error);
+}
+
+.da-example-tooltip-description {
+  margin: 0 0 8px 0;
+  color: var(--da-text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.da-example-tooltip-concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.da-example-concept-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--da-bg-tertiary);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--da-text-secondary);
+}
+
+/* =============================================================================
    Keyboard Shortcuts Dialog (Story 2.6)
    ============================================================================= */
 

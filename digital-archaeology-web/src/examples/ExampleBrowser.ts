@@ -4,6 +4,7 @@
 import type { ExampleProgram, ExampleBrowserCallbacks, ExampleCategory } from './types';
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
 import { getProgramsByCategory } from './exampleMetadata';
+import { ExampleTooltip } from './ExampleTooltip';
 
 /**
  * ExampleBrowser displays a categorized submenu of example programs.
@@ -25,6 +26,14 @@ export class ExampleBrowser {
 
   // Element that had focus before browser opened (Story 8.1 - focus management)
   private previousActiveElement: HTMLElement | null = null;
+
+  // Tooltip component for showing program details on hover (Story 8.3)
+  private tooltip: ExampleTooltip | null = null;
+  private hoverTimeout: number | null = null;
+
+  // Hover event handlers map for cleanup (Story 8.3)
+  private itemHoverHandlers: Map<HTMLElement, { enter: () => void; leave: () => void }> =
+    new Map();
 
   constructor(callbacks: ExampleBrowserCallbacks) {
     this.callbacks = callbacks;
@@ -77,6 +86,23 @@ export class ExampleBrowser {
       item.removeEventListener('click', handler);
     }
     this.itemClickHandlers.clear();
+
+    // Clean up hover handlers and tooltip (Story 8.3)
+    for (const [item, handlers] of this.itemHoverHandlers) {
+      item.removeEventListener('mouseenter', handlers.enter);
+      item.removeEventListener('mouseleave', handlers.leave);
+      item.removeEventListener('focus', handlers.enter);
+      item.removeEventListener('blur', handlers.leave);
+    }
+    this.itemHoverHandlers.clear();
+
+    if (this.hoverTimeout !== null) {
+      clearTimeout(this.hoverTimeout);
+      this.hoverTimeout = null;
+    }
+
+    this.tooltip?.destroy();
+    this.tooltip = null;
 
     if (this.element) {
       this.element.remove();
@@ -131,13 +157,14 @@ export class ExampleBrowser {
 
       // Programs in category
       for (const program of programs) {
+        // Note: title attribute removed in favor of custom tooltip (Story 8.3)
         html.push(`
           <button
             class="da-menu-item da-example-item"
             role="menuitem"
             data-filename="${program.filename}"
-            title="${program.description}"
             tabindex="-1"
+            aria-describedby="da-example-tooltip"
           >
             <span class="da-menu-item-label">${program.name}</span>
           </button>
@@ -156,11 +183,31 @@ export class ExampleBrowser {
       this.element.querySelectorAll<HTMLElement>('.da-example-item')
     );
 
-    // Attach click handlers to each item (store for cleanup)
+    // Cache programs list once to avoid O(n²) lookups (Code Review fix)
+    const programs = this.getPrograms();
+
+    // Attach click and hover handlers to each item (store for cleanup)
     for (const item of this.focusableItems) {
-      const handler = () => this.handleItemClick(item);
-      this.itemClickHandlers.set(item, handler);
-      item.addEventListener('click', handler);
+      // Click handler
+      const clickHandler = () => this.handleItemClick(item);
+      this.itemClickHandlers.set(item, clickHandler);
+      item.addEventListener('click', clickHandler);
+
+      // Hover handlers for tooltip (Story 8.3)
+      const filename = item.dataset.filename;
+      if (filename) {
+        const program = programs.find((p) => p.filename === filename);
+        if (program) {
+          const enterHandler = () => this.handleItemMouseEnter(item, program);
+          const leaveHandler = () => this.handleItemMouseLeave();
+          this.itemHoverHandlers.set(item, { enter: enterHandler, leave: leaveHandler });
+          item.addEventListener('mouseenter', enterHandler);
+          item.addEventListener('mouseleave', leaveHandler);
+          // Also show tooltip on focus for keyboard accessibility
+          item.addEventListener('focus', enterHandler);
+          item.addEventListener('blur', leaveHandler);
+        }
+      }
     }
   }
 
@@ -228,6 +275,30 @@ export class ExampleBrowser {
     if (program) {
       this.callbacks.onSelect(program);
     }
+  }
+
+  /**
+   * Show tooltip on hover with a delay to avoid flicker (Story 8.3).
+   */
+  private handleItemMouseEnter(item: HTMLElement, program: ExampleProgram): void {
+    // Delay tooltip show by 300ms to avoid flicker
+    this.hoverTimeout = window.setTimeout(() => {
+      if (!this.tooltip) {
+        this.tooltip = new ExampleTooltip();
+      }
+      this.tooltip.show(program, item);
+    }, 300);
+  }
+
+  /**
+   * Hide tooltip and clear pending show timeout (Story 8.3).
+   */
+  private handleItemMouseLeave(): void {
+    if (this.hoverTimeout !== null) {
+      clearTimeout(this.hoverTimeout);
+      this.hoverTimeout = null;
+    }
+    this.tooltip?.hide();
   }
 
   private focusFirstItem(): void {

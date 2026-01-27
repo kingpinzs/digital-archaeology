@@ -15,24 +15,32 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     name: 'Add Two Numbers',
     category: 'arithmetic',
     description: 'Add two numbers (5+3=8)',
+    concepts: ['LDA', 'ADD', 'STA', 'memory'],
+    difficulty: 'beginner',
   },
   {
     filename: 'multiply.asm',
     name: 'Multiply',
     category: 'arithmetic',
     description: 'Multiply via repeated addition',
+    concepts: ['loops', 'repeated addition', 'accumulator'],
+    difficulty: 'intermediate',
   },
   {
     filename: 'divide.asm',
     name: 'Integer Division',
     category: 'arithmetic',
     description: 'Divide two numbers with remainder',
+    concepts: ['loops', 'subtraction', 'remainder'],
+    difficulty: 'intermediate',
   },
   {
     filename: 'negative.asm',
     name: 'Negation',
     category: 'arithmetic',
     description: "Two's complement negation",
+    concepts: ["two's complement", 'NOT', 'increment'],
+    difficulty: 'intermediate',
   },
 
   // Loop programs
@@ -41,6 +49,8 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     name: 'Countdown',
     category: 'loops',
     description: 'Count down from N to 0',
+    concepts: ['loops', 'JNZ', 'decrement'],
+    difficulty: 'beginner',
   },
 
   // Algorithm programs
@@ -49,30 +59,40 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     name: 'Fibonacci',
     category: 'algorithms',
     description: 'Generate Fibonacci sequence',
+    concepts: ['sequences', 'multiple variables', 'loops'],
+    difficulty: 'intermediate',
   },
   {
     filename: 'max.asm',
     name: 'Find Maximum',
     category: 'algorithms',
     description: 'Find maximum of two numbers',
+    concepts: ['comparison', 'conditional jumps', 'branching'],
+    difficulty: 'beginner',
   },
   {
     filename: 'factorial.asm',
     name: 'Factorial',
     category: 'algorithms',
     description: 'Calculate factorial of N',
+    concepts: ['recursion simulation', 'multiplication'],
+    difficulty: 'advanced',
   },
   {
     filename: 'bubble_sort.asm',
     name: 'Bubble Sort',
     category: 'algorithms',
     description: 'Sort array using bubble sort',
+    concepts: ['arrays', 'nested loops', 'swapping'],
+    difficulty: 'advanced',
   },
   {
     filename: 'gcd.asm',
     name: 'GCD',
     category: 'algorithms',
     description: 'Greatest common divisor',
+    concepts: ['Euclidean algorithm', 'modulo'],
+    difficulty: 'advanced',
   },
 
   // Bitwise programs
@@ -81,6 +101,8 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     name: 'Bitwise Operations',
     category: 'bitwise',
     description: 'Test AND, OR, XOR, NOT',
+    concepts: ['AND', 'OR', 'XOR', 'NOT', 'bit manipulation'],
+    difficulty: 'intermediate',
   },
 
   // Reference programs
@@ -89,6 +111,8 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     name: 'All Instructions',
     category: 'reference',
     description: 'Demo of all Micro4 instructions',
+    concepts: ['complete ISA reference'],
+    difficulty: 'beginner',
   },
 ];
 

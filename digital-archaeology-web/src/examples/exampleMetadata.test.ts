@@ -5,8 +5,8 @@ import {
   getProgramsByCategory,
   findProgramByFilename,
 } from './exampleMetadata';
-import { CATEGORY_ORDER } from './types';
-import type { ExampleCategory } from './types';
+import { CATEGORY_ORDER, DIFFICULTY_LABELS } from './types';
+import type { ExampleCategory, ExampleDifficulty } from './types';
 
 describe('exampleMetadata', () => {
   describe('EXAMPLE_PROGRAMS', () => {
@@ -26,7 +26,29 @@ describe('exampleMetadata', () => {
         expect(program.name).toBeTruthy();
         expect(program.category).toBeTruthy();
         expect(program.description).toBeTruthy();
+        expect(program.concepts).toBeDefined();
+        expect(Array.isArray(program.concepts)).toBe(true);
+        expect(program.difficulty).toBeTruthy();
       }
+    });
+
+    it('should have at least one concept for each program (Story 8.3)', () => {
+      for (const program of EXAMPLE_PROGRAMS) {
+        expect(program.concepts.length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('should only use valid difficulty levels (Story 8.3)', () => {
+      const validDifficulties: ExampleDifficulty[] = ['beginner', 'intermediate', 'advanced'];
+      for (const program of EXAMPLE_PROGRAMS) {
+        expect(validDifficulties).toContain(program.difficulty);
+        expect(DIFFICULTY_LABELS[program.difficulty]).toBeDefined();
+      }
+    });
+
+    it('should have a mix of difficulty levels (Story 8.3)', () => {
+      const difficulties = new Set(EXAMPLE_PROGRAMS.map((p) => p.difficulty));
+      expect(difficulties.size).toBeGreaterThanOrEqual(2);
     });
 
     it('should only use valid categories', () => {

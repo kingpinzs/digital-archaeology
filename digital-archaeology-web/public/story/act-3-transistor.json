@@ -40,10 +40,22 @@
         "background": "You are a Nobel laureate who led the team that invented the transistor at Bell Labs. Now you've founded Shockley Semiconductor in Palo Alto, bringing the semiconductor revolution to the valley that will bear its name.",
         "motivation": "Vacuum tubes are hot, fragile, and power-hungry. The transistor changes everything - smaller, faster, more reliable. But can we build entire computers from them?",
         "constraints": [
-          { "type": "technical", "description": "Transistors are still made one at a time - mass production is difficult" },
-          { "type": "economic", "description": "Each transistor costs more than a vacuum tube - for now" },
-          { "type": "political", "description": "Your employees are brilliant but restless - they'll soon leave to start their own company" },
-          { "type": "knowledge", "description": "The integrated circuit is still years away - circuits must be wired by hand" }
+          {
+            "type": "technical",
+            "description": "Transistors are still made one at a time - mass production is difficult"
+          },
+          {
+            "type": "economic",
+            "description": "Each transistor costs more than a vacuum tube - for now"
+          },
+          {
+            "type": "political",
+            "description": "Your employees are brilliant but restless - they'll soon leave to start their own company"
+          },
+          {
+            "type": "knowledge",
+            "description": "The integrated circuit is still years away - circuits must be wired by hand"
+          }
         ],
         "problem": "Can transistors make computers small enough for ordinary businesses?"
       },
@@ -71,10 +83,22 @@
                 "background": "You are a Nobel laureate who led the team that invented the transistor at Bell Labs. Now you've founded Shockley Semiconductor in Palo Alto, bringing the semiconductor revolution to the valley that will bear its name.",
                 "motivation": "Vacuum tubes are hot, fragile, and power-hungry. The transistor changes everything - smaller, faster, more reliable. But can we build entire computers from them?",
                 "constraints": [
-                  { "type": "technical", "description": "Transistors are still made one at a time - mass production is difficult" },
-                  { "type": "economic", "description": "Each transistor costs more than a vacuum tube - for now" },
-                  { "type": "political", "description": "Your employees are brilliant but restless - they'll soon leave to start their own company" },
-                  { "type": "knowledge", "description": "The integrated circuit is still years away - circuits must be wired by hand" }
+                  {
+                    "type": "technical",
+                    "description": "Transistors are still made one at a time - mass production is difficult"
+                  },
+                  {
+                    "type": "economic",
+                    "description": "Each transistor costs more than a vacuum tube - for now"
+                  },
+                  {
+                    "type": "political",
+                    "description": "Your employees are brilliant but restless - they'll soon leave to start their own company"
+                  },
+                  {
+                    "type": "knowledge",
+                    "description": "The integrated circuit is still years away - circuits must be wired by hand"
+                  }
                 ],
                 "problem": "Can transistors make computers small enough for ordinary businesses?"
               },
@@ -103,8 +127,14 @@
                   "title": "Group Leader, Solid-State Physics",
                   "bio": "Brilliant, ambitious, and difficult. Shockley leads the team with an iron will. His theoretical work on semiconductors is groundbreaking, but his personality alienates colleagues. He believes solid-state amplification is possible—he just can't make it work.",
                   "stats": [
-                    { "label": "Expertise", "value": "Semiconductor Theory" },
-                    { "label": "Weakness", "value": "Cannot admit being wrong" }
+                    {
+                      "label": "Expertise",
+                      "value": "Semiconductor Theory"
+                    },
+                    {
+                      "label": "Weakness",
+                      "value": "Cannot admit being wrong"
+                    }
                   ]
                 }
               ],
@@ -134,8 +164,14 @@
                   "title": "Theoretical Physicist",
                   "bio": "Quiet, methodical, brilliant. Bardeen approaches problems with patient persistence. While Shockley demands results, Bardeen asks why the experiments fail. His surface-state theory will unlock the mystery.",
                   "stats": [
-                    { "label": "Approach", "value": "Theory-First" },
-                    { "label": "Future", "value": "Only person to win 2 Nobel Prizes in Physics" }
+                    {
+                      "label": "Approach",
+                      "value": "Theory-First"
+                    },
+                    {
+                      "label": "Future",
+                      "value": "Only person to win 2 Nobel Prizes in Physics"
+                    }
                   ]
                 },
                 {
@@ -144,8 +180,14 @@
                   "title": "Experimental Physicist",
                   "bio": "Hands-on genius. If Bardeen is the mind, Brattain is the hands. He builds the experiments, improvises solutions, and notices the anomalies that lead to breakthroughs. Practical to the core.",
                   "stats": [
-                    { "label": "Approach", "value": "Build First, Think Later" },
-                    { "label": "Skill", "value": "Making Theory Work in Practice" }
+                    {
+                      "label": "Approach",
+                      "value": "Build First, Think Later"
+                    },
+                    {
+                      "label": "Skill",
+                      "value": "Making Theory Work in Practice"
+                    }
                   ]
                 }
               ],
@@ -337,11 +379,31 @@
               "challenge": {
                 "title": "BUILD THE FIRST TRANSISTOR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Understand p-type and n-type semiconductors", "completed": false },
-                  { "id": "obj-2", "text": "Create a germanium base with proper doping", "completed": false },
-                  { "id": "obj-3", "text": "Position emitter and collector contacts (<50μm apart)", "completed": false },
-                  { "id": "obj-4", "text": "Apply bias voltages for amplification mode", "completed": false },
-                  { "id": "obj-5", "text": "Achieve current gain > 1 (proof of amplification)", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Understand p-type and n-type semiconductors",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Create a germanium base with proper doping",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Position emitter and collector contacts (<50μm apart)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Apply bias voltages for amplification mode",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Achieve current gain > 1 (proof of amplification)",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -409,8 +471,14 @@
                   "title": "Engineer, Texas Instruments",
                   "bio": "A practical engineer with a radical idea. While others try to improve manufacturing, Kilby asks: what if we eliminate connections entirely? What if the entire circuit is one piece of semiconductor?",
                   "stats": [
-                    { "label": "Background", "value": "MIT, Centralab" },
-                    { "label": "Insight", "value": "Monolithic integration" }
+                    {
+                      "label": "Background",
+                      "value": "MIT, Centralab"
+                    },
+                    {
+                      "label": "Insight",
+                      "value": "Monolithic integration"
+                    }
                   ]
                 }
               ],
@@ -464,8 +532,14 @@
                   "title": "Co-founder, Fairchild Semiconductor",
                   "bio": "Charismatic, visionary, entrepreneurial. Noyce co-founded Fairchild after leaving Shockley's toxic workplace. His planar IC design will prove more practical than Kilby's, leading to modern chip fabrication.",
                   "stats": [
-                    { "label": "Role", "value": "Future co-founder of Intel" },
-                    { "label": "Nickname", "value": "Mayor of Silicon Valley" }
+                    {
+                      "label": "Role",
+                      "value": "Future co-founder of Intel"
+                    },
+                    {
+                      "label": "Nickname",
+                      "value": "Mayor of Silicon Valley"
+                    }
                   ]
                 },
                 {
@@ -474,8 +548,14 @@
                   "title": "Physicist, Fairchild",
                   "bio": "Swiss physicist who invented the planar process—growing silicon dioxide on silicon to protect and passivate transistors. This seemingly minor innovation made modern chip manufacturing possible.",
                   "stats": [
-                    { "label": "Invention", "value": "Planar Process" },
-                    { "label": "Impact", "value": "Enabled modern IC fabrication" }
+                    {
+                      "label": "Invention",
+                      "value": "Planar Process"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Enabled modern IC fabrication"
+                    }
                   ]
                 }
               ],
@@ -601,11 +681,31 @@
               "challenge": {
                 "title": "DESIGN YOUR FIRST INTEGRATED CIRCUIT",
                 "objectives": [
-                  { "id": "obj-1", "text": "Layout two transistors in silicon", "completed": false },
-                  { "id": "obj-2", "text": "Create resistor regions through doping", "completed": false },
-                  { "id": "obj-3", "text": "Define oxide windows for contacts", "completed": false },
-                  { "id": "obj-4", "text": "Route aluminum interconnects", "completed": false },
-                  { "id": "obj-5", "text": "Simulate: input HIGH → output HIGH", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Layout two transistors in silicon",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Create resistor regions through doping",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Define oxide windows for contacts",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Route aluminum interconnects",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Simulate: input HIGH → output HIGH",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -669,8 +769,14 @@
                   "title": "Lead Designer, Apollo Guidance Computer",
                   "bio": "MIT engineer tasked with the impossible: fit a computer into a spacecraft. Hall championed ICs when everyone else wanted proven technology. His bet paid off—and accelerated the entire semiconductor industry.",
                   "stats": [
-                    { "label": "Challenge", "value": "70 lbs, 1 cubic foot, zero failures" },
-                    { "label": "Decision", "value": "All-IC design" }
+                    {
+                      "label": "Challenge",
+                      "value": "70 lbs, 1 cubic foot, zero failures"
+                    },
+                    {
+                      "label": "Decision",
+                      "value": "All-IC design"
+                    }
                   ]
                 }
               ],
@@ -700,8 +806,14 @@
                   "title": "Director, Software Engineering",
                   "bio": "Leading the software team, Hamilton coins the term 'software engineering' to give her discipline credibility. Her code will save Apollo 11 when hardware overloads threaten the landing.",
                   "stats": [
-                    { "label": "Innovation", "value": "Priority scheduling, error recovery" },
-                    { "label": "Legacy", "value": "Term 'software engineering'" }
+                    {
+                      "label": "Innovation",
+                      "value": "Priority scheduling, error recovery"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Term 'software engineering'"
+                    }
                   ]
                 }
               ],
@@ -726,11 +838,31 @@
               "challenge": {
                 "title": "QUALIFY SPACE-GRADE ICS",
                 "objectives": [
-                  { "id": "obj-1", "text": "Understand NOR gate logic (output = NOT(A OR B OR C))", "completed": false },
-                  { "id": "obj-2", "text": "Build NOT gate from NOR (tie inputs together)", "completed": false },
-                  { "id": "obj-3", "text": "Build AND gate from NOR gates", "completed": false },
-                  { "id": "obj-4", "text": "Build OR gate from NOR gates", "completed": false },
-                  { "id": "obj-5", "text": "Design a 4-bit register using NOR-based flip-flops", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Understand NOR gate logic (output = NOT(A OR B OR C))",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Build NOT gate from NOR (tie inputs together)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Build AND gate from NOR gates",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Build OR gate from NOR gates",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Design a 4-bit register using NOR-based flip-flops",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -812,8 +944,14 @@
                   "title": "Engineer, Intel",
                   "bio": "Stanford-trained engineer who looked at Busicom's 12-chip design and asked: what if there was a simpler way? His insight—a general-purpose processor programmed with software—will create the microprocessor industry.",
                   "stats": [
-                    { "label": "Insight", "value": "Replace hardware with software" },
-                    { "label": "Background", "value": "PhD, Stanford" }
+                    {
+                      "label": "Insight",
+                      "value": "Replace hardware with software"
+                    },
+                    {
+                      "label": "Background",
+                      "value": "PhD, Stanford"
+                    }
                   ]
                 }
               ],
@@ -843,8 +981,14 @@
                   "title": "Engineer, Intel",
                   "bio": "Italian-born chip designer who will turn Hoff's concept into working silicon. Faggin's mastery of circuit design and fabrication makes the impossible possible: a complete CPU in 2,300 transistors.",
                   "stats": [
-                    { "label": "Skill", "value": "Chip design, fabrication" },
-                    { "label": "Role", "value": "Made the 4004 work" }
+                    {
+                      "label": "Skill",
+                      "value": "Chip design, fabrication"
+                    },
+                    {
+                      "label": "Role",
+                      "value": "Made the 4004 work"
+                    }
                   ]
                 },
                 {
@@ -853,8 +997,14 @@
                   "title": "Engineer, Busicom",
                   "bio": "Busicom's representative at Intel, initially skeptical of Hoff's simplified design. Shima pushed back on the spec, forcing refinements that made the 4004 more capable.",
                   "stats": [
-                    { "label": "Role", "value": "Customer advocate" },
-                    { "label": "Contribution", "value": "Refined instruction set" }
+                    {
+                      "label": "Role",
+                      "value": "Customer advocate"
+                    },
+                    {
+                      "label": "Contribution",
+                      "value": "Refined instruction set"
+                    }
                   ]
                 }
               ],
@@ -981,12 +1131,36 @@
               "challenge": {
                 "title": "BUILD THE MICRO4 CPU",
                 "objectives": [
-                  { "id": "obj-1", "text": "Design the ALU: 4-bit addition with carry", "completed": false },
-                  { "id": "obj-2", "text": "Create the accumulator register", "completed": false },
-                  { "id": "obj-3", "text": "Implement the program counter", "completed": false },
-                  { "id": "obj-4", "text": "Build the instruction decoder", "completed": false },
-                  { "id": "obj-5", "text": "Connect to memory (fetch/store)", "completed": false },
-                  { "id": "obj-6", "text": "Execute a simple program: add two numbers", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Design the ALU: 4-bit addition with carry",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Create the accumulator register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Implement the program counter",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Build the instruction decoder",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Connect to memory (fetch/store)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Execute a simple program: add two numbers",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -1030,7 +1204,64 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1965,
+        "knownTechnology": [
+          "transistor",
+          "printed circuit board",
+          "magnetic core memory",
+          "mainframe",
+          "FORTRAN",
+          "COBOL"
+        ],
+        "unknownTechnology": [
+          "integrated circuit computer",
+          "microprocessor",
+          "personal computer",
+          "internet",
+          "smartphone",
+          "flash memory",
+          "touchscreen"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How can we fit more transistors into less space?",
+            "motivation": "Discrete transistors must be wired together individually. A computer needs thousands of connections."
+          },
+          {
+            "statement": "How can we make computers accessible to more people?",
+            "motivation": "Mainframes require specialized operators. Scientists want direct interaction with machines."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Transistors are discrete components",
+            "limitation": "Each must be wired and tested separately"
+          },
+          {
+            "type": "knowledge",
+            "description": "Software engineering is primitive",
+            "limitation": "No structured programming, no version control"
+          },
+          {
+            "type": "economic",
+            "description": "Time-sharing is experimental",
+            "limitation": "Computer time costs hundreds of dollars per hour"
+          }
+        ],
+        "impossibilities": [
+          "pocket computers",
+          "gigabytes of storage",
+          "real-time multimedia",
+          "wireless networking"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the transistor revolution. IBM dominates computing. The integrated circuit exists but is experimental and expensive. Moores Law has just been proposed. Minicomputers like PDP-8 offer a glimpse of smaller machines.",
+          "futureBlind": "You cannot know if integrated circuits will ever be affordable for general use. Perhaps mainframes will always dominate. Will there ever be a market for computers smaller than a room?"
+        }
+      }
     }
   ]
 }

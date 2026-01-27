@@ -1,6 +1,7 @@
 // src/story/SceneRenderer.ts
 // Dynamic scene rendering for Story Mode
 // Story 10.17: Wire Story Mode Integration
+// Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
 import type { StoryScene, StoryChapter, StoryAct } from './content-types';
 import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData } from './types';
@@ -13,6 +14,8 @@ import { TechnicalNote } from './TechnicalNote';
 import { EnterLabButton } from './EnterLabButton';
 import { StoryActionsFooter } from './StoryActionsFooter';
 import { PersonaCard } from './PersonaCard';
+import { MindsetProvider } from './MindsetProvider';
+import { createEraFilter } from './AnachronismFilter';
 
 /**
  * Scene render context containing act and chapter information.
@@ -49,6 +52,9 @@ export class SceneRenderer {
   private sceneContainer: HTMLElement | null = null;
   private footer: StoryActionsFooter | null = null;
 
+  // Story 10.21: Anachronism filtering
+  private filteringEnabled = false;
+
   /**
    * Set callbacks for scene interactions.
    */
@@ -58,6 +64,55 @@ export class SceneRenderer {
     if (this.footer) {
       this.wireFooterCallbacks();
     }
+  }
+
+  /**
+   * Enable or disable anachronism filtering.
+   * When enabled, text content is filtered using the current mindset context.
+   * An era-specific filter is created per-render based on the current mindset.
+   * Story 10.21: Historical Mindset Time-Travel
+   */
+  setAnachronismFiltering(enabled: boolean): void {
+    this.filteringEnabled = enabled;
+    // Note: The actual filter is created fresh in filterText() based on current mindset
+    // This allows the filter to adapt as the mindset changes between scenes
+  }
+
+  /**
+   * Filter text for anachronisms using the current mindset.
+   * Returns the original text if filtering is disabled or no mindset is set.
+   * Creates an era-specific filter with pre-loaded anachronistic terms.
+   * Story 10.21: Historical Mindset Time-Travel
+   */
+  private filterText(text: string): string {
+    if (!this.filteringEnabled) {
+      return text;
+    }
+
+    const mindset = MindsetProvider.getInstance().getCurrentMindset();
+    if (!mindset) {
+      return text;
+    }
+
+    // Create era-specific filter with pre-loaded common anachronistic terms
+    // createEraFilter includes terms like smartphone->mobile phone, internet->ARPANET
+    const eraFilter = createEraFilter(mindset.year);
+
+    // Add terms from the mindset's unknownTechnology list that aren't already in filter
+    // Note: We don't overwrite existing terms to preserve their replacements
+    for (const tech of mindset.unknownTechnology) {
+      // Only add if not already an anachronism (i.e., not already in the filter)
+      // This check is done against the filter's internal year check
+      const alreadyFiltered = eraFilter.isAnachronism(tech, mindset.year);
+      if (!alreadyFiltered) {
+        // Add with a year after the current mindset year to ensure filtering
+        // These won't have replacements, so they'll just be flagged if no replacement exists
+        eraFilter.addCustomTerm(tech, mindset.year + 1);
+      }
+    }
+
+    const result = eraFilter.analyze(text, { mode: 'replace', year: mindset.year });
+    return result.filtered;
   }
 
   /**
@@ -162,6 +217,7 @@ export class SceneRenderer {
 
   /**
    * Render scene setting component.
+   * Applies anachronism filtering when enabled (Story 10.21).
    */
   private renderSceneSetting(setting: { text: string }): void {
     const sceneSetting = new SceneSetting();
@@ -169,12 +225,14 @@ export class SceneRenderer {
     mount.className = 'da-scene-setting-mount';
     this.sceneContainer!.appendChild(mount);
     sceneSetting.mount(mount);
-    sceneSetting.setSettingData({ text: setting.text });
+    // Story 10.21: Apply anachronism filtering
+    sceneSetting.setSettingData({ text: this.filterText(setting.text) });
     this.activeComponents.push(sceneSetting);
   }
 
   /**
    * Render narrative paragraphs.
+   * Applies anachronism filtering when enabled (Story 10.21).
    */
   private renderNarrative(paragraphs: string[]): void {
     const narrativeContainer = document.createElement('div');
@@ -183,7 +241,8 @@ export class SceneRenderer {
     for (const paragraph of paragraphs) {
       const p = document.createElement('p');
       p.className = 'da-scene-narrative-text';
-      p.textContent = paragraph;
+      // Story 10.21: Apply anachronism filtering
+      p.textContent = this.filterText(paragraph);
       narrativeContainer.appendChild(p);
     }
 
@@ -212,6 +271,7 @@ export class SceneRenderer {
 
   /**
    * Render dialogue blocks.
+   * Applies anachronism filtering to dialogue text (not speaker names) when enabled (Story 10.21).
    */
   private renderDialogues(dialogues: DialogueData[]): void {
     const dialogueContainer = document.createElement('div');
@@ -223,7 +283,11 @@ export class SceneRenderer {
       mount.className = 'da-scene-dialogue-mount';
       dialogueContainer.appendChild(mount);
       block.mount(mount);
-      block.setDialogueData(dialogue);
+      // Story 10.21: Apply anachronism filtering to dialogue text (not speaker name)
+      block.setDialogueData({
+        speaker: dialogue.speaker,
+        text: this.filterText(dialogue.text),
+      });
       this.activeComponents.push(block);
     }
 
@@ -232,6 +296,7 @@ export class SceneRenderer {
 
   /**
    * Render technical notes.
+   * Applies anachronism filtering to note content (not code snippets) when enabled (Story 10.21).
    */
   private renderTechnicalNotes(notes: TechnicalNoteData[]): void {
     const notesContainer = document.createElement('div');
@@ -243,7 +308,11 @@ export class SceneRenderer {
       mount.className = 'da-scene-technical-note-mount';
       notesContainer.appendChild(mount);
       technicalNote.mount(mount);
-      technicalNote.setNoteData(note);
+      // Story 10.21: Apply anachronism filtering to content (not code snippets)
+      technicalNote.setNoteData({
+        content: this.filterText(note.content),
+        codeSnippet: note.codeSnippet,
+      });
       this.activeComponents.push(technicalNote);
     }
 

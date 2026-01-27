@@ -39,8 +39,14 @@
                   "title": "Lead Designer, Intel",
                   "bio": "The chip designer who made the 4004 work now tackles the 8080. Faggin knows that success means more than just more bits—it means a complete, usable architecture that programmers can love.",
                   "stats": [
-                    { "label": "Goal", "value": "Real computer on a chip" },
-                    { "label": "Challenge", "value": "Make 8 bits feel limitless" }
+                    {
+                      "label": "Goal",
+                      "value": "Real computer on a chip"
+                    },
+                    {
+                      "label": "Challenge",
+                      "value": "Make 8 bits feel limitless"
+                    }
                   ]
                 }
               ],
@@ -94,8 +100,14 @@
                   "title": "Chief Architect, 6502",
                   "bio": "The engineer who bet everything on simplicity and low cost. Peddle's 6502 had fewer registers, fewer transistors, but a $25 price that enabled the personal computer revolution.",
                   "stats": [
-                    { "label": "Philosophy", "value": "Simple is better" },
-                    { "label": "Impact", "value": "Apple II, Commodore, Nintendo" }
+                    {
+                      "label": "Philosophy",
+                      "value": "Simple is better"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Apple II, Commodore, Nintendo"
+                    }
                   ]
                 }
               ],
@@ -221,12 +233,36 @@
               "challenge": {
                 "title": "BUILD THE MICRO8 CPU",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement 8 general-purpose 8-bit registers", "completed": false },
-                  { "id": "obj-2", "text": "Add register pairing for 16-bit addresses", "completed": false },
-                  { "id": "obj-3", "text": "Create a hardware stack with SP register", "completed": false },
-                  { "id": "obj-4", "text": "Implement CALL/RET for subroutines", "completed": false },
-                  { "id": "obj-5", "text": "Add PUSH/POP for register preservation", "completed": false },
-                  { "id": "obj-6", "text": "Execute a program with subroutine calls", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement 8 general-purpose 8-bit registers",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Add register pairing for 16-bit addresses",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Create a hardware stack with SP register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement CALL/RET for subroutines",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add PUSH/POP for register preservation",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Execute a program with subroutine calls",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -289,8 +325,14 @@
                   "title": "Founder, MITS",
                   "bio": "The man who built the machine that started it all. Roberts bet his failing company on the idea that ordinary people wanted computers. He was spectacularly right.",
                   "stats": [
-                    { "label": "Risk", "value": "Company on the line" },
-                    { "label": "Reward", "value": "Launched an industry" }
+                    {
+                      "label": "Risk",
+                      "value": "Company on the line"
+                    },
+                    {
+                      "label": "Reward",
+                      "value": "Launched an industry"
+                    }
                   ]
                 }
               ],
@@ -326,8 +368,14 @@
                   "title": "Harvard Student",
                   "bio": "A driven programmer who saw that software would be the key to computing's future. Gates wrote Altair BASIC with Paul Allen, then dropped out of Harvard to found Microsoft.",
                   "stats": [
-                    { "label": "Age", "value": "19" },
-                    { "label": "Hours coding", "value": "Virtually all of them" }
+                    {
+                      "label": "Age",
+                      "value": "19"
+                    },
+                    {
+                      "label": "Hours coding",
+                      "value": "Virtually all of them"
+                    }
                   ]
                 },
                 {
@@ -336,8 +384,14 @@
                   "title": "Programmer, MITS",
                   "bio": "Gates' partner and the architect of Microsoft BASIC's 8080 implementation. Allen built the simulator that let them develop without hardware, then flew to Albuquerque for the demo.",
                   "stats": [
-                    { "label": "Innovation", "value": "8080 simulator on PDP-10" },
-                    { "label": "Role", "value": "First Microsoft employee at MITS" }
+                    {
+                      "label": "Innovation",
+                      "value": "8080 simulator on PDP-10"
+                    },
+                    {
+                      "label": "Role",
+                      "value": "First Microsoft employee at MITS"
+                    }
                   ]
                 }
               ],
@@ -501,18 +555,38 @@
               "challenge": {
                 "title": "PROGRAM IN LIMITED MEMORY",
                 "objectives": [
-                  { "id": "obj-1", "text": "Write a program that fits in 256 bytes", "completed": false },
-                  { "id": "obj-2", "text": "Implement string handling without string types", "completed": false },
-                  { "id": "obj-3", "text": "Create a number guessing game", "completed": false },
-                  { "id": "obj-4", "text": "Optimize for space, not speed", "completed": false },
-                  { "id": "obj-5", "text": "Add self-modifying code to save bytes", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Write a program that fits in 256 bytes",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement string handling without string types",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Create a number guessing game",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Optimize for space, not speed",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add self-modifying code to save bytes",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
                 {
                   "content": "Early programmers used every trick to save bytes: self-modifying code, overlapping instructions, encoding data in unused opcode bits. The discipline of extreme optimization created masters who could make machines sing within severe constraints.",
                   "codeSnippet": "// Space-saving tricks (8080)\n// \n// Use register pairs as pointers:\n// LXI H, data    ; HL = address\n// MOV A, M       ; A = memory[HL]\n// INX H          ; HL++ (no need for separate counter)\n// \n// Self-modifying code:\n// addr: LDA 0000h  ; Address modified at runtime\n// ...later...\n// SHLD addr+1      ; Store new address into instruction"
-              }
+                }
               ],
               "nextScene": "scene-5-2-6"
             },
@@ -569,8 +643,14 @@
                   "title": "Co-founder, Apple Computer",
                   "bio": "The engineering genius behind the Apple II. Wozniak designed an entire computer with fewer chips than anyone thought possible, then added color graphics because he wanted to play Breakout.",
                   "stats": [
-                    { "label": "Innovation", "value": "Color graphics, disk controller" },
-                    { "label": "Philosophy", "value": "Elegant engineering" }
+                    {
+                      "label": "Innovation",
+                      "value": "Color graphics, disk controller"
+                    },
+                    {
+                      "label": "Philosophy",
+                      "value": "Elegant engineering"
+                    }
                   ]
                 },
                 {
@@ -579,8 +659,14 @@
                   "title": "Co-founder, Apple Computer",
                   "bio": "The visionary who understood that computers needed to be beautiful, not just functional. Jobs pushed for a complete product: case, keyboard, power supply—something you'd be proud to own.",
                   "stats": [
-                    { "label": "Role", "value": "Vision, marketing, business" },
-                    { "label": "Insight", "value": "Computers for the rest of us" }
+                    {
+                      "label": "Role",
+                      "value": "Vision, marketing, business"
+                    },
+                    {
+                      "label": "Insight",
+                      "value": "Computers for the rest of us"
+                    }
                   ]
                 }
               ],
@@ -643,8 +729,14 @@
                   "title": "Co-creator, VisiCalc",
                   "bio": "The MBA student who invented the spreadsheet. Bricklin's insight—that computers could automate the tedious recalculation of financial models—created a new category of software and justified personal computer purchases.",
                   "stats": [
-                    { "label": "Innovation", "value": "Electronic spreadsheet" },
-                    { "label": "Impact", "value": "The first 'killer app'" }
+                    {
+                      "label": "Innovation",
+                      "value": "Electronic spreadsheet"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "The first 'killer app'"
+                    }
                   ]
                 }
               ],
@@ -787,11 +879,31 @@
               "challenge": {
                 "title": "BUILD A COMPLETE 8-BIT APPLICATION",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement a simple text editor or calculator", "completed": false },
-                  { "id": "obj-2", "text": "Use subroutines for modular code organization", "completed": false },
-                  { "id": "obj-3", "text": "Handle user input through a loop", "completed": false },
-                  { "id": "obj-4", "text": "Format output for display", "completed": false },
-                  { "id": "obj-5", "text": "Add at least one 'feature' beyond the minimum", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement a simple text editor or calculator",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Use subroutines for modular code organization",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Handle user input through a loop",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Format output for display",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add at least one 'feature' beyond the minimum",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -860,8 +972,14 @@
                   "title": "Co-founder, Zilog",
                   "bio": "The father of the microprocessor, now building Intel's competitor. Faggin designed the Z80 to be everything the 8080 should have been: more registers, better instructions, simpler power requirements.",
                   "stats": [
-                    { "label": "Z80 Registers", "value": "18 total (vs 8080's 7)" },
-                    { "label": "Market Share", "value": "Dominated 8-bit business computing" }
+                    {
+                      "label": "Z80 Registers",
+                      "value": "18 total (vs 8080's 7)"
+                    },
+                    {
+                      "label": "Market Share",
+                      "value": "Dominated 8-bit business computing"
+                    }
                   ]
                 },
                 {
@@ -870,8 +988,14 @@
                   "title": "Co-designer, Z80",
                   "bio": "The Japanese engineer who co-designed both the 4004 and Z80. Shima's meticulous attention to detail made the Z80 one of the most reliable processors ever manufactured.",
                   "stats": [
-                    { "label": "Achievement", "value": "Two revolutionary CPUs" },
-                    { "label": "Legacy", "value": "Z80 still in production today" }
+                    {
+                      "label": "Achievement",
+                      "value": "Two revolutionary CPUs"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Z80 still in production today"
+                    }
                   ]
                 }
               ],
@@ -907,8 +1031,14 @@
                   "title": "Founder, Digital Research",
                   "bio": "The inventor of CP/M and arguably the father of the PC software industry. Kildall created the first microcomputer operating system, the first BIOS architecture, and the first portable business software platform.",
                   "stats": [
-                    { "label": "Innovation", "value": "CP/M, BIOS concept" },
-                    { "label": "Tragedy", "value": "Lost IBM deal to Microsoft" }
+                    {
+                      "label": "Innovation",
+                      "value": "CP/M, BIOS concept"
+                    },
+                    {
+                      "label": "Tragedy",
+                      "value": "Lost IBM deal to Microsoft"
+                    }
                   ]
                 }
               ],
@@ -992,7 +1122,65 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1977,
+        "knownTechnology": [
+          "8-bit microprocessor",
+          "8080",
+          "Z80",
+          "6502",
+          "RAM chip",
+          "BASIC interpreter",
+          "cassette tape storage"
+        ],
+        "unknownTechnology": [
+          "16-bit personal computer",
+          "hard drive for home use",
+          "internet",
+          "smartphone",
+          "flash memory",
+          "CD-ROM",
+          "touchscreen"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we make computers affordable for hobbyists?",
+            "motivation": "The Altair proved theres a market, but $1000 for a kit is still expensive for many."
+          },
+          {
+            "statement": "What software does a home computer need?",
+            "motivation": "Business needs are understood, but what do hobbyists actually want to do?"
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "64KB address space maximum",
+            "limitation": "Programs must fit in kilobytes"
+          },
+          {
+            "type": "material",
+            "description": "RAM is expensive",
+            "limitation": "Most machines ship with 4-16KB"
+          },
+          {
+            "type": "economic",
+            "description": "Home computer market is unproven",
+            "limitation": "VCs are skeptical about consumer demand"
+          }
+        ],
+        "impossibilities": [
+          "multimedia applications",
+          "megabytes of RAM",
+          "gigahertz processors",
+          "wireless connectivity"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the dawn of personal computing. The Apple II, TRS-80, and Commodore PET have just launched. BASIC is the language everyone learns. Floppy disks are expensive luxuries. Bill Gates and Paul Allen just moved Microsoft from Albuquerque to Seattle.",
+          "futureBlind": "You cannot know if the personal computer market will survive. Critics say its a fad for hobbyists. Will regular people ever need computers at home? What would they even use them for?"
+        }
+      }
     }
   ]
 }

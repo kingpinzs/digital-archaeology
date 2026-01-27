@@ -6028,3 +6028,550 @@ body.da-resizing * {
 .da-hdl-viewer-validation-message {
   color: var(--da-text-primary, #e0e0e0);
 }
+
+/* =============================================================================
+   Story 10.21: Historical Mindset Time-Travel Components
+   Styles for MindsetProvider, EraContextPanel, HistoricalDecisionCard,
+   and MindsetIntroScene
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   Era Context Panel - Shows what you know/don't know in this era
+   ----------------------------------------------------------------------------- */
+.da-era-context-panel {
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 8px;
+  padding: 20px;
+  color: var(--da-text-primary, #e0e0e0);
+  font-family: var(--da-font-body, system-ui, -apple-system, sans-serif);
+}
+
+.da-era-context-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-era-year {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--da-accent, #00b4d8);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.da-era-perspective {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+/* Collapsible section styles */
+.da-era-section {
+  margin-bottom: 12px;
+  border: 1px solid var(--da-bg-hover, #3a3a62);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.da-era-section-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--da-bg-tertiary, #2f2f52);
+  border: none;
+  color: var(--da-text-primary, #e0e0e0);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.da-era-section-toggle:hover,
+.da-era-section-toggle:focus {
+  background: var(--da-bg-hover, #3a3a62);
+  outline: none;
+}
+
+.da-era-section-toggle:focus {
+  box-shadow: inset 0 0 0 2px var(--da-accent, #00b4d8);
+}
+
+.da-era-section-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-era-section-icon {
+  font-size: 1.2rem;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-era-section-content {
+  padding: 12px 16px;
+  background: var(--da-bg-primary, #1a1a2e);
+}
+
+/* Lists in sections */
+.da-era-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.da-era-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-era-list li:last-child {
+  border-bottom: none;
+}
+
+/* Not-yet markers for unknown tech */
+.da-era-not-yet {
+  color: #ff5555;
+  margin-right: 8px;
+}
+
+/* Impossible markers */
+.da-era-impossible {
+  color: #ffb86c;
+  margin-right: 8px;
+}
+
+/* Problem styling */
+.da-era-problem {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-era-problem:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.da-era-problem-statement {
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-era-problem-motivation {
+  font-style: italic;
+  margin: 0 0 12px 0;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-era-approaches {
+  margin-top: 8px;
+}
+
+.da-era-approaches-label {
+  font-size: 0.85rem;
+  color: var(--da-text-secondary, #a0a0b0);
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Constraints styling */
+.da-era-constraints {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.da-era-constraint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-era-constraint:last-child {
+  border-bottom: none;
+}
+
+.da-era-constraint-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.da-era-constraint-text {
+  flex: 1;
+}
+
+.da-era-constraint-limit {
+  font-size: 0.85rem;
+  color: var(--da-accent, #00b4d8);
+  font-style: italic;
+}
+
+/* Footer */
+.da-era-context-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--da-bg-hover, #3a3a62);
+  text-align: center;
+}
+
+.da-future-blind {
+  font-style: italic;
+  color: var(--da-warning, #ffb86c);
+}
+
+.da-era-empty {
+  color: var(--da-text-secondary, #a0a0b0);
+  font-style: italic;
+  margin: 0;
+}
+
+/* -----------------------------------------------------------------------------
+   Historical Decision Card - Choices without hindsight
+   ----------------------------------------------------------------------------- */
+.da-decision-card {
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 8px;
+  padding: 24px;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-decision-header {
+  margin-bottom: 20px;
+}
+
+.da-decision-question {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-decision-context {
+  margin: 0;
+  color: var(--da-text-secondary, #a0a0b0);
+  line-height: 1.5;
+}
+
+.da-decision-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.da-decision-option {
+  background: var(--da-bg-primary, #1a1a2e);
+  border: 2px solid var(--da-bg-hover, #3a3a62);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da-decision-option:hover,
+.da-decision-option:focus {
+  border-color: var(--da-accent, #00b4d8);
+  outline: none;
+}
+
+.da-decision-option--selected {
+  border-color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.1);
+}
+
+.da-decision-option--historical {
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.da-decision-option-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.da-decision-option-indicator {
+  font-size: 1.2rem;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-decision-option--selected .da-decision-option-indicator {
+  color: #00ff88;
+}
+
+.da-decision-option-description {
+  font-weight: 500;
+  flex: 1;
+}
+
+.da-decision-historical-badge {
+  background: #00ff88;
+  color: #1a1a2e;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.da-decision-option-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-decision-pros,
+.da-decision-cons {
+  margin-bottom: 8px;
+}
+
+.da-decision-label {
+  font-size: 0.8rem;
+  color: var(--da-text-secondary, #a0a0b0);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.da-decision-pros ul,
+.da-decision-cons ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.da-decision-pros li {
+  color: #00ff88;
+}
+
+.da-decision-cons li {
+  color: #ff5555;
+}
+
+/* Footer and reveal */
+.da-decision-footer {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-decision-prompt {
+  margin: 0;
+  font-style: italic;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-decision-reveal-btn {
+  background: var(--da-accent, #00b4d8);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.da-decision-reveal-btn:hover,
+.da-decision-reveal-btn:focus {
+  background: var(--da-accent-hover, #48cae4);
+  outline: none;
+}
+
+.da-decision-reveal {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.da-decision-reveal--correct {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+}
+
+.da-decision-reveal--alternate {
+  background: rgba(255, 184, 108, 0.1);
+  border: 1px solid #ffb86c;
+}
+
+.da-decision-reveal-title {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+}
+
+.da-decision-reveal--correct .da-decision-reveal-title {
+  color: #00ff88;
+}
+
+.da-decision-reveal--alternate .da-decision-reveal-title {
+  color: #ffb86c;
+}
+
+.da-decision-outcome p {
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.da-decision-outcome p:last-child {
+  margin-bottom: 0;
+}
+
+/* -----------------------------------------------------------------------------
+   Mindset Intro Scene - Full-screen era introduction
+   ----------------------------------------------------------------------------- */
+.da-mindset-intro {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.da-mindset-intro-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+}
+
+.da-mindset-intro-content {
+  position: relative;
+  max-width: 800px;
+  max-height: 90vh;
+  width: 90%;
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.da-mindset-intro-content.da-mindset-intro--animated {
+  animation: slideUp 0.4s ease;
+}
+
+.da-mindset-intro--dismissing .da-mindset-intro-content {
+  animation: slideDown 0.3s ease forwards;
+}
+
+.da-mindset-intro--dismissing .da-mindset-intro-backdrop {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.da-mindset-intro-header {
+  padding: 24px;
+  text-align: center;
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-mindset-intro-title {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-mindset-intro-subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-mindset-intro-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.da-mindset-intro-context {
+  /* Container for EraContextPanel */
+}
+
+.da-mindset-intro-context .da-era-context-panel {
+  background: var(--da-bg-primary, #1a1a2e);
+}
+
+.da-mindset-intro-footer {
+  padding: 20px 24px;
+  text-align: center;
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-top: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-mindset-intro-reminder {
+  margin: 0 0 16px 0;
+  font-style: italic;
+  color: var(--da-warning, #ffb86c);
+}
+
+.da-mindset-intro-continue {
+  background: var(--da-accent, #00b4d8);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da-mindset-intro-continue:hover,
+.da-mindset-intro-continue:focus {
+  background: var(--da-accent-hover, #48cae4);
+  transform: scale(1.02);
+  outline: none;
+}
+
+.da-mindset-intro-continue:active {
+  transform: scale(0.98);
+}

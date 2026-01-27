@@ -170,9 +170,10 @@ development_status:
   10-18-create-historical-personas-system: done
   10-19-implement-persona-profile-cards: done
   10-20-create-persona-transition-narratives: done
-  10-21-historical-mindset-time-travel: backlog
+  10-21-historical-mindset-time-travel: in-progress
   10-22-decision-maker-builder-mode: backlog
   10-23-first-discoverer-mind-experience: backlog
+  10-24-fix-act0-persona-timeline: review
   epic-10-retrospective: optional
 
   # Epic 11: Multi-Stage Architecture

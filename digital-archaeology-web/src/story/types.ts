@@ -9,6 +9,7 @@
 // Story 10.10: Create Technical Note Component
 // Story 10.13: Create Challenge Objectives in Lab Mode
 // Story 10.18: Create Historical Personas System
+// Story 10.21: Historical Mindset Time-Travel
 
 /**
  * Represents a discovery badge earned by the player.
@@ -222,4 +223,114 @@ export interface TransitionData {
   outgoingEra: string;
   /** Era label for incoming persona (e.g., "Relay") */
   incomingEra: string;
+}
+
+/**
+ * Represents a technology or concept available in a specific era.
+ * Used for anachronism filtering and mindset establishment.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface EraTechnology {
+  /** Technology name (e.g., "transistor", "integrated circuit") */
+  name: string;
+  /** Year invented/discovered */
+  yearInvented: number;
+  /** Year became commonly known/used */
+  yearCommon: number;
+  /** What it replaced or built upon */
+  predecessors?: string[];
+  /** Period-accurate terminology variants */
+  periodTerms?: { year: number; term: string }[];
+}
+
+/**
+ * Represents a constraint faced in a specific historical era.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface EraConstraint {
+  /** Type of constraint */
+  type: 'technical' | 'economic' | 'knowledge' | 'material' | 'political';
+  /** Description of the constraint */
+  description: string;
+  /** Specific limitation (e.g., "64KB max addressable memory") */
+  limitation?: string;
+}
+
+/**
+ * Represents an active problem engineers faced in an era.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface EraProblem {
+  /** Problem statement from their perspective */
+  statement: string;
+  /** Why this mattered to them */
+  motivation: string;
+  /** What approaches were being tried */
+  currentApproaches?: string[];
+}
+
+/**
+ * Context for establishing the historical mindset.
+ * Filters out anachronisms and frames decisions without hindsight.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface MindsetContext {
+  /** The year we're "in" (e.g., 1978) */
+  year: number;
+  /** Technologies that exist and are known at this time */
+  knownTechnology: string[];
+  /** Technologies that don't exist yet (concepts we must NOT reference) */
+  unknownTechnology: string[];
+  /** Active engineering problems people are working on */
+  activeProblems: EraProblem[];
+  /** Constraints engineers work under */
+  constraints: EraConstraint[];
+  /** Things that are impossible at this time (not just difficult) */
+  impossibilities: string[];
+  /** Historical perspective framing */
+  historicalPerspective: {
+    /** What knowledge is available to someone in this year */
+    currentKnowledge: string;
+    /** Explicit statement that we don't know the future */
+    futureBlind: string;
+  };
+}
+
+/**
+ * Option for a historical decision without revealing history's choice.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface HistoricalOption {
+  /** Option ID */
+  id: string;
+  /** Option description (period-accurate framing) */
+  description: string;
+  /** Pros visible from the era's perspective */
+  visiblePros: string[];
+  /** Cons visible from the era's perspective */
+  visibleCons: string[];
+  /** Is this what history chose? (hidden until reveal) */
+  isHistorical: boolean;
+}
+
+/**
+ * Decision card that presents choices WITHOUT revealing history's path.
+ * Only after user chooses do we reveal what actually happened.
+ * Story 10.21: Historical Mindset Time-Travel
+ */
+export interface HistoricalDecision {
+  /** Decision ID */
+  id: string;
+  /** The decision framed from the era's perspective */
+  question: string;
+  /** Context explaining why this matters NOW (in that year) */
+  context: string;
+  /** Available options without historical outcome hints */
+  options: HistoricalOption[];
+  /** What history actually chose (revealed after user picks) */
+  historicalChoice: string;
+  /** Outcome of historical choice (revealed after) */
+  historicalOutcome: string;
+  /** What might have happened with other choices */
+  alternateOutcomes: { optionId: string; speculation: string }[];
 }

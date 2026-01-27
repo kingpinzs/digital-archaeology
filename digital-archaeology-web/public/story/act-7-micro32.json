@@ -39,8 +39,14 @@
                   "title": "Chief Architect, 80386",
                   "bio": "The engineer who freed x86 from its segmented past. Crawford's 386 design maintained backwards compatibility while enabling a completely flat 32-bit programming model. His architecture runs most computers today.",
                   "stats": [
-                    { "label": "Achievement", "value": "Flat 32-bit addressing" },
-                    { "label": "Legacy", "value": "Still the basis of x86-64" }
+                    {
+                      "label": "Achievement",
+                      "value": "Flat 32-bit addressing"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Still the basis of x86-64"
+                    }
                   ]
                 }
               ],
@@ -208,12 +214,36 @@
               "challenge": {
                 "title": "BUILD THE MICRO32 CPU",
                 "objectives": [
-                  { "id": "obj-1", "text": "Expand all registers to 32 bits (EAX, EBX, etc.)", "completed": false },
-                  { "id": "obj-2", "text": "Implement flat memory model (4GB address space)", "completed": false },
-                  { "id": "obj-3", "text": "Add protected mode with privilege levels (ring 0-3)", "completed": false },
-                  { "id": "obj-4", "text": "Implement two-level paging", "completed": false },
-                  { "id": "obj-5", "text": "Add page fault handling", "completed": false },
-                  { "id": "obj-6", "text": "Execute a program in user mode (ring 3)", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Expand all registers to 32 bits (EAX, EBX, etc.)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement flat memory model (4GB address space)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Add protected mode with privilege levels (ring 0-3)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement two-level paging",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add page fault handling",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Execute a program in user mode (ring 3)",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -276,8 +306,14 @@
                   "title": "Lead Architect, Windows NT",
                   "bio": "The legendary engineer who built VMS at DEC, then Windows NT at Microsoft. Known for his technical brilliance and fierce temper. NT's architecture still powers Windows today.",
                   "stats": [
-                    { "label": "Previous work", "value": "VMS operating system" },
-                    { "label": "Obsession", "value": "Reliability, clean design" }
+                    {
+                      "label": "Previous work",
+                      "value": "VMS operating system"
+                    },
+                    {
+                      "label": "Obsession",
+                      "value": "Reliability, clean design"
+                    }
                   ]
                 },
                 {
@@ -286,8 +322,14 @@
                   "title": "Creator, Linux Kernel",
                   "bio": "A Helsinki student who wanted to understand operating systems. His 'hobby' project became the foundation of Android, cloud computing, and most of the internet's infrastructure.",
                   "stats": [
-                    { "label": "Age when starting", "value": "21" },
-                    { "label": "Philosophy", "value": "Just for fun" }
+                    {
+                      "label": "Age when starting",
+                      "value": "21"
+                    },
+                    {
+                      "label": "Philosophy",
+                      "value": "Just for fun"
+                    }
                   ]
                 }
               ],
@@ -455,12 +497,36 @@
               "challenge": {
                 "title": "BUILD AN OS KERNEL",
                 "objectives": [
-                  { "id": "obj-1", "text": "Set up Interrupt Descriptor Table (IDT)", "completed": false },
-                  { "id": "obj-2", "text": "Implement timer interrupt for preemption", "completed": false },
-                  { "id": "obj-3", "text": "Create simple process/task structures", "completed": false },
-                  { "id": "obj-4", "text": "Implement context switching", "completed": false },
-                  { "id": "obj-5", "text": "Add system call interface (ring 3 → ring 0)", "completed": false },
-                  { "id": "obj-6", "text": "Run two processes in time-sliced multitasking", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Set up Interrupt Descriptor Table (IDT)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement timer interrupt for preemption",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Create simple process/task structures",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement context switching",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add system call interface (ring 3 → ring 0)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Run two processes in time-sliced multitasking",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -523,8 +589,14 @@
                   "title": "Professor of Mathematics, Lynchburg College",
                   "bio": "The professor who discovered the Pentium floating-point division bug while calculating prime number reciprocals. His persistence forced Intel to acknowledge and fix the flaw.",
                   "stats": [
-                    { "label": "Discovery", "value": "FDIV bug, October 1994" },
-                    { "label": "Impact", "value": "$475M Intel write-off" }
+                    {
+                      "label": "Discovery",
+                      "value": "FDIV bug, October 1994"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "$475M Intel write-off"
+                    }
                   ]
                 }
               ],
@@ -579,8 +651,14 @@
                   "title": "Chief Architect, Pentium Pro",
                   "bio": "The engineer who led the P6 architecture team. Colwell's design—translating x86 to micro-ops and executing out-of-order—became the template for every subsequent Intel processor.",
                   "stats": [
-                    { "label": "Innovation", "value": "P6 microarchitecture" },
-                    { "label": "Legacy", "value": "20+ years of derivatives" }
+                    {
+                      "label": "Innovation",
+                      "value": "P6 microarchitecture"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "20+ years of derivatives"
+                    }
                   ]
                 }
               ],
@@ -729,12 +807,36 @@
               "challenge": {
                 "title": "ADD CACHE TO THE MICRO32",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement a direct-mapped instruction cache", "completed": false },
-                  { "id": "obj-2", "text": "Add cache tags and valid bits", "completed": false },
-                  { "id": "obj-3", "text": "Implement cache hit/miss detection", "completed": false },
-                  { "id": "obj-4", "text": "Handle cache misses (stall and fill)", "completed": false },
-                  { "id": "obj-5", "text": "Measure cache hit rate on a benchmark", "completed": false },
-                  { "id": "obj-6", "text": "Observe the speedup from cached vs. uncached", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement a direct-mapped instruction cache",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Add cache tags and valid bits",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Implement cache hit/miss detection",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Handle cache misses (stall and fill)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Measure cache hit rate on a benchmark",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Observe the speedup from cached vs. uncached",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -773,7 +875,67 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1989,
+        "knownTechnology": [
+          "32-bit processor",
+          "80386",
+          "protected mode",
+          "multitasking",
+          "hard drive",
+          "VGA graphics",
+          "mouse",
+          "ethernet"
+        ],
+        "unknownTechnology": [
+          "internet browser",
+          "smartphone",
+          "flash memory",
+          "USB",
+          "Wi-Fi",
+          "SSD",
+          "touchscreen",
+          "cloud computing"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we make the most of 32-bit addressing?",
+            "motivation": "4GB address space is vast. We need new memory management strategies."
+          },
+          {
+            "statement": "How do we write operating systems for protected mode?",
+            "motivation": "DOS was single-user, single-task. Protected mode enables true multitasking but is complex to program."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Memory is expensive",
+            "limitation": "Typical PC has only 1-4MB RAM"
+          },
+          {
+            "type": "knowledge",
+            "description": "Protected mode programming is complex",
+            "limitation": "Most developers still target real mode DOS"
+          },
+          {
+            "type": "economic",
+            "description": "32-bit software takes years to develop",
+            "limitation": "Publishers want quick returns, not rewrites"
+          }
+        ],
+        "impossibilities": [
+          "gigabit networking",
+          "terabyte storage",
+          "real-time 3D gaming",
+          "video streaming"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are at the dawn of 32-bit personal computing. The 386 enables protected mode but most software still runs in DOS. Windows 3.0 is being developed. OS/2 promises true multitasking but struggles. UNIX workstations show whats possible.",
+          "futureBlind": "You cannot know if Windows or OS/2 will dominate 32-bit computing. Perhaps UNIX will take over the desktop. Will protected mode ever matter to regular users, or only to servers?"
+        }
+      }
     }
   ]
 }

@@ -39,8 +39,14 @@
                   "title": "Chief Architect, 8086",
                   "bio": "The engineer who designed the 8086's architecture. Morse faced an impossible mandate: stay compatible with 8080 software while breaking the 64KB barrier. His solution—segmented memory—was elegant but would haunt programmers for decades.",
                   "stats": [
-                    { "label": "Constraint", "value": "8080 compatibility required" },
-                    { "label": "Innovation", "value": "Segment:Offset addressing" }
+                    {
+                      "label": "Constraint",
+                      "value": "8080 compatibility required"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Segment:Offset addressing"
+                    }
                   ]
                 }
               ],
@@ -95,8 +101,14 @@
                   "title": "68000 Design Lead, Motorola",
                   "bio": "Leader of the team that created one of the most elegant processors ever designed. The 68000's clean architecture influenced CPU design for generations, even as it lost the market to x86.",
                   "stats": [
-                    { "label": "Philosophy", "value": "Clean design over compatibility" },
-                    { "label": "Registers", "value": "16 × 32-bit" }
+                    {
+                      "label": "Philosophy",
+                      "value": "Clean design over compatibility"
+                    },
+                    {
+                      "label": "Registers",
+                      "value": "16 × 32-bit"
+                    }
                   ]
                 }
               ],
@@ -240,12 +252,36 @@
               "challenge": {
                 "title": "BUILD THE MICRO16 CPU",
                 "objectives": [
-                  { "id": "obj-1", "text": "Expand data path to 16 bits", "completed": false },
-                  { "id": "obj-2", "text": "Implement segmented addressing (1MB address space)", "completed": false },
-                  { "id": "obj-3", "text": "Add segment registers (CS, DS, SS, ES)", "completed": false },
-                  { "id": "obj-4", "text": "Implement hardware MUL/DIV instructions", "completed": false },
-                  { "id": "obj-5", "text": "Add string operations (MOVS, CMPS)", "completed": false },
-                  { "id": "obj-6", "text": "Execute a program using far pointers", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Expand data path to 16 bits",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Implement segmented addressing (1MB address space)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Add segment registers (CS, DS, SS, ES)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement hardware MUL/DIV instructions",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add string operations (MOVS, CMPS)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Execute a program using far pointers",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -308,8 +344,14 @@
                   "title": "Director, Entry Systems Division",
                   "bio": "The man who led IBM's PC project. Estridge broke every IBM rule: open architecture, outside software, commodity chips. His unconventional approach created the PC industry—and ultimately made IBM irrelevant to it.",
                   "stats": [
-                    { "label": "Innovation", "value": "Open PC architecture" },
-                    { "label": "Tragedy", "value": "Died in plane crash, 1985" }
+                    {
+                      "label": "Innovation",
+                      "value": "Open PC architecture"
+                    },
+                    {
+                      "label": "Tragedy",
+                      "value": "Died in plane crash, 1985"
+                    }
                   ]
                 }
               ],
@@ -345,8 +387,14 @@
                   "title": "Founder, Digital Research",
                   "bio": "Creator of CP/M, the dominant operating system before DOS. Kildall invented the BIOS concept and pioneered many OS features. His missed IBM meeting became computing's greatest 'what if.'",
                   "stats": [
-                    { "label": "Created", "value": "CP/M, BIOS concept" },
-                    { "label": "Lost", "value": "The PC OS market" }
+                    {
+                      "label": "Created",
+                      "value": "CP/M, BIOS concept"
+                    },
+                    {
+                      "label": "Lost",
+                      "value": "The PC OS market"
+                    }
                   ]
                 },
                 {
@@ -355,8 +403,14 @@
                   "title": "CEO, Microsoft",
                   "bio": "The negotiator who saw what IBM missed: the value wasn't in one computer, but in every computer. By keeping DOS rights, Gates positioned Microsoft to dominate the clone market.",
                   "stats": [
-                    { "label": "Key deal", "value": "Non-exclusive DOS license" },
-                    { "label": "Result", "value": "Microsoft dominance" }
+                    {
+                      "label": "Key deal",
+                      "value": "Non-exclusive DOS license"
+                    },
+                    {
+                      "label": "Result",
+                      "value": "Microsoft dominance"
+                    }
                   ]
                 }
               ],
@@ -386,8 +440,14 @@
                   "title": "Co-founder, Compaq",
                   "bio": "The engineer who made IBM compatibles respectable. Canion's portable PC matched IBM quality while beating IBM prices. Compaq proved that compatibility, not the IBM name, drove purchasing decisions.",
                   "stats": [
-                    { "label": "Innovation", "value": "Clean-room BIOS" },
-                    { "label": "Product", "value": "Compaq Portable" }
+                    {
+                      "label": "Innovation",
+                      "value": "Clean-room BIOS"
+                    },
+                    {
+                      "label": "Product",
+                      "value": "Compaq Portable"
+                    }
                   ]
                 }
               ],
@@ -531,11 +591,31 @@
               "challenge": {
                 "title": "PROGRAM THE IBM PC",
                 "objectives": [
-                  { "id": "obj-1", "text": "Write a program that runs under DOS", "completed": false },
-                  { "id": "obj-2", "text": "Use BIOS interrupts for screen output", "completed": false },
-                  { "id": "obj-3", "text": "Access memory directly (video RAM)", "completed": false },
-                  { "id": "obj-4", "text": "Handle the 640KB conventional memory limit", "completed": false },
-                  { "id": "obj-5", "text": "Create a TSR (terminate-stay-resident) program", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Write a program that runs under DOS",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Use BIOS interrupts for screen output",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Access memory directly (video RAM)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Handle the 640KB conventional memory limit",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Create a TSR (terminate-stay-resident) program",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -591,8 +671,14 @@
                   "title": "8087 Project Manager, Intel",
                   "bio": "Led the team that created the 8087 floating-point coprocessor. Palmer worked with mathematician William Kahan to implement IEEE 754 floating-point standard, which became universal.",
                   "stats": [
-                    { "label": "Innovation", "value": "IEEE 754 floating-point in silicon" },
-                    { "label": "Impact", "value": "Enabled PC scientific computing" }
+                    {
+                      "label": "Innovation",
+                      "value": "IEEE 754 floating-point in silicon"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Enabled PC scientific computing"
+                    }
                   ]
                 }
               ],
@@ -631,8 +717,14 @@
                   "title": "Co-founder, Apple Computer",
                   "bio": "The visionary who demanded elegance in computing. Jobs chose the 68000 over the 8086 because he wanted a computer that was insanely great—not just compatible.",
                   "stats": [
-                    { "label": "Vision", "value": "A computer for the rest of us" },
-                    { "label": "Choice", "value": "68000 for clean architecture" }
+                    {
+                      "label": "Vision",
+                      "value": "A computer for the rest of us"
+                    },
+                    {
+                      "label": "Choice",
+                      "value": "68000 for clean architecture"
+                    }
                   ]
                 },
                 {
@@ -641,8 +733,14 @@
                   "title": "Software Lead, Macintosh",
                   "bio": "Principal architect of the original Macintosh system software. Hertzfeld exploited the 68000's capabilities to create the revolutionary Mac interface.",
                   "stats": [
-                    { "label": "Achievement", "value": "Mac Toolbox and System" },
-                    { "label": "Why 68000", "value": "Orthogonal, 32-bit, elegant" }
+                    {
+                      "label": "Achievement",
+                      "value": "Mac Toolbox and System"
+                    },
+                    {
+                      "label": "Why 68000",
+                      "value": "Orthogonal, 32-bit, elegant"
+                    }
                   ]
                 }
               ],
@@ -678,8 +776,14 @@
                   "title": "Chief Engineer, Amiga",
                   "bio": "The 'father of the Amiga' who designed the custom chips that made it revolutionary. Miner's vision: a computer for creativity, not just productivity.",
                   "stats": [
-                    { "label": "Innovation", "value": "Custom chipset for multimedia" },
-                    { "label": "Ahead of time", "value": "5-10 years" }
+                    {
+                      "label": "Innovation",
+                      "value": "Custom chipset for multimedia"
+                    },
+                    {
+                      "label": "Ahead of time",
+                      "value": "5-10 years"
+                    }
                   ]
                 }
               ],
@@ -715,8 +819,14 @@
                   "title": "CEO, Atari Corporation",
                   "bio": "The legendary businessman who made computers affordable. Tramiel's philosophy: 'Computers for the masses, not the classes.' The ST was his 68000-powered answer.",
                   "stats": [
-                    { "label": "Philosophy", "value": "Low cost, high capability" },
-                    { "label": "ST success", "value": "Music production standard" }
+                    {
+                      "label": "Philosophy",
+                      "value": "Low cost, high capability"
+                    },
+                    {
+                      "label": "ST success",
+                      "value": "Music production standard"
+                    }
                   ]
                 }
               ],
@@ -797,8 +907,14 @@
                   "title": "PC Developer",
                   "bio": "Represents every developer who tried to use the 286's protected mode and hit its limitations. The inability to switch modes made the 286 'brain-dead' for practical use.",
                   "stats": [
-                    { "label": "Feeling", "value": "Betrayed by Intel" },
-                    { "label": "Quote", "value": "The 286 is brain-dead" }
+                    {
+                      "label": "Feeling",
+                      "value": "Betrayed by Intel"
+                    },
+                    {
+                      "label": "Quote",
+                      "value": "The 286 is brain-dead"
+                    }
                   ]
                 }
               ],
@@ -973,12 +1089,36 @@
               "challenge": {
                 "title": "IMPLEMENT PROTECTED MODE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Create a Global Descriptor Table (GDT)", "completed": false },
-                  { "id": "obj-2", "text": "Define code and data segment descriptors", "completed": false },
-                  { "id": "obj-3", "text": "Switch the CPU to protected mode", "completed": false },
-                  { "id": "obj-4", "text": "Implement privilege levels (ring 0 and ring 3)", "completed": false },
-                  { "id": "obj-5", "text": "Create a call gate for system calls", "completed": false },
-                  { "id": "obj-6", "text": "Handle a protection fault", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Create a Global Descriptor Table (GDT)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Define code and data segment descriptors",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Switch the CPU to protected mode",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement privilege levels (ring 0 and ring 3)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Create a call gate for system calls",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Handle a protection fault",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -1018,7 +1158,67 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1983,
+        "knownTechnology": [
+          "16-bit processor",
+          "8086",
+          "68000",
+          "floppy disk",
+          "hard drive",
+          "MS-DOS",
+          "spreadsheet",
+          "word processor"
+        ],
+        "unknownTechnology": [
+          "32-bit personal computer",
+          "internet",
+          "smartphone",
+          "flash memory",
+          "CD-ROM burner",
+          "Wi-Fi",
+          "touchscreen",
+          "SSD"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we break the 640KB memory barrier?",
+            "motivation": "Applications are getting larger. Spreadsheets and databases hit memory limits constantly."
+          },
+          {
+            "statement": "What comes after DOS?",
+            "motivation": "Command lines are unfriendly. Xerox PARC showed graphical interfaces, but they need more power than current PCs offer."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "8086 segment architecture is limiting",
+            "limitation": "64KB segments make large programs awkward"
+          },
+          {
+            "type": "knowledge",
+            "description": "Graphical programming is new",
+            "limitation": "Few developers know how to write GUI applications"
+          },
+          {
+            "type": "economic",
+            "description": "IBM compatibility is required",
+            "limitation": "Innovation is constrained by backward compatibility"
+          }
+        ],
+        "impossibilities": [
+          "gigabyte storage on a chip",
+          "wireless internet",
+          "streaming video",
+          "voice recognition"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the era of the IBM PC and its clones. The 8086/8088 architecture dominates. Apple is working on Macintosh. Microsoft and IBM are uneasy partners. The Lotus 1-2-3 spreadsheet is the killer app.",
+          "futureBlind": "You cannot know if IBM will maintain its dominance. Perhaps clones will fragment the market into incompatible systems. Will graphical interfaces ever run fast enough on affordable hardware?"
+        }
+      }
     }
   ]
 }

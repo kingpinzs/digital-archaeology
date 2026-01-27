@@ -39,9 +39,18 @@
                   "title": "Lead Architect, Pentium Pro",
                   "bio": "The engineer who brought true out-of-order execution to x86. Colwell's P6 architecture (Pentium Pro, Pentium II, Pentium III) translated complex x86 instructions into simple micro-ops, then executed them out of order. This design would dominate for over two decades.",
                   "stats": [
-                    { "label": "Innovation", "value": "x86 micro-op translation" },
-                    { "label": "Architecture", "value": "P6 (Pentium Pro/II/III)" },
-                    { "label": "Legacy", "value": "Foundation for Core series" }
+                    {
+                      "label": "Innovation",
+                      "value": "x86 micro-op translation"
+                    },
+                    {
+                      "label": "Architecture",
+                      "value": "P6 (Pentium Pro/II/III)"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Foundation for Core series"
+                    }
                   ]
                 }
               ],
@@ -107,9 +116,18 @@
                   "title": "Principal Architect, P6",
                   "bio": "Co-designer of the Pentium Pro's microarchitecture. Hinton's work on register renaming and the front-end decoder proved that out-of-order could work for CISC. He would later lead the Atom low-power processor team.",
                   "stats": [
-                    { "label": "Design", "value": "P6 microarchitecture" },
-                    { "label": "Registers", "value": "8 arch → 40 physical" },
-                    { "label": "Later work", "value": "Intel Atom, Golden Cove" }
+                    {
+                      "label": "Design",
+                      "value": "P6 microarchitecture"
+                    },
+                    {
+                      "label": "Registers",
+                      "value": "8 arch → 40 physical"
+                    },
+                    {
+                      "label": "Later work",
+                      "value": "Intel Atom, Golden Cove"
+                    }
                   ]
                 }
               ],
@@ -201,14 +219,46 @@
               "challenge": {
                 "title": "BUILD THE MICRO32-S SUPERSCALAR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement instruction decode to micro-ops", "completed": false },
-                  { "id": "obj-2", "text": "Build a register rename table", "completed": false },
-                  { "id": "obj-3", "text": "Create reservation stations for execution units", "completed": false },
-                  { "id": "obj-4", "text": "Implement the reorder buffer for in-order commit", "completed": false },
-                  { "id": "obj-5", "text": "Add multiple execution units (2+ ALUs, load/store)", "completed": false },
-                  { "id": "obj-6", "text": "Implement speculative execution with rollback", "completed": false },
-                  { "id": "obj-7", "text": "Add branch prediction (2-bit or better)", "completed": false },
-                  { "id": "obj-8", "text": "Measure IPC on a benchmark program", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement instruction decode to micro-ops",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Build a register rename table",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Create reservation stations for execution units",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement the reorder buffer for in-order commit",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add multiple execution units (2+ ALUs, load/store)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Implement speculative execution with rollback",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-7",
+                    "text": "Add branch prediction (2-bit or better)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-8",
+                    "text": "Measure IPC on a benchmark program",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -280,9 +330,18 @@
                   "title": "Lead Architect, NetBurst",
                   "bio": "The architect behind the Pentium 4's NetBurst microarchitecture. Carmean bet on extreme pipeline depth and clock speed, achieving the industry's first 3 GHz processor. The gamble would later prove problematic.",
                   "stats": [
-                    { "label": "Pipeline", "value": "20-31 stages" },
-                    { "label": "Peak clock", "value": "3.8 GHz (2004)" },
-                    { "label": "Power", "value": "Up to 130W TDP" }
+                    {
+                      "label": "Pipeline",
+                      "value": "20-31 stages"
+                    },
+                    {
+                      "label": "Peak clock",
+                      "value": "3.8 GHz (2004)"
+                    },
+                    {
+                      "label": "Power",
+                      "value": "Up to 130W TDP"
+                    }
                   ]
                 }
               ],
@@ -329,9 +388,18 @@
                   "title": "Chief Technology Officer, AMD",
                   "bio": "The architect behind AMD's Athlon and Athlon 64. Meyer's focus on IPC over raw frequency would prove prescient. The Athlon regularly beat Intel's higher-clocked Pentium 4 on real-world benchmarks.",
                   "stats": [
-                    { "label": "Design", "value": "K7 (Athlon) architecture" },
-                    { "label": "Pipeline", "value": "10 stages (vs Intel's 20)" },
-                    { "label": "Later role", "value": "AMD CEO (2008-2011)" }
+                    {
+                      "label": "Design",
+                      "value": "K7 (Athlon) architecture"
+                    },
+                    {
+                      "label": "Pipeline",
+                      "value": "10 stages (vs Intel's 20)"
+                    },
+                    {
+                      "label": "Later role",
+                      "value": "AMD CEO (2008-2011)"
+                    }
                   ]
                 }
               ],
@@ -361,9 +429,18 @@
                   "title": "Chief Technology Officer, AMD",
                   "bio": "The architect who led AMD's 64-bit extension of x86. Weber's pragmatic approach—extend rather than replace—defined the industry standard. Intel eventually adopted AMD64 under the name 'Intel 64' or 'x86-64'.",
                   "stats": [
-                    { "label": "Innovation", "value": "AMD64 (x86-64)" },
-                    { "label": "Approach", "value": "Extension, not replacement" },
-                    { "label": "Impact", "value": "Industry-standard 64-bit x86" }
+                    {
+                      "label": "Innovation",
+                      "value": "AMD64 (x86-64)"
+                    },
+                    {
+                      "label": "Approach",
+                      "value": "Extension, not replacement"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Industry-standard 64-bit x86"
+                    }
                   ]
                 }
               ],
@@ -393,9 +470,18 @@
                   "title": "Principal Engineer, Intel",
                   "bio": "Lead architect for Intel's Hyper-Threading implementation in Pentium 4. Marr's work brought simultaneous multithreading (SMT) to x86, squeezing more utilization from existing execution resources.",
                   "stats": [
-                    { "label": "Technology", "value": "Hyper-Threading (SMT)" },
-                    { "label": "Benefit", "value": "30-50% throughput gain" },
-                    { "label": "Cost", "value": "~5% die area" }
+                    {
+                      "label": "Technology",
+                      "value": "Hyper-Threading (SMT)"
+                    },
+                    {
+                      "label": "Benefit",
+                      "value": "30-50% throughput gain"
+                    },
+                    {
+                      "label": "Cost",
+                      "value": "~5% die area"
+                    }
                   ]
                 }
               ],
@@ -511,9 +597,18 @@
                   "title": "General Manager, Intel Mobile Platforms",
                   "bio": "One of the leaders who championed the shift from raw frequency to efficiency. The mobile market—laptops, then phones—demanded performance per watt. The Core architecture delivered.",
                   "stats": [
-                    { "label": "Focus", "value": "Performance per watt" },
-                    { "label": "Result", "value": "Core 2: 40% less power" },
-                    { "label": "Trend", "value": "Mobile-first design" }
+                    {
+                      "label": "Focus",
+                      "value": "Performance per watt"
+                    },
+                    {
+                      "label": "Result",
+                      "value": "Core 2: 40% less power"
+                    },
+                    {
+                      "label": "Trend",
+                      "value": "Mobile-first design"
+                    }
                   ]
                 }
               ],
@@ -543,9 +638,18 @@
                   "title": "Chief Architect, Intel Core",
                   "bio": "Led Intel's microarchitecture development through Sandy Bridge and beyond. Singhal championed AVX as a way to deliver performance gains even as frequency scaling stalled.",
                   "stats": [
-                    { "label": "Innovation", "value": "AVX (256-bit SIMD)" },
-                    { "label": "Evolution", "value": "MMX → SSE → AVX → AVX-512" },
-                    { "label": "Impact", "value": "2-8x for vectorizable code" }
+                    {
+                      "label": "Innovation",
+                      "value": "AVX (256-bit SIMD)"
+                    },
+                    {
+                      "label": "Evolution",
+                      "value": "MMX → SSE → AVX → AVX-512"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "2-8x for vectorizable code"
+                    }
                   ]
                 }
               ],
@@ -624,9 +728,18 @@
                   "title": "Security Researcher, Google Project Zero",
                   "bio": "One of the researchers who discovered Spectre and Meltdown. Horn's work revealed that speculative execution—the foundation of modern CPU performance—had fundamental security implications that the industry had overlooked for decades.",
                   "stats": [
-                    { "label": "Discovery", "value": "Spectre vulnerabilities" },
-                    { "label": "Impact", "value": "Every modern CPU affected" },
-                    { "label": "Response", "value": "Industry-wide patches, redesigns" }
+                    {
+                      "label": "Discovery",
+                      "value": "Spectre vulnerabilities"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Every modern CPU affected"
+                    },
+                    {
+                      "label": "Response",
+                      "value": "Industry-wide patches, redesigns"
+                    }
                   ]
                 }
               ],
@@ -692,9 +805,18 @@
                   "title": "Chief Architect, AMD Zen",
                   "bio": "The architect behind AMD's Zen series. Clark's team created a modern, efficient microarchitecture that brought AMD back to competitiveness after years of trailing Intel. Zen proved that smart design beats brute-force frequency.",
                   "stats": [
-                    { "label": "Architecture", "value": "Zen, Zen 2, Zen 3, Zen 4" },
-                    { "label": "IPC gain", "value": "+52% Zen 1 to 3" },
-                    { "label": "Impact", "value": "AMD market share: 10% → 30%+" }
+                    {
+                      "label": "Architecture",
+                      "value": "Zen, Zen 2, Zen 3, Zen 4"
+                    },
+                    {
+                      "label": "IPC gain",
+                      "value": "+52% Zen 1 to 3"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "AMD market share: 10% → 30%+"
+                    }
                   ]
                 }
               ],
@@ -724,9 +846,18 @@
                   "title": "Senior VP, Hardware Technologies, Apple",
                   "bio": "The executive who built Apple's chip design organization. Under Srouji, Apple created the iPhone's A-series chips, then scaled them to Mac-class performance with M1. The M1's efficiency shocked the industry.",
                   "stats": [
-                    { "label": "Architecture", "value": "Apple Silicon (ARM)" },
-                    { "label": "Power", "value": "10W TDP (laptop)" },
-                    { "label": "Performance", "value": "Matches 65W desktop x86" }
+                    {
+                      "label": "Architecture",
+                      "value": "Apple Silicon (ARM)"
+                    },
+                    {
+                      "label": "Power",
+                      "value": "10W TDP (laptop)"
+                    },
+                    {
+                      "label": "Performance",
+                      "value": "Matches 65W desktop x86"
+                    }
                   ]
                 }
               ],
@@ -791,14 +922,46 @@
               "challenge": {
                 "title": "THE ULTIMATE SUPERSCALAR PROCESSOR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement 4+ wide decode with micro-op fusion", "completed": false },
-                  { "id": "obj-2", "text": "Build a 100+ entry physical register file", "completed": false },
-                  { "id": "obj-3", "text": "Create 6+ execution units with specialization", "completed": false },
-                  { "id": "obj-4", "text": "Implement a 128+ entry reorder buffer", "completed": false },
-                  { "id": "obj-5", "text": "Add TAGE or perceptron branch prediction", "completed": false },
-                  { "id": "obj-6", "text": "Implement speculative memory disambiguation", "completed": false },
-                  { "id": "obj-7", "text": "Add L1/L2 cache hierarchy with prefetch", "completed": false },
-                  { "id": "obj-8", "text": "Achieve IPC > 2.0 on a realistic benchmark", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement 4+ wide decode with micro-op fusion",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Build a 100+ entry physical register file",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Create 6+ execution units with specialization",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement a 128+ entry reorder buffer",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Add TAGE or perceptron branch prediction",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Implement speculative memory disambiguation",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-7",
+                    "text": "Add L1/L2 cache hierarchy with prefetch",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-8",
+                    "text": "Achieve IPC > 2.0 on a realistic benchmark",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -889,9 +1052,18 @@
                   "title": "Intel-HP Itanium Development",
                   "bio": "A joint Intel-HP project to create IA-64, a 64-bit VLIW architecture that would replace x86. The project consumed over $10 billion and two decades, only to be overtaken by AMD's simpler x86-64 extension.",
                   "stats": [
-                    { "label": "Cost", "value": "$10+ billion" },
-                    { "label": "Development", "value": "1994-2001" },
-                    { "label": "Outcome", "value": "Commercial failure" }
+                    {
+                      "label": "Cost",
+                      "value": "$10+ billion"
+                    },
+                    {
+                      "label": "Development",
+                      "value": "1994-2001"
+                    },
+                    {
+                      "label": "Outcome",
+                      "value": "Commercial failure"
+                    }
                   ]
                 }
               ],
@@ -921,9 +1093,18 @@
                   "title": "Chief Technology Officer, AMD",
                   "bio": "The architect behind AMD's x86-64 extension. Meyer recognized that backward compatibility trumps architectural elegance. His pragmatic approach would define the next two decades of computing.",
                   "stats": [
-                    { "label": "Innovation", "value": "x86-64 architecture" },
-                    { "label": "Key insight", "value": "Compatibility > Elegance" },
-                    { "label": "Later role", "value": "AMD CEO (2008-2011)" }
+                    {
+                      "label": "Innovation",
+                      "value": "x86-64 architecture"
+                    },
+                    {
+                      "label": "Key insight",
+                      "value": "Compatibility > Elegance"
+                    },
+                    {
+                      "label": "Later role",
+                      "value": "AMD CEO (2008-2011)"
+                    }
                   ]
                 }
               ],
@@ -993,9 +1174,18 @@
                   "title": "Apple-IBM-Motorola Partnership",
                   "bio": "A 1991 alliance to create PowerPC processors as an alternative to Intel x86. For 15 years, PowerPC powered all Macintosh computers. The alliance ended when Apple switched to Intel in 2005.",
                   "stats": [
-                    { "label": "Duration", "value": "1991-2006" },
-                    { "label": "Notable chips", "value": "G3, G4, G5" },
-                    { "label": "Legacy", "value": "IBM POWER continues in servers" }
+                    {
+                      "label": "Duration",
+                      "value": "1991-2006"
+                    },
+                    {
+                      "label": "Notable chips",
+                      "value": "G3, G4, G5"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "IBM POWER continues in servers"
+                    }
                   ]
                 }
               ],
@@ -1061,9 +1251,18 @@
                   "title": "GPU Architect, NVIDIA",
                   "bio": "The architect behind CUDA, the platform that transformed GPUs from graphics accelerators into general-purpose parallel computers. Nickolls's work enabled the deep learning revolution.",
                   "stats": [
-                    { "label": "Innovation", "value": "CUDA (2007)" },
-                    { "label": "Impact", "value": "Enabled GPU computing" },
-                    { "label": "Legacy", "value": "Foundation of AI training" }
+                    {
+                      "label": "Innovation",
+                      "value": "CUDA (2007)"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Enabled GPU computing"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Foundation of AI training"
+                    }
                   ]
                 }
               ],
@@ -1094,9 +1293,18 @@
                   "title": "The Deep Learning Breakthrough",
                   "bio": "A deep convolutional neural network that won the 2012 ImageNet challenge by a massive margin. Trained on GPUs, AlexNet demonstrated that deep learning at scale was practical—and superior to all previous approaches.",
                   "stats": [
-                    { "label": "Layers", "value": "8 (5 conv, 3 FC)" },
-                    { "label": "Parameters", "value": "60 million" },
-                    { "label": "Training", "value": "2 GPUs, 6 days" }
+                    {
+                      "label": "Layers",
+                      "value": "8 (5 conv, 3 FC)"
+                    },
+                    {
+                      "label": "Parameters",
+                      "value": "60 million"
+                    },
+                    {
+                      "label": "Training",
+                      "value": "2 GPUs, 6 days"
+                    }
                   ]
                 },
                 {
@@ -1105,9 +1313,18 @@
                   "title": "CEO & Co-founder, NVIDIA",
                   "bio": "Huang co-founded NVIDIA in 1993 to build graphics chips. His bet on general-purpose GPU computing (CUDA, 2007) positioned NVIDIA to dominate the AI revolution. By 2024, NVIDIA became the world's most valuable company.",
                   "stats": [
-                    { "label": "Founded NVIDIA", "value": "1993" },
-                    { "label": "CUDA launch", "value": "2007" },
-                    { "label": "AI dominance", "value": "2012-present" }
+                    {
+                      "label": "Founded NVIDIA",
+                      "value": "1993"
+                    },
+                    {
+                      "label": "CUDA launch",
+                      "value": "2007"
+                    },
+                    {
+                      "label": "AI dominance",
+                      "value": "2012-present"
+                    }
                   ]
                 }
               ],
@@ -1120,7 +1337,65 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1999,
+        "knownTechnology": [
+          "superscalar processor",
+          "out-of-order execution",
+          "speculative execution",
+          "L2 cache",
+          "AGP graphics",
+          "USB",
+          "internet browser"
+        ],
+        "unknownTechnology": [
+          "smartphone",
+          "SSD",
+          "multi-core desktop CPU",
+          "cloud computing",
+          "touchscreen mobile",
+          "4G networking",
+          "machine learning hardware"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we extract more instruction-level parallelism?",
+            "motivation": "Superscalar can only execute so many instructions per cycle. Single-thread performance gains are slowing."
+          },
+          {
+            "statement": "How do we handle the memory wall?",
+            "motivation": "CPU speeds grow faster than memory speeds. Cache hierarchy is critical but complex."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Power wall approaching",
+            "limitation": "Higher clocks require exponentially more power"
+          },
+          {
+            "type": "knowledge",
+            "description": "Parallel programming is difficult",
+            "limitation": "Most software is still single-threaded"
+          },
+          {
+            "type": "economic",
+            "description": "Fabrication costs rising",
+            "limitation": "Smaller nodes require billion-dollar fabs"
+          }
+        ],
+        "impossibilities": [
+          "10GHz single-core desktop",
+          "quantum computing at scale",
+          "neuromorphic chips",
+          "room-temperature superconductors"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the superscalar era. Pentium III and Athlon are racing toward 1GHz. The dot-com boom drives demand for servers. Y2K looms. Out-of-order execution and branch prediction are mature. The question is: whats next?",
+          "futureBlind": "You cannot know that single-core performance gains will soon hit a wall. Multi-core seems like a niche for servers. Will desktop users ever need more than one core? Perhaps clock speed can keep doubling forever."
+        }
+      }
     }
   ]
 }

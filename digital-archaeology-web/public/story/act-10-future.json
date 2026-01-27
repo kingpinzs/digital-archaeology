@@ -39,9 +39,18 @@
                   "title": "CEO, AMD",
                   "bio": "An MIT PhD in electrical engineering who took over AMD when it was nearly bankrupt. Su bet the company on a radical new architecture—Zen—and a revolutionary manufacturing approach: chiplets. Her gamble would transform AMD from also-ran to market leader.",
                   "stats": [
-                    { "label": "Education", "value": "MIT PhD, EE" },
-                    { "label": "Became CEO", "value": "2014" },
-                    { "label": "Result", "value": "AMD market cap 50x increase" }
+                    {
+                      "label": "Education",
+                      "value": "MIT PhD, EE"
+                    },
+                    {
+                      "label": "Became CEO",
+                      "value": "2014"
+                    },
+                    {
+                      "label": "Result",
+                      "value": "AMD market cap 50x increase"
+                    }
                   ]
                 }
               ],
@@ -88,9 +97,18 @@
                   "title": "CTO, AMD",
                   "bio": "The chief technology officer who architected AMD's chiplet strategy. Papermaster led the development of Zen and Infinity Fabric, the technologies that enabled AMD's comeback. Previously worked at IBM on Power processors.",
                   "stats": [
-                    { "label": "Role", "value": "CTO, AMD" },
-                    { "label": "Key innovation", "value": "Infinity Fabric" },
-                    { "label": "Previous", "value": "IBM Power Architecture" }
+                    {
+                      "label": "Role",
+                      "value": "CTO, AMD"
+                    },
+                    {
+                      "label": "Key innovation",
+                      "value": "Infinity Fabric"
+                    },
+                    {
+                      "label": "Previous",
+                      "value": "IBM Power Architecture"
+                    }
                   ]
                 }
               ],
@@ -133,9 +151,18 @@
                   "title": "SVP, Technology Development, Intel",
                   "bio": "Leading Intel's advanced packaging and process technology development. Kelleher oversees Foveros 3D stacking and other technologies Intel hopes will leapfrog AMD's chiplet approach.",
                   "stats": [
-                    { "label": "Focus", "value": "Advanced Packaging" },
-                    { "label": "Technologies", "value": "Foveros, EMIB" },
-                    { "label": "Goal", "value": "Heterogeneous integration" }
+                    {
+                      "label": "Focus",
+                      "value": "Advanced Packaging"
+                    },
+                    {
+                      "label": "Technologies",
+                      "value": "Foveros, EMIB"
+                    },
+                    {
+                      "label": "Goal",
+                      "value": "Heterogeneous integration"
+                    }
                   ]
                 }
               ],
@@ -195,11 +222,31 @@
               "challenge": {
                 "title": "DESIGN A CHIPLET ARCHITECTURE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Partition CPU cores into compute chiplets (CCDs)", "completed": false },
-                  { "id": "obj-2", "text": "Design I/O die with memory controllers", "completed": false },
-                  { "id": "obj-3", "text": "Plan interconnect topology (ring, mesh, or crossbar)", "completed": false },
-                  { "id": "obj-4", "text": "Calculate yield improvement vs monolithic", "completed": false },
-                  { "id": "obj-5", "text": "Consider thermal and power distribution", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Partition CPU cores into compute chiplets (CCDs)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Design I/O die with memory controllers",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Plan interconnect topology (ring, mesh, or crossbar)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Calculate yield improvement vs monolithic",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Consider thermal and power distribution",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -236,9 +283,18 @@
                   "title": "VP, IBM Quantum",
                   "bio": "Leading IBM's quantum computing program toward practical applications. Gambetta's roadmap aims for 100,000+ qubit systems by 2033, the scale needed for useful quantum advantage in real-world problems.",
                   "stats": [
-                    { "label": "Current system", "value": "1,000+ qubits (2023)" },
-                    { "label": "2033 target", "value": "100,000+ qubits" },
-                    { "label": "Challenge", "value": "Error correction" }
+                    {
+                      "label": "Current system",
+                      "value": "1,000+ qubits (2023)"
+                    },
+                    {
+                      "label": "2033 target",
+                      "value": "100,000+ qubits"
+                    },
+                    {
+                      "label": "Challenge",
+                      "value": "Error correction"
+                    }
                   ]
                 }
               ],
@@ -281,9 +337,18 @@
                   "title": "Caltech Professor",
                   "bio": "Theoretical physicist who coined 'quantum supremacy' and 'NISQ era.' Preskill provides a realistic assessment of quantum computing: transformative potential, but significant challenges remain before practical applications.",
                   "stats": [
-                    { "label": "Coined", "value": "NISQ, Quantum Supremacy" },
-                    { "label": "Assessment", "value": "Promising but overhyped" },
-                    { "label": "Timeline", "value": "Useful applications: 10+ years" }
+                    {
+                      "label": "Coined",
+                      "value": "NISQ, Quantum Supremacy"
+                    },
+                    {
+                      "label": "Assessment",
+                      "value": "Promising but overhyped"
+                    },
+                    {
+                      "label": "Timeline",
+                      "value": "Useful applications: 10+ years"
+                    }
                   ]
                 }
               ],
@@ -307,9 +372,18 @@
                   "title": "Director, Neuromorphic Computing, Intel",
                   "bio": "Leading Intel's Loihi neuromorphic research program. Davies believes brain-inspired computing could achieve AI capabilities at a fraction of current power consumption—crucial for edge devices and autonomous systems.",
                   "stats": [
-                    { "label": "Chip", "value": "Loihi 2" },
-                    { "label": "Neurons", "value": "1 million per chip" },
-                    { "label": "Power advantage", "value": "Up to 1000x vs GPU" }
+                    {
+                      "label": "Chip",
+                      "value": "Loihi 2"
+                    },
+                    {
+                      "label": "Neurons",
+                      "value": "1 million per chip"
+                    },
+                    {
+                      "label": "Power advantage",
+                      "value": "Up to 1000x vs GPU"
+                    }
                   ]
                 }
               ],
@@ -339,9 +413,18 @@
                   "title": "CEO, Lightmatter",
                   "bio": "MIT PhD who co-founded Lightmatter to commercialize photonic computing. Harris believes optical matrix multiplication could transform AI inference, enabling real-time processing at the edge without massive power consumption.",
                   "stats": [
-                    { "label": "Technology", "value": "Photonic AI accelerator" },
-                    { "label": "Speed", "value": "Speed of light" },
-                    { "label": "Efficiency", "value": "10x vs electronic" }
+                    {
+                      "label": "Technology",
+                      "value": "Photonic AI accelerator"
+                    },
+                    {
+                      "label": "Speed",
+                      "value": "Speed of light"
+                    },
+                    {
+                      "label": "Efficiency",
+                      "value": "10x vs electronic"
+                    }
                   ]
                 }
               ],
@@ -398,11 +481,31 @@
               "challenge": {
                 "title": "MATCH PROBLEMS TO PARADIGMS",
                 "objectives": [
-                  { "id": "obj-1", "text": "Drug molecule simulation → Quantum (simulates quantum systems)", "completed": false },
-                  { "id": "obj-2", "text": "Real-time object detection → Neuromorphic (sparse, event-driven)", "completed": false },
-                  { "id": "obj-3", "text": "Neural network inference → Photonic (fast matrix multiply)", "completed": false },
-                  { "id": "obj-4", "text": "Cryptographic factoring → Quantum (exponential speedup)", "completed": false },
-                  { "id": "obj-5", "text": "Autonomous vehicle sensing → Neuromorphic (low power, real-time)", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Drug molecule simulation → Quantum (simulates quantum systems)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Real-time object detection → Neuromorphic (sparse, event-driven)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Neural network inference → Photonic (fast matrix multiply)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Cryptographic factoring → Quantum (exponential speedup)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Autonomous vehicle sensing → Neuromorphic (low power, real-time)",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -439,9 +542,18 @@
                   "title": "Distinguished Engineer, Google",
                   "bio": "The architect of Google's TPU. Jouppi designed a systolic array processor optimized for neural network inference—matrix multiplication at unprecedented efficiency. The TPU outperformed contemporary GPUs by 15-30x per watt.",
                   "stats": [
-                    { "label": "Innovation", "value": "Systolic array for ML" },
-                    { "label": "TPU v1 performance", "value": "92 TOPS" },
-                    { "label": "Efficiency", "value": "15-30x vs GPU/watt" }
+                    {
+                      "label": "Innovation",
+                      "value": "Systolic array for ML"
+                    },
+                    {
+                      "label": "TPU v1 performance",
+                      "value": "92 TOPS"
+                    },
+                    {
+                      "label": "Efficiency",
+                      "value": "15-30x vs GPU/watt"
+                    }
                   ]
                 }
               ],
@@ -484,9 +596,18 @@
                   "title": "SVP, Google AI",
                   "bio": "One of Google's most legendary engineers, co-creator of MapReduce, TensorFlow, and the TPU program. Dean has been instrumental in scaling machine learning from research curiosity to production infrastructure.",
                   "stats": [
-                    { "label": "Creations", "value": "MapReduce, TensorFlow" },
-                    { "label": "Role", "value": "SVP, Google AI" },
-                    { "label": "Impact", "value": "Scaled ML to billions of users" }
+                    {
+                      "label": "Creations",
+                      "value": "MapReduce, TensorFlow"
+                    },
+                    {
+                      "label": "Role",
+                      "value": "SVP, Google AI"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Scaled ML to billions of users"
+                    }
                   ]
                 }
               ],
@@ -516,9 +637,18 @@
                   "title": "SVP, Hardware Technologies, Apple",
                   "bio": "The architect of Apple's custom silicon strategy. Srouji built the team that created the A-series chips for iPhone and eventually the M-series chips for Mac. His Neural Engine brought on-device AI to billions of users.",
                   "stats": [
-                    { "label": "Role", "value": "SVP, Hardware Technologies" },
-                    { "label": "Created", "value": "A-series, M-series chips" },
-                    { "label": "Impact", "value": "AI in every Apple device" }
+                    {
+                      "label": "Role",
+                      "value": "SVP, Hardware Technologies"
+                    },
+                    {
+                      "label": "Created",
+                      "value": "A-series, M-series chips"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "AI in every Apple device"
+                    }
                   ]
                 }
               ],
@@ -542,9 +672,18 @@
                   "title": "Co-designer, ARM Architecture",
                   "bio": "One of the original ARM architects at Acorn. Wilson designed the instruction set that would become the world's most widely used processor architecture. Her work on conditional execution made ARM uniquely power-efficient.",
                   "stats": [
-                    { "label": "Created", "value": "ARM ISA (1985)" },
-                    { "label": "Innovation", "value": "Conditional execution" },
-                    { "label": "Impact", "value": "250+ billion chips shipped" }
+                    {
+                      "label": "Created",
+                      "value": "ARM ISA (1985)"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Conditional execution"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "250+ billion chips shipped"
+                    }
                   ]
                 },
                 {
@@ -553,9 +692,18 @@
                   "title": "The Architecture Licensor",
                   "bio": "ARM designs processor architectures and licenses them to manufacturers. They've never fabricated a chip. Their customers include Apple, Qualcomm, Samsung, and virtually every smartphone maker on Earth.",
                   "stats": [
-                    { "label": "Model", "value": "IP licensing" },
-                    { "label": "Revenue", "value": "~$2B/year royalties" },
-                    { "label": "Customers", "value": "500+ licensees" }
+                    {
+                      "label": "Model",
+                      "value": "IP licensing"
+                    },
+                    {
+                      "label": "Revenue",
+                      "value": "~$2B/year royalties"
+                    },
+                    {
+                      "label": "Customers",
+                      "value": "500+ licensees"
+                    }
                   ]
                 }
               ],
@@ -585,9 +733,18 @@
                   "title": "Professor, UC Berkeley",
                   "bio": "Co-creator of RISC-V, the open-source instruction set architecture. Asanovic and his colleagues designed RISC-V as a teaching tool, but it has grown into a global movement challenging ARM and x86 dominance.",
                   "stats": [
-                    { "label": "Created", "value": "RISC-V (2010)" },
-                    { "label": "Adoption", "value": "Billions of cores shipped" },
-                    { "label": "Philosophy", "value": "ISAs should be free" }
+                    {
+                      "label": "Created",
+                      "value": "RISC-V (2010)"
+                    },
+                    {
+                      "label": "Adoption",
+                      "value": "Billions of cores shipped"
+                    },
+                    {
+                      "label": "Philosophy",
+                      "value": "ISAs should be free"
+                    }
                   ]
                 },
                 {
@@ -596,9 +753,18 @@
                   "title": "Professor Emeritus, UC Berkeley",
                   "bio": "Turing Award winner, co-inventor of RISC architecture, and co-creator of RISC-V. Patterson's career spans the entire history of modern processors, from RISC revolution to open instruction sets.",
                   "stats": [
-                    { "label": "Awards", "value": "Turing Award (2017)" },
-                    { "label": "Created", "value": "RISC, RISC-V" },
-                    { "label": "Books", "value": "Computer Architecture standard texts" }
+                    {
+                      "label": "Awards",
+                      "value": "Turing Award (2017)"
+                    },
+                    {
+                      "label": "Created",
+                      "value": "RISC, RISC-V"
+                    },
+                    {
+                      "label": "Books",
+                      "value": "Computer Architecture standard texts"
+                    }
                   ]
                 }
               ],
@@ -727,12 +893,36 @@
               "challenge": {
                 "title": "DESIGN A HETEROGENEOUS SOC",
                 "objectives": [
-                  { "id": "obj-1", "text": "Select CPU cores (ARM, RISC-V, or x86)", "completed": false },
-                  { "id": "obj-2", "text": "Add GPU for graphics/parallel compute", "completed": false },
-                  { "id": "obj-3", "text": "Include NPU for machine learning inference", "completed": false },
-                  { "id": "obj-4", "text": "Design memory hierarchy (caches, unified memory)", "completed": false },
-                  { "id": "obj-5", "text": "Plan interconnect (bus, NoC, or hybrid)", "completed": false },
-                  { "id": "obj-6", "text": "Estimate power budget and performance", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Select CPU cores (ARM, RISC-V, or x86)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Add GPU for graphics/parallel compute",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Include NPU for machine learning inference",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Design memory hierarchy (caches, unified memory)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Plan interconnect (bus, NoC, or hybrid)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Estimate power budget and performance",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -797,7 +987,62 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 2024,
+        "knownTechnology": [
+          "multi-core processor",
+          "GPU computing",
+          "machine learning accelerator",
+          "SSD",
+          "5G",
+          "cloud computing",
+          "smartphone",
+          "touchscreen"
+        ],
+        "unknownTechnology": [
+          "practical quantum computing",
+          "room-temperature superconductors",
+          "true artificial general intelligence",
+          "neuromorphic computing at scale"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we continue scaling when transistors are near atomic limits?",
+            "motivation": "Dennard scaling ended. Moores Law is slowing. New architectures and materials are needed."
+          },
+          {
+            "statement": "How do we build specialized hardware for AI workloads?",
+            "motivation": "GPUs work but are inefficient. TPUs, NPUs, and custom silicon offer better performance per watt."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Atomic-scale transistor limits",
+            "limitation": "Cannot shrink much below current nodes"
+          },
+          {
+            "type": "material",
+            "description": "Exotic materials needed",
+            "limitation": "Beyond silicon requires new manufacturing"
+          },
+          {
+            "type": "economic",
+            "description": "Astronomical fab costs",
+            "limitation": "Leading-edge fabs cost tens of billions"
+          }
+        ],
+        "impossibilities": [
+          "faster-than-light communication",
+          "perpetual motion computers",
+          "breaking fundamental physical laws"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are at the frontier of computing. Multi-core, heterogeneous computing, and AI accelerators define the landscape. Chiplets and advanced packaging offer new scaling paths. RISC-V challenges x86 and ARM. Quantum computing shows promise but remains limited.",
+          "futureBlind": "You cannot know which emerging technologies will dominate. Perhaps quantum will remain a niche. Perhaps a new paradigm will emerge that makes silicon obsolete. The only certainty is that computing will continue to evolve."
+        }
+      }
     }
   ]
 }

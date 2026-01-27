@@ -39,9 +39,18 @@
                   "title": "Lead Architect, i486",
                   "bio": "At just 32, Gelsinger led the design of Intel's most ambitious processor yet. The i486 would integrate pipelining, cache, and floating-point unit on a single chip—1.2 million transistors. He would later become Intel's CEO.",
                   "stats": [
-                    { "label": "Age", "value": "32 during i486 design" },
-                    { "label": "Innovation", "value": "Integrated x86 pipeline" },
-                    { "label": "Later role", "value": "Intel CEO (2021+)" }
+                    {
+                      "label": "Age",
+                      "value": "32 during i486 design"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "Integrated x86 pipeline"
+                    },
+                    {
+                      "label": "Later role",
+                      "value": "Intel CEO (2021+)"
+                    }
                   ]
                 }
               ],
@@ -144,9 +153,18 @@
                   "title": "Cache Architect, i486",
                   "bio": "Hill designed the 8KB unified cache that made the i486's pipeline practical. This 'Level 1' cache concept would become standard in all future processors.",
                   "stats": [
-                    { "label": "Cache size", "value": "8KB unified" },
-                    { "label": "Hit rate", "value": "~95% for typical code" },
-                    { "label": "Access time", "value": "1 cycle (vs 10+ for main memory)" }
+                    {
+                      "label": "Cache size",
+                      "value": "8KB unified"
+                    },
+                    {
+                      "label": "Hit rate",
+                      "value": "~95% for typical code"
+                    },
+                    {
+                      "label": "Access time",
+                      "value": "1 cycle (vs 10+ for main memory)"
+                    }
                   ]
                 }
               ],
@@ -325,13 +343,41 @@
               "challenge": {
                 "title": "BUILD THE MICRO32-P PIPELINE",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement 5 pipeline stages (IF/ID/EX/MEM/WB)", "completed": false },
-                  { "id": "obj-2", "text": "Add pipeline registers between stages", "completed": false },
-                  { "id": "obj-3", "text": "Detect data hazards (RAW dependencies)", "completed": false },
-                  { "id": "obj-4", "text": "Implement forwarding paths (EX→EX, MEM→EX)", "completed": false },
-                  { "id": "obj-5", "text": "Handle load-use hazards with stalling", "completed": false },
-                  { "id": "obj-6", "text": "Implement branch prediction (static or dynamic)", "completed": false },
-                  { "id": "obj-7", "text": "Run a benchmark and measure actual IPC", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement 5 pipeline stages (IF/ID/EX/MEM/WB)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Add pipeline registers between stages",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Detect data hazards (RAW dependencies)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Implement forwarding paths (EX→EX, MEM→EX)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Handle load-use hazards with stalling",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Implement branch prediction (static or dynamic)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-7",
+                    "text": "Run a benchmark and measure actual IPC",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -403,9 +449,18 @@
                   "title": "Professor, Stanford University",
                   "bio": "Co-creator of the MIPS architecture and author of the definitive textbook 'Computer Architecture: A Quantitative Approach.' His work on RISC would earn him the Turing Award and lead to founding MIPS Computer Systems. Later became Stanford's president.",
                   "stats": [
-                    { "label": "Creation", "value": "MIPS architecture" },
-                    { "label": "Awards", "value": "Turing Award 2017" },
-                    { "label": "Legacy", "value": "RISC foundation for ARM, etc." }
+                    {
+                      "label": "Creation",
+                      "value": "MIPS architecture"
+                    },
+                    {
+                      "label": "Awards",
+                      "value": "Turing Award 2017"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "RISC foundation for ARM, etc."
+                    }
                   ]
                 }
               ],
@@ -452,9 +507,18 @@
                   "title": "Professor, UC Berkeley",
                   "bio": "Co-creator of RISC and the SPARC architecture. Patterson coined the term 'RISC' and later led the RAID project. His textbook with Hennessy defined computer architecture education. Also received the Turing Award in 2017.",
                   "stats": [
-                    { "label": "Creation", "value": "SPARC architecture" },
-                    { "label": "Coined", "value": "The term 'RISC'" },
-                    { "label": "Later work", "value": "RISC-V open architecture" }
+                    {
+                      "label": "Creation",
+                      "value": "SPARC architecture"
+                    },
+                    {
+                      "label": "Coined",
+                      "value": "The term 'RISC'"
+                    },
+                    {
+                      "label": "Later work",
+                      "value": "RISC-V open architecture"
+                    }
                   ]
                 }
               ],
@@ -484,9 +548,18 @@
                   "title": "Co-founder, Sun Microsystems",
                   "bio": "A Berkeley PhD student who created BSD Unix and the vi editor, Joy co-founded Sun to commercialize university innovations. Sun's 'The Network is the Computer' vision and SPARC architecture defined enterprise computing for a decade.",
                   "stats": [
-                    { "label": "Creations", "value": "BSD Unix, vi, SPARC" },
-                    { "label": "Role", "value": "Sun Chief Scientist" },
-                    { "label": "Impact", "value": "Workstation revolution" }
+                    {
+                      "label": "Creations",
+                      "value": "BSD Unix, vi, SPARC"
+                    },
+                    {
+                      "label": "Role",
+                      "value": "Sun Chief Scientist"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "Workstation revolution"
+                    }
                   ]
                 }
               ],
@@ -516,9 +589,18 @@
                   "title": "Lead Designer, Alpha 21064",
                   "bio": "The engineer who created the fastest processor of its era. Dobberpuhl's Alpha 21064 ran at 200 MHz when competitors struggled to reach 66 MHz. His aggressive design philosophy influenced processor design for decades.",
                   "stats": [
-                    { "label": "Clock speed", "value": "200 MHz (1992)" },
-                    { "label": "Architecture", "value": "64-bit RISC" },
-                    { "label": "Performance", "value": "3x faster than competition" }
+                    {
+                      "label": "Clock speed",
+                      "value": "200 MHz (1992)"
+                    },
+                    {
+                      "label": "Architecture",
+                      "value": "64-bit RISC"
+                    },
+                    {
+                      "label": "Performance",
+                      "value": "3x faster than competition"
+                    }
                   ]
                 }
               ],
@@ -591,9 +673,18 @@
                   "title": "Designer, ARM Architecture",
                   "bio": "The architect who designed the ARM instruction set—the most widely-used processor architecture in history. Wilson's elegant design prioritized simplicity and power efficiency, principles that would make ARM essential for mobile computing.",
                   "stats": [
-                    { "label": "Design", "value": "ARM instruction set" },
-                    { "label": "Principle", "value": "Power efficiency first" },
-                    { "label": "Impact", "value": "200+ billion ARM chips" }
+                    {
+                      "label": "Design",
+                      "value": "ARM instruction set"
+                    },
+                    {
+                      "label": "Principle",
+                      "value": "Power efficiency first"
+                    },
+                    {
+                      "label": "Impact",
+                      "value": "200+ billion ARM chips"
+                    }
                   ]
                 },
                 {
@@ -602,9 +693,18 @@
                   "title": "Designer, ARM Hardware",
                   "bio": "Co-designer of the ARM processor who implemented Wilson's architecture in silicon. Furber's hardware design was remarkably simple—just 25,000 transistors—yet outperformed Intel's 386 on many tasks.",
                   "stats": [
-                    { "label": "Transistors", "value": "25,000 (vs 275K for 386)" },
-                    { "label": "Power", "value": "0.1 watts" },
-                    { "label": "Later work", "value": "SpiNNaker neural computer" }
+                    {
+                      "label": "Transistors",
+                      "value": "25,000 (vs 275K for 386)"
+                    },
+                    {
+                      "label": "Power",
+                      "value": "0.1 watts"
+                    },
+                    {
+                      "label": "Later work",
+                      "value": "SpiNNaker neural computer"
+                    }
                   ]
                 }
               ],
@@ -677,9 +777,18 @@
                   "title": "Lead Developer, Pentium",
                   "bio": "Known as the 'Father of the Pentium,' Dham led the development of the dual-pipeline architecture that defined a generation of PCs. His work on superscalar x86 proved that CISC could compete with RISC.",
                   "stats": [
-                    { "label": "Pipelines", "value": "Dual (U + V pipe)" },
-                    { "label": "Transistors", "value": "3.1 million" },
-                    { "label": "Clock speed", "value": "60-200 MHz" }
+                    {
+                      "label": "Pipelines",
+                      "value": "Dual (U + V pipe)"
+                    },
+                    {
+                      "label": "Transistors",
+                      "value": "3.1 million"
+                    },
+                    {
+                      "label": "Clock speed",
+                      "value": "60-200 MHz"
+                    }
                   ]
                 }
               ],
@@ -709,9 +818,18 @@
                   "title": "CEO, AMD",
                   "bio": "The flamboyant founder of AMD who took on Intel's monopoly. Sanders' famous quote: 'Real men have fabs.' His aggressive competition forced Intel to innovate faster and kept PC prices affordable.",
                   "stats": [
-                    { "label": "Founded AMD", "value": "1969" },
-                    { "label": "Strategy", "value": "Competitive x86 clones" },
-                    { "label": "Famous quote", "value": "\"Real men have fabs\"" }
+                    {
+                      "label": "Founded AMD",
+                      "value": "1969"
+                    },
+                    {
+                      "label": "Strategy",
+                      "value": "Competitive x86 clones"
+                    },
+                    {
+                      "label": "Famous quote",
+                      "value": "\"Real men have fabs\""
+                    }
                   ]
                 }
               ],
@@ -741,9 +859,18 @@
                   "title": "CPU Architect, Cyrix",
                   "bio": "Lead architect of the Cyrix 6x86, the chip that proved you could beat Intel on performance per clock. Cyrix's PR rating system exposed the fallacy of pure MHz comparisons.",
                   "stats": [
-                    { "label": "Design", "value": "Higher IPC, lower MHz" },
-                    { "label": "Innovation", "value": "PR (Performance Rating) system" },
-                    { "label": "Business model", "value": "Fabless design" }
+                    {
+                      "label": "Design",
+                      "value": "Higher IPC, lower MHz"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "PR (Performance Rating) system"
+                    },
+                    {
+                      "label": "Business model",
+                      "value": "Fabless design"
+                    }
                   ]
                 }
               ],
@@ -790,9 +917,18 @@
                   "title": "Chief Architect, Pentium Pro",
                   "bio": "The architect who made out-of-order execution work for x86. Colwell's Pentium Pro (P6) design would become the foundation for Intel's processors for over two decades, including the Core series.",
                   "stats": [
-                    { "label": "Architecture", "value": "P6 / Pentium Pro" },
-                    { "label": "Innovation", "value": "x86 out-of-order execution" },
-                    { "label": "Legacy", "value": "Core architecture foundation" }
+                    {
+                      "label": "Architecture",
+                      "value": "P6 / Pentium Pro"
+                    },
+                    {
+                      "label": "Innovation",
+                      "value": "x86 out-of-order execution"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Core architecture foundation"
+                    }
                   ]
                 }
               ],
@@ -822,9 +958,18 @@
                   "title": "MMX Chief Architect",
                   "bio": "The engineer who brought SIMD to the masses. Peleg's MMX technology was the first step toward the SSE, AVX, and GPU-style parallel processing that dominates modern computing.",
                   "stats": [
-                    { "label": "New instructions", "value": "57 SIMD operations" },
-                    { "label": "Data parallelism", "value": "8 bytes at once" },
-                    { "label": "Legacy", "value": "Foundation for SSE/AVX" }
+                    {
+                      "label": "New instructions",
+                      "value": "57 SIMD operations"
+                    },
+                    {
+                      "label": "Data parallelism",
+                      "value": "8 bytes at once"
+                    },
+                    {
+                      "label": "Legacy",
+                      "value": "Foundation for SSE/AVX"
+                    }
                   ]
                 }
               ],
@@ -887,14 +1032,46 @@
               "challenge": {
                 "title": "ADVANCED PIPELINED PROCESSOR",
                 "objectives": [
-                  { "id": "obj-1", "text": "Implement a 5+ stage pipeline with all registers", "completed": false },
-                  { "id": "obj-2", "text": "Add full forwarding (EX→EX, MEM→EX, MEM→MEM)", "completed": false },
-                  { "id": "obj-3", "text": "Implement branch prediction (at least 2-bit saturating)", "completed": false },
-                  { "id": "obj-4", "text": "Add speculative fetch based on predictions", "completed": false },
-                  { "id": "obj-5", "text": "Handle misprediction with pipeline flush", "completed": false },
-                  { "id": "obj-6", "text": "Measure branch prediction accuracy", "completed": false },
-                  { "id": "obj-7", "text": "Optimize a program for your pipeline", "completed": false },
-                  { "id": "obj-8", "text": "Achieve IPC > 0.8 on a benchmark", "completed": false }
+                  {
+                    "id": "obj-1",
+                    "text": "Implement a 5+ stage pipeline with all registers",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-2",
+                    "text": "Add full forwarding (EX→EX, MEM→EX, MEM→MEM)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-3",
+                    "text": "Implement branch prediction (at least 2-bit saturating)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-4",
+                    "text": "Add speculative fetch based on predictions",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-5",
+                    "text": "Handle misprediction with pipeline flush",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-6",
+                    "text": "Measure branch prediction accuracy",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-7",
+                    "text": "Optimize a program for your pipeline",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-8",
+                    "text": "Achieve IPC > 0.8 on a benchmark",
+                    "completed": false
+                  }
                 ]
               },
               "technicalNotes": [
@@ -942,7 +1119,67 @@
             }
           ]
         }
-      ]
+      ],
+      "mindset": {
+        "year": 1993,
+        "knownTechnology": [
+          "pipelined processor",
+          "Pentium",
+          "cache memory",
+          "superscalar execution",
+          "branch prediction",
+          "CD-ROM",
+          "Windows 3.1"
+        ],
+        "unknownTechnology": [
+          "internet browser",
+          "smartphone",
+          "flash memory",
+          "USB",
+          "Wi-Fi",
+          "SSD",
+          "touchscreen",
+          "cloud computing",
+          "multi-core processor"
+        ],
+        "activeProblems": [
+          {
+            "statement": "How do we keep the pipeline full?",
+            "motivation": "Pipeline stalls kill performance. Branch mispredictions and cache misses are critical problems."
+          },
+          {
+            "statement": "How do we balance clock speed with heat dissipation?",
+            "motivation": "Faster clocks mean more power and heat. Cooling is becoming a serious design constraint."
+          }
+        ],
+        "constraints": [
+          {
+            "type": "technical",
+            "description": "Single-threaded performance limits",
+            "limitation": "Not all code can be pipelined efficiently"
+          },
+          {
+            "type": "knowledge",
+            "description": "Compiler optimization is immature",
+            "limitation": "Compilers dont exploit pipeline features well"
+          },
+          {
+            "type": "economic",
+            "description": "High-end chips are expensive",
+            "limitation": "Pentium costs hundreds of dollars"
+          }
+        ],
+        "impossibilities": [
+          "10GHz processors",
+          "terabytes of SSD storage",
+          "real-time ray tracing",
+          "smartphone-class mobile computing"
+        ],
+        "historicalPerspective": {
+          "currentKnowledge": "You are in the era of the Pentium processor. Pipelining and superscalar execution enable unprecedented performance. The MHz wars are heating up between Intel and AMD. CD-ROMs enable multimedia. The internet exists but is mostly academic.",
+          "futureBlind": "You cannot know how far clock speeds will scale. Perhaps 1GHz is the practical limit due to heat. Will parallel processing or faster single cores win the future?"
+        }
+      }
     }
   ]
 }

@@ -11,6 +11,7 @@ import type {
   ChallengeData,
   PersonaData,
   TransitionData,
+  MindsetContext,
 } from './types';
 
 /**
@@ -130,6 +131,8 @@ export interface StoryAct {
   persona?: PersonaData;
   /** Transition narrative from previous era to this one (Story 10.20) */
   transition?: TransitionData;
+  /** Historical mindset context for this act (Story 10.21) */
+  mindset?: MindsetContext;
 }
 
 /**

@@ -22,6 +22,7 @@ describe('MenuBar', () => {
       onFileSaveAs: vi.fn(),
       onFileExport: vi.fn(),
       onFileImport: vi.fn(),
+      onFileExamples: vi.fn(),
       // Edit menu
       onEditUndo: vi.fn(),
       onEditRedo: vi.fn(),

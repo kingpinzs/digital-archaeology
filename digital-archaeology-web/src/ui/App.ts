@@ -24,6 +24,8 @@ import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignal
 import type { BreadcrumbItem, ZoomControlsCallbacks, CircuitData } from '@visualizer/index';
 import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
+import { ExampleBrowser, loadExampleProgram } from '@examples/index';
+import type { ExampleProgram } from '@examples/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -202,6 +204,10 @@ export class App {
 
   // HdlViewerPanel for viewing HDL files (Story 7.1)
   private hdlViewerPanel: HdlViewerPanel | null = null;
+
+  // ExampleBrowser for browsing example programs (Story 8.1)
+  private exampleBrowser: ExampleBrowser | null = null;
+  private exampleBrowserContainer: HTMLElement | null = null;
 
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
@@ -468,6 +474,7 @@ export class App {
       onFileSaveAs: () => { /* Epic 9: File Operations */ },
       onFileExport: () => { /* Epic 9: File Operations */ },
       onFileImport: () => { /* Epic 9: File Operations */ },
+      onFileExamples: () => this.showExampleBrowser(),
       // Edit menu
       onEditUndo: () => this.handleUndo(),
       onEditRedo: () => this.handleRedo(),
@@ -2904,6 +2911,86 @@ export class App {
   }
 
   /**
+   * Show the example browser submenu (Story 8.1).
+   * Creates a floating panel positioned near the File menu.
+   */
+  private showExampleBrowser(): void {
+    // Hide existing browser if open
+    this.hideExampleBrowser();
+
+    // Create container for the browser (styles in main.css)
+    this.exampleBrowserContainer = document.createElement('div');
+    this.exampleBrowserContainer.className = 'da-example-browser-container';
+
+    // Create the browser
+    this.exampleBrowser = new ExampleBrowser({
+      onSelect: (program: ExampleProgram) => this.handleExampleSelect(program),
+      onClose: () => this.hideExampleBrowser(),
+    });
+
+    // Mount to document body
+    document.body.appendChild(this.exampleBrowserContainer);
+    this.exampleBrowser.mount(this.exampleBrowserContainer);
+  }
+
+  /**
+   * Hide the example browser (Story 8.1).
+   */
+  private hideExampleBrowser(): void {
+    if (this.exampleBrowser) {
+      this.exampleBrowser.destroy();
+      this.exampleBrowser = null;
+    }
+    if (this.exampleBrowserContainer) {
+      this.exampleBrowserContainer.remove();
+      this.exampleBrowserContainer = null;
+    }
+  }
+
+  /**
+   * Handle selection of an example program (Story 8.1).
+   * Loads the program into the editor with unsaved work confirmation.
+   */
+  private async handleExampleSelect(program: ExampleProgram): Promise<void> {
+    // Close the browser
+    this.hideExampleBrowser();
+
+    // Check for existing content and confirm replacement (Story 8.1 Task 4.3)
+    // Note: Full unsaved work tracking will be implemented in Epic 9
+    const currentContent = this.editor?.getValue() ?? '';
+    if (currentContent.trim().length > 0) {
+      const confirmed = window.confirm(
+        `Loading "${program.name}" will replace your current code.\n\nAre you sure you want to continue?`
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    try {
+      // Load the program source
+      const source = await loadExampleProgram(program.filename);
+
+      // Set the editor content
+      if (this.editor) {
+        this.editor.setValue(source);
+        this.statusBar?.updateState({ loadStatus: `Loaded: ${program.name}` });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.statusBar?.updateState({ loadStatus: `Error: ${message}` });
+      console.error('Failed to load example program:', error);
+    }
+  }
+
+  /**
+   * Destroy the example browser (Story 8.1).
+   */
+  private destroyExampleBrowser(): void {
+    this.hideExampleBrowser();
+  }
+
+  /**
    * Set the visibility of a specific panel.
    * @param panelId - The panel to show/hide
    * @param visible - Whether the panel should be visible
@@ -3330,6 +3417,9 @@ export class App {
 
     // Destroy keyboard shortcuts dialog
     this.destroyKeyboardShortcutsDialog();
+
+    // Destroy example browser
+    this.destroyExampleBrowser();
 
     // Destroy resizers
     this.destroyResizers();

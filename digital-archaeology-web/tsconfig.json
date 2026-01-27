@@ -25,6 +25,7 @@
       "@state/*": ["src/state/*"],
       "@story/*": ["src/story/*"],
       "@hdl/*": ["src/hdl/*"],
+      "@examples/*": ["src/examples/*"],
       "@ui/*": ["src/ui/*"],
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],

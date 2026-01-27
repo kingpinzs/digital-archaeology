@@ -40,6 +40,7 @@ export interface MenuBarCallbacks {
   onFileSaveAs: () => void;
   onFileExport: () => void;
   onFileImport: () => void;
+  onFileExamples: () => void;
   // Edit menu
   onEditUndo: () => void;
   onEditRedo: () => void;
@@ -74,6 +75,8 @@ interface MenuItem {
   shortcut?: string;
   disabled?: boolean;
   separator?: boolean;
+  /** If true, this item opens a submenu/dialog (adds aria-haspopup) */
+  hasSubmenu?: boolean;
 }
 
 /**
@@ -88,6 +91,8 @@ const MENU_STRUCTURE: Record<string, MenuItem[]> = {
     { id: 'sep1', label: '', separator: true },
     { id: 'export', label: 'Export Binary...' },
     { id: 'import', label: 'Import Binary...' },
+    { id: 'sep2', label: '', separator: true },
+    { id: 'examples', label: 'Examples...', hasSubmenu: true },
   ],
   edit: [
     { id: 'undo', label: 'Undo', shortcut: 'Ctrl+Z' },
@@ -633,6 +638,11 @@ export class MenuBar {
           menuItem.setAttribute('role', 'menuitem');
         }
 
+        // Add aria-haspopup for items that open submenus (Story 8.1)
+        if (item.hasSubmenu) {
+          menuItem.setAttribute('aria-haspopup', 'true');
+        }
+
         menuItem.innerHTML = `
           <span class="da-menu-item-label">${checkmark}${item.label}</span>
           ${item.shortcut ? `<span class="da-menu-shortcut">${item.shortcut}</span>` : ''}
@@ -703,6 +713,9 @@ export class MenuBar {
         break;
       case 'import':
         this.callbacks.onFileImport();
+        break;
+      case 'examples':
+        this.callbacks.onFileExamples();
         break;
     }
   }

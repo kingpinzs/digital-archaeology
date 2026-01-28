@@ -14,6 +14,21 @@ export interface CursorPosition {
 }
 
 /**
+ * Persisted editor settings (Story 9.1).
+ * These settings can be saved to localStorage.
+ */
+export interface EditorSettings {
+  /** Font size in pixels (8-32) */
+  fontSize?: number;
+  /** Tab size in spaces (1-8) */
+  tabSize?: number;
+  /** Word wrap mode */
+  wordWrap?: 'on' | 'off' | 'wordWrapColumn' | 'bounded';
+  /** Whether minimap is visible */
+  minimap?: boolean;
+}
+
+/**
  * Configuration options for the Editor component.
  */
 export interface EditorOptions {
@@ -31,6 +46,8 @@ export interface EditorOptions {
   onBreakpointToggle?: (lineNumber: number) => void;
   /** Callback when user clicks on a line in the editor content area (Story 6.9) */
   onLineClick?: (lineNumber: number, lineContent: string) => void;
+  /** Persisted editor settings (Story 9.1) */
+  editorSettings?: EditorSettings;
 }
 
 /**
@@ -152,22 +169,29 @@ export class Editor {
   private createEditor(): void {
     if (!this.container) return;
 
+    // Story 9.1: Apply persisted editor settings if provided
+    const settings = this.options.editorSettings;
+    const fontSize = settings?.fontSize ?? 14;
+    const tabSize = settings?.tabSize ?? 2;
+    const wordWrap = settings?.wordWrap ?? 'off';
+    const minimapEnabled = settings?.minimap ?? false;
+
     this.editor = monaco.editor.create(this.container, {
       value: this.options.initialValue ?? '',
       language: micro4LanguageId,
       theme: 'da-dark',
       automaticLayout: true, // Handle panel resize automatically
-      minimap: { enabled: false }, // Disable minimap for panel space
+      minimap: { enabled: minimapEnabled }, // Story 9.1: Configurable minimap
       lineNumbers: 'on',
       readOnly: this.options.readOnly ?? false,
       scrollBeyondLastLine: false,
-      fontSize: 14,
+      fontSize: fontSize, // Story 9.1: Configurable font size
       fontFamily: "'SF Mono', 'Consolas', 'Monaco', 'Liberation Mono', monospace",
       fontLigatures: false,
       renderWhitespace: 'selection',
-      tabSize: 2,
+      tabSize: tabSize, // Story 9.1: Configurable tab size
       insertSpaces: true,
-      wordWrap: 'off',
+      wordWrap: wordWrap, // Story 9.1: Configurable word wrap
       cursorBlinking: 'smooth',
       cursorSmoothCaretAnimation: 'on',
       smoothScrolling: true,

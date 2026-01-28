@@ -485,6 +485,11 @@ describe('App', () => {
     container = document.createElement('div');
     container.id = 'app';
     document.body.appendChild(container);
+
+    // Clear localStorage to ensure clean settings state (Story 9.1)
+    localStorage.removeItem('digital-archaeology-settings');
+    localStorage.removeItem('da-theme');
+
     app = new App();
     // Reset global theme and language state for each test
     resetThemeRegistration();

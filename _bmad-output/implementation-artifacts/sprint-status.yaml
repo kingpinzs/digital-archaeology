@@ -129,16 +129,16 @@ development_status:
   epic-7-retrospective: done
 
   # Epic 8: Example Programs
-  epic-8: in-progress
+  epic-8: done
   8-1-create-example-browser: done
   8-2-load-example-programs: done
   8-3-display-program-descriptions: done
-  8-4-show-program-comments: backlog
-  epic-8-retrospective: optional
+  8-4-show-program-comments: done
+  epic-8-retrospective: done
 
   # Epic 9: Work Persistence
-  epic-9: backlog
-  9-1-implement-local-storage-for-settings: backlog
+  epic-9: in-progress
+  9-1-implement-local-storage-for-settings: done
   9-2-implement-indexeddb-for-projects: backlog
   9-3-restore-previous-session: backlog
   9-4-export-assembly-code: backlog

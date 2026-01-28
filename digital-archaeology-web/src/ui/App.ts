@@ -26,6 +26,8 @@ import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
+import { SettingsStorage, DEFAULT_SETTINGS } from '../state';
+import type { AppSettings } from '../state';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -104,6 +106,9 @@ export class App {
   private statePanelWidth: number = PANEL_CONSTRAINTS.STATE_DEFAULT;
   private boundWindowResize: () => void;
   private boundKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  // Settings persistence (Story 9.1)
+  private settingsStorage: SettingsStorage = new SettingsStorage();
 
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
@@ -254,7 +259,11 @@ export class App {
     // Reset assembly state on mount/remount (Story 3.7)
     this.hasValidAssembly = false;
 
+    // Load persisted settings (Story 9.1)
+    this.initializeSettings();
+
     // Initialize theme from stored preference (Story 10.1)
+    // Note: Now uses settings from SettingsStorage with backward compatibility
     this.currentMode = initTheme();
 
     this.render();
@@ -536,6 +545,8 @@ export class App {
     this.announceModeChange(mode);
     // Sync the StoryNav's ModeToggle state (Story 10.3)
     this.storyModeContainer?.setMode(mode);
+    // Story 9.1: Persist theme setting to unified storage
+    this.saveSettings();
   }
 
   /**
@@ -794,7 +805,12 @@ export class App {
     const codePanelContent = this.container.querySelector('.da-code-panel .da-panel-content');
     if (!codePanelContent) return;
 
+    // Story 9.1: Load persisted editor settings
+    const editorSettings = this.settingsStorage.getSetting('editorOptions');
+
     this.editor = new Editor({
+      // Story 9.1: Apply persisted editor settings
+      editorSettings,
       onCursorPositionChange: (position) => {
         this.statusBar?.updateState({
           cursorPosition: { line: position.line, column: position.column },
@@ -2180,8 +2196,8 @@ export class App {
   }
 
   /**
-   * Handle speed slider change (Story 4.5, enhanced in Story 4.8).
-   * Updates the execution speed and notifies the emulator if running.
+   * Handle speed slider change (Story 4.5, enhanced in Story 4.8, Story 9.1).
+   * Updates the execution speed, notifies the emulator if running, and persists to localStorage.
    * @param speed - New execution speed in Hz (1-1000)
    */
   private handleSpeedChange(speed: number): void {
@@ -2194,6 +2210,8 @@ export class App {
       const workerSpeed = Math.max(1, Math.round(this.executionSpeed / 60));
       this.emulatorBridge?.setSpeed(workerSpeed);
     }
+    // Story 9.1: Persist speed setting to localStorage
+    this.saveSettings();
   }
 
   /**
@@ -3128,6 +3146,42 @@ export class App {
   }
 
   /**
+   * Initialize settings from localStorage (Story 9.1).
+   * Loads persisted settings and applies panel widths and execution speed.
+   * Theme is handled separately by initTheme() for backward compatibility.
+   * @returns void
+   */
+  private initializeSettings(): void {
+    const settings = this.settingsStorage.getSettingsOrDefaults();
+
+    // Apply persisted panel widths
+    this.codePanelWidth = settings.panelWidths.code;
+    this.statePanelWidth = settings.panelWidths.state;
+
+    // Store execution speed for toolbar initialization
+    this.executionSpeed = settings.speed;
+  }
+
+  /**
+   * Save current settings to localStorage (Story 9.1).
+   * Called when settings change (speed, panel widths, theme).
+   * @returns void
+   */
+  private saveSettings(): void {
+    const settings: AppSettings = {
+      theme: this.currentMode,
+      speed: this.executionSpeed,
+      panelWidths: {
+        code: this.codePanelWidth,
+        state: this.statePanelWidth,
+      },
+      editorOptions: this.settingsStorage.getSetting('editorOptions'),
+      version: 1,
+    };
+    this.settingsStorage.saveSettings(settings);
+  }
+
+  /**
    * Initialize the toolbar component.
    * @returns void
    */
@@ -3153,6 +3207,9 @@ export class App {
 
     this.toolbar = new Toolbar(callbacks);
     this.toolbar.mount(toolbarContainer as HTMLElement);
+
+    // Story 9.1: Apply persisted speed to toolbar
+    this.toolbar.updateState({ speed: this.executionSpeed });
   }
 
   /**
@@ -3206,23 +3263,27 @@ export class App {
   }
 
   /**
-   * Handle code panel resize.
+   * Handle code panel resize (Story 9.1).
    * @param width - New width in pixels
    * @returns void
    */
   private handleCodeResize(width: number): void {
     this.codePanelWidth = width;
     this.updateGridColumns();
+    // Story 9.1: Persist panel width to localStorage
+    this.saveSettings();
   }
 
   /**
-   * Handle state panel resize.
+   * Handle state panel resize (Story 9.1).
    * @param width - New width in pixels
    * @returns void
    */
   private handleStateResize(width: number): void {
     this.statePanelWidth = width;
     this.updateGridColumns();
+    // Story 9.1: Persist panel width to localStorage
+    this.saveSettings();
   }
 
   /**

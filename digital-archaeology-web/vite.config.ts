@@ -1,3 +1,4 @@
+import path from 'path';
 import { defineConfig } from 'vite';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
@@ -16,7 +17,11 @@ export default defineConfig({
     topLevelAwait(),
     monacoEditorPlugin({
       languageWorkers: ['editorWorkerService'],
-      // Only include base worker - syntax highlighting added in Story 2.2
+      // Fix: prevent plugin from nesting worker files under base path on disk,
+      // which causes double-prefixed paths on GitHub Pages sub-directory deployments.
+      customDistPath: (root: string, buildOutDir: string, _base: string) => {
+        return path.join(root, buildOutDir, 'monacoeditorwork');
+      },
     }),
   ],
   resolve: {

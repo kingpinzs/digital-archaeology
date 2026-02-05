@@ -26,7 +26,7 @@ import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
-import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile } from '../state';
+import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, downloadBinaryFile, readTextFile } from '../state';
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 
 /**
@@ -114,6 +114,10 @@ export class App {
   private projectStorage: ProjectStorage = new ProjectStorage();
   private autoSaveManager: AutoSaveManager = new AutoSaveManager(2000);
   private boundPerformAutoSave: () => Promise<void> = () => this.performAutoSave();
+
+  // Unsaved work tracking (Story 9.7)
+  private originalContent: string = '';
+  private boundBeforeUnload = (e: BeforeUnloadEvent) => this.handleBeforeUnload(e);
 
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
@@ -235,6 +239,42 @@ export class App {
   }
 
   /**
+   * Check if the editor has unsaved changes (Story 9.7).
+   * Compares current editor content to the last saved/loaded state.
+   */
+  hasUnsavedChanges(): boolean {
+    const currentContent = this.editor?.getValue() ?? '';
+    return currentContent !== this.originalContent;
+  }
+
+  /**
+   * Handle beforeunload event to warn about unsaved changes (Story 9.7).
+   * Browser shows generic "Changes may not be saved" dialog when dirty.
+   */
+  private handleBeforeUnload(e: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      e.preventDefault();
+      // Modern browsers ignore custom messages, but some require returnValue
+      e.returnValue = '';
+    }
+  }
+
+  /**
+   * Confirm with user before losing unsaved changes (Story 9.7).
+   * @param actionDescription - Human-readable description of the action (e.g., "Loading 'Example'")
+   * @returns true if action should proceed (no unsaved changes OR user confirmed);
+   *          false if user cancelled (action should be aborted)
+   */
+  private confirmUnsavedChanges(actionDescription: string): boolean {
+    if (!this.hasUnsavedChanges()) {
+      return true; // No unsaved changes, proceed immediately
+    }
+    return window.confirm(
+      `${actionDescription} will replace your current code.\n\nAre you sure you want to continue?`
+    );
+  }
+
+  /**
    * Mount the application to a DOM container.
    * Safe to call multiple times - will re-render if already mounted.
    */
@@ -304,6 +344,9 @@ export class App {
     if (this.boundKeydownHandler) {
       window.addEventListener('keydown', this.boundKeydownHandler);
     }
+
+    // Add beforeunload listener for unsaved work warning (Story 9.7)
+    window.addEventListener('beforeunload', this.boundBeforeUnload);
 
     // Story 9.2: Load saved project from IndexedDB (async, non-blocking)
     this.loadSavedProject();
@@ -485,12 +528,13 @@ export class App {
     const callbacks: MenuBarCallbacks = {
       onModeChange: (mode) => this.handleModeChange(mode),
       // File menu
-      onFileNew: () => { /* Epic 9: File Operations */ },
+      onFileNew: () => this.handleFileNew(),
       onFileOpen: () => { /* Epic 9: File Operations */ },
       onFileSave: () => { /* Epic 9: File Operations */ },
       onFileSaveAs: () => { /* Epic 9: File Operations */ },
       onFileExportAssembly: () => this.handleExportAssembly(),
-      onFileImport: () => { /* Epic 9: File Operations */ },
+      onFileExportBinary: () => this.handleExportBinary(),
+      onFileImport: () => this.handleImportAssembly(),
       onFileExamples: () => this.showExampleBrowser(),
       // Edit menu
       onEditUndo: () => this.handleUndo(),
@@ -2979,6 +3023,72 @@ export class App {
   }
 
   /**
+   * Export the assembled binary as a .bin file (Story 9.5).
+   */
+  private handleExportBinary(): void {
+    const result = this.lastAssembleResult;
+    if (!result?.success || !result?.binary) {
+      this.statusBar?.updateState({ loadStatus: 'No binary to export \u2014 assemble first' });
+      return;
+    }
+    try {
+      downloadBinaryFile(result.binary, 'program.bin');
+      this.statusBar?.updateState({ loadStatus: 'Exported: program.bin' });
+    } catch {
+      this.statusBar?.updateState({ loadStatus: 'Export failed' });
+    }
+  }
+
+  /**
+   * Create a new file by clearing the editor (Story 9.7).
+   * Shows confirmation dialog if there are unsaved changes.
+   */
+  private handleFileNew(): void {
+    // Story 9.7: Use centralized unsaved work confirmation
+    if (!this.confirmUnsavedChanges('Creating a new file')) {
+      return;
+    }
+
+    // Clear editor content
+    if (this.editor) {
+      this.editor.setValue('');
+    }
+
+    // Mark empty as the new "original" state
+    this.originalContent = '';
+
+    // Update status bar
+    this.statusBar?.updateState({ loadStatus: 'New file' });
+  }
+
+  /**
+   * Import an assembly (.asm) file into the editor (Story 9.6).
+   * Shows confirmation dialog if editor has existing content.
+   */
+  private async handleImportAssembly(): Promise<void> {
+    // Story 9.7: Use centralized unsaved work confirmation
+    if (!this.confirmUnsavedChanges('Importing a file')) {
+      return;
+    }
+
+    try {
+      const result = await readTextFile('.asm,.txt');
+      if (!result) {
+        return; // User cancelled file picker
+      }
+
+      if (this.editor) {
+        this.editor.setValue(result.content);
+        this.statusBar?.updateState({ loadStatus: `Imported: ${result.filename}` });
+        // Story 9.7: Mark imported content as "original" (not dirty)
+        this.originalContent = result.content;
+      }
+    } catch {
+      this.statusBar?.updateState({ loadStatus: 'Import failed' });
+    }
+  }
+
+  /**
    * Show the example browser submenu (Story 8.1).
    * Creates a floating panel positioned near the File menu.
    */
@@ -3023,16 +3133,9 @@ export class App {
     // Close the browser
     this.hideExampleBrowser();
 
-    // Check for existing content and confirm replacement (Story 8.1 Task 4.3)
-    // Note: Full unsaved work tracking will be implemented in Epic 9
-    const currentContent = this.editor?.getValue() ?? '';
-    if (currentContent.trim().length > 0) {
-      const confirmed = window.confirm(
-        `Loading "${program.name}" will replace your current code.\n\nAre you sure you want to continue?`
-      );
-      if (!confirmed) {
-        return;
-      }
+    // Story 9.7: Use centralized unsaved work confirmation
+    if (!this.confirmUnsavedChanges(`Loading "${program.name}"`)) {
+      return;
     }
 
     try {
@@ -3043,6 +3146,8 @@ export class App {
       if (this.editor) {
         this.editor.setValue(source);
         this.statusBar?.updateState({ loadStatus: `Loaded: ${program.name}` });
+        // Story 9.7: Mark loaded content as "original" (not dirty)
+        this.originalContent = source;
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -3311,6 +3416,9 @@ export class App {
 
         // Story 9.3: Show "Session restored" indicator
         this.statusBar?.showSessionRestored();
+
+        // Story 9.7: Mark loaded content as "original" (not dirty)
+        this.originalContent = project.code;
       }
     } catch (error) {
       console.error('Failed to load saved project:', error);
@@ -3556,6 +3664,9 @@ export class App {
     if (this.boundKeydownHandler) {
       window.removeEventListener('keydown', this.boundKeydownHandler);
     }
+
+    // Remove beforeunload listener (Story 9.7)
+    window.removeEventListener('beforeunload', this.boundBeforeUnload);
 
     // Destroy menu bar
     this.destroyMenuBar();

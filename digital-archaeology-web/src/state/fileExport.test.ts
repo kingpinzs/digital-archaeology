@@ -2,7 +2,7 @@
 // Unit tests for file export utilities (Story 9.4)
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { downloadTextFile } from './fileExport';
+import { downloadTextFile, downloadBinaryFile } from './fileExport';
 
 describe('downloadTextFile', () => {
   let mockAnchor: HTMLAnchorElement;
@@ -133,5 +133,142 @@ describe('downloadTextFile', () => {
     // try/finally ensures cleanup even on error
     expect(removeChildSpy).toHaveBeenCalledWith(mockAnchor);
     expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+  });
+});
+
+// Story 9.5: Export Binary File
+describe('downloadBinaryFile', () => {
+  let mockAnchor: HTMLAnchorElement;
+  let mockCreateObjectURL: ReturnType<typeof vi.fn>;
+  let mockRevokeObjectURL: ReturnType<typeof vi.fn>;
+  let appendChildSpy: ReturnType<typeof vi.spyOn>;
+  let removeChildSpy: ReturnType<typeof vi.spyOn>;
+  let createElementSpy: ReturnType<typeof vi.spyOn>;
+  let capturedBlobParts: BlobPart[] | null;
+  let capturedBlobOptions: BlobPropertyBag | null;
+
+  beforeEach(() => {
+    capturedBlobParts = null;
+    capturedBlobOptions = null;
+
+    // Create a mock anchor element
+    mockAnchor = document.createElement('a');
+    vi.spyOn(mockAnchor, 'click').mockImplementation(() => {});
+
+    // Only intercept createElement('a'), pass through all others
+    const originalCreateElement = document.createElement.bind(document);
+    createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(
+      (tagName: string, options?: ElementCreationOptions) => {
+        if (tagName === 'a') return mockAnchor as unknown as HTMLElement;
+        return originalCreateElement(tagName, options);
+      },
+    );
+
+    // Intercept Blob constructor to capture parts and options
+    const OriginalBlob = globalThis.Blob;
+    vi.spyOn(globalThis, 'Blob').mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function (parts?: BlobPart[], options?: BlobPropertyBag): any {
+        capturedBlobParts = parts ?? null;
+        capturedBlobOptions = options ?? null;
+        return new OriginalBlob(parts, options);
+      } as unknown as typeof Blob,
+    );
+
+    // Mock URL APIs
+    mockCreateObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+    mockRevokeObjectURL = vi.fn();
+    globalThis.URL.createObjectURL = mockCreateObjectURL as unknown as typeof URL.createObjectURL;
+    globalThis.URL.revokeObjectURL = mockRevokeObjectURL as unknown as typeof URL.revokeObjectURL;
+
+    // Spy on body append/remove
+    appendChildSpy = vi.spyOn(document.body, 'appendChild').mockReturnValue(mockAnchor);
+    removeChildSpy = vi.spyOn(document.body, 'removeChild').mockReturnValue(mockAnchor);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // 5.1: Test Blob with correct MIME type
+  it('should create a Blob with application/octet-stream MIME type', () => {
+    const data = new Uint8Array([0x4C, 0x44, 0x41, 0x10]);
+    downloadBinaryFile(data, 'program.bin');
+
+    expect(capturedBlobOptions?.type).toBe('application/octet-stream');
+    expect(mockCreateObjectURL).toHaveBeenCalled();
+  });
+
+  // 5.2: Test filename set correctly
+  it('should set the anchor download attribute to the given filename', () => {
+    const data = new Uint8Array([0x00]);
+    downloadBinaryFile(data, 'program.bin');
+
+    expect(mockAnchor.download).toBe('program.bin');
+    expect(mockAnchor.href).toBe('blob:mock-url');
+  });
+
+  // 5.3: Test URL revocation
+  it('should call URL.revokeObjectURL after click', () => {
+    const data = new Uint8Array([0xFF]);
+    downloadBinaryFile(data, 'output.bin');
+
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+  });
+
+  // 5.4: Test try/finally cleanup on error
+  it('should still cleanup anchor and revoke URL if click() throws', () => {
+    vi.spyOn(mockAnchor, 'click').mockImplementation(() => {
+      throw new Error('Browser blocked download');
+    });
+
+    const data = new Uint8Array([0x01, 0x02]);
+    expect(() => downloadBinaryFile(data, 'test.bin')).toThrow('Browser blocked download');
+
+    // try/finally ensures cleanup even on error
+    expect(removeChildSpy).toHaveBeenCalledWith(mockAnchor);
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+  });
+
+  // 5.5: Test binary content preserved exactly
+  it('should preserve binary content exactly (Uint8Array bytes in Blob)', () => {
+    const data = new Uint8Array([0x00, 0x4C, 0x44, 0x41, 0xFF, 0x10, 0x48, 0x4C, 0x54]);
+    downloadBinaryFile(data, 'program.bin');
+
+    expect(capturedBlobParts).not.toBeNull();
+    expect(capturedBlobParts!.length).toBe(1);
+
+    // Verify the Uint8Array was passed to Blob as-is
+    const blobData = capturedBlobParts![0];
+    expect(blobData).toBeInstanceOf(Uint8Array);
+    // L2 fix: Cast to correct type (Uint8Array, not ArrayBuffer) for byte comparison
+    const bytes = blobData as Uint8Array;
+    expect(Array.from(bytes)).toEqual([0x00, 0x4C, 0x44, 0x41, 0xFF, 0x10, 0x48, 0x4C, 0x54]);
+  });
+
+  it('should only create an anchor element', () => {
+    const data = new Uint8Array([0x01]);
+    downloadBinaryFile(data, 'test.bin');
+
+    expect(createElementSpy).toHaveBeenCalledWith('a');
+  });
+
+  it('should append anchor to body, click it, then remove it', () => {
+    const data = new Uint8Array([0x01]);
+    downloadBinaryFile(data, 'test.bin');
+
+    expect(appendChildSpy).toHaveBeenCalledWith(mockAnchor);
+    expect(mockAnchor.click).toHaveBeenCalled();
+    expect(removeChildSpy).toHaveBeenCalledWith(mockAnchor);
+  });
+
+  it('should handle empty Uint8Array (0 bytes)', () => {
+    const data = new Uint8Array([]);
+    downloadBinaryFile(data, 'empty.bin');
+
+    expect(capturedBlobParts).not.toBeNull();
+    expect(mockCreateObjectURL).toHaveBeenCalled();
+    expect(mockAnchor.click).toHaveBeenCalled();
+    expect(mockRevokeObjectURL).toHaveBeenCalled();
   });
 });

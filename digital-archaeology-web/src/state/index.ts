@@ -39,5 +39,8 @@ export {
 export { AutoSaveManager } from './AutoSaveManager';
 export type { SaveCallback } from './AutoSaveManager';
 
-// File export utilities (Story 9.4)
-export { downloadTextFile } from './fileExport';
+// File export utilities (Story 9.4, 9.5)
+export { downloadTextFile, downloadBinaryFile } from './fileExport';
+
+// File import utilities (Story 9.6)
+export { readTextFile } from './fileImport';

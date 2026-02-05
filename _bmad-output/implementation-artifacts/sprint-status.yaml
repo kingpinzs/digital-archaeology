@@ -142,9 +142,9 @@ development_status:
   9-2-implement-indexeddb-for-projects: done
   9-3-restore-previous-session: done
   9-4-export-assembly-code: done
-  9-5-export-binary-file: backlog
-  9-6-import-assembly-code: backlog
-  9-7-implement-unsaved-work-warning: backlog
+  9-5-export-binary-file: done
+  9-6-import-assembly-code: done
+  9-7-implement-unsaved-work-warning: done
   9-8-create-file-menu-integration: backlog
   epic-9-retrospective: optional
 
@@ -173,7 +173,7 @@ development_status:
   10-21-historical-mindset-time-travel: in-progress
   10-22-decision-maker-builder-mode: backlog
   10-23-first-discoverer-mind-experience: backlog
-  10-24-fix-act0-persona-timeline: review
+  10-24-fix-act0-persona-timeline: done
   epic-10-retrospective: optional
 
   # Epic 11: Multi-Stage Architecture

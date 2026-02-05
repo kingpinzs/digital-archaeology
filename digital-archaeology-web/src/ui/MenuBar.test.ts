@@ -21,6 +21,7 @@ describe('MenuBar', () => {
       onFileSave: vi.fn(),
       onFileSaveAs: vi.fn(),
       onFileExportAssembly: vi.fn(),
+      onFileExportBinary: vi.fn(),
       onFileImport: vi.fn(),
       onFileExamples: vi.fn(),
       // Edit menu
@@ -497,6 +498,62 @@ describe('MenuBar', () => {
       exportItem.click();
 
       expect(mockCallbacks.onFileExportAssembly).toHaveBeenCalled();
+    });
+
+    // Story 9.5: Export Binary File
+    it('should render "Export Binary (.bin)" menu item in File menu', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      expect(exportItem).not.toBeNull();
+
+      const label = exportItem.querySelector('.da-menu-item-label');
+      expect(label?.textContent).toBe('Export Binary (.bin)');
+    });
+
+    it('should fire onFileExportBinary when Export Binary menu item is clicked', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockCallbacks.onFileExportBinary).toHaveBeenCalled();
+    });
+
+    // Story 9.6: Import Assembly File
+    it('should render "Import Assembly (.asm)" menu item in File menu', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      expect(importItem).not.toBeNull();
+
+      const label = importItem.querySelector('.da-menu-item-label');
+      expect(label?.textContent).toBe('Import Assembly (.asm)');
+    });
+
+    it('should fire onFileImport when Import Assembly menu item is clicked', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      expect(mockCallbacks.onFileImport).toHaveBeenCalled();
     });
 
     it('should close menu after menu item is clicked', () => {

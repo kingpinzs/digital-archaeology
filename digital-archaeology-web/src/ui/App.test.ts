@@ -468,13 +468,35 @@ vi.mock('@emulator/index', () => ({
   EmulatorBridge: MockEmulatorBridge,
 }));
 
-// Story 9.4: Mock file export utility
-const { mockDownloadTextFile } = vi.hoisted(() => ({
+// Story 9.4 + 9.5: Mock file export utilities
+const { mockDownloadTextFile, mockDownloadBinaryFile } = vi.hoisted(() => ({
   mockDownloadTextFile: vi.fn(),
+  mockDownloadBinaryFile: vi.fn(),
 }));
 vi.mock('../state/fileExport', () => ({
   downloadTextFile: mockDownloadTextFile,
+  downloadBinaryFile: mockDownloadBinaryFile,
 }));
+
+// Story 9.6: Mock file import utility
+const { mockReadTextFile } = vi.hoisted(() => ({
+  mockReadTextFile: vi.fn(),
+}));
+vi.mock('../state/fileImport', () => ({
+  readTextFile: mockReadTextFile,
+}));
+
+// Story 9.7: Mock loadExampleProgram for example loading tests
+const { mockLoadExampleProgram } = vi.hoisted(() => ({
+  mockLoadExampleProgram: vi.fn(),
+}));
+vi.mock('@examples/index', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@examples/index')>();
+  return {
+    ...actual,
+    loadExampleProgram: mockLoadExampleProgram,
+  };
+});
 
 import { App } from './App';
 import { resetThemeRegistration, resetLanguageRegistration } from '@editor/index';
@@ -7912,6 +7934,693 @@ describe('App', () => {
       // Should not crash — status bar shows error
       const statusBar = container.querySelector('.da-statusbar');
       expect(statusBar?.textContent).toContain('Export failed');
+    });
+  });
+
+  // Story 9.5: Export Binary File Tests
+  describe('export binary file (Story 9.5)', () => {
+    let app: App;
+
+    beforeEach(() => {
+      mockDownloadBinaryFile.mockClear();
+      app = new App();
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      app.destroy();
+    });
+
+    // Helper: trigger assembly and wait for completion
+    async function assembleCode(binary: Uint8Array): Promise<void> {
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary,
+        error: null,
+      });
+
+      // Trigger content change to enable Assemble button
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      // Click Assemble via Debug menu
+      const debugTrigger = container.querySelector('[data-menu="debug"]') as HTMLButtonElement;
+      debugTrigger.click();
+      const assembleItem = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleItem.click();
+
+      // Wait for async assembly
+      await vi.waitFor(() => {
+        expect(mockAssemblerBridge.assemble).toHaveBeenCalled();
+      });
+    }
+
+    // 5.8: Test successful binary export
+    it('should call downloadBinaryFile with binary data and "program.bin"', async () => {
+      const binary = new Uint8Array([0x4C, 0x44, 0x41, 0x10, 0x0F]);
+      await assembleCode(binary);
+
+      // Trigger export via File > Export Binary (.bin)
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockDownloadBinaryFile).toHaveBeenCalledWith(binary, 'program.bin');
+    });
+
+    // 5.9: Test no assembly result
+    it('should show "No binary to export — assemble first" when no assembly result', () => {
+      // Don't assemble - just try to export immediately
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockDownloadBinaryFile).not.toHaveBeenCalled();
+
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('No binary to export');
+    });
+
+    // 5.10: Test failed assembly
+    it('should show "No binary to export — assemble first" when last assembly failed', async () => {
+      // Assemble with a failure result
+      mockEditorInstance._setContent('INVALID');
+      mockEditorInstance.getValue.mockReturnValue('INVALID');
+      mockAssemblerBridge._setAssembleResult({
+        success: false,
+        binary: null,
+        error: { line: 1, column: 1, message: 'Unknown instruction: INVALID' },
+      });
+
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      const debugTrigger = container.querySelector('[data-menu="debug"]') as HTMLButtonElement;
+      debugTrigger.click();
+      const assembleItem = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleItem.click();
+
+      await vi.waitFor(() => {
+        expect(mockAssemblerBridge.assemble).toHaveBeenCalled();
+      });
+
+      // Now try to export binary
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockDownloadBinaryFile).not.toHaveBeenCalled();
+
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('No binary to export');
+    });
+
+    // 5.11: Test status bar shows success message
+    it('should show "Exported: program.bin" in status bar after successful export', async () => {
+      const binary = new Uint8Array([0x01, 0x05, 0x0F]);
+      await assembleCode(binary);
+
+      // Trigger export
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Exported: program.bin');
+    });
+
+    // L1 fix: Test catch branch — export failure shows "Export failed" in status bar
+    it('should show "Export failed" in status bar when downloadBinaryFile throws', async () => {
+      const binary = new Uint8Array([0x4C, 0x44, 0x41, 0x10]);
+      await assembleCode(binary);
+
+      mockDownloadBinaryFile.mockImplementation(() => {
+        throw new Error('Browser blocked download');
+      });
+
+      // Trigger export
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportBinary"]') as HTMLButtonElement;
+      exportItem.click();
+
+      // Should not crash — status bar shows error
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Export failed');
+    });
+  });
+
+  // Story 9.6: Import Assembly File Tests
+  describe('import assembly file (Story 9.6)', () => {
+    let app: App;
+    let confirmSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      mockReadTextFile.mockReset();
+      confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      app = new App();
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      app.destroy();
+      confirmSpy.mockRestore();
+    });
+
+    // 5.8: Test successful import loads content into editor and shows status
+    it('should load file content into editor and show "Imported: <filename>" in status bar', async () => {
+      mockReadTextFile.mockResolvedValue({ content: 'LDA 5\nHLT', filename: 'program.asm' });
+
+      // Trigger import via File > Import Assembly (.asm)
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      await vi.waitFor(() => {
+        expect(mockReadTextFile).toHaveBeenCalledWith('.asm,.txt');
+      });
+
+      // Editor should have the imported content
+      expect(mockEditorInstance.setValue).toHaveBeenCalledWith('LDA 5\nHLT');
+
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Imported: program.asm');
+    });
+
+    // 5.9: Test confirmation dialog appears when editor has existing content
+    it('should show confirm dialog when editor has existing content', async () => {
+      mockEditorInstance._setContent('existing code');
+      mockEditorInstance.getValue.mockReturnValue('existing code');
+      mockReadTextFile.mockResolvedValue({ content: 'LDA 5\nHLT', filename: 'new.asm' });
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      await vi.waitFor(() => {
+        expect(confirmSpy).toHaveBeenCalled();
+      });
+
+      // Confirm was called with appropriate message
+      expect(confirmSpy).toHaveBeenCalledWith(
+        expect.stringContaining('replace your current code'),
+      );
+
+      // Import should proceed after confirmation (confirm returns true by default)
+      await vi.waitFor(() => {
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('LDA 5\nHLT');
+      });
+
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Imported: new.asm');
+    });
+
+    // 5.10: Test import cancelled when user declines confirmation
+    it('should not import when user declines confirmation dialog', async () => {
+      mockEditorInstance._setContent('existing code');
+      mockEditorInstance.getValue.mockReturnValue('existing code');
+      confirmSpy.mockReturnValue(false);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      // Give async operations time to settle
+      await vi.waitFor(() => {
+        expect(confirmSpy).toHaveBeenCalled();
+      });
+
+      // readTextFile should NOT have been called since user declined
+      expect(mockReadTextFile).not.toHaveBeenCalled();
+    });
+
+    // 5.11: Test no confirmation dialog when editor is empty
+    it('should not show confirm dialog when editor is empty', async () => {
+      mockEditorInstance._setContent('');
+      mockEditorInstance.getValue.mockReturnValue('');
+      mockReadTextFile.mockResolvedValue({ content: 'LDA 5\nHLT', filename: 'program.asm' });
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      await vi.waitFor(() => {
+        expect(mockReadTextFile).toHaveBeenCalled();
+      });
+
+      // confirm should NOT have been called for empty editor
+      expect(confirmSpy).not.toHaveBeenCalled();
+    });
+
+    // 5.12: Test import cancelled when file picker returns null
+    it('should do nothing when file picker is cancelled (readTextFile returns null)', async () => {
+      mockReadTextFile.mockResolvedValue(null);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      await vi.waitFor(() => {
+        expect(mockReadTextFile).toHaveBeenCalled();
+      });
+
+      // Editor should not have been updated
+      expect(mockEditorInstance.setValue).not.toHaveBeenCalled();
+
+      // Status bar should not show any import message
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).not.toContain('Imported:');
+    });
+
+    // 5.13: Test status bar shows "Import failed" when readTextFile throws
+    it('should show "Import failed" in status bar when readTextFile throws', async () => {
+      mockReadTextFile.mockRejectedValue(new Error('Read permission denied'));
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+      importItem.click();
+
+      await vi.waitFor(() => {
+        expect(mockReadTextFile).toHaveBeenCalled();
+      });
+
+      // Wait for the rejection to propagate
+      await vi.waitFor(() => {
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('Import failed');
+      });
+    });
+  });
+
+  // Story 9.7: Implement Unsaved Work Warning Tests
+  describe('unsaved work warning (Story 9.7)', () => {
+    let app: App;
+    let confirmSpy: ReturnType<typeof vi.spyOn>;
+    let addEventListenerSpy: ReturnType<typeof vi.spyOn>;
+    let removeEventListenerSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      mockEditorInstance._resetContent();
+      mockEditorInstance.getValue.mockImplementation(() => mockEditorInstance._setContent ? '' : '');
+      confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+      removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+      app = new App();
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      app.destroy();
+      confirmSpy.mockRestore();
+      addEventListenerSpy.mockRestore();
+      removeEventListenerSpy.mockRestore();
+    });
+
+    describe('hasUnsavedChanges()', () => {
+      // 5.1: Test hasUnsavedChanges() returns false when content matches original
+      it('should return false when editor content matches originalContent', () => {
+        // Set originalContent via import (which sets originalContent)
+        mockEditorInstance._setContent('original code');
+        mockEditorInstance.getValue.mockReturnValue('original code');
+        // Access private originalContent via any type cast
+        (app as unknown as { originalContent: string }).originalContent = 'original code';
+
+        expect(app.hasUnsavedChanges()).toBe(false);
+      });
+
+      // 5.2: Test hasUnsavedChanges() returns true when content differs from original
+      it('should return true when editor content differs from originalContent', () => {
+        mockEditorInstance._setContent('modified code');
+        mockEditorInstance.getValue.mockReturnValue('modified code');
+        (app as unknown as { originalContent: string }).originalContent = 'original code';
+
+        expect(app.hasUnsavedChanges()).toBe(true);
+      });
+
+      it('should return false when both editor and originalContent are empty', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        expect(app.hasUnsavedChanges()).toBe(false);
+      });
+
+      it('should consider whitespace-only changes as dirty', () => {
+        mockEditorInstance._setContent('code  '); // Extra whitespace
+        mockEditorInstance.getValue.mockReturnValue('code  ');
+        (app as unknown as { originalContent: string }).originalContent = 'code';
+
+        expect(app.hasUnsavedChanges()).toBe(true);
+      });
+    });
+
+    describe('beforeunload handler', () => {
+      // 5.3: Test beforeunload handler sets e.preventDefault() when dirty
+      it('should set e.preventDefault() when there are unsaved changes', () => {
+        mockEditorInstance._setContent('modified code');
+        mockEditorInstance.getValue.mockReturnValue('modified code');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const mockEvent = {
+          preventDefault: vi.fn(),
+          returnValue: '',
+        } as unknown as BeforeUnloadEvent;
+
+        // Call handler directly via private method access
+        (app as unknown as { handleBeforeUnload: (e: BeforeUnloadEvent) => void }).handleBeforeUnload(mockEvent);
+
+        expect(mockEvent.preventDefault).toHaveBeenCalled();
+        expect(mockEvent.returnValue).toBe('');
+      });
+
+      // 5.4: Test beforeunload handler does nothing when not dirty
+      it('should not call e.preventDefault() when content is clean', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const mockEvent = {
+          preventDefault: vi.fn(),
+          returnValue: 'should stay unchanged',
+        } as unknown as BeforeUnloadEvent;
+
+        (app as unknown as { handleBeforeUnload: (e: BeforeUnloadEvent) => void }).handleBeforeUnload(mockEvent);
+
+        expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+        // returnValue should remain unchanged when not dirty
+      });
+
+      it('should register beforeunload listener on mount', () => {
+        // Check that addEventListener was called with 'beforeunload'
+        expect(addEventListenerSpy).toHaveBeenCalledWith(
+          'beforeunload',
+          expect.any(Function)
+        );
+      });
+
+      // 5.5: Test beforeunload listener removed in destroy()
+      it('should remove beforeunload listener on destroy', () => {
+        app.destroy();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(
+          'beforeunload',
+          expect.any(Function)
+        );
+      });
+    });
+
+    describe('confirmUnsavedChanges()', () => {
+      // 5.6: Test confirmUnsavedChanges() skips dialog when not dirty
+      it('should return true without showing dialog when content is clean', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const result = (app as unknown as { confirmUnsavedChanges: (desc: string) => boolean }).confirmUnsavedChanges('Test action');
+
+        expect(result).toBe(true);
+        expect(confirmSpy).not.toHaveBeenCalled();
+      });
+
+      // 5.7: Test confirmUnsavedChanges() shows dialog when dirty
+      it('should show confirm dialog when there are unsaved changes', () => {
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        confirmSpy.mockReturnValue(true);
+
+        const result = (app as unknown as { confirmUnsavedChanges: (desc: string) => boolean }).confirmUnsavedChanges('Test action');
+
+        expect(confirmSpy).toHaveBeenCalledWith(
+          'Test action will replace your current code.\n\nAre you sure you want to continue?'
+        );
+        expect(result).toBe(true);
+      });
+
+      it('should return false when user declines confirmation', () => {
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        confirmSpy.mockReturnValue(false);
+
+        const result = (app as unknown as { confirmUnsavedChanges: (desc: string) => boolean }).confirmUnsavedChanges('Test action');
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('handleFileNew()', () => {
+      // 5.8: Test handleFileNew confirms before clearing when dirty
+      it('should show confirm dialog before clearing when dirty', () => {
+        mockEditorInstance._setContent('existing code');
+        mockEditorInstance.getValue.mockReturnValue('existing code');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        confirmSpy.mockReturnValue(true);
+
+        // Trigger File > New via menu
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const newItem = container.querySelector('[data-action="new"]') as HTMLButtonElement;
+        newItem.click();
+
+        expect(confirmSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Creating a new file')
+        );
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('');
+      });
+
+      // 5.9: Test handleFileNew clears immediately when not dirty
+      it('should clear editor immediately without dialog when not dirty', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const newItem = container.querySelector('[data-action="new"]') as HTMLButtonElement;
+        newItem.click();
+
+        expect(confirmSpy).not.toHaveBeenCalled();
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('');
+      });
+
+      it('should not clear editor when user cancels confirmation', () => {
+        mockEditorInstance._setContent('existing code');
+        mockEditorInstance.getValue.mockReturnValue('existing code');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        confirmSpy.mockReturnValue(false);
+        mockEditorInstance.setValue.mockClear();
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const newItem = container.querySelector('[data-action="new"]') as HTMLButtonElement;
+        newItem.click();
+
+        expect(confirmSpy).toHaveBeenCalled();
+        expect(mockEditorInstance.setValue).not.toHaveBeenCalled();
+      });
+
+      it('should update status bar to "New file" after clearing', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const newItem = container.querySelector('[data-action="new"]') as HTMLButtonElement;
+        newItem.click();
+
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('New file');
+      });
+
+      it('should reset originalContent to empty string after clearing', () => {
+        // Start with some content and originalContent
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = 'old content';
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const newItem = container.querySelector('[data-action="new"]') as HTMLButtonElement;
+        newItem.click();
+
+        expect((app as unknown as { originalContent: string }).originalContent).toBe('');
+      });
+    });
+
+    describe('handleExampleSelect() centralized confirm', () => {
+      // 5.10: Test handleExampleSelect uses centralized confirm helper
+      it('should use confirmUnsavedChanges instead of checking content length', async () => {
+        // Set up dirty state based on originalContent comparison, not content length
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = 'original';
+        confirmSpy.mockReturnValue(true);
+        const exampleCode = '; Example program\nLDA 5\nHLT';
+        mockLoadExampleProgram.mockResolvedValue(exampleCode);
+
+        // Call private method directly
+        type AppWithPrivate = App & {
+          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
+        };
+        await (app as unknown as AppWithPrivate).handleExampleSelect({
+          name: 'Test Program',
+          filename: 'test.asm',
+        });
+
+        // Confirm should have been called (dirty state detected)
+        expect(confirmSpy).toHaveBeenCalledWith(
+          expect.stringContaining('will replace your current code')
+        );
+      });
+
+      // 5.12: Test originalContent updated after successful example load
+      it('should update originalContent after loading example', async () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        const exampleCode = '; Example program\nLDA 5\nHLT';
+        mockLoadExampleProgram.mockResolvedValue(exampleCode);
+
+        // Call private method directly
+        type AppWithPrivate = App & {
+          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
+        };
+        await (app as unknown as AppWithPrivate).handleExampleSelect({
+          name: 'Test Program',
+          filename: 'test.asm',
+        });
+
+        // Editor should have been updated
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith(exampleCode);
+
+        // originalContent should be updated to the loaded code
+        expect((app as unknown as { originalContent: string }).originalContent).toBe(exampleCode);
+      });
+
+      // M1 Code Review: Test originalContent unchanged on load error
+      it('should NOT update originalContent if example load fails', async () => {
+        const initialOriginal = 'initial content';
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = initialOriginal;
+
+        // Make loadExampleProgram reject
+        mockLoadExampleProgram.mockRejectedValue(new Error('Network error'));
+
+        type AppWithPrivate = App & {
+          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
+        };
+        await (app as unknown as AppWithPrivate).handleExampleSelect({
+          name: 'Failing Example',
+          filename: 'fail.asm',
+        });
+
+        // originalContent should remain unchanged on error
+        expect((app as unknown as { originalContent: string }).originalContent).toBe(initialOriginal);
+
+        // Editor setValue should NOT have been called
+        expect(mockEditorInstance.setValue).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('handleImportAssembly() centralized confirm', () => {
+      // 5.11: Test handleImportAssembly uses centralized confirm helper
+      it('should use confirmUnsavedChanges based on dirty state', async () => {
+        // Set up dirty state: current content differs from original
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = 'original';
+        confirmSpy.mockReturnValue(true);
+        mockReadTextFile.mockResolvedValue({ content: 'LDA 5\nHLT', filename: 'test.asm' });
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+        importItem.click();
+
+        await vi.waitFor(() => {
+          expect(confirmSpy).toHaveBeenCalled();
+        });
+
+        expect(confirmSpy).toHaveBeenCalledWith(
+          'Importing a file will replace your current code.\n\nAre you sure you want to continue?'
+        );
+      });
+
+      it('should not show confirm when content matches originalContent (not dirty)', async () => {
+        // Content matches original = not dirty
+        mockEditorInstance._setContent('same content');
+        mockEditorInstance.getValue.mockReturnValue('same content');
+        (app as unknown as { originalContent: string }).originalContent = 'same content';
+        mockReadTextFile.mockResolvedValue({ content: 'LDA 5\nHLT', filename: 'test.asm' });
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+        importItem.click();
+
+        await vi.waitFor(() => {
+          expect(mockReadTextFile).toHaveBeenCalled();
+        });
+
+        // Confirm should NOT be called because content matches originalContent
+        expect(confirmSpy).not.toHaveBeenCalled();
+      });
+
+      // 5.13: Test originalContent updated after successful import
+      it('should update originalContent after successful import', async () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        const importedContent = 'LDA 5\nHLT';
+        mockReadTextFile.mockResolvedValue({ content: importedContent, filename: 'test.asm' });
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const importItem = container.querySelector('[data-action="import"]') as HTMLButtonElement;
+        importItem.click();
+
+        await vi.waitFor(() => {
+          expect(mockEditorInstance.setValue).toHaveBeenCalledWith(importedContent);
+        });
+
+        expect((app as unknown as { originalContent: string }).originalContent).toBe(importedContent);
+      });
     });
   });
 });

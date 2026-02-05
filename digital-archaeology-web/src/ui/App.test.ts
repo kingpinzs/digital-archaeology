@@ -468,6 +468,14 @@ vi.mock('@emulator/index', () => ({
   EmulatorBridge: MockEmulatorBridge,
 }));
 
+// Story 9.4: Mock file export utility
+const { mockDownloadTextFile } = vi.hoisted(() => ({
+  mockDownloadTextFile: vi.fn(),
+}));
+vi.mock('../state/fileExport', () => ({
+  downloadTextFile: mockDownloadTextFile,
+}));
+
 import { App } from './App';
 import { resetThemeRegistration, resetLanguageRegistration } from '@editor/index';
 import { PANEL_CONSTRAINTS } from './PanelResizer';
@@ -7818,6 +7826,73 @@ describe('App', () => {
         const breakpoints = appAny.breakpoints as Map<number, number>;
         expect(breakpoints.size).toBe(1);
       });
+    });
+  });
+
+  // Story 9.4: Export Assembly Code Tests
+  describe('export assembly code (Story 9.4)', () => {
+    let app: App;
+
+    beforeEach(() => {
+      mockDownloadTextFile.mockClear();
+      app = new App();
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      app.destroy();
+    });
+
+    it('should call downloadTextFile with editor content and "program.asm"', () => {
+      mockEditorInstance._setContent('; Test program\nLDA 0x10\nADD 0x05\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('; Test program\nLDA 0x10\nADD 0x05\nHLT');
+
+      // Trigger export via File > Export Assembly (.asm) menu
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockDownloadTextFile).toHaveBeenCalledWith(
+        '; Test program\nLDA 0x10\nADD 0x05\nHLT',
+        'program.asm',
+      );
+    });
+
+    it('should show "No code to export" when editor is empty', () => {
+      mockEditorInstance._setContent('');
+      mockEditorInstance.getValue.mockReturnValue('');
+
+      // Trigger export
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      exportItem.click();
+
+      // Should NOT call download
+      expect(mockDownloadTextFile).not.toHaveBeenCalled();
+
+      // Status bar should show "No code to export"
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('No code to export');
+    });
+
+    it('should show "Exported: program.asm" in status bar after successful export', () => {
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+
+      // Trigger export
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      exportItem.click();
+
+      // Status bar should show export confirmation
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Exported: program.asm');
     });
   });
 });

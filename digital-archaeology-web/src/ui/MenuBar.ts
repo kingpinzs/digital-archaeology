@@ -38,7 +38,7 @@ export interface MenuBarCallbacks {
   onFileOpen: () => void;
   onFileSave: () => void;
   onFileSaveAs: () => void;
-  onFileExport: () => void;
+  onFileExportAssembly: () => void;
   onFileImport: () => void;
   onFileExamples: () => void;
   // Edit menu
@@ -89,7 +89,7 @@ const MENU_STRUCTURE: Record<string, MenuItem[]> = {
     { id: 'save', label: 'Save', shortcut: 'Ctrl+S' },
     { id: 'saveAs', label: 'Save As...', shortcut: 'Ctrl+Shift+S' },
     { id: 'sep1', label: '', separator: true },
-    { id: 'export', label: 'Export Binary...' },
+    { id: 'exportAssembly', label: 'Export Assembly (.asm)' },
     { id: 'import', label: 'Import Binary...' },
     { id: 'sep2', label: '', separator: true },
     { id: 'examples', label: 'Examples...', hasSubmenu: true },
@@ -708,8 +708,8 @@ export class MenuBar {
       case 'saveAs':
         this.callbacks.onFileSaveAs();
         break;
-      case 'export':
-        this.callbacks.onFileExport();
+      case 'exportAssembly':
+        this.callbacks.onFileExportAssembly();
         break;
       case 'import':
         this.callbacks.onFileImport();

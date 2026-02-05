@@ -20,7 +20,7 @@ describe('MenuBar', () => {
       onFileOpen: vi.fn(),
       onFileSave: vi.fn(),
       onFileSaveAs: vi.fn(),
-      onFileExport: vi.fn(),
+      onFileExportAssembly: vi.fn(),
       onFileImport: vi.fn(),
       onFileExamples: vi.fn(),
       // Edit menu
@@ -466,6 +466,34 @@ describe('MenuBar', () => {
       aboutItem.click();
 
       expect(mockCallbacks.onHelpAbout).toHaveBeenCalled();
+    });
+
+    // Story 9.4: Export Assembly Code
+    it('should render "Export Assembly (.asm)" menu item in File menu', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      expect(exportItem).not.toBeNull();
+
+      const label = exportItem.querySelector('.da-menu-item-label');
+      expect(label?.textContent).toBe('Export Assembly (.asm)');
+    });
+
+    it('should fire onFileExportAssembly when Export Assembly menu item is clicked', () => {
+      const menuBar = new MenuBar(mockCallbacks);
+      menuBar.mount(container);
+
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      exportItem.click();
+
+      expect(mockCallbacks.onFileExportAssembly).toHaveBeenCalled();
     });
 
     it('should close menu after menu item is clicked', () => {

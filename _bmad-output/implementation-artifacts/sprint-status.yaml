@@ -141,7 +141,7 @@ development_status:
   9-1-implement-local-storage-for-settings: done
   9-2-implement-indexeddb-for-projects: done
   9-3-restore-previous-session: done
-  9-4-export-assembly-code: backlog
+  9-4-export-assembly-code: review
   9-5-export-binary-file: backlog
   9-6-import-assembly-code: backlog
   9-7-implement-unsaved-work-warning: backlog

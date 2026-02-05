@@ -26,7 +26,7 @@ import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
-import { SettingsStorage, ProjectStorage, AutoSaveManager } from '../state';
+import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile } from '../state';
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 
 /**
@@ -489,7 +489,7 @@ export class App {
       onFileOpen: () => { /* Epic 9: File Operations */ },
       onFileSave: () => { /* Epic 9: File Operations */ },
       onFileSaveAs: () => { /* Epic 9: File Operations */ },
-      onFileExport: () => { /* Epic 9: File Operations */ },
+      onFileExportAssembly: () => this.handleExportAssembly(),
       onFileImport: () => { /* Epic 9: File Operations */ },
       onFileExamples: () => this.showExampleBrowser(),
       // Edit menu
@@ -2959,6 +2959,19 @@ export class App {
    */
   getKeyboardShortcutsDialog(): KeyboardShortcutsDialog | null {
     return this.keyboardShortcutsDialog;
+  }
+
+  /**
+   * Export the current editor content as an assembly (.asm) file (Story 9.4).
+   */
+  private handleExportAssembly(): void {
+    const code = this.editor?.getValue() ?? '';
+    if (!code) {
+      this.statusBar?.updateState({ loadStatus: 'No code to export' });
+      return;
+    }
+    downloadTextFile(code, 'program.asm');
+    this.statusBar?.updateState({ loadStatus: 'Exported: program.asm' });
   }
 
   /**

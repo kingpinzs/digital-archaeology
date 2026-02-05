@@ -38,3 +38,6 @@ export {
 // Auto-save manager (Story 9.2)
 export { AutoSaveManager } from './AutoSaveManager';
 export type { SaveCallback } from './AutoSaveManager';
+
+// File export utilities (Story 9.4)
+export { downloadTextFile } from './fileExport';

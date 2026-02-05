@@ -17,7 +17,10 @@ export function downloadTextFile(content: string, filename: string): void {
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  try {
+    a.click();
+  } finally {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 }

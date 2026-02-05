@@ -2970,8 +2970,12 @@ export class App {
       this.statusBar?.updateState({ loadStatus: 'No code to export' });
       return;
     }
-    downloadTextFile(code, 'program.asm');
-    this.statusBar?.updateState({ loadStatus: 'Exported: program.asm' });
+    try {
+      downloadTextFile(code, 'program.asm');
+      this.statusBar?.updateState({ loadStatus: 'Exported: program.asm' });
+    } catch {
+      this.statusBar?.updateState({ loadStatus: 'Export failed' });
+    }
   }
 
   /**

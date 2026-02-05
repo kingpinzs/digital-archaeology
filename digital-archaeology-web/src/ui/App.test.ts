@@ -7894,5 +7894,24 @@ describe('App', () => {
       const statusBar = container.querySelector('.da-statusbar');
       expect(statusBar?.textContent).toContain('Exported: program.asm');
     });
+
+    it('should show "Export failed" in status bar when downloadTextFile throws', () => {
+      mockEditorInstance._setContent('LDA 5\nHLT');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+      mockDownloadTextFile.mockImplementation(() => {
+        throw new Error('Browser blocked download');
+      });
+
+      // Trigger export
+      const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+      fileTrigger.click();
+
+      const exportItem = container.querySelector('[data-action="exportAssembly"]') as HTMLButtonElement;
+      exportItem.click();
+
+      // Should not crash — status bar shows error
+      const statusBar = container.querySelector('.da-statusbar');
+      expect(statusBar?.textContent).toContain('Export failed');
+    });
   });
 });

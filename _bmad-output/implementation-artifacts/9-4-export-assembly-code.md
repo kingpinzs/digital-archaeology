@@ -1,6 +1,6 @@
 # Story 9.4: Export Assembly Code
 
-Status: review
+Status: done
 
 ## Story
 
@@ -251,8 +251,8 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - All 4 tasks completed with all subtasks
-- 12 new tests added (7 fileExport, 2 MenuBar, 3 App)
-- Full test suite: 90 files, 3642 tests pass, zero regressions
+- 15 tests total (9 fileExport, 3 MenuBar assertions, 4 App)
+- Full test suite: 90 files, 3645 tests pass, zero regressions
 - TypeScript compiles clean (`npx tsc --noEmit` passes)
 - `downloadTextFile` utility is reusable for Story 9.5 (binary export)
 
@@ -264,9 +264,28 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 | `src/ui/App.ts` | Added `handleExportAssembly()` method, updated callback wiring, added `downloadTextFile` import |
 | `src/state/fileExport.ts` | **NEW** — `downloadTextFile(content, filename)` utility using Blob + File API |
 | `src/state/index.ts` | Added barrel export for `downloadTextFile` |
-| `src/state/fileExport.test.ts` | **NEW** — 7 unit tests for download utility |
-| `src/ui/MenuBar.test.ts` | Updated mock callback name, added 2 export menu tests |
-| `src/ui/App.test.ts` | Added `vi.hoisted` mock for `downloadTextFile`, added 3 export handler tests |
+| `src/state/fileExport.test.ts` | **NEW** — 9 unit tests for download utility |
+| `src/ui/MenuBar.test.ts` | Updated mock callback name, added 2 export menu tests + shortcut assertion |
+| `src/ui/App.test.ts` | Added `vi.hoisted` mock for `downloadTextFile`, added 4 export handler tests |
+
+### Senior Developer Review (AI)
+
+**Reviewer:** Code Review Workflow (Adversarial)
+**Date:** 2026-02-05
+**Outcome:** Approved with fixes applied
+
+**6 issues found and fixed:**
+
+| # | Severity | Issue | Fix |
+|---|----------|-------|-----|
+| M1 | MEDIUM | No try/finally cleanup in `downloadTextFile` | Added try/finally around click/cleanup sequence |
+| M2 | MEDIUM | No error handling in `handleExportAssembly` | Added try/catch with "Export failed" status bar message |
+| L1 | LOW | `document.createElement` mock overly broad | Mock now checks tag name, passes through non-`'a'` calls |
+| L2 | LOW | No keyboard shortcut for Export Assembly | Added `Ctrl+Shift+E` shortcut to menu item |
+| L3 | LOW | Tests couldn't verify actual Blob content | Intercepted Blob constructor to capture and assert content string |
+| L4 | LOW | No error scenario tests | Added cleanup-on-throw test + App error handling test |
+
+**Post-fix test results:** 90 files, 3645 tests pass (+3 new), TypeScript clean.
 
 ### File List
 

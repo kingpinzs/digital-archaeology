@@ -89,7 +89,7 @@ const MENU_STRUCTURE: Record<string, MenuItem[]> = {
     { id: 'save', label: 'Save', shortcut: 'Ctrl+S' },
     { id: 'saveAs', label: 'Save As...', shortcut: 'Ctrl+Shift+S' },
     { id: 'sep1', label: '', separator: true },
-    { id: 'exportAssembly', label: 'Export Assembly (.asm)' },
+    { id: 'exportAssembly', label: 'Export Assembly (.asm)', shortcut: 'Ctrl+Shift+E' },
     { id: 'import', label: 'Import Binary...' },
     { id: 'sep2', label: '', separator: true },
     { id: 'examples', label: 'Examples...', hasSubmenu: true },

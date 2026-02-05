@@ -10,12 +10,38 @@ describe('downloadTextFile', () => {
   let mockRevokeObjectURL: ReturnType<typeof vi.fn>;
   let appendChildSpy: ReturnType<typeof vi.spyOn>;
   let removeChildSpy: ReturnType<typeof vi.spyOn>;
+  let createElementSpy: ReturnType<typeof vi.spyOn>;
+  let capturedBlobContent: string | null;
 
   beforeEach(() => {
+    capturedBlobContent = null;
+
     // Create a mock anchor element
     mockAnchor = document.createElement('a');
     vi.spyOn(mockAnchor, 'click').mockImplementation(() => {});
-    vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as unknown as HTMLElement);
+
+    // L1 fix: Only intercept createElement('a'), pass through all others
+    const originalCreateElement = document.createElement.bind(document);
+    createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(
+      (tagName: string, options?: ElementCreationOptions) => {
+        if (tagName === 'a') return mockAnchor as unknown as HTMLElement;
+        return originalCreateElement(tagName, options);
+      },
+    );
+
+    // L3 fix: Intercept Blob constructor to capture content for verification
+    const OriginalBlob = globalThis.Blob;
+    vi.spyOn(globalThis, 'Blob').mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function (parts?: BlobPart[], options?: BlobPropertyBag): any {
+        const blob = new OriginalBlob(parts, options);
+        // Extract string content from the first part for verification
+        if (parts && parts.length > 0 && typeof parts[0] === 'string') {
+          capturedBlobContent = parts[0];
+        }
+        return blob;
+      } as unknown as typeof Blob,
+    );
 
     // Mock URL APIs
     mockCreateObjectURL = vi.fn().mockReturnValue('blob:mock-url');
@@ -41,10 +67,15 @@ describe('downloadTextFile', () => {
       }),
     );
 
-    // Verify Blob content
-    const blob = mockCreateObjectURL.mock.calls[0][0] as Blob;
-    expect(blob).toBeInstanceOf(Blob);
-    expect(blob.size).toBe('LDA 0x10\nADD 0x05\nHLT'.length);
+    // L3 fix: Verify actual Blob content via constructor interception
+    expect(capturedBlobContent).toBe('LDA 0x10\nADD 0x05\nHLT');
+  });
+
+  it('should only create an anchor element', () => {
+    downloadTextFile('code', 'test.asm');
+
+    // L1: Verify createElement was called specifically with 'a'
+    expect(createElementSpy).toHaveBeenCalledWith('a');
   });
 
   it('should set the anchor download attribute to the given filename', () => {
@@ -72,18 +103,15 @@ describe('downloadTextFile', () => {
     const content = '; Comment with special chars: <>&"\nLDA 0xFF\nHLT';
     downloadTextFile(content, 'special.asm');
 
-    // Verify Blob was created and download was triggered
-    const blob = mockCreateObjectURL.mock.calls[0][0] as Blob;
-    expect(blob).toBeInstanceOf(Blob);
-    expect(blob.type).toBe('text/plain;charset=utf-8');
-    // Blob size matches UTF-8 byte length (ASCII chars = 1 byte each)
-    expect(blob.size).toBe(content.length);
+    // L3 fix: Verify actual string content preserved exactly
+    expect(capturedBlobContent).toBe(content);
     expect(mockAnchor.click).toHaveBeenCalled();
   });
 
   it('should handle empty string content', () => {
     downloadTextFile('', 'empty.asm');
 
+    expect(capturedBlobContent).toBe('');
     expect(mockCreateObjectURL).toHaveBeenCalled();
     expect(mockAnchor.click).toHaveBeenCalled();
     expect(mockRevokeObjectURL).toHaveBeenCalled();
@@ -92,5 +120,18 @@ describe('downloadTextFile', () => {
   it('should accept any filename', () => {
     downloadTextFile('code', 'my-program.asm');
     expect(mockAnchor.download).toBe('my-program.asm');
+  });
+
+  // L4 fix: Error scenario — cleanup still happens if click() throws
+  it('should still cleanup anchor and revoke URL if click() throws', () => {
+    vi.spyOn(mockAnchor, 'click').mockImplementation(() => {
+      throw new Error('Browser blocked download');
+    });
+
+    expect(() => downloadTextFile('code', 'test.asm')).toThrow('Browser blocked download');
+
+    // try/finally ensures cleanup even on error
+    expect(removeChildSpy).toHaveBeenCalledWith(mockAnchor);
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
   });
 });

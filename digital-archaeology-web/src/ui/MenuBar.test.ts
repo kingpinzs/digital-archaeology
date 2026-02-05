@@ -481,6 +481,9 @@ describe('MenuBar', () => {
 
       const label = exportItem.querySelector('.da-menu-item-label');
       expect(label?.textContent).toBe('Export Assembly (.asm)');
+
+      const shortcut = exportItem.querySelector('.da-menu-shortcut');
+      expect(shortcut?.textContent).toBe('Ctrl+Shift+E');
     });
 
     it('should fire onFileExportAssembly when Export Assembly menu item is clicked', () => {

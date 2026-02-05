@@ -138,3 +138,97 @@ export function isValidSettings(value: unknown): value is AppSettings {
     typeof obj.version === 'number'
   );
 }
+
+// =============================================================================
+// Project Data Types (Story 9.2: IndexedDB Project Persistence)
+// =============================================================================
+
+/**
+ * Cursor position for project persistence.
+ * Uses lineNumber/column to match Monaco editor's Position API.
+ */
+export interface ProjectCursorPosition {
+  /** 1-based line number */
+  lineNumber: number;
+  /** 1-based column number */
+  column: number;
+}
+
+/**
+ * Breakpoint entry for project persistence.
+ */
+export interface Breakpoint {
+  /** Memory address where breakpoint is set */
+  address: number;
+  /** Line number in editor (for restoration) */
+  lineNumber: number;
+}
+
+/**
+ * Project data stored in IndexedDB.
+ * Contains all user work that should be auto-saved.
+ */
+export interface ProjectData {
+  /** Assembly source code */
+  code: string;
+  /** Breakpoint addresses with line mappings */
+  breakpoints: Breakpoint[];
+  /** Editor cursor position */
+  cursorPosition: ProjectCursorPosition;
+  /** Timestamp of last save (ms since epoch) */
+  savedAt: number;
+  /** Schema version for future migrations */
+  version: number;
+}
+
+/**
+ * Default project data for first-run and fallback.
+ */
+export const DEFAULT_PROJECT: ProjectData = {
+  code: '',
+  breakpoints: [],
+  cursorPosition: { lineNumber: 1, column: 1 },
+  savedAt: 0,
+  version: 1,
+};
+
+/**
+ * Type guard for ProjectCursorPosition.
+ */
+export function isValidCursorPosition(value: unknown): value is ProjectCursorPosition {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.lineNumber === 'number' && obj.lineNumber >= 1 &&
+    typeof obj.column === 'number' && obj.column >= 1
+  );
+}
+
+/**
+ * Type guard for Breakpoint.
+ */
+export function isValidBreakpoint(value: unknown): value is Breakpoint {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.address === 'number' && obj.address >= 0 &&
+    typeof obj.lineNumber === 'number' && obj.lineNumber >= 1
+  );
+}
+
+/**
+ * Type guard for ProjectData.
+ * Validates structure and all nested values.
+ */
+export function isValidProjectData(value: unknown): value is ProjectData {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.code === 'string' &&
+    Array.isArray(obj.breakpoints) &&
+    obj.breakpoints.every(isValidBreakpoint) &&
+    isValidCursorPosition(obj.cursorPosition) &&
+    typeof obj.savedAt === 'number' &&
+    typeof obj.version === 'number'
+  );
+}

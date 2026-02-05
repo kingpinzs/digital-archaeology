@@ -708,6 +708,24 @@
   font-weight: 500;
 }
 
+/* Story 9.2/9.3: Status bar indicator (shared by "Saved" and "Session restored").
+   Default animation is 1.5s; StatusBar.showIndicator() overrides via inline
+   animationDuration for non-default durations (e.g. 2s for session restored). */
+.da-save-indicator {
+  margin-left: auto;
+  padding: 0 8px;
+  color: var(--da-success);
+  font-size: 11px;
+  font-family: var(--da-font-mono, 'JetBrains Mono', 'Consolas', monospace);
+  animation: da-save-fade 1.5s ease-out forwards;
+}
+
+@keyframes da-save-fade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* =============================================================================
    Panel Resizer Components
    Story 1.6: Implement Resizable Panel System

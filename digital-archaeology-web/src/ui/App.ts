@@ -26,8 +26,8 @@ import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
-import { SettingsStorage, DEFAULT_SETTINGS } from '../state';
-import type { AppSettings } from '../state';
+import { SettingsStorage, ProjectStorage, AutoSaveManager } from '../state';
+import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -109,6 +109,11 @@ export class App {
 
   // Settings persistence (Story 9.1)
   private settingsStorage: SettingsStorage = new SettingsStorage();
+
+  // Project persistence (Story 9.2)
+  private projectStorage: ProjectStorage = new ProjectStorage();
+  private autoSaveManager: AutoSaveManager = new AutoSaveManager(2000);
+  private boundPerformAutoSave: () => Promise<void> = () => this.performAutoSave();
 
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
@@ -299,6 +304,9 @@ export class App {
     if (this.boundKeydownHandler) {
       window.addEventListener('keydown', this.boundKeydownHandler);
     }
+
+    // Story 9.2: Load saved project from IndexedDB (async, non-blocking)
+    this.loadSavedProject();
   }
 
   /**
@@ -840,6 +848,8 @@ export class App {
           this.sourceMap = null;
           this.editor?.clearHighlight();
         }
+        // Story 9.2: Trigger auto-save on content change
+        this.autoSaveManager.markDirty(this.boundPerformAutoSave);
       },
       onAssemble: () => this.handleAssemble(),
       onBreakpointToggle: (lineNumber) => this.handleBreakpointToggle(lineNumber),
@@ -2824,6 +2834,27 @@ export class App {
         // Auto-load into emulator (Story 4.4)
         if (result.binary) {
           await this.loadProgramIntoEmulator(result.binary);
+
+          // Story 9.3: Register restored breakpoints with emulator after program load
+          if (this.breakpoints.size > 0) {
+            const binarySize = result.binary.length;
+            const staleAddresses: number[] = [];
+            for (const address of this.breakpoints.keys()) {
+              if (address < binarySize) {
+                this.emulatorBridge?.setBreakpoint(address);
+              } else {
+                staleAddresses.push(address);
+              }
+            }
+            // Remove stale breakpoints in a separate pass (avoid Map mutation during iteration)
+            if (staleAddresses.length > 0) {
+              for (const address of staleAddresses) {
+                this.breakpoints.delete(address);
+              }
+              this.updateBreakpointDecorations();
+              this.updateBreakpointsView();
+            }
+          }
         }
       } else {
         // Mark assembly as invalid (Story 3.7)
@@ -3182,6 +3213,94 @@ export class App {
   }
 
   /**
+   * Perform auto-save of project data to IndexedDB (Story 9.2).
+   * Collects code, breakpoints, and cursor position into a ProjectData object.
+   */
+  private async performAutoSave(): Promise<void> {
+    const code = this.editor?.getValue() ?? '';
+
+    const projectData: ProjectData = {
+      code,
+      breakpoints: this.getBreakpointsForSave(),
+      cursorPosition: this.getEditorCursorPosition(),
+      savedAt: 0, // Overwritten by ProjectStorage.saveProject() with actual save time
+      version: 1,
+    };
+
+    const success = await this.projectStorage.saveProject(projectData);
+    if (success) {
+      this.statusBar?.showSaveIndicator();
+    }
+  }
+
+  /**
+   * Get breakpoints as serializable array for persistence (Story 9.2).
+   */
+  private getBreakpointsForSave(): PersistBreakpoint[] {
+    const result: PersistBreakpoint[] = [];
+    for (const [address, lineNumber] of this.breakpoints.entries()) {
+      result.push({ address, lineNumber });
+    }
+    return result;
+  }
+
+  /**
+   * Get editor cursor position for persistence (Story 9.2).
+   * Uses Monaco editor's getPosition() API.
+   */
+  private getEditorCursorPosition(): ProjectCursorPosition {
+    const position = this.editor?.getMonacoEditor()?.getPosition();
+    return {
+      lineNumber: position?.lineNumber ?? 1,
+      column: position?.column ?? 1,
+    };
+  }
+
+  /**
+   * Load saved project from IndexedDB and restore editor state (Story 9.2, 9.3).
+   * Restores code, cursor position, breakpoints, and shows session restored indicator.
+   * Called after editor is initialized.
+   */
+  private async loadSavedProject(): Promise<void> {
+    try {
+      const project = await this.projectStorage.loadProject();
+      if (project && project.code) {
+        this.editor?.setValue(project.code);
+
+        // Restore cursor position
+        const monacoEditor = this.editor?.getMonacoEditor();
+        if (monacoEditor && project.cursorPosition) {
+          monacoEditor.setPosition({
+            lineNumber: project.cursorPosition.lineNumber,
+            column: project.cursorPosition.column,
+          });
+          monacoEditor.revealPositionInCenter({
+            lineNumber: project.cursorPosition.lineNumber,
+            column: project.cursorPosition.column,
+          });
+        }
+
+        // Cancel auto-save triggered by setValue() — loaded content is already persisted
+        this.autoSaveManager.cancel();
+
+        // Story 9.3: Restore breakpoints from saved project
+        if (project.breakpoints && project.breakpoints.length > 0) {
+          for (const bp of project.breakpoints) {
+            this.breakpoints.set(bp.address, bp.lineNumber);
+          }
+          this.updateBreakpointDecorations();
+          this.updateBreakpointsView();
+        }
+
+        // Story 9.3: Show "Session restored" indicator
+        this.statusBar?.showSessionRestored();
+      }
+    } catch (error) {
+      console.error('Failed to load saved project:', error);
+    }
+  }
+
+  /**
    * Initialize the toolbar component.
    * @returns void
    */
@@ -3410,6 +3529,9 @@ export class App {
    * @returns void
    */
   destroy(): void {
+    // Story 9.2: Cancel pending auto-save
+    this.autoSaveManager.destroy();
+
     // Remove window resize listener
     window.removeEventListener('resize', this.boundWindowResize);
 

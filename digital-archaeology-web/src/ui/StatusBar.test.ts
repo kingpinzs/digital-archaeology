@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StatusBar } from './StatusBar';
 import type { StatusBarState } from './StatusBar';
 
@@ -839,4 +839,183 @@ describe('StatusBar', () => {
       statusBar.destroy();
     });
   });
+
+  // Story 9.2: Save indicator tests
+  describe('showSaveIndicator (Story 9.2)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should display "Saved" text in the status bar', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+
+      const indicator = container.querySelector('.da-save-indicator');
+      expect(indicator).not.toBeNull();
+      expect(indicator?.textContent).toBe('Saved');
+
+      statusBar.destroy();
+    });
+
+    it('should have aria-live="polite" for screen reader announcement', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+
+      const indicator = container.querySelector('.da-save-indicator');
+      expect(indicator?.getAttribute('aria-live')).toBe('polite');
+
+      statusBar.destroy();
+    });
+
+    it('should remove indicator after 1.5 seconds', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+      expect(container.querySelector('.da-save-indicator')).not.toBeNull();
+
+      vi.advanceTimersByTime(1500);
+      expect(container.querySelector('.da-save-indicator')).toBeNull();
+
+      statusBar.destroy();
+    });
+
+    it('should replace existing indicator when called again', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+      statusBar.showSaveIndicator();
+
+      const indicators = container.querySelectorAll('.da-save-indicator');
+      expect(indicators.length).toBe(1);
+
+      statusBar.destroy();
+    });
+
+    it('should not set inline animationDuration for default 1500ms timing', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+
+      const indicator = container.querySelector('.da-save-indicator') as HTMLElement;
+      // Default 1500ms matches CSS default, so no inline override needed
+      expect(indicator?.style.animationDuration).toBe('');
+
+      statusBar.destroy();
+    });
+
+    it('should not throw when element is not mounted', () => {
+      const statusBar = new StatusBar();
+      expect(() => statusBar.showSaveIndicator()).not.toThrow();
+    });
+  });
+
+  // Story 9.3: Session restored indicator tests
+  describe('showSessionRestored (Story 9.3)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should display "Session restored" text in the status bar', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSessionRestored();
+
+      const indicator = container.querySelector('.da-save-indicator');
+      expect(indicator).not.toBeNull();
+      expect(indicator?.textContent).toBe('Session restored');
+
+      statusBar.destroy();
+    });
+
+    it('should have aria-live="polite" for screen reader announcement', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSessionRestored();
+
+      const indicator = container.querySelector('.da-save-indicator');
+      expect(indicator?.getAttribute('aria-live')).toBe('polite');
+
+      statusBar.destroy();
+    });
+
+    it('should remove indicator after 2 seconds', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSessionRestored();
+      expect(container.querySelector('.da-save-indicator')).not.toBeNull();
+
+      // Should still be visible at 1.5s
+      vi.advanceTimersByTime(1500);
+      expect(container.querySelector('.da-save-indicator')).not.toBeNull();
+
+      // Should be removed at 2s
+      vi.advanceTimersByTime(500);
+      expect(container.querySelector('.da-save-indicator')).toBeNull();
+
+      statusBar.destroy();
+    });
+
+    it('should override animation duration for 2-second timing', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSessionRestored();
+
+      const indicator = container.querySelector('.da-save-indicator') as HTMLElement;
+      expect(indicator?.style.animationDuration).toBe('2000ms');
+
+      statusBar.destroy();
+    });
+
+    it('should replace existing save indicator when session restored shows', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSaveIndicator();
+      statusBar.showSessionRestored();
+
+      const indicators = container.querySelectorAll('.da-save-indicator');
+      expect(indicators.length).toBe(1);
+      expect(indicators[0]?.textContent).toBe('Session restored');
+
+      statusBar.destroy();
+    });
+
+    it('should clean up indicator element and timeout on destroy', () => {
+      const statusBar = new StatusBar();
+      statusBar.mount(container);
+
+      statusBar.showSessionRestored();
+      expect(container.querySelector('.da-save-indicator')).not.toBeNull();
+
+      statusBar.destroy();
+
+      // Indicator DOM element should be removed
+      expect(container.querySelector('.da-save-indicator')).toBeNull();
+    });
+
+    it('should not throw when element is not mounted', () => {
+      const statusBar = new StatusBar();
+      expect(() => statusBar.showSessionRestored()).not.toThrow();
+    });
+  });
+
 });

@@ -54,6 +54,10 @@ export class StatusBar {
   private speedSection: HTMLElement | null = null;
   private cursorSection: HTMLElement | null = null;
 
+  // Save indicator timeout for cleanup (Story 9.2)
+  private saveIndicatorTimeout: ReturnType<typeof setTimeout> | null = null;
+  private saveIndicatorElement: HTMLElement | null = null;
+
   constructor() {
     this.state = {
       assemblyStatus: 'none',
@@ -98,9 +102,72 @@ export class StatusBar {
   }
 
   /**
+   * Show a brief "Saved" indicator in the status bar (Story 9.2).
+   * Fades out after 1.5 seconds via CSS animation.
+   */
+  showSaveIndicator(): void {
+    this.showIndicator('Saved', 1500);
+  }
+
+  /**
+   * Show a brief "Session restored" indicator in the status bar (Story 9.3).
+   * Fades out after 2 seconds via CSS animation.
+   */
+  showSessionRestored(): void {
+    this.showIndicator('Session restored', 2000);
+  }
+
+  /**
+   * Show a brief indicator message in the status bar.
+   * Fades out after the specified duration via CSS animation.
+   * Uses aria-live for screen reader announcement.
+   * @param message - Text to display
+   * @param duration - Duration in milliseconds before removal (default 1500)
+   */
+  private showIndicator(message: string, duration: number = 1500): void {
+    if (!this.element) return;
+
+    // Remove existing indicator if still visible
+    this.removeSaveIndicator();
+
+    const indicator = document.createElement('span');
+    indicator.className = 'da-save-indicator';
+    indicator.textContent = message;
+    indicator.setAttribute('aria-live', 'polite');
+
+    // Override animation duration if different from CSS default (1.5s)
+    if (duration !== 1500) {
+      indicator.style.animationDuration = `${duration}ms`;
+    }
+
+    this.element.appendChild(indicator);
+    this.saveIndicatorElement = indicator;
+
+    // Remove after animation completes
+    this.saveIndicatorTimeout = setTimeout(() => {
+      this.removeSaveIndicator();
+    }, duration);
+  }
+
+  /**
+   * Remove the save indicator element and clear the timeout.
+   */
+  private removeSaveIndicator(): void {
+    if (this.saveIndicatorTimeout !== null) {
+      clearTimeout(this.saveIndicatorTimeout);
+      this.saveIndicatorTimeout = null;
+    }
+    if (this.saveIndicatorElement) {
+      this.saveIndicatorElement.remove();
+      this.saveIndicatorElement = null;
+    }
+  }
+
+  /**
    * Destroy the component and clean up resources.
    */
   destroy(): void {
+    this.removeSaveIndicator();
     if (this.element) {
       this.element.remove();
       this.element = null;

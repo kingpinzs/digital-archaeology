@@ -77,6 +77,7 @@ const {
     deltaDecorations: vi.fn(() => ['decoration-id']),
     setPosition: vi.fn(),
     revealLineInCenter: vi.fn(),
+    revealPositionInCenter: vi.fn(),
     // Mouse event methods (Story 5.8, 6.9)
     onMouseDown: vi.fn((callback: (e: { target: { type: number; position?: { lineNumber: number } } }) => void) => {
       mouseDownListeners.push(callback);
@@ -282,6 +283,8 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
   const terminateMock = vi.fn();
   const runMock = vi.fn();
   const setSpeedMock = vi.fn();
+  const setBreakpointMock = vi.fn(); // Story 9.3
+  const clearBreakpointMock = vi.fn(); // Story 9.3
   const stepMock = vi.fn(() => Promise.resolve(state.cpuState));
   const stopMock = vi.fn(() => Promise.resolve(state.cpuState));
   const resetMock = vi.fn(() => Promise.resolve({
@@ -326,6 +329,8 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       terminate: terminateMock,
       run: runMock,
       setSpeed: setSpeedMock,
+      setBreakpoint: setBreakpointMock, // Story 9.3
+      clearBreakpoint: clearBreakpointMock, // Story 9.3
       step: stepMock,
       stop: stopMock,
       reset: resetMock,
@@ -347,6 +352,8 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     terminate: terminateMock,
     run: runMock,
     setSpeed: setSpeedMock,
+    setBreakpoint: setBreakpointMock, // Story 9.3
+    clearBreakpoint: clearBreakpointMock, // Story 9.3
     step: stepMock,
     stop: stopMock,
     reset: resetMock,
@@ -424,6 +431,8 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       terminateMock.mockClear();
       runMock.mockClear();
       setSpeedMock.mockClear();
+      setBreakpointMock.mockClear(); // Story 9.3
+      clearBreakpointMock.mockClear(); // Story 9.3
       stepMock.mockClear();
       stopMock.mockClear();
       resetMock.mockClear();
@@ -462,6 +471,7 @@ vi.mock('@emulator/index', () => ({
 import { App } from './App';
 import { resetThemeRegistration, resetLanguageRegistration } from '@editor/index';
 import { PANEL_CONSTRAINTS } from './PanelResizer';
+import { ProjectStorage } from '../state';
 
 // Mock story data for tests to prevent fetch errors
 const mockStoryIndex = {
@@ -7458,6 +7468,355 @@ describe('App', () => {
 
         // Panel should be null after destroy
         expect(app.getHdlViewerPanel()).toBeNull();
+      });
+    });
+  });
+
+  // Story 9.3: Session Restoration Tests
+  describe('session restoration (Story 9.3)', () => {
+    const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    let loadProjectSpy: ReturnType<typeof vi.spyOn>;
+
+    afterEach(() => {
+      loadProjectSpy?.mockRestore();
+    });
+
+    /**
+     * Helper to mock loadProject on ProjectStorage prototype.
+     * Uses vi.spyOn for reliable interception of all instances.
+     */
+    function mockLoadProject(returnValue: unknown): void {
+      loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject')
+        .mockResolvedValue(returnValue as Awaited<ReturnType<ProjectStorage['loadProject']>>);
+    }
+
+    function mockLoadProjectReject(error: Error): void {
+      loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject')
+        .mockRejectedValue(error);
+    }
+
+    describe('breakpoint restoration', () => {
+      it('should restore breakpoints from saved project data', async () => {
+        mockLoadProject({
+          code: '; test code\nLDA 0x10\nADD 0x05\nSTA 0x20\nHLT',
+          breakpoints: [
+            { address: 0x01, lineNumber: 2 },
+            { address: 0x03, lineNumber: 4 },
+          ],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        // Verify breakpoints Map was populated
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(2);
+        expect(breakpoints.get(0x01)).toBe(2);
+        expect(breakpoints.get(0x03)).toBe(4);
+      });
+
+      it('should call updateBreakpointDecorations to show red dots', async () => {
+        mockLoadProject({
+          code: '; test code\nLDA 0x10',
+          breakpoints: [{ address: 0x01, lineNumber: 2 }],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        // Verify breakpoint decorations were set with glyph class
+        expect(mockEditorInstance.deltaDecorations).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.arrayContaining([
+            expect.objectContaining({
+              options: expect.objectContaining({
+                glyphMarginClassName: 'da-breakpoint-glyph',
+              }),
+            }),
+          ]),
+        );
+      });
+
+      it('should skip breakpoint restoration when no breakpoints saved', async () => {
+        mockLoadProject({
+          code: '; test code\nLDA 0x10',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(0);
+      });
+
+      it('should skip breakpoint restoration when breakpoints array is undefined', async () => {
+        mockLoadProject({
+          code: '; test code',
+          breakpoints: undefined,
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(0);
+      });
+    });
+
+    describe('cursor position restoration (AC #3)', () => {
+      it('should restore cursor position from saved project data', async () => {
+        mockLoadProject({
+          code: '; test code\nLDA 0x10\nADD 0x05',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 2, column: 5 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        mockEditorInstance.setPosition.mockClear();
+        mockEditorInstance.revealPositionInCenter.mockClear();
+
+        app.mount(container);
+        await flushPromises();
+
+        expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({
+          lineNumber: 2,
+          column: 5,
+        });
+        expect(mockEditorInstance.revealPositionInCenter).toHaveBeenCalledWith({
+          lineNumber: 2,
+          column: 5,
+        });
+      });
+
+      it('should skip cursor restoration when no cursor position saved', async () => {
+        mockLoadProject({
+          code: '; test code',
+          breakpoints: [],
+          cursorPosition: undefined,
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        mockEditorInstance.setPosition.mockClear();
+        mockEditorInstance.revealPositionInCenter.mockClear();
+
+        app.mount(container);
+        await flushPromises();
+
+        // setPosition may be called during mount for other reasons,
+        // but revealPositionInCenter should NOT be called without cursor data
+        expect(mockEditorInstance.revealPositionInCenter).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('session restored indicator', () => {
+      it('should show "Session restored" indicator after successful load with code', async () => {
+        mockLoadProject({
+          code: '; test code',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        const indicator = container.querySelector('.da-save-indicator');
+        expect(indicator).not.toBeNull();
+        expect(indicator?.textContent).toBe('Session restored');
+      });
+
+      it('should NOT show indicator on first run when loadProject returns null', async () => {
+        mockLoadProject(null);
+
+        app.mount(container);
+        await flushPromises();
+
+        const indicator = container.querySelector('.da-save-indicator');
+        expect(indicator).toBeNull();
+      });
+
+      it('should NOT show indicator when loaded project has empty code', async () => {
+        mockLoadProject({
+          code: '',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        const indicator = container.querySelector('.da-save-indicator');
+        expect(indicator).toBeNull();
+      });
+
+      it('should have aria-live="polite" on session restored indicator', async () => {
+        mockLoadProject({
+          code: '; test code',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        const indicator = container.querySelector('.da-save-indicator');
+        expect(indicator?.getAttribute('aria-live')).toBe('polite');
+      });
+    });
+
+    describe('post-assembly breakpoint registration', () => {
+      it('should register restored breakpoints with emulator after assembly', async () => {
+        mockLoadProject({
+          code: '; test\nLDA 0x10\nADD 0x05\nSTA 0x20\nHLT',
+          breakpoints: [
+            { address: 0x01, lineNumber: 2 },
+          ],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        // Verify breakpoints are populated before assembly
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(1);
+
+        // Set up editor content and assembler result for assembly
+        mockEditorInstance._setContent('; test\nLDA 0x10\nADD 0x05\nSTA 0x20\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('; test\nLDA 0x10\nADD 0x05\nSTA 0x20\nHLT');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x10, 0x50, 0x20, 0x0F]),
+          error: null,
+        });
+
+        // Trigger content change to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Click the Assemble button using the correct selector
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for async assembly operations
+        await vi.waitFor(() => {
+          expect(mockEmulatorBridge.setBreakpoint).toHaveBeenCalledWith(0x01);
+        });
+      });
+
+      it('should remove stale breakpoints whose addresses exceed binary size', async () => {
+        mockLoadProject({
+          code: '; test\nLDA 0x10',
+          breakpoints: [
+            { address: 0x01, lineNumber: 2 },
+            { address: 0xFF, lineNumber: 10 }, // Stale - beyond binary
+          ],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        // Both breakpoints initially restored
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(2);
+
+        // Set up editor content and assembler result for assembly
+        mockEditorInstance._setContent('; test\nLDA 0x10');
+        mockEditorInstance.getValue.mockReturnValue('; test\nLDA 0x10');
+        mockAssemblerBridge._setAssembleResult({
+          success: true,
+          binary: new Uint8Array([0x10, 0x0F]),
+          error: null,
+        });
+
+        // Trigger content change to enable the Assemble button
+        if (contentChangeListeners.length > 0) {
+          contentChangeListeners[0]();
+        }
+
+        // Click the Assemble button using the correct selector
+        const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+        assembleBtn.click();
+
+        // Wait for async assembly operations
+        await vi.waitFor(() => {
+          // Stale breakpoint (0xFF) should be removed, valid one (0x01) stays
+          expect(breakpoints.size).toBe(1);
+          expect(breakpoints.has(0x01)).toBe(true);
+          expect(breakpoints.has(0xFF)).toBe(false);
+          // Valid breakpoint sent to emulator, stale one must NOT be sent
+          expect(mockEmulatorBridge.setBreakpoint).toHaveBeenCalledWith(0x01);
+          expect(mockEmulatorBridge.setBreakpoint).not.toHaveBeenCalledWith(0xFF);
+        });
+      });
+    });
+
+    describe('error handling', () => {
+      it('should gracefully handle loadProject failure', async () => {
+        mockLoadProjectReject(new Error('IndexedDB unavailable'));
+
+        // Should not throw
+        expect(() => app.mount(container)).not.toThrow();
+        await flushPromises();
+
+        // App should still be mounted and functional
+        expect(app.isMountedTo()).toBe(true);
+
+        // No indicator should be shown
+        const indicator = container.querySelector('.da-save-indicator');
+        expect(indicator).toBeNull();
+      });
+
+      it('should handle corrupted project data gracefully', async () => {
+        mockLoadProject({
+          code: '; test code',
+          breakpoints: [
+            { address: -1, lineNumber: 0 }, // Invalid but shouldn't crash
+          ],
+          cursorPosition: { lineNumber: 1, column: 1 },
+          savedAt: Date.now(),
+          version: 1,
+        });
+
+        app.mount(container);
+        await flushPromises();
+
+        // Should not crash - breakpoint is restored as-is (validation is in types.ts)
+        const appAny = app as unknown as Record<string, unknown>;
+        const breakpoints = appAny.breakpoints as Map<number, number>;
+        expect(breakpoints.size).toBe(1);
       });
     });
   });

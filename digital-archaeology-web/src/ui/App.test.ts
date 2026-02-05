@@ -76,6 +76,7 @@ const {
     // Error decoration methods (Story 3.4)
     deltaDecorations: vi.fn(() => ['decoration-id']),
     setPosition: vi.fn(),
+    getPosition: vi.fn(() => ({ lineNumber: 1, column: 1 })),
     revealLineInCenter: vi.fn(),
     revealPositionInCenter: vi.fn(),
     // Mouse event methods (Story 5.8, 6.9)
@@ -8620,6 +8621,488 @@ describe('App', () => {
         });
 
         expect((app as unknown as { originalContent: string }).originalContent).toBe(importedContent);
+      });
+    });
+  });
+
+  // Story 9.8: Create File Menu Integration Tests
+  describe('file menu integration (Story 9.8)', () => {
+    let app: App;
+    let saveProjectSpy: ReturnType<typeof vi.spyOn>;
+    let loadProjectSpy: ReturnType<typeof vi.spyOn>;
+    let confirmSpy: ReturnType<typeof vi.spyOn>;
+    let addEventListenerSpy: ReturnType<typeof vi.spyOn>;
+    let removeEventListenerSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      mockEditorInstance._resetContent();
+      mockEditorInstance.getValue.mockImplementation(() => '');
+      mockEditorInstance.getPosition.mockReturnValue({ lineNumber: 1, column: 1 });
+      confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+      addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+      removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
+      app = new App();
+      app.mount(container);
+    });
+
+    afterEach(() => {
+      app.destroy();
+      saveProjectSpy?.mockRestore();
+      loadProjectSpy?.mockRestore();
+      confirmSpy.mockRestore();
+      addEventListenerSpy.mockRestore();
+      removeEventListenerSpy.mockRestore();
+    });
+
+    describe('handleFileSave()', () => {
+      // 5.1: Test handleFileSave() saves to IndexedDB with correct structure
+      it('should save project to IndexedDB with correct structure', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('LDA 5\nHLT');
+        mockEditorInstance.getValue.mockReturnValue('LDA 5\nHLT');
+        mockEditorInstance.getPosition.mockReturnValue({ lineNumber: 2, column: 3 });
+
+        // Call handleFileSave directly
+        await (app as unknown as { handleFileSave: () => Promise<void> }).handleFileSave();
+
+        expect(saveProjectSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            code: 'LDA 5\nHLT',
+            cursorPosition: expect.objectContaining({ lineNumber: 2, column: 3 }),
+            version: 1,
+          })
+        );
+      });
+
+      // 5.2: Test handleFileSave() updates originalContent on success
+      it('should update originalContent on successful save', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        const content = 'LDA 5\nADD 3\nHLT';
+        mockEditorInstance._setContent(content);
+        mockEditorInstance.getValue.mockReturnValue(content);
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        await (app as unknown as { handleFileSave: () => Promise<void> }).handleFileSave();
+
+        expect((app as unknown as { originalContent: string }).originalContent).toBe(content);
+      });
+
+      // 5.3: Test handleFileSave() updates status bar on success
+      it('should update status bar to "Saved" on success', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test');
+        mockEditorInstance.getValue.mockReturnValue('test');
+
+        await (app as unknown as { handleFileSave: () => Promise<void> }).handleFileSave();
+
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('Saved');
+      });
+
+      // 5.4: Test handleFileSave() updates status bar on failure
+      it('should update status bar to "Save failed" on failure', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(false);
+        mockEditorInstance._setContent('test');
+        mockEditorInstance.getValue.mockReturnValue('test');
+
+        await (app as unknown as { handleFileSave: () => Promise<void> }).handleFileSave();
+
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('Save failed');
+      });
+
+      it('should NOT update originalContent on failed save', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(false);
+        const content = 'LDA 5\nHLT';
+        mockEditorInstance._setContent(content);
+        mockEditorInstance.getValue.mockReturnValue(content);
+        (app as unknown as { originalContent: string }).originalContent = 'original';
+
+        await (app as unknown as { handleFileSave: () => Promise<void> }).handleFileSave();
+
+        expect((app as unknown as { originalContent: string }).originalContent).toBe('original');
+      });
+    });
+
+    describe('handleFileSaveAs()', () => {
+      // 5.5: Test handleFileSaveAs() calls handleFileSave()
+      it('should call handleFileSave()', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test code');
+        mockEditorInstance.getValue.mockReturnValue('test code');
+
+        await (app as unknown as { handleFileSaveAs: () => Promise<void> }).handleFileSaveAs();
+
+        expect(saveProjectSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe('handleFileOpen()', () => {
+      // 5.6: Test handleFileOpen() confirms unsaved changes when dirty
+      it('should confirm unsaved changes when dirty', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'loaded code',
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = 'original';
+        confirmSpy.mockReturnValue(true);
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        expect(confirmSpy).toHaveBeenCalledWith(
+          'Opening a project will replace your current code.\n\nAre you sure you want to continue?'
+        );
+      });
+
+      // 5.7: Test handleFileOpen() skips confirm when not dirty
+      it('should skip confirm dialog when not dirty', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'loaded code',
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('same');
+        mockEditorInstance.getValue.mockReturnValue('same');
+        (app as unknown as { originalContent: string }).originalContent = 'same';
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        expect(confirmSpy).not.toHaveBeenCalled();
+        expect(loadProjectSpy).toHaveBeenCalled();
+      });
+
+      // 5.8: Test handleFileOpen() loads project and sets editor content
+      it('should load project and set editor content', async () => {
+        const projectCode = 'LDA 10\nADD 5\nSTA 20\nHLT';
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: projectCode,
+          breakpoints: [],
+          cursorPosition: { lineNumber: 2, column: 1 },
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        mockEditorInstance.setValue.mockClear();
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith(projectCode);
+      });
+
+      // 5.9: Test handleFileOpen() handles no saved project
+      it('should update status bar when no saved project found', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue(null);
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('No saved project found');
+      });
+
+      // 5.10: Test handleFileOpen() updates originalContent after load
+      it('should update originalContent after successful load', async () => {
+        const projectCode = 'LDA 5\nHLT';
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: projectCode,
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        expect((app as unknown as { originalContent: string }).originalContent).toBe(projectCode);
+      });
+
+      it('should abort if user cancels confirmation', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'loaded code',
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('modified');
+        mockEditorInstance.getValue.mockReturnValue('modified');
+        (app as unknown as { originalContent: string }).originalContent = 'original';
+        confirmSpy.mockReturnValue(false);
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        expect(loadProjectSpy).not.toHaveBeenCalled();
+      });
+
+      // H1: Test "Loaded: Project" status bar message (AC #4)
+      it('should update status bar to "Loaded: Project" on success', async () => {
+        const projectCode = 'LDA 5\nHLT';
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: projectCode,
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        const statusBar = container.querySelector('.da-statusbar');
+        expect(statusBar?.textContent).toContain('Loaded: Project');
+      });
+
+      // H2: Test cursor position restoration (Task 3.7)
+      it('should restore cursor position after loading project', async () => {
+        vi.useFakeTimers();
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'LDA 10\nADD 5\nHLT',
+          breakpoints: [],
+          cursorPosition: { lineNumber: 2, column: 5 },
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        mockEditorInstance.setPosition.mockClear();
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        // Cursor restoration uses setTimeout(0) for Monaco readiness
+        await vi.runAllTimersAsync();
+
+        expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({
+          lineNumber: 2,
+          column: 5,
+        });
+        vi.useRealTimers();
+      });
+
+      // H3: Test breakpoint restoration (Task 3.6)
+      it('should restore breakpoints after loading project', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'LDA 10\nADD 5\nSTA 20\nHLT',
+          breakpoints: [
+            { address: 0x01, lineNumber: 2 },
+            { address: 0x03, lineNumber: 4 },
+          ],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+
+        // Verify breakpoints Map was populated
+        const breakpoints = (app as unknown as { breakpoints: Map<number, number> }).breakpoints;
+        expect(breakpoints.size).toBe(2);
+        expect(breakpoints.get(0x01)).toBe(2);
+        expect(breakpoints.get(0x03)).toBe(4);
+      });
+
+      // L2: Test cursor NOT restored when null
+      it('should not restore cursor position when cursorPosition is null', async () => {
+        vi.useFakeTimers();
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue({
+          code: 'LDA 5\nHLT',
+          breakpoints: [],
+          cursorPosition: null,
+          savedAt: Date.now(),
+        });
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        mockEditorInstance.setPosition.mockClear();
+
+        await (app as unknown as { handleFileOpen: () => Promise<void> }).handleFileOpen();
+        await vi.runAllTimersAsync();
+
+        // setPosition should NOT be called when cursorPosition is null
+        expect(mockEditorInstance.setPosition).not.toHaveBeenCalled();
+        vi.useRealTimers();
+      });
+    });
+
+    describe('keyboard shortcuts', () => {
+      // 5.11: Test Ctrl+N triggers handleFileNew
+      it('should trigger handleFileNew on Ctrl+N', () => {
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+        mockEditorInstance.setValue.mockClear();
+
+        const event = new KeyboardEvent('keydown', {
+          key: 'n',
+          ctrlKey: true,
+          shiftKey: false,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        // handleFileNew clears the editor when not dirty
+        expect(mockEditorInstance.setValue).toHaveBeenCalledWith('');
+      });
+
+      // 5.12: Test Ctrl+O triggers handleFileOpen
+      it('should trigger handleFileOpen on Ctrl+O', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue(null);
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const event = new KeyboardEvent('keydown', {
+          key: 'o',
+          ctrlKey: true,
+          shiftKey: false,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        // Wait for async operation
+        await vi.waitFor(() => {
+          expect(loadProjectSpy).toHaveBeenCalled();
+        });
+      });
+
+      // 5.13: Test Ctrl+S triggers handleFileSave
+      it('should trigger handleFileSave on Ctrl+S', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test code');
+        mockEditorInstance.getValue.mockReturnValue('test code');
+
+        const event = new KeyboardEvent('keydown', {
+          key: 's',
+          ctrlKey: true,
+          shiftKey: false,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        await vi.waitFor(() => {
+          expect(saveProjectSpy).toHaveBeenCalled();
+        });
+      });
+
+      // 5.14: Test Ctrl+Shift+S triggers handleFileSaveAs
+      it('should trigger handleFileSaveAs on Ctrl+Shift+S', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test code');
+        mockEditorInstance.getValue.mockReturnValue('test code');
+
+        const event = new KeyboardEvent('keydown', {
+          key: 'S',
+          ctrlKey: true,
+          shiftKey: true,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+
+        await vi.waitFor(() => {
+          expect(saveProjectSpy).toHaveBeenCalled();
+        });
+      });
+
+      // 5.15: Test keyboard listener removed in destroy()
+      it('should remove keyboard listener on destroy', () => {
+        expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
+
+        app.destroy();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
+      });
+
+      it('should not trigger shortcuts when typing in input fields', () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+
+        // Create an input element and set it as event target
+        const input = document.createElement('input');
+        document.body.appendChild(input);
+        input.focus();
+
+        // The handler checks e.target instanceof HTMLInputElement
+        // We need to dispatch from the input element
+        const event = new KeyboardEvent('keydown', {
+          key: 's',
+          ctrlKey: true,
+          shiftKey: false,
+          bubbles: true,
+        });
+
+        // Dispatch from document but simulate target being an input
+        // The handler returns early if target is input/textarea
+        Object.defineProperty(event, 'target', { value: input, writable: false });
+        document.dispatchEvent(event);
+
+        // Handler should return early, so saveProject should not be called
+        expect(saveProjectSpy).not.toHaveBeenCalled();
+
+        document.body.removeChild(input);
+      });
+    });
+
+    describe('MenuBar callbacks', () => {
+      // 5.16: Test MenuBar onFileSave callback fires
+      it('should trigger handleFileSave via File > Save menu', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test');
+        mockEditorInstance.getValue.mockReturnValue('test');
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const saveItem = container.querySelector('[data-action="save"]') as HTMLButtonElement;
+        saveItem.click();
+
+        await vi.waitFor(() => {
+          expect(saveProjectSpy).toHaveBeenCalled();
+        });
+      });
+
+      // 5.17: Test MenuBar onFileSaveAs callback fires
+      it('should trigger handleFileSaveAs via File > Save As menu', async () => {
+        saveProjectSpy = vi.spyOn(ProjectStorage.prototype, 'saveProject').mockResolvedValue(true);
+        mockEditorInstance._setContent('test');
+        mockEditorInstance.getValue.mockReturnValue('test');
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const saveAsItem = container.querySelector('[data-action="saveAs"]') as HTMLButtonElement;
+        saveAsItem.click();
+
+        await vi.waitFor(() => {
+          expect(saveProjectSpy).toHaveBeenCalled();
+        });
+      });
+
+      // 5.18: Test MenuBar onFileOpen callback fires
+      it('should trigger handleFileOpen via File > Open menu', async () => {
+        loadProjectSpy = vi.spyOn(ProjectStorage.prototype, 'loadProject').mockResolvedValue(null);
+        mockEditorInstance._setContent('');
+        mockEditorInstance.getValue.mockReturnValue('');
+        (app as unknown as { originalContent: string }).originalContent = '';
+
+        const fileTrigger = container.querySelector('[data-menu="file"]') as HTMLButtonElement;
+        fileTrigger.click();
+
+        const openItem = container.querySelector('[data-action="open"]') as HTMLButtonElement;
+        openItem.click();
+
+        await vi.waitFor(() => {
+          expect(loadProjectSpy).toHaveBeenCalled();
+        });
       });
     });
   });

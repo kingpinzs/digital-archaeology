@@ -119,6 +119,9 @@ export class App {
   private originalContent: string = '';
   private boundBeforeUnload = (e: BeforeUnloadEvent) => this.handleBeforeUnload(e);
 
+  // Keyboard shortcuts (Story 9.8)
+  private boundKeyboardHandler = (e: KeyboardEvent) => this.handleKeyboardShortcuts(e);
+
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
   private circuitPanelHeader: PanelHeader | null = null;
@@ -345,6 +348,9 @@ export class App {
       window.addEventListener('keydown', this.boundKeydownHandler);
     }
 
+    // Add file operation keyboard shortcuts (Story 9.8)
+    document.addEventListener('keydown', this.boundKeyboardHandler);
+
     // Add beforeunload listener for unsaved work warning (Story 9.7)
     window.addEventListener('beforeunload', this.boundBeforeUnload);
 
@@ -529,9 +535,9 @@ export class App {
       onModeChange: (mode) => this.handleModeChange(mode),
       // File menu
       onFileNew: () => this.handleFileNew(),
-      onFileOpen: () => { /* Epic 9: File Operations */ },
-      onFileSave: () => { /* Epic 9: File Operations */ },
-      onFileSaveAs: () => { /* Epic 9: File Operations */ },
+      onFileOpen: () => this.handleFileOpen(),
+      onFileSave: () => this.handleFileSave(),
+      onFileSaveAs: () => this.handleFileSaveAs(),
       onFileExportAssembly: () => this.handleExportAssembly(),
       onFileExportBinary: () => this.handleExportBinary(),
       onFileImport: () => this.handleImportAssembly(),
@@ -3062,6 +3068,143 @@ export class App {
   }
 
   /**
+   * Save the current project to IndexedDB (Story 9.8).
+   * Updates originalContent on success to mark as clean (not dirty).
+   */
+  private async handleFileSave(): Promise<void> {
+    // Get current editor content
+    const currentContent = this.editor?.getValue() ?? '';
+
+    // Create project data object using same helpers as autoSave
+    const projectData: ProjectData = {
+      code: currentContent,
+      breakpoints: this.getBreakpointsForSave(),
+      cursorPosition: this.getEditorCursorPosition(),
+      savedAt: 0, // Overwritten by ProjectStorage.saveProject() with actual save time
+      version: 1,
+    };
+
+    // Save to IndexedDB
+    const success = await this.projectStorage.saveProject(projectData);
+
+    if (success) {
+      // Update originalContent so document is no longer dirty
+      this.originalContent = currentContent;
+      this.statusBar?.updateState({ loadStatus: 'Saved' });
+    } else {
+      this.statusBar?.updateState({ loadStatus: 'Save failed' });
+    }
+  }
+
+  /**
+   * Save As - for MVP, same as Save (Story 9.8).
+   * Future: Could prompt for project name.
+   */
+  private async handleFileSaveAs(): Promise<void> {
+    // For MVP, Save As behaves the same as Save
+    await this.handleFileSave();
+  }
+
+  /**
+   * Open a saved project from IndexedDB (Story 9.8).
+   * Shows confirmation dialog if there are unsaved changes.
+   */
+  private async handleFileOpen(): Promise<void> {
+    // Story 9.8: Use centralized unsaved work confirmation
+    if (!this.confirmUnsavedChanges('Opening a project')) {
+      return;
+    }
+
+    // Load from IndexedDB
+    const project = await this.projectStorage.loadProject();
+
+    if (!project) {
+      this.statusBar?.updateState({ loadStatus: 'No saved project found' });
+      return;
+    }
+
+    // Set editor content
+    if (this.editor) {
+      this.editor.setValue(project.code ?? '');
+    }
+
+    // Restore breakpoints using same pattern as loadSavedProject
+    // Clear existing breakpoints first
+    this.breakpoints.clear();
+    if (project.breakpoints && project.breakpoints.length > 0) {
+      for (const bp of project.breakpoints) {
+        this.breakpoints.set(bp.address, bp.lineNumber);
+      }
+      this.updateBreakpointDecorations();
+      this.updateBreakpointsView();
+    }
+
+    // Restore cursor position if available
+    const monacoEditor = this.editor?.getMonacoEditor();
+    if (monacoEditor && project.cursorPosition) {
+      // Use setTimeout to ensure Monaco is ready after setValue
+      setTimeout(() => {
+        const editor = this.editor?.getMonacoEditor();
+        if (editor && project.cursorPosition) {
+          editor.setPosition({
+            lineNumber: project.cursorPosition.lineNumber,
+            column: project.cursorPosition.column,
+          });
+          editor.focus();
+        }
+      }, 0);
+    }
+
+    // Cancel auto-save triggered by setValue() — loaded content is already persisted
+    this.autoSaveManager.cancel();
+
+    // Update originalContent to loaded content (not dirty)
+    this.originalContent = project.code ?? '';
+
+    // Update status bar
+    this.statusBar?.updateState({ loadStatus: 'Loaded: Project' });
+  }
+
+  /**
+   * Handle keyboard shortcuts for file operations (Story 9.8).
+   * Ctrl+N: New, Ctrl+O: Open, Ctrl+S: Save, Ctrl+Shift+S: Save As
+   */
+  private handleKeyboardShortcuts(e: KeyboardEvent): void {
+    // Ignore if typing in input/textarea (Monaco handles its own shortcuts)
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    // Ctrl+N: New
+    if (e.ctrlKey && !e.shiftKey && e.key === 'n') {
+      e.preventDefault();
+      this.handleFileNew();
+      return;
+    }
+
+    // Ctrl+O: Open
+    if (e.ctrlKey && !e.shiftKey && e.key === 'o') {
+      e.preventDefault();
+      this.handleFileOpen();
+      return;
+    }
+
+    // Ctrl+S: Save
+    if (e.ctrlKey && !e.shiftKey && e.key === 's') {
+      e.preventDefault();
+      this.handleFileSave();
+      return;
+    }
+
+    // Ctrl+Shift+S: Save As
+    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+      e.preventDefault();
+      this.handleFileSaveAs();
+      return;
+    }
+  }
+
+  /**
    * Import an assembly (.asm) file into the editor (Story 9.6).
    * Shows confirmation dialog if editor has existing content.
    */
@@ -3664,6 +3807,9 @@ export class App {
     if (this.boundKeydownHandler) {
       window.removeEventListener('keydown', this.boundKeydownHandler);
     }
+
+    // Remove file operation keyboard shortcuts (Story 9.8)
+    document.removeEventListener('keydown', this.boundKeyboardHandler);
 
     // Remove beforeunload listener (Story 9.7)
     window.removeEventListener('beforeunload', this.boundBeforeUnload);

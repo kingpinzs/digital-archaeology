@@ -145,7 +145,7 @@ development_status:
   9-5-export-binary-file: done
   9-6-import-assembly-code: done
   9-7-implement-unsaved-work-warning: done
-  9-8-create-file-menu-integration: backlog
+  9-8-create-file-menu-integration: done
   epic-9-retrospective: optional
 
   # Epic 10: Story Mode Experience

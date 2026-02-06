@@ -119,9 +119,6 @@ export class App {
   private originalContent: string = '';
   private boundBeforeUnload = (e: BeforeUnloadEvent) => this.handleBeforeUnload(e);
 
-  // Keyboard shortcuts (Story 9.8)
-  private boundKeyboardHandler = (e: KeyboardEvent) => this.handleKeyboardShortcuts(e);
-
   // Panel headers
   private codePanelHeader: PanelHeader | null = null;
   private circuitPanelHeader: PanelHeader | null = null;
@@ -347,9 +344,6 @@ export class App {
     if (this.boundKeydownHandler) {
       window.addEventListener('keydown', this.boundKeydownHandler);
     }
-
-    // Add file operation keyboard shortcuts (Story 9.8)
-    document.addEventListener('keydown', this.boundKeyboardHandler);
 
     // Add beforeunload listener for unsaved work warning (Story 9.7)
     window.addEventListener('beforeunload', this.boundBeforeUnload);
@@ -3072,26 +3066,31 @@ export class App {
    * Updates originalContent on success to mark as clean (not dirty).
    */
   private async handleFileSave(): Promise<void> {
-    // Get current editor content
-    const currentContent = this.editor?.getValue() ?? '';
+    try {
+      // Get current editor content
+      const currentContent = this.editor?.getValue() ?? '';
 
-    // Create project data object using same helpers as autoSave
-    const projectData: ProjectData = {
-      code: currentContent,
-      breakpoints: this.getBreakpointsForSave(),
-      cursorPosition: this.getEditorCursorPosition(),
-      savedAt: 0, // Overwritten by ProjectStorage.saveProject() with actual save time
-      version: 1,
-    };
+      // Create project data object using same helpers as autoSave
+      const projectData: ProjectData = {
+        code: currentContent,
+        breakpoints: this.getBreakpointsForSave(),
+        cursorPosition: this.getEditorCursorPosition(),
+        savedAt: Date.now(),
+        version: 1,
+      };
 
-    // Save to IndexedDB
-    const success = await this.projectStorage.saveProject(projectData);
+      // Save to IndexedDB
+      const success = await this.projectStorage.saveProject(projectData);
 
-    if (success) {
-      // Update originalContent so document is no longer dirty
-      this.originalContent = currentContent;
-      this.statusBar?.updateState({ loadStatus: 'Saved' });
-    } else {
+      if (success) {
+        // Update originalContent so document is no longer dirty
+        this.originalContent = currentContent;
+        this.statusBar?.updateState({ loadStatus: 'Saved' });
+      } else {
+        this.statusBar?.updateState({ loadStatus: 'Save failed' });
+      }
+    } catch (error) {
+      console.error('Failed to save project:', error);
       this.statusBar?.updateState({ loadStatus: 'Save failed' });
     }
   }
@@ -3115,21 +3114,32 @@ export class App {
       return;
     }
 
-    // Load from IndexedDB
-    const project = await this.projectStorage.loadProject();
+    try {
+      // Load from IndexedDB
+      const project = await this.projectStorage.loadProject();
 
-    if (!project) {
-      this.statusBar?.updateState({ loadStatus: 'No saved project found' });
-      return;
+      if (!project) {
+        this.statusBar?.updateState({ loadStatus: 'No saved project found' });
+        return;
+      }
+
+      this.restoreProjectToEditor(project);
+      this.statusBar?.updateState({ loadStatus: 'Loaded: Project' });
+    } catch (error) {
+      console.error('Failed to open project:', error);
+      this.statusBar?.updateState({ loadStatus: 'Load failed' });
     }
+  }
 
+  /**
+   * Restore a ProjectData object into the editor (shared by handleFileOpen and loadSavedProject).
+   * Sets editor content, breakpoints, cursor position, cancels auto-save, and updates originalContent.
+   */
+  private restoreProjectToEditor(project: ProjectData): void {
     // Set editor content
-    if (this.editor) {
-      this.editor.setValue(project.code ?? '');
-    }
+    this.editor?.setValue(project.code ?? '');
 
-    // Restore breakpoints using same pattern as loadSavedProject
-    // Clear existing breakpoints first
+    // Clear and restore breakpoints
     this.breakpoints.clear();
     if (project.breakpoints && project.breakpoints.length > 0) {
       for (const bp of project.breakpoints) {
@@ -3139,16 +3149,19 @@ export class App {
       this.updateBreakpointsView();
     }
 
-    // Restore cursor position if available
-    const monacoEditor = this.editor?.getMonacoEditor();
-    if (monacoEditor && project.cursorPosition) {
-      // Use setTimeout to ensure Monaco is ready after setValue
+    // Restore cursor position if available (setTimeout for Monaco DOM readiness after setValue)
+    if (project.cursorPosition) {
+      const cursorPos = project.cursorPosition;
       setTimeout(() => {
         const editor = this.editor?.getMonacoEditor();
-        if (editor && project.cursorPosition) {
+        if (editor) {
           editor.setPosition({
-            lineNumber: project.cursorPosition.lineNumber,
-            column: project.cursorPosition.column,
+            lineNumber: cursorPos.lineNumber,
+            column: cursorPos.column,
+          });
+          editor.revealPositionInCenter({
+            lineNumber: cursorPos.lineNumber,
+            column: cursorPos.column,
           });
           editor.focus();
         }
@@ -3160,49 +3173,8 @@ export class App {
 
     // Update originalContent to loaded content (not dirty)
     this.originalContent = project.code ?? '';
-
-    // Update status bar
-    this.statusBar?.updateState({ loadStatus: 'Loaded: Project' });
   }
 
-  /**
-   * Handle keyboard shortcuts for file operations (Story 9.8).
-   * Ctrl+N: New, Ctrl+O: Open, Ctrl+S: Save, Ctrl+Shift+S: Save As
-   */
-  private handleKeyboardShortcuts(e: KeyboardEvent): void {
-    // Ignore if typing in input/textarea (Monaco handles its own shortcuts)
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return;
-    }
-
-    // Ctrl+N: New
-    if (e.ctrlKey && !e.shiftKey && e.key === 'n') {
-      e.preventDefault();
-      this.handleFileNew();
-      return;
-    }
-
-    // Ctrl+O: Open
-    if (e.ctrlKey && !e.shiftKey && e.key === 'o') {
-      e.preventDefault();
-      this.handleFileOpen();
-      return;
-    }
-
-    // Ctrl+S: Save
-    if (e.ctrlKey && !e.shiftKey && e.key === 's') {
-      e.preventDefault();
-      this.handleFileSave();
-      return;
-    }
-
-    // Ctrl+Shift+S: Save As
-    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-      e.preventDefault();
-      this.handleFileSaveAs();
-      return;
-    }
-  }
 
   /**
    * Import an assembly (.asm) file into the editor (Story 9.6).
@@ -3530,38 +3502,9 @@ export class App {
     try {
       const project = await this.projectStorage.loadProject();
       if (project && project.code) {
-        this.editor?.setValue(project.code);
-
-        // Restore cursor position
-        const monacoEditor = this.editor?.getMonacoEditor();
-        if (monacoEditor && project.cursorPosition) {
-          monacoEditor.setPosition({
-            lineNumber: project.cursorPosition.lineNumber,
-            column: project.cursorPosition.column,
-          });
-          monacoEditor.revealPositionInCenter({
-            lineNumber: project.cursorPosition.lineNumber,
-            column: project.cursorPosition.column,
-          });
-        }
-
-        // Cancel auto-save triggered by setValue() — loaded content is already persisted
-        this.autoSaveManager.cancel();
-
-        // Story 9.3: Restore breakpoints from saved project
-        if (project.breakpoints && project.breakpoints.length > 0) {
-          for (const bp of project.breakpoints) {
-            this.breakpoints.set(bp.address, bp.lineNumber);
-          }
-          this.updateBreakpointDecorations();
-          this.updateBreakpointsView();
-        }
-
+        this.restoreProjectToEditor(project);
         // Story 9.3: Show "Session restored" indicator
         this.statusBar?.showSessionRestored();
-
-        // Story 9.7: Mark loaded content as "original" (not dirty)
-        this.originalContent = project.code;
       }
     } catch (error) {
       console.error('Failed to load saved project:', error);
@@ -3724,6 +3667,38 @@ export class App {
    * @returns void
    */
   private handleGlobalKeydown(e: KeyboardEvent): void {
+    // Ignore file operation shortcuts when typing in input/textarea
+    const isInputFocused = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+    const modifier = e.ctrlKey || e.metaKey; // Support both Ctrl (Win/Linux) and Cmd (macOS)
+
+    // Ctrl/Cmd+Shift+S: Save As (Story 9.8) — check before Ctrl+S to avoid conflict
+    if (modifier && e.shiftKey && e.key === 'S' && !isInputFocused) {
+      e.preventDefault();
+      this.handleFileSaveAs();
+      return;
+    }
+
+    // Ctrl/Cmd+S: Save (Story 9.8)
+    if (modifier && !e.shiftKey && e.key === 's' && !isInputFocused) {
+      e.preventDefault();
+      this.handleFileSave();
+      return;
+    }
+
+    // Ctrl/Cmd+N: New (Story 9.8)
+    if (modifier && !e.shiftKey && e.key === 'n' && !isInputFocused) {
+      e.preventDefault();
+      this.handleFileNew();
+      return;
+    }
+
+    // Ctrl/Cmd+O: Open (Story 9.8)
+    if (modifier && !e.shiftKey && e.key === 'o' && !isInputFocused) {
+      e.preventDefault();
+      this.handleFileOpen();
+      return;
+    }
+
     // Ctrl+Shift+M: Toggle Story/Lab mode
     if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') {
       e.preventDefault();
@@ -3807,9 +3782,6 @@ export class App {
     if (this.boundKeydownHandler) {
       window.removeEventListener('keydown', this.boundKeydownHandler);
     }
-
-    // Remove file operation keyboard shortcuts (Story 9.8)
-    document.removeEventListener('keydown', this.boundKeyboardHandler);
 
     // Remove beforeunload listener (Story 9.7)
     window.removeEventListener('beforeunload', this.boundBeforeUnload);

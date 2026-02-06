@@ -7626,6 +7626,8 @@ describe('App', () => {
 
         app.mount(container);
         await flushPromises();
+        // Cursor restoration uses setTimeout(0) — flush it
+        await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(mockEditorInstance.setPosition).toHaveBeenCalledWith({
           lineNumber: 2,
@@ -8639,8 +8641,8 @@ describe('App', () => {
       mockEditorInstance.getValue.mockImplementation(() => '');
       mockEditorInstance.getPosition.mockReturnValue({ lineNumber: 1, column: 1 });
       confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-      addEventListenerSpy = vi.spyOn(document, 'addEventListener');
-      removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
+      addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+      removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
       app = new App();
       app.mount(container);
     });
@@ -8949,7 +8951,7 @@ describe('App', () => {
           shiftKey: false,
           bubbles: true,
         });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
 
         // handleFileNew clears the editor when not dirty
         expect(mockEditorInstance.setValue).toHaveBeenCalledWith('');
@@ -8968,7 +8970,7 @@ describe('App', () => {
           shiftKey: false,
           bubbles: true,
         });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
 
         // Wait for async operation
         await vi.waitFor(() => {
@@ -8988,7 +8990,7 @@ describe('App', () => {
           shiftKey: false,
           bubbles: true,
         });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
 
         await vi.waitFor(() => {
           expect(saveProjectSpy).toHaveBeenCalled();
@@ -9007,7 +9009,7 @@ describe('App', () => {
           shiftKey: true,
           bubbles: true,
         });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
 
         await vi.waitFor(() => {
           expect(saveProjectSpy).toHaveBeenCalled();
@@ -9031,8 +9033,7 @@ describe('App', () => {
         document.body.appendChild(input);
         input.focus();
 
-        // The handler checks e.target instanceof HTMLInputElement
-        // We need to dispatch from the input element
+        // Simulate a keyboard event with input as the target
         const event = new KeyboardEvent('keydown', {
           key: 's',
           ctrlKey: true,
@@ -9040,10 +9041,9 @@ describe('App', () => {
           bubbles: true,
         });
 
-        // Dispatch from document but simulate target being an input
-        // The handler returns early if target is input/textarea
+        // Override target to simulate event coming from an input field
         Object.defineProperty(event, 'target', { value: input, writable: false });
-        document.dispatchEvent(event);
+        window.dispatchEvent(event);
 
         // Handler should return early, so saveProject should not be called
         expect(saveProjectSpy).not.toHaveBeenCalled();

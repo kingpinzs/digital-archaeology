@@ -173,8 +173,8 @@ export interface ProjectData {
   code: string;
   /** Breakpoint addresses with line mappings */
   breakpoints: Breakpoint[];
-  /** Editor cursor position */
-  cursorPosition: ProjectCursorPosition;
+  /** Editor cursor position (null for legacy/migrated data) */
+  cursorPosition: ProjectCursorPosition | null;
   /** Timestamp of last save (ms since epoch) */
   savedAt: number;
   /** Schema version for future migrations */
@@ -227,7 +227,7 @@ export function isValidProjectData(value: unknown): value is ProjectData {
     typeof obj.code === 'string' &&
     Array.isArray(obj.breakpoints) &&
     obj.breakpoints.every(isValidBreakpoint) &&
-    isValidCursorPosition(obj.cursorPosition) &&
+    (obj.cursorPosition === null || isValidCursorPosition(obj.cursorPosition)) &&
     typeof obj.savedAt === 'number' &&
     typeof obj.version === 'number'
   );

@@ -135,10 +135,10 @@ jobs:
       - name: Verify E2E test count
         run: |
           E2E_OUTPUT=$(npx playwright test --list 2>&1)
-          E2E_COUNT=$(echo "$E2E_OUTPUT" | grep -c "test")
+          E2E_COUNT=$(echo "$E2E_OUTPUT" | grep -oP 'Total: \K\d+(?= tests)')
           echo "E2E test count: $E2E_COUNT"
-          if [ "$E2E_COUNT" -lt 150 ]; then
-            echo "Warning: E2E test count dropped below 150 (current: $E2E_COUNT)"
+          if [ -z "$E2E_COUNT" ] || [ "$E2E_COUNT" -lt 150 ]; then
+            echo "Warning: E2E test count dropped below 150 (current: ${E2E_COUNT:-unknown})"
             exit 1
           fi
           echo "E2E test count check passed: $E2E_COUNT tests"

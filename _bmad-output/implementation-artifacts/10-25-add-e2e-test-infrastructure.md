@@ -1,6 +1,6 @@
 # Story 10.25: Add E2E Test Infrastructure
 
-Status: review
+Status: done
 
 ## Story
 
@@ -180,7 +180,7 @@ await page.keyboard.type('unsaved change');
 
 ### Discoverer Experience E2E Test Patterns
 
-The discoverer experience is controlled by `DISCOVERER_COMPLETE_KEY = 'discoverer_intro_complete'` in localStorage.
+The discoverer experience is controlled by `DISCOVERER_COMPLETE_KEY = 'digital-archaeology-discoverer-complete'` in localStorage.
 
 **First-time user:**
 ```typescript
@@ -190,7 +190,7 @@ await page.evaluate(() => localStorage.clear());
 
 **Returning user:**
 ```typescript
-await page.evaluate(() => localStorage.setItem('discoverer_intro_complete', 'true'));
+await page.evaluate(() => localStorage.setItem('digital-archaeology-discoverer-complete', 'true'));
 // Enter story mode → verify story starts directly (no discoverer)
 ```
 
@@ -285,6 +285,21 @@ Claude Opus 4.6 (claude-opus-4-6)
 
 N/A - No debug issues encountered
 
+### Code Review Record
+
+**Review Model:** Claude Opus 4.6 (claude-opus-4-6)
+**Issues Found:** 6 (1 HIGH, 3 MEDIUM, 2 LOW)
+**Issues Fixed:** 6/6
+
+| # | Severity | Location | Issue | Resolution |
+|---|----------|----------|-------|------------|
+| H#1 | HIGH | `ci.yml:137-144` | E2E test count check used `grep -c "test"` returning 2 instead of actual 326 | Fixed: parse `Total: N tests` with `grep -oP` + null check |
+| M#1 | MEDIUM | `epic-9-persistence.spec.ts:107-112` | Dialog handler registered AFTER clicking import button | Fixed: moved `page.on('dialog')` before the click |
+| M#2 | MEDIUM | `epic-9-persistence.spec.ts:168` | `expect(hasBeforeUnload).toBeDefined()` always passes | Fixed: changed to `expect(hasBeforeUnload).toBe(true)` |
+| M#3 | MEDIUM | `epic-10-story-mode.spec.ts:403-425` | Discoverer transition test wrapped assertions in conditional | Fixed: replaced `if` guard with `await expect(discoverer).toBeVisible()` |
+| L#1 | LOW | `10-25 story Dev Notes:183,193` | Dev Notes used wrong localStorage key `discoverer_intro_complete` | Fixed: corrected to `digital-archaeology-discoverer-complete` |
+| L#2 | LOW | `10-25 story completion notes` | File line count stated 178, actual is 236 | Fixed: updated to 236 |
+
 ### Completion Notes List
 
 1. **Task 1 - CI Pipeline:** Added `test-e2e` job to `.github/workflows/ci.yml` between `test` and `build`. Job downloads WASM artifacts, installs Node.js 20, installs Playwright Chromium + Firefox browsers, runs `npx playwright test`, verifies E2E test count >= 150, and uploads playwright-report/test-results artifacts on all outcomes. Build job now depends on `[build-wasm, test, test-e2e]`.
@@ -310,7 +325,7 @@ N/A - No debug issues encountered
 
 - `.github/workflows/ci.yml` (MODIFIED) — Added test-e2e job with Playwright, E2E count check, artifact upload; updated build dependency
 - `digital-archaeology-web/playwright.config.ts` (MODIFIED) — Added Firefox project to projects array
-- `digital-archaeology-web/tests/e2e/epic-9-persistence.spec.ts` (NEW, 178 lines, 10 tests) — Epic 9 persistence E2E tests
+- `digital-archaeology-web/tests/e2e/epic-9-persistence.spec.ts` (NEW, 236 lines, 10 tests) — Epic 9 persistence E2E tests
 - `digital-archaeology-web/tests/e2e/epic-10-story-mode.spec.ts` (MODIFIED, +65 lines, 3 new tests) — Discoverer experience E2E tests
 - `_bmad-output/implementation-artifacts/10-25-add-e2e-test-infrastructure.md` (MODIFIED) — Story status updates
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` (MODIFIED) — Status: review

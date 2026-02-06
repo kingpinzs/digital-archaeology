@@ -398,31 +398,29 @@ test.describe('Epic 10: Story Mode Experience', () => {
       await page.waitForTimeout(1500);
 
       const discoverer = page.locator('.da-discoverer-experience');
+      // Discoverer MUST be visible for first-time user
+      await expect(discoverer).toBeVisible({ timeout: 5000 });
 
-      // If discoverer is visible, interact through it
-      if (await discoverer.isVisible()) {
-        // Progress through discoverer phases by clicking continue/action buttons
-        // The discoverer has multiple phases; click through them
-        for (let i = 0; i < 20; i++) {
-          const actionButton = page.locator('.da-discoverer-experience button:visible').first();
-          if (await actionButton.count() > 0) {
-            await actionButton.click();
-            await page.waitForTimeout(800);
-          }
-
-          // Check if discoverer has completed (localStorage flag set)
-          const isComplete = await page.evaluate(() =>
-            localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
-          );
-          if (isComplete) break;
+      // Progress through discoverer phases by clicking continue/action buttons
+      for (let i = 0; i < 20; i++) {
+        const actionButton = page.locator('.da-discoverer-experience button:visible').first();
+        if (await actionButton.count() > 0) {
+          await actionButton.click();
+          await page.waitForTimeout(800);
         }
 
-        // THEN: Discoverer complete flag should be set
+        // Check if discoverer has completed (localStorage flag set)
         const isComplete = await page.evaluate(() =>
           localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
         );
-        expect(isComplete).toBe(true);
+        if (isComplete) break;
       }
+
+      // THEN: Discoverer complete flag should be set
+      const isComplete = await page.evaluate(() =>
+        localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
+      );
+      expect(isComplete).toBe(true);
     });
   });
 });

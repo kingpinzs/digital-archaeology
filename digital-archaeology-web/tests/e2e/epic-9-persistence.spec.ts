@@ -103,13 +103,13 @@ test.describe('Epic 9: Work Persistence', () => {
       // GIVEN: Create a file to import using fileChooser
       const fileContent = 'LDI 9\nSUB 2\nHLT';
 
+      // Handle any confirmation dialog (unsaved changes) - must register BEFORE click
+      page.on('dialog', dialog => dialog.accept());
+
       // WHEN: Trigger import via File menu
       const fileChooserPromise = page.waitForEvent('filechooser');
       await openFileMenu(page);
       await page.locator('.da-menu-dropdown [data-action="import"]').click();
-
-      // Handle any confirmation dialog (unsaved changes)
-      page.on('dialog', dialog => dialog.accept());
 
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles({
@@ -162,10 +162,8 @@ test.describe('Epic 9: Work Persistence', () => {
         return !result || event.defaultPrevented;
       });
 
-      // THEN: beforeunload handler should be active
-      // Note: Browsers have inconsistent behavior here, so we just verify the handler exists
-      // The actual browser dialog can't be intercepted by Playwright in the same way
-      expect(hasBeforeUnload).toBeDefined();
+      // THEN: beforeunload handler should have called preventDefault
+      expect(hasBeforeUnload).toBe(true);
     });
   });
 

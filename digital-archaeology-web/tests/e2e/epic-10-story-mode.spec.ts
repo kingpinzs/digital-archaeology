@@ -369,12 +369,13 @@ test.describe('Epic 10: Story Mode Experience', () => {
     });
 
     test('[10.23] should skip discoverer for returning user', async ({ page }) => {
-      // GIVEN: Set discoverer complete flag in localStorage
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
-      await page.evaluate(() => {
+      // GIVEN: Set discoverer complete flag BEFORE page loads
+      // (StoryModeContainer initializes on mount, not on mode switch)
+      await page.addInitScript(() => {
         localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
       });
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
 
       // WHEN: Switch to story mode
       await page.locator('[data-mode="story"]').first().click();
@@ -401,26 +402,20 @@ test.describe('Epic 10: Story Mode Experience', () => {
       // Discoverer MUST be visible for first-time user
       await expect(discoverer).toBeVisible({ timeout: 5000 });
 
-      // Progress through discoverer phases by clicking continue/action buttons
-      for (let i = 0; i < 20; i++) {
-        const actionButton = page.locator('.da-discoverer-experience button:visible').first();
-        if (await actionButton.count() > 0) {
-          await actionButton.click();
-          await page.waitForTimeout(800);
-        }
-
-        // Check if discoverer has completed (localStorage flag set)
-        const isComplete = await page.evaluate(() =>
-          localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
-        );
-        if (isComplete) break;
-      }
+      // WHEN: Click "Skip Intro" to complete discoverer experience
+      const skipLink = page.locator('.da-discoverer-skip-link');
+      await expect(skipLink).toBeVisible({ timeout: 3000 });
+      await skipLink.click();
+      await page.waitForTimeout(1000);
 
       // THEN: Discoverer complete flag should be set
       const isComplete = await page.evaluate(() =>
         localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
       );
       expect(isComplete).toBe(true);
+
+      // AND: Story content should now be visible (normal story flow started)
+      await expect(page.locator('.da-story-content')).toBeVisible({ timeout: 5000 });
     });
   });
 });

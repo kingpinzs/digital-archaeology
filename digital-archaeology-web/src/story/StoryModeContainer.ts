@@ -187,6 +187,15 @@ export class StoryModeContainer {
     // Initialize asynchronously
     this.initializationPromise = this.storyController.initialize()
       .then(() => {
+        // Check if first-time user needs discoverer experience
+        if (this.storyController?.isFirstTimeUser()) {
+          const sceneMount = this.storyContent?.getSceneMount();
+          if (sceneMount) {
+            this.storyController.showDiscovererExperience(sceneMount);
+          }
+          return;
+        }
+
         // Update YourRolePanel with initial role data
         const roleData = this.storyController?.getRoleData();
         if (roleData) {

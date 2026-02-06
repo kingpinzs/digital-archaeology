@@ -217,19 +217,26 @@ test.describe('Epic 9: Work Persistence', () => {
       expect(dialogShown).toBe(true);
     });
 
-    test('[9.8] should trigger open file on Ctrl+O with filechooser', async ({ page }) => {
-      // WHEN: Press Ctrl+O
-      // Handle potential unsaved changes dialog
+    test('[9.8] should trigger open/load on Ctrl+O', async ({ page }) => {
+      // GIVEN: Type code and save it first so there's a project to load
+      await typeInEditor(page, 'LDI 77\nHLT');
+      await page.keyboard.press('ControlOrMeta+s');
+      await page.waitForTimeout(1000);
+
+      // Clear editor to verify load works
+      await typeInEditor(page, '');
+      await page.waitForTimeout(200);
+
+      // WHEN: Press Ctrl+O (loads saved project from IndexedDB, not a file chooser)
       page.on('dialog', async dialog => {
         await dialog.accept();
       });
-
-      const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 3000 }).catch(() => null);
       await page.keyboard.press('ControlOrMeta+o');
+      await page.waitForTimeout(1000);
 
-      // THEN: File chooser should open
-      const fileChooser = await fileChooserPromise;
-      expect(fileChooser).not.toBeNull();
+      // THEN: Saved code should be restored from IndexedDB
+      const editorContent = await page.locator('.view-lines').textContent();
+      expect(editorContent).toContain('LDI');
     });
   });
 });

@@ -125,7 +125,7 @@ test.describe('Epic 1: Project Foundation & App Shell', () => {
     });
 
     test('[1.7] should have Reset button', async ({ page }) => {
-      await expect(page.locator('[data-action="reset"]')).toBeVisible();
+      await expect(page.locator('.da-toolbar-btn[data-action="reset"]')).toBeVisible();
     });
 
     test('[1.7] should have Step button', async ({ page }) => {

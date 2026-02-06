@@ -9,6 +9,10 @@ import { test, expect } from '../support/fixtures';
 
 test.describe('Story Browser Navigation', () => {
   test.beforeEach(async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     // Switch to story mode
@@ -178,6 +182,10 @@ test.describe('Story Browser Navigation', () => {
 
 test.describe('Story Journal', () => {
   test.beforeEach(async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     // Switch to story mode
@@ -295,6 +303,10 @@ test.describe('Story Journal', () => {
 
 test.describe('Story Branching Paths', () => {
   test.beforeEach(async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     // Switch to story mode
@@ -431,6 +443,10 @@ test.describe('Story Branching Paths', () => {
 
 test.describe('Progress Dots Display', () => {
   test.beforeEach(async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     // Switch to story mode

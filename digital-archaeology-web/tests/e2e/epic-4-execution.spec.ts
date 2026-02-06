@@ -117,7 +117,7 @@ test.describe('Epic 4: Program Execution', () => {
 
   test.describe('Story 4.7: Reset Button', () => {
     test('[4.7] should have visible Reset button', async ({ page }) => {
-      await expect(page.locator('[data-action="reset"]')).toBeVisible();
+      await expect(page.locator('.da-toolbar-btn[data-action="reset"]')).toBeVisible();
     });
 
     test('[4.7] should reset CPU state', async ({ page }) => {

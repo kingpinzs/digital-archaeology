@@ -10,6 +10,11 @@ import { test, expect } from '../support/fixtures';
 
 test.describe('Story Mode Playthrough', () => {
   test('Play through first scenes of Act 1', async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
+
     // 1. OPEN THE APP
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -110,6 +115,10 @@ test.describe('Story Mode Playthrough', () => {
   });
 
   test('Navigate multiple scenes in sequence', async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -169,6 +178,10 @@ test.describe('Story Mode Playthrough', () => {
   });
 
   test('Story mode shows technical notes and character cards', async ({ page }) => {
+    // Skip discoverer so story loads directly
+    await page.addInitScript(() => {
+      localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+    });
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 

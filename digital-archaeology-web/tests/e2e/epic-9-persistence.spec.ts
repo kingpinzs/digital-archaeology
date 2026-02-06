@@ -209,8 +209,12 @@ test.describe('Epic 9: Work Persistence', () => {
         await dialog.dismiss(); // Cancel to keep content
       });
 
-      // WHEN: Press Ctrl+N
-      await page.keyboard.press('ControlOrMeta+n');
+      // WHEN: Press Ctrl+N (dispatch via JS to avoid browser intercepting the shortcut)
+      await page.evaluate(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'n', ctrlKey: true, bubbles: true, cancelable: true,
+        }));
+      });
       await page.waitForTimeout(500);
 
       // THEN: Should show unsaved changes dialog

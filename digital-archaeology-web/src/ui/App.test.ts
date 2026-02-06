@@ -8249,7 +8249,7 @@ describe('App', () => {
 
     beforeEach(() => {
       mockEditorInstance._resetContent();
-      mockEditorInstance.getValue.mockImplementation(() => mockEditorInstance._setContent ? '' : '');
+      mockEditorInstance.getValue.mockImplementation(() => '');
       confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
       addEventListenerSpy = vi.spyOn(window, 'addEventListener');
       removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
@@ -8494,10 +8494,7 @@ describe('App', () => {
         mockLoadExampleProgram.mockResolvedValue(exampleCode);
 
         // Call private method directly
-        type AppWithPrivate = App & {
-          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
-        };
-        await (app as unknown as AppWithPrivate).handleExampleSelect({
+        await (app as unknown as Record<string, (program: { name: string; filename: string }) => Promise<void>>).handleExampleSelect({
           name: 'Test Program',
           filename: 'test.asm',
         });
@@ -8517,10 +8514,7 @@ describe('App', () => {
         mockLoadExampleProgram.mockResolvedValue(exampleCode);
 
         // Call private method directly
-        type AppWithPrivate = App & {
-          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
-        };
-        await (app as unknown as AppWithPrivate).handleExampleSelect({
+        await (app as unknown as Record<string, (program: { name: string; filename: string }) => Promise<void>>).handleExampleSelect({
           name: 'Test Program',
           filename: 'test.asm',
         });
@@ -8542,10 +8536,7 @@ describe('App', () => {
         // Make loadExampleProgram reject
         mockLoadExampleProgram.mockRejectedValue(new Error('Network error'));
 
-        type AppWithPrivate = App & {
-          handleExampleSelect: (program: { name: string; filename: string }) => Promise<void>;
-        };
-        await (app as unknown as AppWithPrivate).handleExampleSelect({
+        await (app as unknown as Record<string, (program: { name: string; filename: string }) => Promise<void>>).handleExampleSelect({
           name: 'Failing Example',
           filename: 'fail.asm',
         });
@@ -8747,6 +8738,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('modified');
         mockEditorInstance.getValue.mockReturnValue('modified');
@@ -8767,6 +8759,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('same');
         mockEditorInstance.getValue.mockReturnValue('same');
@@ -8786,6 +8779,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: { lineNumber: 2, column: 1 },
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');
@@ -8818,6 +8812,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');
@@ -8834,6 +8829,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('modified');
         mockEditorInstance.getValue.mockReturnValue('modified');
@@ -8853,6 +8849,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');
@@ -8872,6 +8869,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: { lineNumber: 2, column: 5 },
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');
@@ -8900,6 +8898,7 @@ describe('App', () => {
           ],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');
@@ -8922,6 +8921,7 @@ describe('App', () => {
           breakpoints: [],
           cursorPosition: null,
           savedAt: Date.now(),
+          version: 1,
         });
         mockEditorInstance._setContent('');
         mockEditorInstance.getValue.mockReturnValue('');

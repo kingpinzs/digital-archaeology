@@ -12,7 +12,7 @@
 export type ThemeMode = 'lab' | 'story';
 
 /** Lab stations within Lab Mode */
-export type LabStation = 'build' | 'explore';
+export type LabStation = 'build' | 'explore' | 'challenge';
 
 /** CSS class names for each theme */
 const THEME_CLASSES: Record<ThemeMode, string> = {

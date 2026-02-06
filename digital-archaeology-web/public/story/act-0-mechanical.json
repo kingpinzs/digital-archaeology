@@ -374,6 +374,7 @@
               ],
               "challenge": {
                 "title": "MASTER THE COUNTING BOARD",
+                "simulatorId": "counting-board",
                 "objectives": [
                   {
                     "id": "obj-1",
@@ -895,6 +896,7 @@
               ],
               "challenge": {
                 "title": "MASTER THE SUANPAN",
+                "simulatorId": "suanpan",
                 "objectives": [
                   {
                     "id": "obj-1",
@@ -1419,6 +1421,7 @@
               ],
               "challenge": {
                 "title": "BUILD THE PASCALINE",
+                "simulatorId": "pascaline",
                 "objectives": [
                   {
                     "id": "obj-1",
@@ -1988,6 +1991,7 @@
               ],
               "challenge": {
                 "title": "BUILD THE ANALYTICAL ENGINE",
+                "simulatorId": "analytical-engine",
                 "objectives": [
                   {
                     "id": "obj-1",

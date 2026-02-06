@@ -127,6 +127,22 @@ export interface TechnicalNoteData {
 }
 
 /**
+ * Simulator types for Act 0 interactive challenges.
+ * Each maps to a specific historical computing device simulator.
+ */
+export type SimulatorType = 'counting-board' | 'suanpan' | 'pascaline' | 'analytical-engine';
+
+/**
+ * Context passed from story mode to lab mode when entering a challenge.
+ * Carries the scene's challenge data and which simulator to instantiate.
+ */
+export interface ChallengeContext {
+  sceneId: string;
+  challengeData: ChallengeData;
+  simulatorType: SimulatorType;
+}
+
+/**
  * Represents a single objective in a challenge.
  */
 export interface ChallengeObjective {
@@ -147,6 +163,8 @@ export interface ChallengeData {
   title: string;
   /** List of objectives to complete */
   objectives: ChallengeObjective[];
+  /** Optional simulator type for interactive challenges (Act 0) */
+  simulatorId?: SimulatorType;
 }
 
 /**

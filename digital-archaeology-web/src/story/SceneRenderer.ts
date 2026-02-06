@@ -4,7 +4,7 @@
 // Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
 import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData } from './content-types';
-import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, HistoricalDecision } from './types';
+import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, HistoricalDecision, ChallengeContext } from './types';
 import { ChapterHeader } from './ChapterHeader';
 import { SceneSetting } from './SceneSetting';
 import { CharacterCard } from './CharacterCard';
@@ -36,7 +36,7 @@ export interface SceneRendererCallbacks {
   onChoiceSelect?: (choiceId: string) => void;
   onContinue?: () => void;
   onPrevious?: () => void;
-  onEnterLab?: () => void;
+  onEnterLab?: (context?: ChallengeContext) => void;
   /** Called when a historical decision is made (Story 10.22) */
   onDecisionMade?: (decisionId: string, optionId: string) => void;
   /** Called when builder challenge is complete (Story 10.22) */
@@ -57,6 +57,9 @@ export class SceneRenderer {
   // Reusable structural elements
   private sceneContainer: HTMLElement | null = null;
   private footer: StoryActionsFooter | null = null;
+
+  // Current render context (for challenge context extraction)
+  private currentContext: SceneRenderContext | null = null;
 
   // Story 10.21: Anachronism filtering
   private filteringEnabled = false;
@@ -127,6 +130,7 @@ export class SceneRenderer {
    */
   renderScene(context: SceneRenderContext, container: HTMLElement): void {
     this.container = container;
+    this.currentContext = context;
 
     // Clean up previous scene components
     this.cleanup();
@@ -371,7 +375,19 @@ export class SceneRenderer {
     labButton.mount(mount);
     labButton.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        this.callbacks.onEnterLab();
+        // Build ChallengeContext if scene has challenge data with a simulatorId
+        const scene = this.currentContext?.scene;
+        const challenge = scene?.challenge;
+        if (challenge?.simulatorId) {
+          const context: ChallengeContext = {
+            sceneId: scene!.id,
+            challengeData: challenge,
+            simulatorType: challenge.simulatorId,
+          };
+          this.callbacks.onEnterLab(context);
+        } else {
+          this.callbacks.onEnterLab();
+        }
       }
     });
     this.activeComponents.push(labButton);
@@ -469,7 +485,18 @@ export class SceneRenderer {
 
     this.footer.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        this.callbacks.onEnterLab();
+        const scene = this.currentContext?.scene;
+        const challenge = scene?.challenge;
+        if (challenge?.simulatorId) {
+          const context: ChallengeContext = {
+            sceneId: scene!.id,
+            challengeData: challenge,
+            simulatorType: challenge.simulatorId,
+          };
+          this.callbacks.onEnterLab(context);
+        } else {
+          this.callbacks.onEnterLab();
+        }
       }
     });
   }

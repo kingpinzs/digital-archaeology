@@ -18,6 +18,8 @@ import { BinaryOutputPanel } from './BinaryOutputPanel';
 import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
+import type { ChallengeContext } from '@story/types';
+import { ChallengeStation } from '@simulators/ChallengeStation';
 import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
@@ -94,6 +96,10 @@ export class App {
   private currentLabStation: LabStation = 'explore';
   private labExploreStation: HTMLElement | null = null;
   private labBuildStation: HTMLElement | null = null;
+  private labChallengeStation: HTMLElement | null = null;
+
+  // Challenge station component
+  private challengeStation: ChallengeStation | null = null;
 
   // Story Mode container (Story 10.1)
   private storyModeContainer: StoryModeContainer | null = null;
@@ -390,6 +396,16 @@ export class App {
               <span class="da-lab-station-icon">🔧</span>
               <span class="da-lab-station-label">Build</span>
             </button>
+            <button
+              class="da-lab-station-tab da-lab-station-tab--hidden"
+              data-station="challenge"
+              role="tab"
+              aria-selected="false"
+              aria-controls="da-lab-challenge-station"
+            >
+              <span class="da-lab-station-icon">🏛️</span>
+              <span class="da-lab-station-label">Challenge</span>
+            </button>
           </div>
 
           <!-- Explore Station (3-panel layout - code, circuit viewer, state) -->
@@ -431,6 +447,10 @@ export class App {
             <aside class="da-properties-panel" aria-label="Properties Panel">
             </aside>
           </div>
+
+          <!-- Challenge Station (Interactive Simulators for Act 0) -->
+          <div id="da-lab-challenge-station" class="da-lab-station da-lab-challenge-station da-lab-station--hidden" role="tabpanel">
+          </div>
         </div>
 
         <!-- Story Mode Container mount point (Story 10.1) -->
@@ -456,6 +476,7 @@ export class App {
     // Cache references to Lab Station containers
     this.labExploreStation = this.container.querySelector('.da-lab-explore-station');
     this.labBuildStation = this.container.querySelector('.da-lab-build-station');
+    this.labChallengeStation = this.container.querySelector('.da-lab-challenge-station');
 
     // Attach lab station tab event listeners
     this.attachLabStationListeners();
@@ -491,18 +512,21 @@ export class App {
       tab.setAttribute('aria-selected', String(isActive));
     });
 
-    // Show/hide station containers
+    // Hide all stations first
+    this.labExploreStation?.classList.add('da-lab-station--hidden');
+    this.labBuildStation?.classList.add('da-lab-station--hidden');
+    this.labChallengeStation?.classList.add('da-lab-station--hidden');
+
+    // Show the selected station
     if (station === 'build') {
-      this.labExploreStation?.classList.add('da-lab-station--hidden');
       this.labBuildStation?.classList.remove('da-lab-station--hidden');
-      // Initialize CircuitBuilder if needed
       if (!this.circuitBuilder) {
         this.initializeCircuitBuilder();
       }
+    } else if (station === 'challenge') {
+      this.labChallengeStation?.classList.remove('da-lab-station--hidden');
     } else {
-      this.labBuildStation?.classList.add('da-lab-station--hidden');
       this.labExploreStation?.classList.remove('da-lab-station--hidden');
-      // Refresh editor layout
       requestAnimationFrame(() => {
         this.editor?.layout();
       });
@@ -590,7 +614,7 @@ export class App {
    * @param mode - The new theme mode
    * @returns void
    */
-  private handleModeChange(mode: ThemeMode): void {
+  private handleModeChange(mode: ThemeMode, challengeContext?: ChallengeContext): void {
     this.currentMode = mode;
     setTheme(mode);
     this.applyModeVisibility();
@@ -599,6 +623,11 @@ export class App {
     this.storyModeContainer?.setMode(mode);
     // Story 9.1: Persist theme setting to unified storage
     this.saveSettings();
+
+    // If switching to lab mode with a challenge context, activate the challenge station
+    if (mode === 'lab' && challengeContext) {
+      this.activateChallengeStation(challengeContext);
+    }
   }
 
   /**
@@ -631,7 +660,7 @@ export class App {
 
     this.storyModeContainer = new StoryModeContainer({
       currentMode: this.currentMode,
-      onModeChange: (mode) => this.handleModeChange(mode),
+      onModeChange: (mode, challengeContext) => this.handleModeChange(mode, challengeContext),
     });
     this.storyModeContainer.mount(storyMount as HTMLElement);
   }
@@ -692,6 +721,34 @@ export class App {
 
     // Show Story Mode container
     this.storyModeContainer?.show();
+  }
+
+  /**
+   * Activate the challenge station with the given context.
+   * Shows the challenge tab, creates the ChallengeStation component,
+   * and switches to it.
+   */
+  private activateChallengeStation(context: ChallengeContext): void {
+    // Show the challenge tab
+    const challengeTab = this.container?.querySelector('[data-station="challenge"]');
+    challengeTab?.classList.remove('da-lab-station-tab--hidden');
+
+    // Initialize ChallengeStation if needed
+    if (!this.challengeStation && this.labChallengeStation) {
+      this.challengeStation = new ChallengeStation();
+      this.challengeStation.mount(this.labChallengeStation);
+      this.challengeStation.setOnReturnToStory(() => {
+        this.handleModeChange('story');
+        // Hide the challenge tab when returning to story
+        challengeTab?.classList.add('da-lab-station-tab--hidden');
+      });
+    }
+
+    // Set the challenge context
+    this.challengeStation?.setChallengeContext(context);
+
+    // Switch to challenge station
+    this.switchLabStation('challenge');
   }
 
   /**

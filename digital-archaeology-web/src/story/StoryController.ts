@@ -4,7 +4,7 @@
 
 import type { StoryAct, StoryScene } from './content-types';
 import type { StoryProgress } from './StoryState';
-import type { RoleData } from './types';
+import type { RoleData, ChallengeContext } from './types';
 import type { StoryStateChangedEvent } from './StoryEngine';
 import type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';
 import { StoryLoader } from './StoryLoader';
@@ -17,8 +17,8 @@ import { DiscovererExperience } from './DiscovererExperience';
  * Callbacks for story controller events.
  */
 export interface StoryControllerCallbacks {
-  /** Called when mode should change to Lab */
-  onEnterLab?: () => void;
+  /** Called when mode should change to Lab, optionally with challenge context */
+  onEnterLab?: (context?: ChallengeContext) => void;
   /** Called when era changes (for nav updates) */
   onEraChange?: (era: string) => void;
   /** Called when role data updates */
@@ -416,9 +416,9 @@ export class StoryController {
       onPrevious: () => {
         this.previousScene();
       },
-      onEnterLab: () => {
+      onEnterLab: (context?: ChallengeContext) => {
         if (this.callbacks.onEnterLab) {
-          this.callbacks.onEnterLab();
+          this.callbacks.onEnterLab(context);
         }
       },
     };

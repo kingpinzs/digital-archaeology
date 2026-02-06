@@ -7495,3 +7495,845 @@ body.da-resizing * {
     font-size: 1.8rem;
   }
 }
+
+/* =============================================================================
+   Challenge Simulators
+   Act 0 interactive historical computing device simulators
+   ============================================================================= */
+
+/* --- Challenge Station Layout --- */
+.da-challenge-station {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  height: 100%;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.da-challenge-station--hidden {
+  display: none;
+}
+
+.da-challenge-station-simulator {
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--da-bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--da-bg-tertiary);
+}
+
+.da-challenge-station-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.da-challenge-station-instructions {
+  color: var(--da-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.da-challenge-station-return-btn {
+  padding: 10px 16px;
+  background: #d4a574;
+  color: #0a0a12;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.da-challenge-station-return-btn:hover {
+  background: #e4b584;
+  transform: translateY(-1px);
+}
+
+.da-challenge-station-return-btn--hidden {
+  display: none;
+}
+
+/* --- Challenge Tab Hidden State --- */
+.da-lab-station-tab--hidden {
+  display: none;
+}
+
+/* --- Challenge Station Container --- */
+.da-lab-challenge-station {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* --- Shared Simulator Styles --- */
+.da-sim-display {
+  color: var(--da-text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.da-sim-btn-reset {
+  padding: 8px 14px;
+  background: var(--da-bg-tertiary);
+  color: var(--da-text-primary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 150ms ease;
+}
+
+.da-sim-btn-reset:hover {
+  background: var(--da-bg-hover);
+}
+
+.da-sim-phase-hint {
+  color: var(--da-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--da-bg-tertiary);
+  border-radius: 4px;
+  border-left: 3px solid var(--da-accent);
+}
+
+/* === Counting Board Simulator === */
+.da-sim-counting-board {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.da-sim-counting-board-surface {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #8B7355, #A0896B);
+  border-radius: 8px;
+  border: 3px solid #6B5B45;
+  margin-bottom: 16px;
+}
+
+.da-sim-counting-board-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.da-sim-counting-board-label {
+  color: #2d2418;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.da-sim-counting-board-pebbles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 120px;
+  justify-content: flex-end;
+  padding: 8px;
+  border-left: 2px solid #5a4a36;
+  border-right: 2px solid #5a4a36;
+}
+
+.da-sim-pebble {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #b89e7a, #7a6548);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.da-sim-counting-board-value {
+  color: #2d2418;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.da-sim-counting-board-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.da-sim-counting-board-btn {
+  padding: 4px 8px;
+  background: #5a4a36;
+  color: #e0d5c5;
+  border: 1px solid #4a3a28;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 150ms ease;
+}
+
+.da-sim-counting-board-btn:hover {
+  background: #6B5B45;
+}
+
+.da-sim-counting-board-btn--borrow {
+  background: #8B5E3C;
+}
+
+.da-sim-counting-board-btn--borrow:hover {
+  background: #A06E4C;
+}
+
+.da-sim-counting-board-borrow-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.da-sim-counting-board-total {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--da-text-primary);
+  font-family: monospace;
+}
+
+/* === Suanpan Simulator === */
+.da-sim-suanpan {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.da-sim-suanpan-frame {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px 16px;
+  background: linear-gradient(135deg, #4a3728, #5c4a38);
+  border-radius: 8px;
+  border: 4px solid #3a2a1a;
+  margin-bottom: 16px;
+}
+
+.da-sim-suanpan-rod {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.da-sim-suanpan-rod::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  width: 3px;
+  background: #8B7355;
+  border-radius: 2px;
+  z-index: 0;
+}
+
+.da-sim-suanpan-rod-label {
+  color: #d4c4a8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.da-sim-suanpan-heaven,
+.da-sim-suanpan-earth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 1;
+}
+
+.da-sim-suanpan-bar {
+  width: 60px;
+  height: 4px;
+  background: #6B5B45;
+  border-radius: 2px;
+  margin: 4px 0;
+  z-index: 1;
+}
+
+.da-sim-bead {
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  z-index: 1;
+  position: relative;
+}
+
+.da-sim-bead--heaven {
+  background: radial-gradient(ellipse at 40% 35%, #a89070, #6a5a44);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.da-sim-bead--earth {
+  background: radial-gradient(ellipse at 40% 35%, #a89070, #6a5a44);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.da-sim-bead--active {
+  background: radial-gradient(ellipse at 40% 35%, #d4b088, #a08058) !important;
+  box-shadow: 0 0 8px rgba(212, 176, 136, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.da-sim-bead:hover {
+  transform: scale(1.1);
+}
+
+.da-sim-suanpan-value {
+  color: #d4c4a8;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: monospace;
+  z-index: 1;
+}
+
+.da-sim-suanpan-total {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--da-text-primary);
+  font-family: monospace;
+}
+
+/* === Pascaline Simulator === */
+.da-sim-pascaline {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.da-sim-pascaline-machine {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #3a3028, #4a4038);
+  border-radius: 8px;
+  border: 3px solid #5a4a38;
+  margin-bottom: 16px;
+}
+
+.da-sim-pascaline-slot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.da-sim-pascaline-wheel-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.da-sim-pascaline-label {
+  color: #b8a888;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.da-sim-pascaline-arrow {
+  width: 32px;
+  height: 24px;
+  background: #5a4a38;
+  color: #d4c4a8;
+  border: 1px solid #4a3a28;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease;
+}
+
+.da-sim-pascaline-arrow:hover {
+  background: #6B5B45;
+}
+
+.da-sim-wheel-digit {
+  width: 36px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: #f0e8d8;
+  background: #1a1512;
+  border: 2px solid #8B7355;
+  border-radius: 4px;
+}
+
+.da-sim-sautoir {
+  font-size: 1rem;
+  color: #5a4a38;
+  transition: color 300ms ease, transform 300ms ease;
+}
+
+.da-sim-sautoir--active {
+  color: #d4a574;
+  transform: rotate(180deg);
+  animation: sautoir-trip 300ms ease;
+}
+
+@keyframes sautoir-trip {
+  0% { transform: rotate(0deg); color: #5a4a38; }
+  50% { transform: rotate(90deg); color: #d4a574; }
+  100% { transform: rotate(180deg); color: #d4a574; }
+}
+
+.da-sim-pascaline-total {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--da-text-primary);
+  font-family: monospace;
+}
+
+/* === Analytical Engine Simulator === */
+.da-sim-analytical-engine {
+  width: 100%;
+}
+
+.da-sim-ae-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr 280px;
+  gap: 12px;
+  margin-bottom: 12px;
+  min-height: 400px;
+}
+
+.da-sim-ae-section-heading {
+  color: var(--da-text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Store (Memory) */
+.da-sim-ae-store {
+  background: var(--da-bg-tertiary);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--da-bg-hover);
+}
+
+.da-sim-ae-store-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.da-sim-ae-column {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: var(--da-bg-secondary);
+  transition: background 150ms ease, box-shadow 150ms ease;
+}
+
+.da-sim-ae-column-label {
+  color: var(--da-text-secondary);
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+.da-sim-ae-column-value {
+  color: var(--da-text-primary);
+  font-size: 0.85rem;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.da-sim-ae-column--read-pulse {
+  background: rgba(0, 180, 216, 0.2);
+  box-shadow: inset 0 0 6px rgba(0, 180, 216, 0.3);
+}
+
+.da-sim-ae-column--write-pulse {
+  background: rgba(212, 165, 116, 0.2);
+  box-shadow: inset 0 0 6px rgba(212, 165, 116, 0.3);
+}
+
+/* Mill (ALU) */
+.da-sim-ae-mill {
+  background: var(--da-bg-tertiary);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--da-bg-hover);
+}
+
+.da-sim-ae-mill-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.da-sim-ae-mill-label {
+  color: var(--da-text-secondary);
+  font-size: 0.8rem;
+}
+
+.da-sim-ae-mill-value {
+  color: var(--da-text-primary);
+  font-size: 0.85rem;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.da-sim-ae-gear {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--da-text-secondary);
+  margin: 8px 0;
+  transition: color 150ms ease;
+}
+
+.da-sim-ae-gear--spinning {
+  color: var(--da-accent);
+  animation: gear-spin 1s linear infinite;
+}
+
+@keyframes gear-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.da-sim-ae-mill-status-row {
+  font-size: 0.8rem;
+  color: var(--da-text-secondary);
+  text-align: center;
+  padding-top: 4px;
+}
+
+.da-sim-ae-mill-status {
+  font-weight: 600;
+}
+
+.da-sim-ae-mill--computing .da-sim-ae-mill-status { color: var(--da-accent); }
+.da-sim-ae-mill--done .da-sim-ae-mill-status { color: var(--da-signal-high); }
+.da-sim-ae-mill--error .da-sim-ae-mill-status { color: #e74c3c; }
+
+/* Printer Tape */
+.da-sim-ae-printer {
+  background: var(--da-bg-tertiary);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--da-bg-hover);
+  margin-top: 8px;
+}
+
+.da-sim-ae-printer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.da-sim-ae-printer-clear {
+  padding: 2px 8px;
+  background: var(--da-bg-hover);
+  color: var(--da-text-secondary);
+  border: 1px solid var(--da-bg-tertiary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.da-sim-ae-printer-tape {
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #f5f0e6;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #2d2418;
+  min-height: 40px;
+}
+
+.da-sim-ae-printer-line {
+  padding: 2px 0;
+  border-bottom: 1px dotted #ccc;
+}
+
+/* Card Editor */
+.da-sim-ae-cards {
+  background: var(--da-bg-tertiary);
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--da-bg-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.da-sim-ae-cards-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.da-sim-ae-cards-toggle-btn {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--da-bg-secondary);
+  color: var(--da-text-secondary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 150ms ease;
+}
+
+.da-sim-ae-cards-toggle-btn--active {
+  background: var(--da-accent);
+  color: #fff;
+  border-color: var(--da-accent);
+}
+
+.da-sim-ae-cards-visual {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.da-sim-ae-cards-visual--hidden {
+  display: none;
+}
+
+.da-sim-ae-cards-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.da-sim-ae-cards-text--hidden {
+  display: none;
+}
+
+.da-sim-ae-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.da-sim-ae-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: var(--da-bg-secondary);
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--da-text-primary);
+  border: 1px solid transparent;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.da-sim-ae-card--current {
+  border-color: var(--da-accent);
+  background: rgba(0, 180, 216, 0.1);
+}
+
+.da-sim-ae-card--label {
+  color: var(--da-accent);
+  font-weight: 600;
+  font-style: italic;
+  padding-left: 10px;
+}
+
+.da-sim-ae-card-pointer {
+  color: var(--da-accent);
+  font-size: 0.7rem;
+  min-width: 12px;
+}
+
+.da-sim-ae-card-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.da-sim-ae-card-delete {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 4px;
+  opacity: 0.5;
+  transition: opacity 150ms ease;
+}
+
+.da-sim-ae-card:hover .da-sim-ae-card-delete {
+  opacity: 1;
+}
+
+.da-sim-ae-card-delete:hover {
+  color: #e74c3c;
+}
+
+.da-sim-ae-card-add {
+  padding: 6px;
+  background: var(--da-bg-secondary);
+  color: var(--da-accent);
+  border: 1px dashed var(--da-bg-hover);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 150ms ease;
+}
+
+.da-sim-ae-card-add:hover {
+  background: var(--da-bg-hover);
+}
+
+.da-sim-ae-card-form {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--da-bg-secondary);
+  border-radius: 4px;
+  flex-wrap: wrap;
+}
+
+.da-sim-ae-card-form select,
+.da-sim-ae-card-form input {
+  padding: 4px 6px;
+  background: var(--da-bg-primary);
+  color: var(--da-text-primary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.da-sim-ae-card-form button {
+  padding: 4px 10px;
+  background: var(--da-accent);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.da-sim-ae-text-editor {
+  width: 100%;
+  flex: 1;
+  min-height: 200px;
+  padding: 8px;
+  background: var(--da-bg-primary);
+  color: var(--da-text-primary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  resize: none;
+  line-height: 1.5;
+}
+
+.da-sim-ae-text-parse {
+  padding: 6px 12px;
+  background: var(--da-accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  align-self: flex-end;
+}
+
+.da-sim-ae-sample-row {
+  display: flex;
+}
+
+.da-sim-ae-sample-select {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--da-bg-secondary);
+  color: var(--da-text-primary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Execution Controls */
+.da-sim-ae-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--da-bg-tertiary);
+  border-radius: 6px;
+  border: 1px solid var(--da-bg-hover);
+  flex-wrap: wrap;
+}
+
+.da-sim-ae-control-btn {
+  padding: 6px 14px;
+  background: var(--da-bg-secondary);
+  color: var(--da-text-primary);
+  border: 1px solid var(--da-bg-hover);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 150ms ease;
+}
+
+.da-sim-ae-control-btn:hover {
+  background: var(--da-bg-hover);
+}
+
+.da-sim-ae-speed-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.da-sim-ae-speed-label {
+  color: var(--da-text-secondary);
+  font-size: 0.8rem;
+}
+
+.da-sim-ae-speed-slider {
+  width: 100px;
+  accent-color: var(--da-accent);
+}
+
+/* --- Responsive: Challenge Station --- */
+@media (max-width: 900px) {
+  .da-challenge-station {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .da-sim-ae-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}

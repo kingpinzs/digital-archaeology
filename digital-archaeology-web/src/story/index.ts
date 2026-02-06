@@ -16,7 +16,7 @@ export { TechnicalNote } from './TechnicalNote';
 export { EnterLabButton } from './EnterLabButton';
 export { StoryActionsFooter } from './StoryActionsFooter';
 export { ChallengeObjectives } from './ChallengeObjectives';
-export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData, ChallengeData, ChallengeObjective, PersonaConstraint, PersonaData } from './types';
+export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData, ChallengeData, ChallengeObjective, PersonaConstraint, PersonaData, SimulatorType, ChallengeContext } from './types';
 
 // Story 10.14: Story content data structures and loader
 export { StoryLoader, isStoryAct, isStoryChapter, isStoryScene, isStoryContent, validateStoryContent } from './StoryLoader';

@@ -11,7 +11,7 @@ import { StoryController } from './StoryController';
 import { StoryBrowser } from './StoryBrowser';
 import { StoryJournal } from './StoryJournal';
 import type { ThemeMode } from '@ui/theme';
-import type { RoleData } from './types';
+import type { RoleData, ChallengeContext } from './types';
 
 /**
  * Configuration options for the StoryModeContainer component.
@@ -19,8 +19,8 @@ import type { RoleData } from './types';
 export interface StoryModeContainerOptions {
   /** Current active mode */
   currentMode: ThemeMode;
-  /** Callback when mode changes */
-  onModeChange: (mode: ThemeMode) => void;
+  /** Callback when mode changes, optionally with challenge context */
+  onModeChange: (mode: ThemeMode, challengeContext?: ChallengeContext) => void;
 }
 
 /**
@@ -165,9 +165,9 @@ export class StoryModeContainer {
 
     // Set up controller callbacks
     this.storyController.setCallbacks({
-      onEnterLab: () => {
-        // Switch to lab mode
-        this.options.onModeChange('lab');
+      onEnterLab: (context?: ChallengeContext) => {
+        // Switch to lab mode, passing challenge context if available
+        this.options.onModeChange('lab', context);
       },
       onEraChange: (_era: string) => {
         // StoryNav updates via story-state-changed event

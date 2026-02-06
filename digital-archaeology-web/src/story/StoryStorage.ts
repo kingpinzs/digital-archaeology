@@ -7,6 +7,9 @@ import type { StoryProgress, StoryPosition, StoryChoice } from './StoryState';
 /** Storage key for story progress in localStorage */
 export const STORY_STORAGE_KEY = 'digital-archaeology-story-progress';
 
+/** Default storage key for discoverer intro completion flag */
+export const DISCOVERER_COMPLETE_KEY = 'digital-archaeology-discoverer-complete';
+
 /**
  * Type guard to check if a value is a valid StoryPosition.
  */
@@ -58,9 +61,11 @@ function isStoryProgress(value: unknown): value is StoryProgress {
  */
 export class StoryStorage {
   private storageKey: string;
+  private discovererKey: string;
 
-  constructor(storageKey: string = STORY_STORAGE_KEY) {
+  constructor(storageKey: string = STORY_STORAGE_KEY, discovererKey: string = DISCOVERER_COMPLETE_KEY) {
     this.storageKey = storageKey;
+    this.discovererKey = discovererKey;
   }
 
   /**
@@ -123,6 +128,28 @@ export class StoryStorage {
       return localStorage.getItem(this.storageKey) !== null;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Check if the discoverer intro experience has been completed.
+   */
+  isDiscovererComplete(): boolean {
+    try {
+      return localStorage.getItem(this.discovererKey) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Mark the discoverer intro experience as completed.
+   */
+  markDiscovererComplete(): void {
+    try {
+      localStorage.setItem(this.discovererKey, 'true');
+    } catch (error) {
+      console.error('Failed to mark discoverer complete:', error);
     }
   }
 }

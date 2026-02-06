@@ -45,6 +45,8 @@ export interface StoryProgress {
   lastPlayedAt: number;
   /** Current persona the user has adopted (Story 10.18) */
   currentPersona?: PersonaData | null;
+  /** Pending decision context for builder scenes (Story 10.22) */
+  pendingDecision?: { decisionId: string; chosenOptionId: string } | null;
 }
 
 /**

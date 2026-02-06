@@ -1,6 +1,6 @@
 # Story 10.22: Decision-Maker + Builder Mode
 
-Status: review
+Status: done
 
 ## Story
 
@@ -119,24 +119,24 @@ So that my understanding comes from both decision-making and building.
   - [x] 6.7 Handle decision state in `resume()` - restore pending decision from saved progress
 
 - [x] Task 7: Add Decision-Builder Content to Act JSON Files (AC: #2, #3)
-  - [ ] 7.1 Add decision scene to `public/story/act-6-micro16.json` (1978 segment registers decision - strongest fit)
-  - [ ] 7.2 Add paired builder scene to act-6 (build with the chosen approach)
-  - [ ] 7.3 Add decision scene to `public/story/act-4-micro4.json` (1971 - how to build a microprocessor)
-  - [ ] 7.4 Add paired builder scene to act-4
-  - [ ] 7.5 Ensure decision -> builder -> consequence scene sequencing in act JSON
-  - [ ] 7.6 Reference existing HistoricalDecision data from act mindset contexts
+  - [x] 7.1 Add decision scene to `public/story/act-6-micro16.json` (1978 segment registers decision - strongest fit)
+  - [x] 7.2 Add paired builder scene to act-6 (build with the chosen approach)
+  - [x] 7.3 Add decision scene to `public/story/act-4-micro4.json` (1971 - how to build a microprocessor)
+  - [x] 7.4 Add paired builder scene to act-4
+  - [x] 7.5 Ensure decision -> builder -> consequence scene sequencing in act JSON
+  - [x] 7.6 Reference existing HistoricalDecision data from act mindset contexts
 
 - [x] Task 8: Add CSS Styles (AC: all)
-  - [ ] 8.1 Add `.da-decision-maker-scene` styles in `src/styles/main.css`
-  - [ ] 8.2 Add `.da-builder-mode-scene` styles
-  - [ ] 8.3 Add `.da-consequence-reveal` styles
-  - [ ] 8.4 Add `.da-decision-builder-transition` animation (arrow/flow between decide and build)
-  - [ ] 8.5 Add `.da-builder-complete` celebration styles
-  - [ ] 8.6 Use existing CSS variable system (`--da-*` prefix)
-  - [ ] 8.7 Ensure responsive layout for all new components
+  - [x] 8.1 Add `.da-decision-maker-scene` styles in `src/styles/main.css`
+  - [x] 8.2 Add `.da-builder-mode-scene` styles
+  - [x] 8.3 Add `.da-consequence-reveal` styles
+  - [x] 8.4 Add `.da-decision-builder-transition` animation (arrow/flow between decide and build)
+  - [x] 8.5 Add `.da-builder-complete` celebration styles
+  - [x] 8.6 Use existing CSS variable system (`--da-*` prefix)
+  - [x] 8.7 Ensure responsive layout for all new components
 
 - [x] Task 9: Create Unit Tests (AC: all)
-  - [ ] 9.1 Create `src/story/DecisionMakerScene.test.ts` (~25 tests)
+  - [x] 9.1 Create `src/story/DecisionMakerScene.test.ts` (~25 tests)
     - Mounts with decision data
     - Renders HistoricalDecisionCard
     - Tracks choice events
@@ -144,7 +144,7 @@ So that my understanding comes from both decision-making and building.
     - Fires onBuildTransition callback
     - Cleans up on destroy
     - ARIA attributes present
-  - [ ] 9.2 Create `src/story/BuilderModeScene.test.ts` (~20 tests)
+  - [x] 9.2 Create `src/story/BuilderModeScene.test.ts` (~20 tests)
     - Renders challenge objectives
     - Shows decision context
     - Shows Enter Lab button
@@ -152,7 +152,7 @@ So that my understanding comes from both decision-making and building.
     - Shows completion message when all done
     - Fires callbacks
     - Cleans up on destroy
-  - [ ] 9.3 Create `src/story/ConsequenceRevealPanel.test.ts` (~20 tests)
+  - [x] 9.3 Create `src/story/ConsequenceRevealPanel.test.ts` (~20 tests)
     - Shows user choice vs history
     - Handles same-as-history case
     - Handles different-from-history case
@@ -160,26 +160,26 @@ So that my understanding comes from both decision-making and building.
     - Dispatches decision-cycle-complete event
     - Continue button works
     - Cleans up on destroy
-  - [ ] 9.4 Add SceneRenderer decision/builder tests in `SceneRenderer.test.ts` (~10 tests)
+  - [x] 9.4 Add SceneRenderer decision/builder tests in `SceneRenderer.test.ts` (~10 tests)
     - Renders decision scenes
     - Renders builder scenes
     - Callbacks fire correctly
-  - [ ] 9.5 Add StoryEngine decision sequencing tests in `StoryEngine.test.ts` (~10 tests)
+  - [x] 9.5 Add StoryEngine decision sequencing tests in `StoryEngine.test.ts` (~10 tests)
     - Records decisions in progress
     - Passes decision context to builder scenes
     - Handles resume with pending decision
     - Fires cycle-complete event
-  - [ ] 9.6 Test content-types changes (type assertion tests)
-  - [ ] 9.7 Every `catch` block must have a corresponding test (per retro action item)
+  - [x] 9.6 Test content-types changes (type assertion tests)
+  - [x] 9.7 Every `catch` block must have a corresponding test (per retro action item)
 
 - [x] Task 10: Export and Integration Verification (AC: all)
-  - [ ] 10.1 Export `DecisionMakerScene` from `src/story/index.ts`
-  - [ ] 10.2 Export `BuilderModeScene` from `src/story/index.ts`
-  - [ ] 10.3 Export `ConsequenceRevealPanel` from `src/story/index.ts`
-  - [ ] 10.4 Export `BuilderChallengeData` type from `src/story/index.ts`
-  - [ ] 10.5 Run `npm test` - all tests pass
-  - [ ] 10.6 Run `npm run build` - builds successfully
-  - [ ] 10.7 Verify decision -> builder -> consequence flow in act-4 and act-6 JSON data
+  - [x] 10.1 Export `DecisionMakerScene` from `src/story/index.ts`
+  - [x] 10.2 Export `BuilderModeScene` from `src/story/index.ts`
+  - [x] 10.3 Export `ConsequenceRevealPanel` from `src/story/index.ts`
+  - [x] 10.4 Export `BuilderChallengeData` type from `src/story/index.ts`
+  - [x] 10.5 Run `npm test` - all tests pass
+  - [x] 10.6 Run `npm run build` - builds successfully
+  - [x] 10.7 Verify decision -> builder -> consequence flow in act-4 and act-6 JSON data
 
 ## Dev Notes
 
@@ -335,10 +335,35 @@ public/story/
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.6
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- All 6 code review findings fixed:
+  - F#1 (CRITICAL): Marked all subtask checkboxes [x] for Tasks 7-10
+  - F#2 (MEDIUM): Added `.da-builder-complete--hidden { display: none; }` CSS rule
+  - F#3 (MEDIUM): Persisted `pendingDecision` in StoryProgress, saved in saveProgress(), restored in resume()
+  - F#4 (MEDIUM): Refactored BuilderModeScene Continue button to use bound handler pattern
+  - F#5 (LOW): Added `:focus-visible` rules for all new buttons (decision-maker, builder-complete, consequence-continue, mindset-intro)
+  - F#6 (LOW): Merged duplicate `.da-builder-complete` CSS rule blocks
+- Added 2 new tests for pendingDecision resume (79 total StoryEngine tests)
+
 ### File List
+
+- `src/story/DecisionMakerScene.ts` - Decision-maker scene wrapping HistoricalDecisionCard
+- `src/story/DecisionMakerScene.test.ts` - 18 tests
+- `src/story/BuilderModeScene.ts` - Builder mode scene with challenge objectives
+- `src/story/BuilderModeScene.test.ts` - 20 tests
+- `src/story/ConsequenceRevealPanel.ts` - Post-builder consequence reflection
+- `src/story/ConsequenceRevealPanel.test.ts` - 20 tests
+- `src/story/content-types.ts` - Added 'decision'/'builder' SceneType, BuilderChallengeData
+- `src/story/SceneRenderer.ts` - Added decision/builder scene rendering
+- `src/story/StoryEngine.ts` - Added decision-builder cycle tracking and persistence
+- `src/story/StoryEngine.test.ts` - Added 9 decision-builder tests
+- `src/story/StoryState.ts` - Added pendingDecision to StoryProgress
+- `src/story/index.ts` - Added exports
+- `src/styles/main.css` - Added ~300 lines of CSS for decision/builder/consequence
+- `public/story/act-4-micro4.json` - Added decision + builder scenes
+- `public/story/act-6-micro16.json` - Added decision + builder scenes

@@ -1060,5 +1060,37 @@ describe('StoryEngine Mindset Integration', () => {
       expect(() => engine.completeDecisionBuilderCycle()).not.toThrow();
       expect(engine.getPendingDecision()).toBeNull();
     });
+
+    it('should restore pendingDecision on resume', () => {
+      engine.initialize(createTestActs());
+      engine.startNewGame();
+      engine.recordDecision('decision-1', 'option-a');
+      // Navigate to trigger save with pendingDecision
+      engine.goToScene('scene-1-1-2');
+
+      // Simulate page refresh - new engine instance
+      const engine2 = new StoryEngine();
+      engine2.initialize(createTestActs());
+      const resumed = engine2.resume();
+
+      expect(resumed).toBe(true);
+      expect(engine2.getPendingDecision()).toEqual({
+        decisionId: 'decision-1',
+        chosenOptionId: 'option-a',
+      });
+    });
+
+    it('should not restore pendingDecision when none saved', () => {
+      engine.initialize(createTestActs());
+      engine.startNewGame();
+
+      // Simulate page refresh - new engine instance (no pending decision)
+      const engine2 = new StoryEngine();
+      engine2.initialize(createTestActs());
+      const resumed = engine2.resume();
+
+      expect(resumed).toBe(true);
+      expect(engine2.getPendingDecision()).toBeNull();
+    });
   });
 });

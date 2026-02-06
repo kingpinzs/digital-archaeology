@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StoryController } from './StoryController';
+import { DISCOVERER_COMPLETE_KEY } from './StoryStorage';
 
 // Mock data for story loading - index-based structure
 const createMockStoryIndex = () => ({
@@ -62,6 +63,35 @@ const createMockAct = () => ({
   ],
 });
 
+const createMockDiscovererData = () => ({
+  welcome: { headline: 'Test headline', subtext: 'Test subtext' },
+  era: { year: 1971, location: 'Test', framing: 'Test framing' },
+  persona: { id: 'test', name: 'Test', years: '1941', era: '1971', avatar: '🔬', background: 'Test', motivation: 'Test', problem: 'Test problem', quote: 'Test', constraints: [] },
+  constraint: { headline: 'Test constraint', resources: ['a', 'b'], challenge: 'Test challenge' },
+  decision: { id: 'test-dec', question: 'Test?', context: 'Test', options: [{ id: 'opt1', description: 'Opt 1', visiblePros: ['Pro'], visibleCons: ['Con'], isHistorical: true }], historicalChoice: 'opt1', historicalOutcome: 'Test', alternateOutcomes: [] },
+  builder: { title: 'Test', description: 'Test', decisionId: 'test-dec', objectives: [{ id: 'obj1', text: 'Test obj', completed: false }] },
+  celebration: { headline: 'IT WORKS!', lines: ['Line 1'], journeyButton: 'Journey', labButton: 'Lab' },
+  mindset: { year: 1971, knownTechnology: [], unknownTechnology: [], activeProblems: [], constraints: [], impossibilities: [], historicalPerspective: { currentKnowledge: 'Test', futureBlind: 'Test' } },
+});
+
+function setupDiscovererFetchMock(mockDiscovererData: ReturnType<typeof createMockDiscovererData>): void {
+  const mockIndex = createMockStoryIndex();
+  const mockAct = createMockAct();
+  let callCount = 0;
+  vi.restoreAllMocks();
+  vi.spyOn(globalThis, 'fetch').mockImplementation((url: string | URL | Request) => {
+    const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+    if (urlStr.includes('discoverer-intro')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockDiscovererData) } as Response);
+    }
+    callCount++;
+    if (callCount === 1) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(mockIndex) } as Response);
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve(mockAct) } as Response);
+  });
+}
+
 describe('StoryController', () => {
   let controller: StoryController;
   let container: HTMLElement;
@@ -94,6 +124,10 @@ describe('StoryController', () => {
 
     // Clear localStorage
     localStorage.clear();
+
+    // Mark discoverer intro as complete for existing tests (returning user).
+    // The 10.23 describe block manages this flag explicitly.
+    localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
 
     controller = new StoryController();
   });
@@ -346,6 +380,98 @@ describe('StoryController', () => {
         'story-state-changed',
         expect.any(Function)
       );
+    });
+  });
+
+  describe('Story 10.23: Discoverer Experience Integration', () => {
+    // These tests need first-time user state (no discoverer flag)
+    beforeEach(() => {
+      localStorage.removeItem(DISCOVERER_COMPLETE_KEY);
+    });
+
+    it('should detect first-time user when no progress and no completion flag', async () => {
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(true);
+    });
+
+    it('should not detect first-time user when discoverer is complete', async () => {
+      localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(false);
+    });
+
+    it('should not detect first-time user when progress exists', async () => {
+      // Mark discoverer complete so skipDiscovererIntro flow works
+      localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
+      await controller.initialize();
+      // Navigate to create progress
+      controller.nextScene();
+      // Create a new controller to test
+      controller.destroy();
+      // Clear discoverer flag but keep progress
+      localStorage.removeItem(DISCOVERER_COMPLETE_KEY);
+      controller = new StoryController();
+      // Re-mock fetch for new controller
+      const mockIndex = createMockStoryIndex();
+      const mockAct = createMockAct();
+      let callCount = 0;
+      vi.restoreAllMocks();
+      vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(mockIndex) } as Response);
+        } else {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(mockAct) } as Response);
+        }
+      });
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(false);
+    });
+
+    it('should not start story engine for first-time user on initialize', async () => {
+      await controller.initialize();
+      // First-time user: engine initialized but not started, no current scene
+      expect(controller.isFirstTimeUser()).toBe(true);
+      // getCurrentScene returns null because engine hasn't started yet
+      expect(controller.getCurrentScene()).toBeNull();
+    });
+
+    it('should show discoverer experience for first-time user', async () => {
+      const mockDiscovererData = createMockDiscovererData();
+      setupDiscovererFetchMock(mockDiscovererData);
+
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(true);
+      await controller.showDiscovererExperience(container);
+      expect(controller.isDiscovererActive()).toBe(true);
+      expect(container.querySelector('.da-discoverer-experience')).not.toBeNull();
+    });
+
+    it('should mark discoverer complete and start story on skipDiscovererIntro', async () => {
+      await controller.initialize();
+      controller.skipDiscovererIntro();
+      expect(localStorage.getItem(DISCOVERER_COMPLETE_KEY)).toBe('true');
+      expect(controller.isDiscovererActive()).toBe(false);
+      expect(controller.getCurrentScene()).not.toBeNull();
+    });
+
+    it('should clean up discoverer experience on destroy', async () => {
+      const mockDiscovererData = createMockDiscovererData();
+
+      setupDiscovererFetchMock(mockDiscovererData);
+
+      await controller.initialize();
+      await controller.showDiscovererExperience(container);
+      expect(controller.isDiscovererActive()).toBe(true);
+      controller.destroy();
+      expect(controller.isDiscovererActive()).toBe(false);
+    });
+
+    it('should start story for returning user on initialize', async () => {
+      localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(false);
+      expect(controller.getCurrentScene()).not.toBeNull();
     });
   });
 });

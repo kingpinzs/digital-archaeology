@@ -171,8 +171,8 @@ development_status:
   10-19-implement-persona-profile-cards: done
   10-20-create-persona-transition-narratives: done
   10-21-historical-mindset-time-travel: done
-  10-22-decision-maker-builder-mode: review
-  10-23-first-discoverer-mind-experience: backlog
+  10-22-decision-maker-builder-mode: done
+  10-23-first-discoverer-mind-experience: review
   10-24-fix-act0-persona-timeline: done
   10-25-add-e2e-test-infrastructure: backlog
   epic-10-retrospective: optional

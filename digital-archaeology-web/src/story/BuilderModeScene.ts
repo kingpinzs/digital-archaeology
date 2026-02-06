@@ -21,6 +21,7 @@ export class BuilderModeScene {
 
   private completeCallback: (() => void) | null = null;
   private enterLabCallback: (() => void) | null = null;
+  private boundContinueHandler: (() => void) | null = null;
 
   /**
    * Mount the component to a container.
@@ -185,11 +186,12 @@ export class BuilderModeScene {
     continueBtn.className = 'da-builder-complete-btn';
     continueBtn.type = 'button';
     continueBtn.textContent = 'Continue';
-    continueBtn.addEventListener('click', () => {
+    this.boundContinueHandler = () => {
       if (this.completeCallback) {
         this.completeCallback();
       }
-    });
+    };
+    continueBtn.addEventListener('click', this.boundContinueHandler);
     completionEl.appendChild(completionText);
     completionEl.appendChild(continueBtn);
     this.element.appendChild(completionEl);
@@ -279,5 +281,6 @@ export class BuilderModeScene {
     this.decisionContext = null;
     this.completeCallback = null;
     this.enterLabCallback = null;
+    this.boundContinueHandler = null;
   }
 }

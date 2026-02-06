@@ -1,0 +1,137 @@
+{
+  "welcome": {
+    "headline": "Every technology you use today was once someone's impossible problem.",
+    "subtext": "You are about to step into a moment that changed everything."
+  },
+  "era": {
+    "year": 1971,
+    "location": "Intel, Santa Clara, California",
+    "framing": "The year is 1971. You are at Intel."
+  },
+  "persona": {
+    "id": "faggin-discoverer-intro",
+    "name": "Federico Faggin",
+    "years": "1941-present",
+    "era": "1971",
+    "avatar": "🔬",
+    "background": "You are a young physicist-turned-chip-designer at Intel. Your boss has given you an impossible task: put an entire computer processor onto a single silicon chip.",
+    "motivation": "A Japanese calculator company needs a custom chip. But instead of building something single-purpose, you see an opportunity to build something universal.",
+    "problem": "You have 2,300 transistors. Build a processor.",
+    "quote": "I knew that the microprocessor would change the world. I just didn't know it would take so long.",
+    "constraints": [
+      { "type": "technical", "description": "Only 2,300 transistors available" },
+      { "type": "technical", "description": "4-bit data bus — just 16 values at a time" },
+      { "type": "technical", "description": "256 bytes of memory — total" },
+      { "type": "economic", "description": "Must be cheaper than custom logic chips" }
+    ]
+  },
+  "constraint": {
+    "headline": "Your ALU can only work with 4 bits at a time.",
+    "resources": [
+      "4-bit data bus (values 0-15)",
+      "256 bytes of memory",
+      "16 possible opcodes"
+    ],
+    "challenge": "Add two numbers together. The simplest operation. The foundation of everything."
+  },
+  "decision": {
+    "id": "discoverer-alu-addition",
+    "question": "How should your 4-bit ALU perform addition?",
+    "context": "You need to add two 4-bit numbers. But when 1+1=10 in binary, you get a carry bit. How you handle carries determines speed, complexity, and transistor count.",
+    "options": [
+      {
+        "id": "ripple-carry",
+        "description": "Ripple carry — simple, cascading carry from bit to bit",
+        "visiblePros": ["Uses fewest transistors", "Easy to understand and debug"],
+        "visibleCons": ["Slow — each bit must wait for the previous carry"],
+        "isHistorical": true
+      },
+      {
+        "id": "carry-lookahead",
+        "description": "Carry lookahead — predict all carries in advance",
+        "visiblePros": ["Much faster — all carries computed simultaneously"],
+        "visibleCons": ["Uses 3x more transistors", "Complex wiring"],
+        "isHistorical": false
+      },
+      {
+        "id": "serial-bit",
+        "description": "Serial — process one bit at a time, reuse one adder",
+        "visiblePros": ["Uses absolute minimum transistors"],
+        "visibleCons": ["4x slower — must cycle through each bit"],
+        "isHistorical": false
+      }
+    ],
+    "historicalChoice": "ripple-carry",
+    "historicalOutcome": "Faggin chose ripple carry for the 4004. With only 2,300 transistors, every gate counted. The simplicity allowed the entire CPU to fit on one chip — the world's first commercial microprocessor.",
+    "alternateOutcomes": [
+      {
+        "optionId": "carry-lookahead",
+        "speculation": "Carry lookahead would have been faster, but might have pushed the transistor count too high for 1971 fabrication technology. The 4004 might never have shipped."
+      },
+      {
+        "optionId": "serial-bit",
+        "speculation": "A serial approach would have saved even more transistors but made the chip too slow for calculator applications. The Busicom calculator contract required minimum performance."
+      }
+    ]
+  },
+  "builder": {
+    "title": "Build the 4-Bit Adder",
+    "description": "Wire up the arithmetic heart of your microprocessor. Three steps to your first working circuit.",
+    "decisionId": "discoverer-alu-addition",
+    "objectives": [
+      {
+        "id": "connect-inputs",
+        "text": "Connect the inputs — wire A and B to the adder",
+        "completed": false
+      },
+      {
+        "id": "handle-carry",
+        "text": "Handle the carry — what happens when 1+1=10?",
+        "completed": false
+      },
+      {
+        "id": "test-addition",
+        "text": "Test it — add 0101 + 0011 (5 + 3 = 8)",
+        "completed": false
+      }
+    ]
+  },
+  "celebration": {
+    "headline": "IT WORKS!",
+    "lines": [
+      "You just built the core of a microprocessor.",
+      "The same circuit Faggin used in 1971.",
+      "5 + 3 = 8. Four bits. The beginning of everything."
+    ],
+    "journeyButton": "Begin the Full Journey",
+    "labButton": "Explore the Lab"
+  },
+  "mindset": {
+    "year": 1971,
+    "knownTechnology": ["transistor", "integrated circuit", "calculator chip", "TTL logic"],
+    "unknownTechnology": ["personal computer", "internet", "smartphone", "SSD", "GPU"],
+    "activeProblems": [
+      {
+        "statement": "Can we fit an entire CPU on one chip?",
+        "motivation": "Custom chips are expensive. A general-purpose processor could serve many customers."
+      }
+    ],
+    "constraints": [
+      {
+        "type": "technical",
+        "description": "2,300 transistor budget",
+        "limitation": "Every gate must be justified"
+      },
+      {
+        "type": "economic",
+        "description": "Must beat custom logic chip pricing",
+        "limitation": "Under $100 per chip in volume"
+      }
+    ],
+    "impossibilities": ["gigabyte memory", "GHz clock speeds", "billions of transistors"],
+    "historicalPerspective": {
+      "currentKnowledge": "You are an engineer at Intel in 1971, designing the first microprocessor.",
+      "futureBlind": "You do not know if this chip will change the world or gather dust."
+    }
+  }
+}

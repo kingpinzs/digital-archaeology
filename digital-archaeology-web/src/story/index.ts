@@ -77,3 +77,8 @@ export { BuilderModeScene } from './BuilderModeScene';
 export { ConsequenceRevealPanel } from './ConsequenceRevealPanel';
 export type { DecisionBuilderCycleEvent } from './StoryEngine';
 export type { BuilderChallengeData } from './content-types';
+
+// Story 10.23: First Discoverer's Mind Experience
+export { DiscovererExperience } from './DiscovererExperience';
+export type { DiscovererPhase } from './DiscovererExperience';
+export { DISCOVERER_COMPLETE_KEY } from './StoryStorage';

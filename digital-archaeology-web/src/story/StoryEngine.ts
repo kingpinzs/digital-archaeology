@@ -421,6 +421,11 @@ export class StoryEngine {
       if (entry) {
         this.state.progress = savedProgress;
 
+        // Story 10.22: Restore pendingDecision from saved progress
+        if (savedProgress.pendingDecision) {
+          this.pendingDecision = savedProgress.pendingDecision;
+        }
+
         // Story 10.21: Initialize mindset from current act when resuming
         const actMindset = this.getActMindset(entry.actNumber);
         if (actMindset) {
@@ -498,6 +503,8 @@ export class StoryEngine {
 
   private saveProgress(): void {
     if (this.state.progress) {
+      // Story 10.22: Persist pendingDecision in progress
+      this.state.progress.pendingDecision = this.pendingDecision;
       this.storage.saveProgress(this.state.progress);
     }
   }

@@ -11,6 +11,7 @@ import { StoryLoader } from './StoryLoader';
 import { StoryEngine } from './StoryEngine';
 import { StoryStorage } from './StoryStorage';
 import { SceneRenderer } from './SceneRenderer';
+import { DiscovererExperience } from './DiscovererExperience';
 
 /**
  * Callbacks for story controller events.
@@ -38,6 +39,7 @@ export class StoryController {
   private renderer: SceneRenderer;
   private callbacks: StoryControllerCallbacks = {};
 
+  private storage: StoryStorage;
   private acts: StoryAct[] = [];
   private renderContainer: HTMLElement | null = null;
   private initialized: boolean = false;
@@ -45,9 +47,13 @@ export class StoryController {
   // Event listener reference for cleanup
   private stateChangedListener: ((event: Event) => void) | null = null;
 
+  // Discoverer experience for first-time users
+  private discovererExperience: DiscovererExperience | null = null;
+
   constructor() {
     this.loader = new StoryLoader();
-    this.engine = new StoryEngine(new StoryStorage());
+    this.storage = new StoryStorage();
+    this.engine = new StoryEngine(this.storage);
     this.renderer = new SceneRenderer();
 
     // Wire renderer callbacks
@@ -64,6 +70,7 @@ export class StoryController {
   /**
    * Initialize the story controller.
    * Loads content and resumes or starts a new game.
+   * First-time users see the DiscovererExperience before the main story.
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -78,6 +85,13 @@ export class StoryController {
 
       // Subscribe to state changes
       this.subscribeToStateChanges();
+
+      // Check if this is a first-time user
+      if (this.isFirstTimeUser()) {
+        // Don't start the story yet — wait for discoverer experience to mount
+        this.initialized = true;
+        return;
+      }
 
       // Resume or start new game
       this.engine.resume();
@@ -232,6 +246,61 @@ export class StoryController {
   }
 
   /**
+   * Check if this is a first-time user who hasn't completed the discoverer experience.
+   */
+  isFirstTimeUser(): boolean {
+    return !this.storage.isDiscovererComplete() && !this.storage.hasProgress();
+  }
+
+  /**
+   * Show the discoverer experience for first-time users.
+   * Call this after initialize() and setRenderContainer() if isFirstTimeUser() is true.
+   */
+  async showDiscovererExperience(container: HTMLElement): Promise<void> {
+    this.discovererExperience = new DiscovererExperience();
+
+    this.discovererExperience.onComplete((choice: 'journey' | 'lab') => {
+      this.storage.markDiscovererComplete();
+      this.cleanupDiscovererExperience();
+
+      if (choice === 'lab') {
+        if (this.callbacks.onEnterLab) {
+          this.callbacks.onEnterLab();
+        }
+      } else {
+        // Start the main story
+        this.engine.startNewGame();
+        this.renderCurrentScene();
+      }
+    });
+
+    this.discovererExperience.onSkip(() => {
+      this.skipDiscovererIntro();
+    });
+
+    try {
+      await this.discovererExperience.mount(container);
+    } catch (error) {
+      console.error('Failed to mount discoverer experience:', error);
+      this.cleanupDiscovererExperience();
+      // Fall through to normal story flow
+      this.engine.startNewGame();
+      this.renderCurrentScene();
+    }
+  }
+
+  /**
+   * Skip the discoverer intro experience.
+   * Marks it as completed and starts the normal story flow.
+   */
+  skipDiscovererIntro(): void {
+    this.storage.markDiscovererComplete();
+    this.cleanupDiscovererExperience();
+    this.engine.startNewGame();
+    this.renderCurrentScene();
+  }
+
+  /**
    * Get the StoryEngine instance (for advanced operations).
    */
   getEngine(): StoryEngine {
@@ -243,6 +312,13 @@ export class StoryController {
    */
   getLoader(): StoryLoader {
     return this.loader;
+  }
+
+  /**
+   * Check if the discoverer experience is currently active.
+   */
+  isDiscovererActive(): boolean {
+    return this.discovererExperience !== null;
   }
 
   /**
@@ -385,9 +461,22 @@ export class StoryController {
   }
 
   /**
+   * Clean up the discoverer experience.
+   */
+  private cleanupDiscovererExperience(): void {
+    if (this.discovererExperience) {
+      this.discovererExperience.destroy();
+      this.discovererExperience = null;
+    }
+  }
+
+  /**
    * Destroy the controller and clean up resources.
    */
   destroy(): void {
+    // Clean up discoverer experience
+    this.cleanupDiscovererExperience();
+
     // Unsubscribe from state changes
     if (this.stateChangedListener) {
       window.removeEventListener('story-state-changed', this.stateChangedListener);

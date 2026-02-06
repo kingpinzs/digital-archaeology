@@ -339,6 +339,22 @@ export class DiscovererExperience {
     }
     constraintEl.appendChild(resourcesList);
 
+    // Visual 4-bit register diagram (CSS-only)
+    const registerDiagram = document.createElement('div');
+    registerDiagram.className = 'da-discoverer-register-diagram';
+    registerDiagram.setAttribute('aria-label', '4-bit register: bits 0, 1, 0, 1');
+    for (const bit of ['0', '1', '0', '1']) {
+      const cell = document.createElement('div');
+      cell.className = 'da-discoverer-register-cell';
+      if (bit === '1') {
+        cell.classList.add('da-discoverer-register-cell--active');
+      }
+      cell.textContent = bit;
+      cell.setAttribute('aria-hidden', 'true');
+      registerDiagram.appendChild(cell);
+    }
+    constraintEl.appendChild(registerDiagram);
+
     // Challenge text
     const challengeLabel = document.createElement('p');
     challengeLabel.className = 'da-discoverer-challenge-label';

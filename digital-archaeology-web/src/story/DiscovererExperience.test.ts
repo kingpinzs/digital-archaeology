@@ -170,6 +170,13 @@ describe('DiscovererExperience', () => {
       await experience.mount(container);
       expect(container.querySelector('.da-discoverer-intro')).not.toBeNull();
     });
+
+    it('should not create duplicate elements on double mount', async () => {
+      await experience.mount(container);
+      await experience.mount(container);
+      const elements = container.querySelectorAll('.da-discoverer-experience');
+      expect(elements.length).toBe(1);
+    });
   });
 
   describe('intro phase', () => {
@@ -239,6 +246,20 @@ describe('DiscovererExperience', () => {
       await goToConstraint();
       const challenge = container.querySelector('.da-discoverer-challenge-text');
       expect(challenge?.textContent).toContain('Add two numbers');
+    });
+
+    it('should render 4-bit register diagram', async () => {
+      await goToConstraint();
+      const diagram = container.querySelector('.da-discoverer-register-diagram');
+      expect(diagram).not.toBeNull();
+      const cells = container.querySelectorAll('.da-discoverer-register-cell');
+      expect(cells.length).toBe(4);
+    });
+
+    it('should highlight active bits in register diagram', async () => {
+      await goToConstraint();
+      const activeCells = container.querySelectorAll('.da-discoverer-register-cell--active');
+      expect(activeCells.length).toBe(2); // bits '1' and '1' in 0101
     });
 
     it('should have continue button', async () => {
@@ -409,6 +430,14 @@ describe('DiscovererExperience', () => {
       globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
       await expect(experience.mount(container)).rejects.toThrow('Failed to fetch');
     });
+
+    it('should handle invalid JSON data format', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ welcome: 'not an object', era: null }),
+      });
+      await expect(experience.mount(container)).rejects.toThrow('Invalid discoverer experience data format');
+    });
   });
 
   describe('callbacks', () => {
@@ -466,15 +495,23 @@ describe('DiscovererExperience', () => {
       buildBtn.click();
 
       // Initial state — no objectives completed yet
-      const items = container.querySelectorAll('.da-builder-objective-item');
-      expect(items.length).toBe(3);
+      const completedBefore = container.querySelectorAll('.da-builder-objective-item--complete');
+      expect(completedBefore.length).toBe(0);
 
       // After initial delay (1000ms), first objective completes
       vi.advanceTimersByTime(1000);
+      const completedAfter1 = container.querySelectorAll('.da-builder-objective-item--complete');
+      expect(completedAfter1.length).toBe(1);
+
       // After next delay (1500ms), second objective completes
       vi.advanceTimersByTime(1500);
+      const completedAfter2 = container.querySelectorAll('.da-builder-objective-item--complete');
+      expect(completedAfter2.length).toBe(2);
+
       // After next delay (1500ms), third objective completes
       vi.advanceTimersByTime(1500);
+      const completedAfter3 = container.querySelectorAll('.da-builder-objective-item--complete');
+      expect(completedAfter3.length).toBe(3);
     });
 
     it('should clear timers on destroy during build phase', async () => {

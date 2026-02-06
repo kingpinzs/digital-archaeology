@@ -7287,6 +7287,35 @@ body.da-resizing * {
   border-left: 3px solid var(--da-accent, #00b4d8);
 }
 
+/* 4-bit register diagram (CSS-only visual) */
+.da-discoverer-register-diagram {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.da-discoverer-register-cell {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--da-text-secondary, #a0a0b0);
+  background: var(--da-bg-tertiary, #2f2f52);
+  border: 2px solid var(--da-text-secondary, #a0a0b0);
+  border-radius: 4px;
+}
+
+.da-discoverer-register-cell--active {
+  color: var(--da-signal-high, #00ff88);
+  border-color: var(--da-signal-high, #00ff88);
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+}
+
 .da-discoverer-challenge-text {
   font-size: 1.1rem;
   font-weight: 600;

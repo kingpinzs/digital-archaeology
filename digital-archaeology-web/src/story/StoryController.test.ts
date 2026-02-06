@@ -467,6 +467,32 @@ describe('StoryController', () => {
       expect(controller.isDiscovererActive()).toBe(false);
     });
 
+    it('should recover from discoverer mount failure and start normal story', async () => {
+      // Mock fetch to fail on discoverer-intro.json but succeed on story data
+      const mockIndex = createMockStoryIndex();
+      const mockAct = createMockAct();
+      let callCount = 0;
+      vi.restoreAllMocks();
+      vi.spyOn(globalThis, 'fetch').mockImplementation((url: string | URL | Request) => {
+        const urlStr = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+        if (urlStr.includes('discoverer-intro')) {
+          return Promise.resolve({ ok: false, status: 500, statusText: 'Internal Server Error' } as Response);
+        }
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(mockIndex) } as Response);
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockAct) } as Response);
+      });
+
+      await controller.initialize();
+      expect(controller.isFirstTimeUser()).toBe(true);
+      await controller.showDiscovererExperience(container);
+      // Should have cleaned up and fallen through to normal story
+      expect(controller.isDiscovererActive()).toBe(false);
+      expect(controller.getCurrentScene()).not.toBeNull();
+    });
+
     it('should start story for returning user on initialize', async () => {
       localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
       await controller.initialize();

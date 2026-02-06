@@ -1,6 +1,6 @@
 # Story 10.23: First Discoverer's Mind Experience
 
-Status: review
+Status: done
 
 ## Story
 
@@ -319,22 +319,28 @@ Claude Opus 4.6
 
 ### Completion Notes List
 
-- 37 DiscovererExperience tests + 8 StoryController integration tests = 45 new tests (exceeded ~38 target)
-- All 3,866 project tests pass (96 test files)
+- 48 DiscovererExperience tests + 9 StoryController integration tests = 57 new tests (exceeded ~38 target)
+- All project tests pass (96 test files)
 - No new TypeScript errors in story modules (pre-existing App.test.ts errors are unrelated)
 - DiscovererExperience is a pure orchestrator — no new SceneType added to content-types
 - StoryController.initialize() short-circuits for first-time users, deferring to showDiscovererExperience()
-- StoryStorage gained isDiscovererComplete() and markDiscovererComplete() using separate localStorage key
+- StoryStorage gained isDiscovererComplete() and markDiscovererComplete() using configurable discovererKey
 - CSS uses existing --da-* variables, adds da-anim-celebration keyframes, :focus-visible on all buttons
 - E2E test stubs added as comments in DiscovererExperience.test.ts for Story 10-25
+- Adversarial review fixes: timer cleanup, bound handlers, JSON type guard, reduced-motion, focus-visible, mount recovery
+- Code review fixes: 4-bit register diagram (Task 3.4), completion assertions, type guard rejection test, double-mount test
 
 ### File List
 
-- `src/story/DiscovererExperience.ts` — NEW: Orchestrator component (466 lines, 6 phases)
-- `src/story/DiscovererExperience.test.ts` — NEW: 37 tests + E2E stubs
-- `src/story/StoryController.ts` — MODIFIED: Added first-time detection, showDiscovererExperience(), skipDiscovererIntro(), isDiscovererActive(), cleanup
-- `src/story/StoryController.test.ts` — MODIFIED: Added 8 integration tests for discoverer experience
-- `src/story/StoryStorage.ts` — MODIFIED: Added DISCOVERER_COMPLETE_KEY, isDiscovererComplete(), markDiscovererComplete()
+- `src/story/DiscovererExperience.ts` — NEW: Orchestrator component (572 lines, 6 phases)
+- `src/story/DiscovererExperience.test.ts` — NEW: 48 tests + E2E stubs
+- `src/story/StoryController.ts` — MODIFIED: Added first-time detection, showDiscovererExperience() with mount failure recovery, skipDiscovererIntro(), isDiscovererActive(), cleanup
+- `src/story/StoryController.test.ts` — MODIFIED: Added 9 integration tests for discoverer experience
+- `src/story/StoryStorage.ts` — MODIFIED: Added DISCOVERER_COMPLETE_KEY, configurable discovererKey, isDiscovererComplete(), markDiscovererComplete()
+- `src/story/StoryState.ts` — MODIFIED: Added pendingDecision to StoryProgress interface
+- `src/story/StoryEngine.ts` — MODIFIED: Restore pendingDecision on resume, persist in saveProgress()
+- `src/story/StoryEngine.test.ts` — MODIFIED: Added 2 tests for pendingDecision resume
+- `src/story/BuilderModeScene.ts` — MODIFIED: Added boundContinueHandler for proper cleanup
 - `src/story/index.ts` — MODIFIED: Export DiscovererExperience, DiscovererPhase, DISCOVERER_COMPLETE_KEY
-- `src/styles/main.css` — MODIFIED: Added ~250 lines of discoverer experience CSS with responsive layout
+- `src/styles/main.css` — MODIFIED: Added ~280 lines of discoverer experience CSS with register diagram, responsive layout, reduced-motion
 - `public/story/data/discoverer-intro.json` — NEW: Experience content data (137 lines)

@@ -6,6 +6,7 @@ import { Toolbar } from './Toolbar';
 import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
+import type { LabStage } from './StageSelector';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
@@ -88,6 +89,8 @@ export class App {
   private menuBar: MenuBar | null = null;
   private statusBar: StatusBar | null = null;
   private currentMode: ThemeMode = 'lab';
+  private currentStage: LabStage = 'micro4';
+  private unlockedStages: LabStage[] = ['micro4'];
 
   // Lab Mode container (the 3-panel layout, Story 10.1)
   private labModeContainer: HTMLElement | null = null;
@@ -583,9 +586,14 @@ export class App {
       onHelpKeyboardShortcuts: () => this.showKeyboardShortcuts(),
       onHelpDocumentation: () => { /* Epic 20: Educational Content */ },
       onHelpAbout: () => { /* Epic 20: Educational Content */ },
+      // Stage selector (Story 11.1)
+      onStageChange: (stage: LabStage) => this.handleStageChange(stage),
     };
 
-    this.menuBar = new MenuBar(callbacks);
+    this.menuBar = new MenuBar(callbacks, {
+      currentStage: this.currentStage,
+      unlockedStages: this.unlockedStages,
+    });
     this.menuBar.mount(menuBarContainer);
   }
 
@@ -630,6 +638,18 @@ export class App {
     if (mode === 'lab' && challengeContext) {
       this.activateChallengeStation(challengeContext);
     }
+  }
+
+  /**
+   * Handle CPU stage change from StageSelector (Story 11.1).
+   * Updates current stage and persists the selection.
+   * @param stage - The new CPU stage
+   */
+  private handleStageChange(stage: LabStage): void {
+    this.currentStage = stage;
+    // Sync selector display (ensures bidirectional consistency if called programmatically)
+    this.menuBar?.getStageSelector()?.setStage(stage);
+    this.saveSettings();
   }
 
   /**
@@ -3493,6 +3513,10 @@ export class App {
 
     // Store execution speed for toolbar initialization
     this.executionSpeed = settings.speed;
+
+    // Story 11.1: Apply persisted stage selection
+    this.currentStage = settings.currentStage;
+    this.unlockedStages = settings.unlockedStages;
   }
 
   /**
@@ -3509,7 +3533,9 @@ export class App {
         state: this.statePanelWidth,
       },
       editorOptions: this.settingsStorage.getSetting('editorOptions'),
-      version: 1,
+      currentStage: this.currentStage,
+      unlockedStages: this.unlockedStages,
+      version: 2,
     };
     this.settingsStorage.saveSettings(settings);
   }

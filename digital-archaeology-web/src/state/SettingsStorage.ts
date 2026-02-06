@@ -47,8 +47,12 @@ export class SettingsStorage {
       const data = localStorage.getItem(this.storageKey);
       if (data) {
         const parsed = JSON.parse(data);
-        if (isValidSettings(parsed)) {
-          return parsed;
+
+        // Migrate v1 settings to v2 (add currentStage, unlockedStages)
+        const migrated = this.migrateSettings(parsed);
+
+        if (isValidSettings(migrated)) {
+          return migrated;
         }
         // Invalid settings data - clear and return null
         console.warn('Invalid settings data in localStorage, clearing...');
@@ -117,6 +121,23 @@ export class SettingsStorage {
     const current = this.loadSettings() ?? { ...DEFAULT_SETTINGS };
     const updated = { ...current, ...partial };
     this.saveSettings(updated);
+  }
+
+  /**
+   * Migrate settings from older versions to current.
+   * v1 → v2: Add currentStage and unlockedStages fields.
+   */
+  private migrateSettings(parsed: Record<string, unknown>): Record<string, unknown> {
+    if (typeof parsed.version === 'number' && parsed.version < 2) {
+      parsed.currentStage = parsed.currentStage ?? 'micro4';
+      parsed.unlockedStages = parsed.unlockedStages ?? ['micro4'];
+      parsed.version = 2;
+      // Persist migration
+      try {
+        localStorage.setItem(this.storageKey, JSON.stringify(parsed));
+      } catch { /* ignore persistence failure during migration */ }
+    }
+    return parsed;
   }
 
   /**

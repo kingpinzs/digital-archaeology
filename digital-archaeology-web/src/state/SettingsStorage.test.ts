@@ -319,6 +319,79 @@ describe('SettingsStorage (Story 9.1)', () => {
     });
   });
 
+  describe('v1 to v2 settings migration (Story 11.1)', () => {
+    it('should add currentStage and unlockedStages to v1 settings', () => {
+      const v1Settings = {
+        theme: 'lab',
+        speed: 60,
+        panelWidths: { code: 350, state: 280 },
+        editorOptions: { fontSize: 14, tabSize: 2, wordWrap: 'off', minimap: false },
+        version: 1,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v1Settings);
+
+      const result = storage.loadSettings();
+
+      expect(result).not.toBeNull();
+      expect(result?.currentStage).toBe('micro4');
+      expect(result?.unlockedStages).toEqual(['micro4']);
+      expect(result?.version).toBe(2);
+    });
+
+    it('should persist migrated v2 settings to localStorage', () => {
+      const v1Settings = {
+        theme: 'lab',
+        speed: 60,
+        panelWidths: { code: 350, state: 280 },
+        editorOptions: { fontSize: 14, tabSize: 2, wordWrap: 'off', minimap: false },
+        version: 1,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v1Settings);
+
+      storage.loadSettings();
+
+      // Verify migration was persisted (setItem called with v2 data)
+      const persisted = JSON.parse(localStorageMock[SETTINGS_STORAGE_KEY]);
+      expect(persisted.version).toBe(2);
+      expect(persisted.currentStage).toBe('micro4');
+      expect(persisted.unlockedStages).toEqual(['micro4']);
+    });
+
+    it('should not modify already-v2 settings', () => {
+      const v2Settings: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        currentStage: 'micro8',
+        unlockedStages: ['micro4', 'micro8'],
+        version: 2,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v2Settings);
+
+      const result = storage.loadSettings();
+
+      expect(result?.currentStage).toBe('micro8');
+      expect(result?.unlockedStages).toEqual(['micro4', 'micro8']);
+      expect(result?.version).toBe(2);
+    });
+
+    it('should preserve existing v1 settings values during migration', () => {
+      const v1Settings = {
+        theme: 'story',
+        speed: 500,
+        panelWidths: { code: 400, state: 300 },
+        editorOptions: { fontSize: 18, tabSize: 4, wordWrap: 'on', minimap: true },
+        version: 1,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v1Settings);
+
+      const result = storage.loadSettings();
+
+      expect(result?.theme).toBe('story');
+      expect(result?.speed).toBe(500);
+      expect(result?.panelWidths).toEqual({ code: 400, state: 300 });
+      expect(result?.editorOptions.fontSize).toBe(18);
+    });
+  });
+
   describe('localStorage unavailability fallback', () => {
     it('should handle localStorage being undefined', () => {
       vi.stubGlobal('localStorage', undefined);

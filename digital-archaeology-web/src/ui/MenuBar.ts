@@ -1,6 +1,9 @@
 // src/ui/MenuBar.ts
 // Menu bar component with Story/Lab toggle and dropdown menus
 
+import { StageSelector } from './StageSelector';
+import type { LabStage, StageSelectorOptions } from './StageSelector';
+
 /**
  * Application mode type - Story mode or Lab mode.
  */
@@ -33,6 +36,8 @@ export interface MenuBarState {
 export interface MenuBarCallbacks {
   /** Called when mode toggle is clicked */
   onModeChange: (mode: AppMode) => void;
+  /** Called when CPU stage changes (optional - only needed if stage selector is shown) */
+  onStageChange?: (stage: LabStage) => void;
   // File menu
   onFileNew: () => void;
   onFileOpen: () => void;
@@ -148,6 +153,8 @@ export class MenuBar {
   private element: HTMLElement | null = null;
   private state: MenuBarState;
   private callbacks: MenuBarCallbacks;
+  private stageSelector: StageSelector | null = null;
+  private stageSelectorOptions: Omit<StageSelectorOptions, 'onStageChange'> | null = null;
 
   // Cached element references
   private toggleButtons: Map<AppMode, HTMLButtonElement> = new Map();
@@ -162,8 +169,9 @@ export class MenuBar {
   private boundToggleClick: Map<AppMode, () => void> = new Map();
   private boundMenuItemClick: Map<HTMLElement, () => void> = new Map();
 
-  constructor(callbacks: MenuBarCallbacks) {
+  constructor(callbacks: MenuBarCallbacks, stageSelectorOptions?: Omit<StageSelectorOptions, 'onStageChange'>) {
     this.callbacks = callbacks;
+    this.stageSelectorOptions = stageSelectorOptions ?? null;
     this.state = {
       currentMode: 'lab',
       openMenu: null,
@@ -181,6 +189,7 @@ export class MenuBar {
     this.cacheElements();
     this.attachEventListeners();
     this.updateUI();
+    this.mountStageSelector();
   }
 
   /**
@@ -209,9 +218,21 @@ export class MenuBar {
   }
 
   /**
+   * Get the stage selector instance (if mounted).
+   */
+  getStageSelector(): StageSelector | null {
+    return this.stageSelector;
+  }
+
+  /**
    * Destroy the menu bar and clean up resources.
    */
   destroy(): void {
+    // Destroy stage selector
+    if (this.stageSelector) {
+      this.stageSelector.destroy();
+      this.stageSelector = null;
+    }
     // Remove document click listener
     if (this.boundDocumentClick) {
       document.removeEventListener('click', this.boundDocumentClick);
@@ -831,5 +852,22 @@ export class MenuBar {
       btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
       btn.setAttribute('tabindex', isActive ? '0' : '-1');
     });
+  }
+
+  /**
+   * Mount the stage selector into the menubar toggle area.
+   */
+  private mountStageSelector(): void {
+    if (!this.stageSelectorOptions || !this.callbacks.onStageChange || !this.element) return;
+
+    const toggleArea = this.element.querySelector('.da-menubar-toggle');
+    if (!toggleArea) return;
+
+    this.stageSelector = new StageSelector({
+      currentStage: this.stageSelectorOptions.currentStage,
+      unlockedStages: this.stageSelectorOptions.unlockedStages,
+      onStageChange: this.callbacks.onStageChange,
+    });
+    this.stageSelector.mount(toggleArea as HTMLElement);
   }
 }

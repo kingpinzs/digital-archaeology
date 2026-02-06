@@ -3,6 +3,8 @@
 // Story 9.1: Implement Local Storage for Settings
 
 import type { ThemeMode } from '../ui/theme';
+import { LAB_STAGES } from '../ui/StageSelector';
+import type { LabStage } from '../ui/StageSelector';
 
 /**
  * Panel width settings in pixels.
@@ -41,6 +43,10 @@ export interface AppSettings {
   panelWidths: PanelWidths;
   /** Monaco editor preferences */
   editorOptions: EditorOptions;
+  /** Currently selected CPU stage (Story 11.1) */
+  currentStage: LabStage;
+  /** Stages the user has unlocked (Story 11.1) */
+  unlockedStages: LabStage[];
   /** Version for migration support */
   version: number;
 }
@@ -61,8 +67,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
     wordWrap: 'off', // Matches Editor.ts default
     minimap: false, // Matches Editor.ts: minimap disabled for panel space
   },
-  version: 1,
+  currentStage: 'micro4',
+  unlockedStages: ['micro4'],
+  version: 2,
 };
+
+/** Valid lab stages for type guard validation - derived from single source of truth */
+const VALID_LAB_STAGES: readonly string[] = LAB_STAGES;
 
 /**
  * Panel width constraints in pixels.
@@ -135,6 +146,10 @@ export function isValidSettings(value: unknown): value is AppSettings {
     obj.speed <= 1000 &&
     isValidPanelWidths(obj.panelWidths) &&
     isValidEditorOptions(obj.editorOptions) &&
+    typeof obj.currentStage === 'string' &&
+    VALID_LAB_STAGES.includes(obj.currentStage) &&
+    Array.isArray(obj.unlockedStages) &&
+    obj.unlockedStages.every((s: unknown) => typeof s === 'string' && VALID_LAB_STAGES.includes(s as string)) &&
     typeof obj.version === 'number'
   );
 }

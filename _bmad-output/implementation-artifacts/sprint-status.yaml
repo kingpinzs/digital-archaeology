@@ -183,7 +183,7 @@ development_status:
   td-3-content-audit-schema-enforcement: done
   td-1-implement-choice-branching: done
   td-2-close-story-lab-story-loop: done
-  td-4-story-mode-journey-e2e-tests: backlog
+  td-4-story-mode-journey-e2e-tests: done
 
   # Epic 11: Multi-Stage Architecture (requires all TD stories complete)
   epic-11: backlog

@@ -70,3 +70,10 @@ export { MindsetIntroScene } from './MindsetIntroScene';
 export type { MindsetIntroSceneOptions } from './MindsetIntroScene';
 export type { AnachronismResult, AnachronismMatch, AnachronismFilterOptions } from './AnachronismFilter';
 export type { MindsetContext, EraTechnology, EraConstraint, EraProblem, HistoricalOption, HistoricalDecision } from './types';
+
+// Story 10.22: Decision-Maker + Builder Mode
+export { DecisionMakerScene } from './DecisionMakerScene';
+export { BuilderModeScene } from './BuilderModeScene';
+export { ConsequenceRevealPanel } from './ConsequenceRevealPanel';
+export type { DecisionBuilderCycleEvent } from './StoryEngine';
+export type { BuilderChallengeData } from './content-types';

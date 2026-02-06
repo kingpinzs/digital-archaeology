@@ -582,6 +582,127 @@
                   "codeSnippet": "// 4004 Specifications (Final)\n// \n// Transistors: 2,300\n// Die size: 3mm × 4mm (12 mm²)\n// Process: 10 micron\n// Clock speed: 740 kHz\n// Instructions: 46\n// Registers: 16 × 4-bit\n// Stack: 3 levels\n// Performance: 92,000 ops/sec"
                 }
               ],
+              "nextScene": "scene-4-2-decision"
+            },
+            {
+              "id": "scene-4-2-decision",
+              "type": "decision",
+              "setting": {
+                "text": "Intel design lab. Faggin faces a fundamental architecture question that will define the 4004's capabilities."
+              },
+              "narrative": [
+                "Before the first transistor can be placed, a critical decision must be made. The 4004's ALU—its arithmetic heart—can be designed two fundamentally different ways.",
+                "Each approach has real trade-offs. There is no obviously right answer in 1971."
+              ],
+              "decision": {
+                "id": "decision-4004-alu-design",
+                "question": "How should the 4004's ALU handle arithmetic?",
+                "context": "You have exactly 2,300 transistors for the entire CPU. The ALU is the largest single component. A serial (1-bit) ALU saves transistors but is slower. A parallel (4-bit) ALU is faster but uses precious silicon area. Busicom's calculator needs BCD arithmetic—will a serial approach be fast enough?",
+                "options": [
+                  {
+                    "id": "option-serial-alu",
+                    "description": "Serial ALU: Process one bit at a time",
+                    "visiblePros": [
+                      "Uses far fewer transistors (~200 vs ~600)",
+                      "Leaves more silicon for registers and control logic",
+                      "Simpler to design and verify"
+                    ],
+                    "visibleCons": [
+                      "4x slower for each operation",
+                      "May not meet timing requirements",
+                      "Limits future performance improvements"
+                    ],
+                    "isHistorical": false
+                  },
+                  {
+                    "id": "option-parallel-alu",
+                    "description": "Parallel ALU: Process all 4 bits simultaneously",
+                    "visiblePros": [
+                      "4x faster per operation",
+                      "Meets all timing requirements easily",
+                      "Enables more complex programs"
+                    ],
+                    "visibleCons": [
+                      "Uses 25% of the transistor budget on ALU alone",
+                      "Carry chain adds complexity",
+                      "Less room for other features"
+                    ],
+                    "isHistorical": true
+                  },
+                  {
+                    "id": "option-hybrid-alu",
+                    "description": "Hybrid: 2-bit ALU with minimal parallelism",
+                    "visiblePros": [
+                      "Moderate transistor cost (~400)",
+                      "2x faster than serial",
+                      "Balanced approach"
+                    ],
+                    "visibleCons": [
+                      "Novel approach with no proven track record",
+                      "Complex timing—neither fully serial nor parallel",
+                      "May introduce subtle arithmetic bugs"
+                    ],
+                    "isHistorical": false
+                  }
+                ],
+                "historicalChoice": "option-parallel-alu",
+                "historicalOutcome": "Faggin chose a full 4-bit parallel ALU. Despite using 25% of the transistor budget, the speed advantage proved essential. The 4004 achieved 92,000 operations per second—fast enough for calculators and many other applications. The parallel design became standard for all subsequent microprocessors.",
+                "alternateOutcomes": [
+                  {
+                    "optionId": "option-serial-alu",
+                    "speculation": "A serial ALU would have saved transistors but reduced the 4004 to ~23,000 ops/sec. While sufficient for basic calculators, it would have limited the chip's appeal for other applications. Intel might not have seen the broader market potential that justified buying back the rights from Busicom."
+                  },
+                  {
+                    "optionId": "option-hybrid-alu",
+                    "speculation": "A 2-bit hybrid might have worked, but the added timing complexity could have introduced bugs that delayed the project past its April 1971 deadline. No one had tried this approach before—Faggin's pragmatism favored proven parallel designs."
+                  }
+                ]
+              },
+              "nextScene": "scene-4-2-builder"
+            },
+            {
+              "id": "scene-4-2-builder",
+              "type": "builder",
+              "setting": {
+                "text": "Intel design lab. Armed with your decision, it's time to build the ALU."
+              },
+              "narrative": [
+                "The architecture is decided. Now make it real in silicon.",
+                "Build the 4004's arithmetic heart using the Micro4 HDL. Every transistor counts."
+              ],
+              "builderChallenge": {
+                "title": "BUILD THE 4004 ALU",
+                "description": "Implement the ALU design you chose. Wire up the arithmetic core that will power the world's first microprocessor.",
+                "decisionId": "decision-4004-alu-design",
+                "objectives": [
+                  {
+                    "id": "obj-builder-1",
+                    "text": "Create the 4-bit adder with carry chain",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-builder-2",
+                    "text": "Implement subtraction using two's complement",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-builder-3",
+                    "text": "Add AND/OR/XOR logic operations",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-builder-4",
+                    "text": "Connect ALU to accumulator register",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-builder-5",
+                    "text": "Test with BCD arithmetic (0-9 digits)",
+                    "completed": false
+                  }
+                ],
+                "labContext": "micro4-alu"
+              },
               "nextScene": "scene-4-2-5"
             },
             {

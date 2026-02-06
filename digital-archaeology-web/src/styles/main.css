@@ -6709,3 +6709,375 @@ body.da-resizing * {
 .da-mindset-intro-continue:active {
   transform: scale(0.98);
 }
+
+/* =============================================================================
+   Story 10.22: Decision-Maker + Builder Mode Components
+   Styles for DecisionMakerScene, BuilderModeScene, and ConsequenceRevealPanel
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   Decision Maker Scene - Wraps HistoricalDecisionCard with era context
+   ----------------------------------------------------------------------------- */
+.da-decision-maker-scene {
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--da-text-primary, #e0e0e0);
+  font-family: var(--da-font-body, system-ui, -apple-system, sans-serif);
+  border: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-decision-maker-era-context {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-decision-maker-year {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--da-accent, #00b4d8);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.da-decision-maker-perspective {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-decision-maker-card-mount {
+  margin: 16px 0;
+}
+
+.da-decision-maker-build-cta {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid var(--da-accent, #00b4d8);
+  animation: da-anim-fade-in 0.4s ease;
+}
+
+.da-decision-maker-build-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--da-text-primary, #e0e0e0);
+  margin-bottom: 12px;
+}
+
+.da-decision-maker-build-btn {
+  background: var(--da-accent, #00b4d8);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da-decision-maker-build-btn:hover,
+.da-decision-maker-build-btn:focus {
+  background: var(--da-accent-hover, #48cae4);
+  transform: scale(1.02);
+  outline: none;
+}
+
+.da-decision-maker-build-btn:active {
+  transform: scale(0.98);
+}
+
+/* Transition arrow between decision and builder */
+.da-decision-builder-transition {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 0;
+  color: var(--da-accent, #00b4d8);
+  font-size: 2rem;
+  animation: da-anim-pulse-arrow 1.5s ease infinite;
+}
+
+@keyframes da-anim-pulse-arrow {
+  0%, 100% { opacity: 0.6; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(4px); }
+}
+
+/* -----------------------------------------------------------------------------
+   Builder Mode Scene - Challenge objectives with Enter Lab button
+   ----------------------------------------------------------------------------- */
+.da-builder-mode-scene {
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--da-text-primary, #e0e0e0);
+  font-family: var(--da-font-body, system-ui, -apple-system, sans-serif);
+  border: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-builder-decision-context {
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-left: 3px solid var(--da-accent, #00b4d8);
+}
+
+.da-builder-decision-context-text {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-builder-challenge-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.da-builder-challenge-icon {
+  font-size: 2rem;
+}
+
+.da-builder-challenge-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--da-text-primary, #e0e0e0);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-builder-challenge-description {
+  font-size: 1rem;
+  color: var(--da-text-secondary, #a0a0b0);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.da-builder-objectives-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.da-builder-objective-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--da-bg-hover, #3a3a62);
+  transition: background 0.15s ease;
+}
+
+.da-builder-objective-item:last-child {
+  border-bottom: none;
+}
+
+.da-builder-objective-item[data-completed="true"] {
+  opacity: 0.7;
+}
+
+.da-builder-objective-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid var(--da-text-secondary, #a0a0b0);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.da-builder-objective-checkbox[data-checked="true"] {
+  background: var(--da-accent, #00b4d8);
+  border-color: var(--da-accent, #00b4d8);
+}
+
+.da-builder-objective-text {
+  font-size: 0.95rem;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-builder-lab-mount {
+  margin: 20px 0;
+}
+
+.da-builder-complete {
+  text-align: center;
+  padding: 20px;
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-radius: 8px;
+  margin-top: 16px;
+  animation: da-anim-fade-in 0.4s ease;
+}
+
+.da-builder-complete-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--da-accent, #00b4d8);
+  margin-bottom: 12px;
+}
+
+.da-builder-complete-btn {
+  background: var(--da-accent, #00b4d8);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da-builder-complete-btn:hover,
+.da-builder-complete-btn:focus {
+  background: var(--da-accent-hover, #48cae4);
+  transform: scale(1.02);
+  outline: none;
+}
+
+.da-builder-complete-btn:active {
+  transform: scale(0.98);
+}
+
+/* Celebration animation */
+@keyframes da-anim-builder-celebrate {
+  0% { transform: scale(0.95); opacity: 0; }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.da-builder-complete {
+  animation: da-anim-builder-celebrate 0.5s ease;
+}
+
+/* -----------------------------------------------------------------------------
+   Consequence Reveal Panel - Post-builder reflection
+   ----------------------------------------------------------------------------- */
+.da-consequence-reveal {
+  background: var(--da-bg-secondary, #252542);
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--da-text-primary, #e0e0e0);
+  font-family: var(--da-font-body, system-ui, -apple-system, sans-serif);
+  border: 1px solid var(--da-bg-hover, #3a3a62);
+}
+
+.da-consequence-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-consequence-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .da-consequence-comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.da-consequence-user-choice,
+.da-consequence-history-choice {
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.da-consequence-user-choice {
+  border-left: 3px solid var(--da-accent, #00b4d8);
+}
+
+.da-consequence-history-choice {
+  border-left: 3px solid #f0a500;
+}
+
+.da-consequence-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--da-text-secondary, #a0a0b0);
+  margin-bottom: 8px;
+}
+
+.da-consequence-user-description,
+.da-consequence-history-description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-consequence-outcome {
+  background: var(--da-bg-tertiary, #2f2f52);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.da-consequence-outcome-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--da-text-primary, #e0e0e0);
+}
+
+.da-consequence-alternate {
+  background: var(--da-bg-primary, #1a1a2e);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--da-bg-hover, #3a3a62);
+}
+
+.da-consequence-alternate-text {
+  font-size: 0.9rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--da-text-secondary, #a0a0b0);
+}
+
+.da-consequence-continue-btn {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto 0;
+  background: var(--da-accent, #00b4d8);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.da-consequence-continue-btn:hover,
+.da-consequence-continue-btn:focus {
+  background: var(--da-accent-hover, #48cae4);
+  transform: scale(1.02);
+  outline: none;
+}
+
+.da-consequence-continue-btn:active {
+  transform: scale(0.98);
+}
+
+/* Shared fade-in animation (if not already defined) */
+@keyframes da-anim-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

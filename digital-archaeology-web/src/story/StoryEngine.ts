@@ -46,6 +46,14 @@ export interface MindsetChangedEvent extends CustomEvent {
  * Story progression engine that manages user state and navigation.
  * Dispatches 'story-state-changed' events when state changes.
  */
+/** Custom event type for decision-builder cycle completion (Story 10.22) */
+export interface DecisionBuilderCycleEvent extends CustomEvent {
+  detail: {
+    decisionId: string;
+    chosenOptionId: string;
+  };
+}
+
 export class StoryEngine {
   private state: StoryEngineState;
   private storage: StoryStorage;
@@ -54,6 +62,9 @@ export class StoryEngine {
     acts: StoryAct[];
     sceneIndex: Map<string, { scene: StoryScene; actNumber: number; chapterNumber: number }>;
   } | null = null;
+
+  // Story 10.22: Decision-builder state tracking
+  private pendingDecision: { decisionId: string; chosenOptionId: string } | null = null;
 
   constructor(storage?: StoryStorage) {
     this.state = createDefaultEngineState();
@@ -237,6 +248,38 @@ export class StoryEngine {
 
     this.dispatchStateChanged(null);
     this.saveProgress();
+  }
+
+  /**
+   * Record a historical decision made by the user.
+   * Stores the decision context for the next builder scene.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  recordDecision(decisionId: string, optionId: string): void {
+    this.pendingDecision = { decisionId, chosenOptionId: optionId };
+  }
+
+  /**
+   * Get the pending decision context (if any).
+   * Used by builder scenes to know what decision led here.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  getPendingDecision(): { decisionId: string; chosenOptionId: string } | null {
+    return this.pendingDecision;
+  }
+
+  /**
+   * Clear the pending decision and dispatch cycle-complete event.
+   * Called when a builder scene completes.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  completeDecisionBuilderCycle(): void {
+    if (!this.pendingDecision) return;
+
+    const { decisionId, chosenOptionId } = this.pendingDecision;
+    this.pendingDecision = null;
+
+    this.dispatchDecisionBuilderCycle(decisionId, chosenOptionId);
   }
 
   /**
@@ -502,6 +545,22 @@ export class StoryEngine {
           mindset,
           previousMindset,
           actNumber,
+        },
+      });
+      window.dispatchEvent(event);
+    }
+  }
+
+  /**
+   * Dispatch decision-builder-cycle event.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  private dispatchDecisionBuilderCycle(decisionId: string, chosenOptionId: string): void {
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('decision-builder-cycle', {
+        detail: {
+          decisionId,
+          chosenOptionId,
         },
       });
       window.dispatchEvent(event);

@@ -9,9 +9,11 @@ import type {
   ChoiceData,
   TechnicalNoteData,
   ChallengeData,
+  ChallengeObjective,
   PersonaData,
   TransitionData,
   MindsetContext,
+  HistoricalDecision,
 } from './types';
 
 /**
@@ -27,7 +29,7 @@ export interface StoryMetadata {
 }
 
 /** Valid scene types determining which content is primary */
-export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona' | 'transition';
+export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona' | 'transition' | 'decision' | 'builder';
 
 /**
  * Represents a scene within a chapter.
@@ -52,10 +54,33 @@ export interface StoryScene {
   technicalNotes?: TechnicalNoteData[];
   /** Challenge objectives for Lab Mode */
   challenge?: ChallengeData;
+  /** Historical decision for decision scenes (Story 10.22) */
+  decision?: HistoricalDecision;
+  /** Builder challenge data for builder scenes (Story 10.22) */
+  builderChallenge?: BuilderChallengeData;
   /** Persona data for persona introduction scenes (Story 10.18) */
   persona?: PersonaData;
   /** ID of the next scene (for linear progression) */
   nextScene?: string;
+}
+
+/**
+ * Data for a builder challenge that follows a decision scene.
+ * Links to the decision that led to this challenge and defines
+ * what the learner needs to build.
+ * Story 10.22: Decision-Maker + Builder Mode
+ */
+export interface BuilderChallengeData {
+  /** Challenge title (e.g., "Build Segment Registers") */
+  title: string;
+  /** Description of what to build */
+  description: string;
+  /** ID of the decision that led to this challenge (optional) */
+  decisionId?: string;
+  /** Objectives to complete in the builder */
+  objectives: ChallengeObjective[];
+  /** Context string to pass to Lab Mode (optional) */
+  labContext?: string;
 }
 
 /**

@@ -3,8 +3,8 @@
 // Story 10.17: Wire Story Mode Integration
 // Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
-import type { StoryScene, StoryChapter, StoryAct } from './content-types';
-import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData } from './types';
+import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData } from './content-types';
+import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, HistoricalDecision } from './types';
 import { ChapterHeader } from './ChapterHeader';
 import { SceneSetting } from './SceneSetting';
 import { CharacterCard } from './CharacterCard';
@@ -14,6 +14,8 @@ import { TechnicalNote } from './TechnicalNote';
 import { EnterLabButton } from './EnterLabButton';
 import { StoryActionsFooter } from './StoryActionsFooter';
 import { PersonaCard } from './PersonaCard';
+import { DecisionMakerScene } from './DecisionMakerScene';
+import { BuilderModeScene } from './BuilderModeScene';
 import { MindsetProvider } from './MindsetProvider';
 import { createEraFilter } from './AnachronismFilter';
 
@@ -35,6 +37,10 @@ export interface SceneRendererCallbacks {
   onContinue?: () => void;
   onPrevious?: () => void;
   onEnterLab?: () => void;
+  /** Called when a historical decision is made (Story 10.22) */
+  onDecisionMade?: (decisionId: string, optionId: string) => void;
+  /** Called when builder challenge is complete (Story 10.22) */
+  onBuilderComplete?: () => void;
 }
 
 /**
@@ -174,6 +180,16 @@ export class SceneRenderer {
     // Render challenge button if challenge scene
     if (context.scene.type === 'challenge' && context.scene.challenge) {
       this.renderEnterLabButton();
+    }
+
+    // Render decision scene (Story 10.22)
+    if (context.scene.type === 'decision' && context.scene.decision) {
+      this.renderDecisionScene(context.scene.decision);
+    }
+
+    // Render builder scene (Story 10.22)
+    if (context.scene.type === 'builder' && context.scene.builderChallenge) {
+      this.renderBuilderScene(context.scene.builderChallenge);
     }
 
     // Append scene container
@@ -362,6 +378,49 @@ export class SceneRenderer {
   }
 
   /**
+   * Render decision maker scene for decision scenes.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  private renderDecisionScene(decision: HistoricalDecision): void {
+    const decisionScene = new DecisionMakerScene();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-decision-mount';
+    this.sceneContainer!.appendChild(mount);
+    decisionScene.mount(mount);
+    decisionScene.setDecision(decision);
+    decisionScene.onBuildTransition((decisionId, optionId) => {
+      if (this.callbacks.onDecisionMade) {
+        this.callbacks.onDecisionMade(decisionId, optionId);
+      }
+    });
+    this.activeComponents.push(decisionScene);
+  }
+
+  /**
+   * Render builder mode scene for builder scenes.
+   * Story 10.22: Decision-Maker + Builder Mode
+   */
+  private renderBuilderScene(challenge: BuilderChallengeData): void {
+    const builderScene = new BuilderModeScene();
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-builder-mount';
+    this.sceneContainer!.appendChild(mount);
+    builderScene.mount(mount);
+    builderScene.setChallengeData(challenge);
+    builderScene.onEnterLab(() => {
+      if (this.callbacks.onEnterLab) {
+        this.callbacks.onEnterLab();
+      }
+    });
+    builderScene.onComplete(() => {
+      if (this.callbacks.onBuilderComplete) {
+        this.callbacks.onBuilderComplete();
+      }
+    });
+    this.activeComponents.push(builderScene);
+  }
+
+  /**
    * Render story actions footer.
    */
   private renderFooter(context: SceneRenderContext): void {
@@ -378,11 +437,13 @@ export class SceneRenderer {
     const hasNextScene = !!context.scene.nextScene;
     const hasChoices = context.scene.choices && context.scene.choices.length > 0;
     const isChallenge = context.scene.type === 'challenge';
+    const isDecision = context.scene.type === 'decision';
+    const isBuilder = context.scene.type === 'builder';
 
-    // Disable continue if no next scene or if choices/challenge present
-    this.footer.setContinueEnabled(hasNextScene && !hasChoices);
+    // Disable continue if no next scene or if choices/challenge/decision/builder present
+    this.footer.setContinueEnabled(hasNextScene && !hasChoices && !isDecision && !isBuilder);
 
-    // Show Enter Lab button only for challenge scenes
+    // Show Enter Lab button only for challenge scenes (builder has its own)
     this.footer.setEnterLabVisible(isChallenge);
 
     this.activeComponents.push(this.footer);

@@ -154,7 +154,7 @@
                   "nextScene": "scene-6-1-4c"
                 }
               ],
-              "nextScene": "scene-6-1-5"
+              "nextScene": "scene-6-1-decision"
             },
             {
               "id": "scene-6-1-4a",
@@ -182,7 +182,7 @@
                   "codeSnippet": "// DOS memory models\n// \n// TINY:   64KB code + data combined\n// SMALL:  64KB code + 64KB data\n// MEDIUM: 1MB code + 64KB data\n// COMPACT: 64KB code + 1MB data\n// LARGE:  1MB code + 1MB data\n// HUGE:   Large + arrays > 64KB\n// \n// Choice affected performance, complexity,\n// and available memory"
                 }
               ],
-              "nextScene": "scene-6-1-5"
+              "nextScene": "scene-6-1-decision"
             },
             {
               "id": "scene-6-1-4b",
@@ -210,7 +210,7 @@
                   "codeSnippet": "// 68000 elegance\n// \n// MOVE.L  D0, (A0)+   ; Store and increment\n// MOVE.L  -(A1), D1   ; Decrement and load\n// LEA     8(A2,D3), A4 ; Indexed addressing\n// \n// Any register, any addressing mode\n// No special cases, no exceptions\n// The way CPUs should work"
                 }
               ],
-              "nextScene": "scene-6-1-5"
+              "nextScene": "scene-6-1-decision"
             },
             {
               "id": "scene-6-1-4c",
@@ -238,6 +238,127 @@
                   "codeSnippet": "// What x86 constraints produced\n// \n// BIOS: Hardware abstraction layer\n// DOS extenders: Protected mode access from DOS\n// Virtual 8086 mode: Run DOS in protected mode\n// x86 micro-ops: CISC decoded to RISC internally\n// \n// None of these would have been needed\n// on a clean 68000 architecture"
                 }
               ],
+              "nextScene": "scene-6-1-decision"
+            },
+            {
+              "id": "scene-6-1-decision",
+              "type": "decision",
+              "setting": {
+                "text": "Intel headquarters, 1978. The 8086 design team faces the most consequential architectural decision of the decade."
+              },
+              "narrative": [
+                "The 8080's 64KB limit must be broken. But how? The answer will define PC programming for the next fifteen years.",
+                "Stephen Morse and the 8086 team must choose an addressing scheme. Each option has real engineering trade-offs."
+              ],
+              "decision": {
+                "id": "decision-8086-addressing",
+                "question": "How should the 8086 address more than 64KB of memory?",
+                "context": "The 8080 uses 16-bit addresses, limiting it to 64KB. Customers need more. But the 8086 must run existing 8080 software (with translation). A 16-bit data bus is already set. How do you address 1MB of memory with 16-bit registers?",
+                "options": [
+                  {
+                    "id": "option-segmented",
+                    "description": "Segmented addressing: Segment register × 16 + Offset",
+                    "visiblePros": [
+                      "8080 programs see a familiar 64KB window",
+                      "Four segment registers give natural code/data/stack separation",
+                      "No changes to 16-bit pointer size for most programs"
+                    ],
+                    "visibleCons": [
+                      "Same physical address can be written multiple ways",
+                      "Pointers become near (16-bit) or far (32-bit) depending on context",
+                      "Crossing a 64KB boundary requires segment manipulation"
+                    ],
+                    "isHistorical": true
+                  },
+                  {
+                    "id": "option-bank-switching",
+                    "description": "Bank switching: Hardware register selects 64KB bank",
+                    "visiblePros": [
+                      "Simple to implement in hardware",
+                      "Programs see clean 64KB address space",
+                      "Proven technique from 8-bit era (CP/M)"
+                    ],
+                    "visibleCons": [
+                      "Can only access one bank at a time",
+                      "Switching banks is slow and breaks code flow",
+                      "No way to have code in one bank and data in another simultaneously"
+                    ],
+                    "isHistorical": false
+                  },
+                  {
+                    "id": "option-extended-registers",
+                    "description": "Extended registers: Full 20-bit address registers",
+                    "visiblePros": [
+                      "Clean linear 1MB address space",
+                      "No segment confusion or near/far pointer issues",
+                      "Simpler programming model"
+                    ],
+                    "visibleCons": [
+                      "Breaks 8080 software compatibility completely",
+                      "20-bit registers waste silicon on a 16-bit data bus",
+                      "3-byte pointers are awkward for 16-bit arithmetic"
+                    ],
+                    "isHistorical": false
+                  }
+                ],
+                "historicalChoice": "option-segmented",
+                "historicalOutcome": "Intel chose segmented addressing. The formula segment×16 + offset gave 20-bit (1MB) addresses using 16-bit registers. This preserved 8080 compatibility and enabled the IBM PC revolution—but created the infamous 640KB limit, near/far pointer confusion, and memory model nightmares that plagued DOS programmers for over a decade.",
+                "alternateOutcomes": [
+                  {
+                    "optionId": "option-bank-switching",
+                    "speculation": "Bank switching would have been simpler but far more limiting. Programs could not easily reference code and data across banks. The IBM PC might never have supported the complex applications (Lotus 1-2-3, dBASE) that drove its success. The CP/M-80 world had already shown bank switching's limitations."
+                  },
+                  {
+                    "optionId": "option-extended-registers",
+                    "speculation": "Extended 20-bit registers would have created a cleaner programming model—essentially what the 68000 achieved. But breaking 8080 compatibility would have cost Intel its installed base. IBM might have chosen the 68000 instead, and the entire PC ecosystem could have evolved differently."
+                  }
+                ]
+              },
+              "nextScene": "scene-6-1-builder"
+            },
+            {
+              "id": "scene-6-1-builder",
+              "type": "builder",
+              "setting": {
+                "text": "Your lab configures for 16-bit development. Time to implement the addressing scheme and see its consequences firsthand."
+              },
+              "narrative": [
+                "Build the Micro16's memory addressing system. Experience the trade-offs of your architectural choice as you wire up segment registers, address calculation, and memory access.",
+                "Every design decision echoes forward through decades of software."
+              ],
+              "builderChallenge": {
+                "title": "BUILD THE MICRO16 ADDRESSING",
+                "description": "Implement the memory addressing scheme for the Micro16. Wire up segment registers, address calculation logic, and test with programs that cross 64KB boundaries.",
+                "decisionId": "decision-8086-addressing",
+                "objectives": [
+                  {
+                    "id": "obj-addr-1",
+                    "text": "Implement four 16-bit segment registers (CS, DS, SS, ES)",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-addr-2",
+                    "text": "Build address calculation: segment × 16 + offset",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-addr-3",
+                    "text": "Wire the 20-bit address bus to memory",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-addr-4",
+                    "text": "Test near pointer access within a segment",
+                    "completed": false
+                  },
+                  {
+                    "id": "obj-addr-5",
+                    "text": "Test far pointer access across segments",
+                    "completed": false
+                  }
+                ],
+                "labContext": "micro16-addressing"
+              },
               "nextScene": "scene-6-1-5"
             },
             {

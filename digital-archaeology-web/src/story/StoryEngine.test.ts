@@ -991,4 +991,74 @@ describe('StoryEngine Mindset Integration', () => {
       expect(engine2.getCurrentMindset()?.year).toBe(1971);
     });
   });
+
+  // Story 10.22: Decision-Maker + Builder Mode
+  describe('decision-builder cycle', () => {
+    it('should record a decision with recordDecision', () => {
+      engine.initialize(createTestActs());
+      engine.recordDecision('decision-1', 'option-a');
+      expect(engine.getPendingDecision()).toEqual({
+        decisionId: 'decision-1',
+        chosenOptionId: 'option-a',
+      });
+    });
+
+    it('should return null for pending decision when none recorded', () => {
+      engine.initialize(createTestActs());
+      expect(engine.getPendingDecision()).toBeNull();
+    });
+
+    it('should overwrite previous pending decision', () => {
+      engine.initialize(createTestActs());
+      engine.recordDecision('decision-1', 'option-a');
+      engine.recordDecision('decision-2', 'option-b');
+      expect(engine.getPendingDecision()).toEqual({
+        decisionId: 'decision-2',
+        chosenOptionId: 'option-b',
+      });
+    });
+
+    it('should clear pending decision on completeDecisionBuilderCycle', () => {
+      engine.initialize(createTestActs());
+      engine.recordDecision('decision-1', 'option-a');
+      engine.completeDecisionBuilderCycle();
+      expect(engine.getPendingDecision()).toBeNull();
+    });
+
+    it('should dispatch decision-builder-cycle event on cycle complete', () => {
+      const handler = vi.fn();
+      window.addEventListener('decision-builder-cycle', handler);
+
+      engine.initialize(createTestActs());
+      engine.recordDecision('decision-1', 'option-a');
+      engine.completeDecisionBuilderCycle();
+
+      expect(handler).toHaveBeenCalled();
+      const detail = (handler.mock.calls[0][0] as CustomEvent).detail;
+      expect(detail.decisionId).toBe('decision-1');
+      expect(detail.chosenOptionId).toBe('option-a');
+
+      window.removeEventListener('decision-builder-cycle', handler);
+    });
+
+    it('should not dispatch event if no pending decision', () => {
+      const handler = vi.fn();
+      window.addEventListener('decision-builder-cycle', handler);
+
+      engine.initialize(createTestActs());
+      engine.completeDecisionBuilderCycle();
+
+      expect(handler).not.toHaveBeenCalled();
+
+      window.removeEventListener('decision-builder-cycle', handler);
+    });
+
+    it('should not fail when completeDecisionBuilderCycle called twice', () => {
+      engine.initialize(createTestActs());
+      engine.recordDecision('decision-1', 'option-a');
+      engine.completeDecisionBuilderCycle();
+      expect(() => engine.completeDecisionBuilderCycle()).not.toThrow();
+      expect(engine.getPendingDecision()).toBeNull();
+    });
+  });
 });

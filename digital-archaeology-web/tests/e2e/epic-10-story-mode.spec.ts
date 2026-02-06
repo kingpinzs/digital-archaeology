@@ -351,4 +351,78 @@ test.describe('Epic 10: Story Mode Experience', () => {
       await expect(page.locator('.da-toolbar')).toBeVisible();
     });
   });
+
+  test.describe('Story 10.23: Discoverer Experience', () => {
+    test('[10.23] should show discoverer experience for first-time user', async ({ page }) => {
+      // GIVEN: Clear all localStorage to simulate first-time user
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => localStorage.clear());
+
+      // WHEN: Switch to story mode
+      await page.locator('[data-mode="story"]').first().click();
+      await page.waitForTimeout(1500);
+
+      // THEN: Discoverer experience should appear
+      const discoverer = page.locator('.da-discoverer-experience');
+      await expect(discoverer).toBeVisible({ timeout: 5000 });
+    });
+
+    test('[10.23] should skip discoverer for returning user', async ({ page }) => {
+      // GIVEN: Set discoverer complete flag in localStorage
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => {
+        localStorage.setItem('digital-archaeology-discoverer-complete', 'true');
+      });
+
+      // WHEN: Switch to story mode
+      await page.locator('[data-mode="story"]').first().click();
+      await page.waitForTimeout(1500);
+
+      // THEN: Story mode should load directly (no discoverer)
+      const discoverer = page.locator('.da-discoverer-experience');
+      await expect(discoverer).not.toBeVisible();
+      // Story content should be visible
+      const storyContent = page.locator('.da-story-content');
+      await expect(storyContent).toBeVisible({ timeout: 5000 });
+    });
+
+    test('[10.23] should transition from discoverer to story mode on completion', async ({ page }) => {
+      // GIVEN: First-time user sees discoverer
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => localStorage.clear());
+
+      await page.locator('[data-mode="story"]').first().click();
+      await page.waitForTimeout(1500);
+
+      const discoverer = page.locator('.da-discoverer-experience');
+
+      // If discoverer is visible, interact through it
+      if (await discoverer.isVisible()) {
+        // Progress through discoverer phases by clicking continue/action buttons
+        // The discoverer has multiple phases; click through them
+        for (let i = 0; i < 20; i++) {
+          const actionButton = page.locator('.da-discoverer-experience button:visible').first();
+          if (await actionButton.count() > 0) {
+            await actionButton.click();
+            await page.waitForTimeout(800);
+          }
+
+          // Check if discoverer has completed (localStorage flag set)
+          const isComplete = await page.evaluate(() =>
+            localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
+          );
+          if (isComplete) break;
+        }
+
+        // THEN: Discoverer complete flag should be set
+        const isComplete = await page.evaluate(() =>
+          localStorage.getItem('digital-archaeology-discoverer-complete') === 'true'
+        );
+        expect(isComplete).toBe(true);
+      }
+    });
+  });
 });

@@ -7557,6 +7557,30 @@ body.da-resizing * {
   display: none;
 }
 
+/* --- Challenge Complete Banner (TD-2 AC #3) --- */
+.da-challenge-complete-banner {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 10px 24px;
+  background: var(--da-accent-green, #00ff88);
+  color: #0a0a12;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  pointer-events: none;
+  animation: da-challenge-complete-fade 4s ease forwards;
+}
+
+@keyframes da-challenge-complete-fade {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  8% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* --- Challenge Tab Hidden State --- */
 .da-lab-station-tab--hidden {
   display: none;

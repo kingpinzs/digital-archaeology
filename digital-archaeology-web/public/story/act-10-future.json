@@ -189,22 +189,19 @@
                   "id": "choice-explore-3d",
                   "icon": "🏗️",
                   "title": "Explore 3D Stacking",
-                  "description": "Learn how dies are stacked vertically with through-silicon vias (TSVs).",
-                  "nextScene": "scene-10-1-5a"
+                  "description": "Learn how dies are stacked vertically with through-silicon vias (TSVs)."
                 },
                 {
                   "id": "choice-explore-interposer",
                   "icon": "🔗",
                   "title": "Explore Interposers",
-                  "description": "Understand silicon bridges that connect dies at high bandwidth.",
-                  "nextScene": "scene-10-1-5b"
+                  "description": "Understand silicon bridges that connect dies at high bandwidth."
                 },
                 {
                   "id": "choice-explore-quantum",
                   "icon": "⚛️",
                   "title": "Continue to Quantum",
-                  "description": "Move beyond classical computing to quantum processors.",
-                  "nextScene": "scene-10-1-5c"
+                  "description": "Move beyond classical computing to quantum processors."
                 }
               ],
               "nextScene": "scene-10-1-6"

@@ -621,6 +621,8 @@ export class App {
     this.announceModeChange(mode);
     // Sync the StoryNav's ModeToggle state (Story 10.3)
     this.storyModeContainer?.setMode(mode);
+    // Sync MenuBar toggle state (TD-2: ensures MenuBar stays in sync when mode changes from non-MenuBar sources)
+    this.menuBar?.updateState({ currentMode: mode });
     // Story 9.1: Persist theme setting to unified storage
     this.saveSettings();
 
@@ -737,15 +739,21 @@ export class App {
     if (!this.challengeStation && this.labChallengeStation) {
       this.challengeStation = new ChallengeStation();
       this.challengeStation.mount(this.labChallengeStation);
-      this.challengeStation.setOnReturnToStory(() => {
+      this.challengeStation.setOnReturnToStory((completed: boolean) => {
+        // If challenge completed, advance story to next scene before switching
+        if (completed) {
+          this.storyModeContainer?.advanceAfterChallenge();
+        }
         this.handleModeChange('story');
         // Hide the challenge tab when returning to story
         challengeTab?.classList.add('da-lab-station-tab--hidden');
       });
     }
 
-    // Set the challenge context
-    this.challengeStation?.setChallengeContext(context);
+    // Only set new context if scene changed (preserves partial progress on re-entry)
+    if (this.challengeStation?.getCurrentSceneId() !== context.sceneId) {
+      this.challengeStation?.setChallengeContext(context);
+    }
 
     // Switch to challenge station
     this.switchLabStation('challenge');
@@ -3761,8 +3769,6 @@ export class App {
       e.preventDefault();
       const newMode: ThemeMode = this.currentMode === 'lab' ? 'story' : 'lab';
       this.handleModeChange(newMode);
-      // Sync menu bar toggle state
-      this.menuBar?.updateState({ currentMode: newMode });
       return;
     }
 

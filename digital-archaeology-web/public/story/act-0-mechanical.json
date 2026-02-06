@@ -445,7 +445,7 @@
         },
         {
           "id": "chapter-0-1b",
-          "number": 1.5,
+          "number": 2,
           "title": "The Dust of Empires",
           "subtitle": "From Egypt to Rome",
           "year": "1500 BC - 100 BC",
@@ -615,7 +615,7 @@
         },
         {
           "id": "chapter-0-1c",
-          "number": 1.7,
+          "number": 3,
           "title": "The Suanpan",
           "subtitle": "Invention of the Bead Abacus",
           "year": "200 BC - 200 AD",
@@ -994,7 +994,7 @@
         },
         {
           "id": "chapter-0-zero",
-          "number": 2,
+          "number": 4,
           "title": "The Invention of Nothing",
           "subtitle": "How Zero Changed Everything",
           "year": "628 AD - 1202 AD",
@@ -1182,7 +1182,7 @@
         },
         {
           "id": "chapter-0-2",
-          "number": 3,
+          "number": 5,
           "title": "The Age of Reason",
           "subtitle": "Mechanical Minds Across Europe",
           "year": "1623-1694",
@@ -1568,7 +1568,7 @@
         },
         {
           "id": "chapter-0-3",
-          "number": 3,
+          "number": 6,
           "title": "The Loom That Could Think",
           "subtitle": "Jacquard's Punch Cards",
           "year": "1804",
@@ -1741,7 +1741,7 @@
         },
         {
           "id": "chapter-0-4",
-          "number": 4,
+          "number": 7,
           "title": "The Victorian Visionary",
           "subtitle": "Babbage's Impossible Dream",
           "year": "1833",

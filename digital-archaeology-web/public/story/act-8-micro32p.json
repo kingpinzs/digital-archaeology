@@ -628,29 +628,25 @@
                   "id": "choice-risc-deep-dive",
                   "icon": "🎓",
                   "title": "Explore RISC Architecture",
-                  "description": "Build a clean RISC pipeline: fixed-length instructions, load/store architecture, register windows, delay slots.",
-                  "nextScene": "scene-8-2-5a"
+                  "description": "Build a clean RISC pipeline: fixed-length instructions, load/store architecture, register windows, delay slots."
                 },
                 {
                   "id": "choice-cisc-optimization",
                   "icon": "🏗️",
                   "title": "Optimize CISC Pipeline",
-                  "description": "See how Intel makes complex x86 instructions work in a pipeline through microcode and internal RISC translation.",
-                  "nextScene": "scene-8-2-5b"
+                  "description": "See how Intel makes complex x86 instructions work in a pipeline through microcode and internal RISC translation."
                 },
                 {
                   "id": "choice-alpha-speed",
                   "icon": "⚡",
                   "title": "Study Alpha's Speed",
-                  "description": "Understand how Alpha achieved 200 MHz through aggressive pipeline design and frequency optimization.",
-                  "nextScene": "scene-8-2-5c"
+                  "description": "Understand how Alpha achieved 200 MHz through aggressive pipeline design and frequency optimization."
                 },
                 {
                   "id": "choice-compare-architectures",
                   "icon": "⚖️",
                   "title": "Compare RISC vs CISC",
-                  "description": "Run the same algorithm on both architectures. Measure clock cycles, instruction counts, and total performance.",
-                  "nextScene": "scene-8-2-5d"
+                  "description": "Run the same algorithm on both architectures. Measure clock cycles, instruction counts, and total performance."
                 }
               ],
               "nextScene": "scene-8-2-6"

@@ -3,6 +3,12 @@
   "description": "Historical personas for Digital Archaeology Story Mode",
   "personas": [
     {
+      "id": "first-counter-35000bc",
+      "file": "first-counter-35000bc.json",
+      "act": 0,
+      "cpuStage": "mechanical"
+    },
+    {
       "id": "babbage-1837",
       "file": "babbage-1837.json",
       "act": 0,

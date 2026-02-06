@@ -63,6 +63,66 @@ const createMockAct = () => ({
   ],
 });
 
+// TD-1: Mock act with branching choice data
+const createMockBranchingAct = () => ({
+  id: 'act-1',
+  number: 1,
+  title: 'Branching Act',
+  description: 'Act with branching choices',
+  era: '1971',
+  cpuStage: 'micro4',
+  chapters: [
+    {
+      id: 'chapter-1-1',
+      number: 1,
+      title: 'Branching Chapter',
+      subtitle: 'Branch test',
+      year: '1971',
+      scenes: [
+        {
+          id: 'scene-1-1-1',
+          type: 'narrative',
+          narrative: ['Start scene'],
+          nextScene: 'scene-1-1-2',
+        },
+        {
+          id: 'scene-1-1-2',
+          type: 'choice',
+          choices: [
+            { id: 'choice-a', icon: '🔧', title: 'Path A', description: 'Go to branch A', nextScene: 'scene-1-1-3a' },
+            { id: 'choice-b', icon: '⚙️', title: 'Path B', description: 'Go to branch B', nextScene: 'scene-1-1-3b' },
+            { id: 'choice-no-branch', icon: '📦', title: 'Fallback', description: 'No nextScene' },
+          ],
+          nextScene: 'scene-1-1-fallback',
+        },
+        {
+          id: 'scene-1-1-3a',
+          type: 'narrative',
+          narrative: ['Branch A content'],
+          nextScene: 'scene-1-1-4',
+        },
+        {
+          id: 'scene-1-1-3b',
+          type: 'narrative',
+          narrative: ['Branch B content'],
+          nextScene: 'scene-1-1-4',
+        },
+        {
+          id: 'scene-1-1-fallback',
+          type: 'narrative',
+          narrative: ['Fallback scene'],
+          nextScene: 'scene-1-1-4',
+        },
+        {
+          id: 'scene-1-1-4',
+          type: 'narrative',
+          narrative: ['Convergence scene — both branches lead here'],
+        },
+      ],
+    },
+  ],
+});
+
 const createMockDiscovererData = () => ({
   welcome: { headline: 'Test headline', subtext: 'Test subtext' },
   era: { year: 1971, location: 'Test', framing: 'Test framing' },
@@ -260,6 +320,168 @@ describe('StoryController', () => {
       const progress = controller.getProgress();
       expect(progress?.choices.length).toBe(1);
       expect(progress?.choices[0].choiceId).toBe('choice-1');
+    });
+  });
+
+  describe('TD-1: Choice Branching', () => {
+    let branchController: StoryController;
+
+    beforeEach(() => {
+      // Override fetch mock with branching act data
+      const mockIndex = createMockStoryIndex();
+      const mockBranchAct = createMockBranchingAct();
+      let callCount = 0;
+
+      vi.restoreAllMocks();
+      vi.spyOn(globalThis, 'fetch').mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(mockIndex) } as Response);
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(mockBranchAct) } as Response);
+      });
+
+      localStorage.clear();
+      localStorage.setItem(DISCOVERER_COMPLETE_KEY, 'true');
+      branchController = new StoryController();
+    });
+
+    afterEach(() => {
+      branchController.destroy();
+      vi.restoreAllMocks();
+    });
+
+    it('should navigate to choice.nextScene when choice has nextScene (5.1)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-a');
+
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-3a');
+    });
+
+    it('should navigate to different scene when different choice selected (5.2)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-b');
+
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-3b');
+    });
+
+    it('should fall back to scene.nextScene when choice has no nextScene (5.3)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-no-branch');
+
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-fallback');
+    });
+
+    it('should warn and return early when invalid choiceId is selected (5.4)', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-nonexistent');
+
+      // Should warn about missing choice and stay on current scene
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('choice-nonexistent')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('not found')
+      );
+      // Should stay on choice scene (early return, no navigation)
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-2');
+      warnSpy.mockRestore();
+    });
+
+    it('should support back navigation after branching (5.5)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-a'); // -> scene-1-1-3a
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-3a');
+
+      branchController.previousScene(); // <- back to scene-1-1-2
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-2');
+    });
+
+    it('should support branch convergence — both branches lead to same scene (5.6)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      // Branch A path to convergence
+      branchController.selectChoice('choice-a'); // -> scene-1-1-3a
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-3a');
+      branchController.nextScene(); // -> scene-1-1-4 (convergence)
+      const convergenceA = branchController.getCurrentScene()?.id;
+      expect(convergenceA).toBe('scene-1-1-4');
+
+      // Back-navigate to choice scene and take Branch B
+      branchController.previousScene(); // <- scene-1-1-3a
+      branchController.previousScene(); // <- scene-1-1-2 (choice scene)
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-2');
+
+      branchController.selectChoice('choice-b'); // -> scene-1-1-3b
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-3b');
+      branchController.nextScene(); // -> scene-1-1-4 (same convergence)
+      const convergenceB = branchController.getCurrentScene()?.id;
+
+      // Both branches converge to same scene
+      expect(convergenceB).toBe(convergenceA);
+    });
+
+    it('should preserve recordChoice data correctly (5.7)', async () => {
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      branchController.selectChoice('choice-a');
+
+      const progress = branchController.getProgress();
+      expect(progress?.choices.length).toBe(1);
+      expect(progress?.choices[0].choiceId).toBe('choice-a');
+      expect(progress?.choices[0].sceneId).toBe('scene-1-1-2');
+    });
+
+    it('should handle choice.nextScene referencing non-existent scene gracefully', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      // Manually inject a bad nextScene into the choice data at runtime
+      const scene = branchController.getCurrentScene();
+      const badChoice = scene?.choices?.find(c => c.id === 'choice-a');
+      if (badChoice) {
+        (badChoice as { nextScene?: string }).nextScene = 'scene-does-not-exist';
+      }
+
+      branchController.selectChoice('choice-a');
+
+      // goToScene throws "Scene not found", caught by outer catch
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Cannot process choice:',
+        expect.any(Error)
+      );
+      warnSpy.mockRestore();
+    });
+
+    it('should fall back silently when choice without nextScene is selected (no console noise)', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await branchController.initialize();
+      branchController.nextScene(); // -> scene-1-1-2 (choice scene)
+
+      // choice-no-branch exists but has no nextScene — should fall back without warning
+      branchController.selectChoice('choice-no-branch');
+
+      expect(branchController.getCurrentScene()?.id).toBe('scene-1-1-fallback');
+      // Should NOT have logged a warning (silent fallback for known choices)
+      const relevantCalls = warnSpy.mock.calls.filter(
+        call => typeof call[0] === 'string' && call[0].includes('choice-no-branch')
+      );
+      expect(relevantCalls.length).toBe(0);
+      warnSpy.mockRestore();
     });
   });
 

@@ -809,13 +809,13 @@
                   "codeSnippet": "// 8087 coprocessor operation\n// \n// Software float multiply: ~1000 cycles\n// 8087 FMUL: ~200 cycles\n// Speedup: ~5× per operation\n// \n// But real programs: 50-100× speedup\n// (eliminating loop overhead, memory access)\n// \n// 8087 instructions:\n// FLD   ; Load to stack\n// FADD  ; Add\n// FMUL  ; Multiply\n// FSQRT ; Square root\n// FSIN  ; Sine"
                 }
               ],
-              "nextScene": "chapter-6-2b"
+              "nextScene": "scene-6-2b-1"
             }
           ]
         },
         {
           "id": "chapter-6-2b",
-          "number": 2.5,
+          "number": 3,
           "title": "The 68000 Golden Age",
           "subtitle": "Macintosh, Amiga, and Atari ST",
           "year": "1984-1987",
@@ -999,13 +999,13 @@
                 "Still, the 68000's influence persists. Its clean architecture inspired later designs. Its Toolbox, AmigaOS, and GEM showed what operating systems could be. And musicians still speak fondly of their Atari STs.",
                 "True relief would require the 80386: 32-bit registers, 4GB addressing, and the flat memory model programmers craved."
               ],
-              "nextScene": "chapter-6-3"
+              "nextScene": "scene-6-3-1"
             }
           ]
         },
         {
           "id": "chapter-6-3",
-          "number": 3,
+          "number": 4,
           "title": "The Protected Mode Promise",
           "subtitle": "Intel 80286 and Its Discontents",
           "year": "1984",

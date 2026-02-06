@@ -430,13 +430,61 @@ test.describe('Story Branching Paths', () => {
 
     // If we found both choices, content should be different (branching works)
     if (content1 && content2) {
-      // Content should differ at least somewhat (branch scenes have different content)
-      // Note: They may share some common elements, but the branch-specific content should differ
       console.log('Choice 1 content:', content1.substring(0, 100));
       console.log('Choice 2 content:', content2.substring(0, 100));
       // Both should have content
       expect(content1.length).toBeGreaterThan(50);
       expect(content2.length).toBeGreaterThan(50);
+      // Content must actually differ — branching leads to different scenes
+      expect(content1).not.toBe(content2);
+    }
+  });
+
+  test('back navigation after choice should return to choice scene', async ({ page }) => {
+    const continueBtn = page.locator('.da-story-action-btn--primary');
+    const prevBtn = page.locator('.da-story-action-btn--secondary');
+
+    for (let i = 0; i < 20; i++) {
+      const choiceCards = page.locator('.da-choice-card');
+      const count = await choiceCards.count();
+
+      if (count > 0) {
+        // Record the choice scene content and choice count
+        const choiceContent = await page.locator('.da-story-content').textContent();
+        const originalCount = count;
+
+        // Click a choice
+        await choiceCards.first().click();
+        await page.waitForTimeout(600);
+
+        // Verify we moved to a new scene (content changed)
+        const branchContent = await page.locator('.da-story-content').textContent();
+        expect(branchContent).toBeTruthy();
+
+        // Click back/previous button
+        if (await prevBtn.count() > 0 && await prevBtn.isVisible()) {
+          await prevBtn.click();
+          await page.waitForTimeout(600);
+
+          // Should be back at the SAME choice scene
+          const backChoiceCards = page.locator('.da-choice-card');
+          const backCount = await backChoiceCards.count();
+          expect(backCount).toBe(originalCount);
+
+          // Verify same scene content (not just any choice scene)
+          const backContent = await page.locator('.da-story-content').textContent();
+          expect(backContent).toBe(choiceContent);
+          console.log('Back navigation returned to same choice scene');
+        }
+        break;
+      }
+
+      if (await continueBtn.count() > 0 && await continueBtn.isVisible() && !(await continueBtn.isDisabled())) {
+        await continueBtn.click();
+        await page.waitForTimeout(600);
+      } else {
+        break;
+      }
     }
   });
 });

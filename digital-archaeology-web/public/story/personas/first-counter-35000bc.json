@@ -1,0 +1,32 @@
+{
+  "id": "first-counter-35000bc",
+  "name": "The First Counter",
+  "years": "~35,000 BC",
+  "era": "35,000 BC",
+  "avatar": "\ud83c\udf19",
+  "keyContribution": "Created one of humanity's earliest known tally marks on the Lebombo bone, establishing the foundation of counting and record-keeping that would eventually lead to mathematics and computing.",
+  "quote": "Twenty-nine nights since the moon was dark. I will not forget.",
+  "additionalQuotes": [
+    "One notch for each moon. The bone remembers what the mind forgets.",
+    "The traders argue about debts. My marks settle the matter.",
+    "Before we could count, we could only guess. Now we know."
+  ],
+  "background": "In the Lebombo Mountains of what will one day be called Swaziland, you survive by knowing. Knowing when the herds move. Knowing when fruits ripen. Knowing how much you owe and are owed. Memory fails. But marks on bone do not.",
+  "motivation": "The elders trade goods. They argue about debts. Who owes what? How many moons since the last gathering? You need a way to remember numbers that outlasts memory.",
+  "constraints": [
+    {
+      "type": "technical",
+      "description": "No writing system exists\u2014only marks and scratches"
+    },
+    {
+      "type": "knowledge",
+      "description": "No concept of 'numbers' as abstract entities\u2014only quantities of things"
+    },
+    {
+      "type": "material",
+      "description": "Only bone, stone, and wood to work with"
+    }
+  ],
+  "problem": "How do you remember a quantity when you cannot write?",
+  "speechPattern": "Simple, direct language. Speaks in concrete terms about tangible things. References nature, seasons, and physical objects rather than abstract concepts."
+}

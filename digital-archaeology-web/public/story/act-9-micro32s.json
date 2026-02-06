@@ -180,29 +180,25 @@
                   "id": "choice-out-of-order",
                   "icon": "🔀",
                   "title": "Master Out-of-Order Execution",
-                  "description": "Build reorder buffers and reservation stations. See how instructions execute in data-flow order while maintaining sequential semantics.",
-                  "nextScene": "scene-9-1-5a"
+                  "description": "Build reorder buffers and reservation stations. See how instructions execute in data-flow order while maintaining sequential semantics."
                 },
                 {
                   "id": "choice-register-renaming",
                   "icon": "📝",
                   "title": "Implement Register Renaming",
-                  "description": "Build a rename table that maps architectural registers to physical registers, eliminating WAW and WAR dependencies.",
-                  "nextScene": "scene-9-1-5b"
+                  "description": "Build a rename table that maps architectural registers to physical registers, eliminating WAW and WAR dependencies."
                 },
                 {
                   "id": "choice-branch-prediction",
                   "icon": "🎯",
                   "title": "Design Advanced Branch Prediction",
-                  "description": "Build a two-level correlating predictor or tournament predictor. Experience the art of predicting the unpredictable.",
-                  "nextScene": "scene-9-1-5c"
+                  "description": "Build a two-level correlating predictor or tournament predictor. Experience the art of predicting the unpredictable."
                 },
                 {
                   "id": "choice-speculation",
                   "icon": "🔮",
                   "title": "Implement Speculative Execution",
-                  "description": "Build speculative memory access and rollback. See how CPUs gamble on the future—and recover when wrong.",
-                  "nextScene": "scene-9-1-5d"
+                  "description": "Build speculative memory access and rollback. See how CPUs gamble on the future\u2014and recover when wrong."
                 }
               ],
               "nextScene": "scene-9-1-6"

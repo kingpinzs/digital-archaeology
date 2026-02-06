@@ -746,7 +746,7 @@
         },
         {
           "id": "chapter-2-2b",
-          "number": 2.5,
+          "number": 3,
           "title": "The First True Computers",
           "subtitle": "Manchester Baby and EDSAC",
           "year": "1948-1949",
@@ -929,13 +929,13 @@
                 "Kathleen Booth's assembly language would transform programming from an esoteric art into an accessible skill. Grace Hopper—working with UNIVAC—would soon take the next step: compilers that translated high-level languages into machine code.",
                 "The vacuum tube giants were reaching their peak. But the real revolution was happening at Bell Labs, where three physicists were about to change everything."
               ],
-              "nextScene": "chapter-2-3"
+              "nextScene": "scene-2-3-1"
             }
           ]
         },
         {
           "id": "chapter-2-3",
-          "number": 3,
+          "number": 4,
           "title": "The Electronic Brain",
           "subtitle": "UNIVAC and the Dawn of Commercial Computing",
           "year": "1951",

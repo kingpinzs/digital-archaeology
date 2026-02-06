@@ -314,6 +314,95 @@ describe('StoryModeContainer', () => {
     });
   });
 
+  // TD-2: advanceAfterChallenge tests
+  describe('TD-2: advanceAfterChallenge', () => {
+    it('should have advanceAfterChallenge method', () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      expect(typeof storyContainer.advanceAfterChallenge).toBe('function');
+    });
+
+    it('should not throw when called before initialization completes', () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      // Call immediately — storyController may not be ready yet
+      expect(() => storyContainer.advanceAfterChallenge()).not.toThrow();
+    });
+
+    it('should delegate to storyController.nextScene()', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      // Wait for initialization to complete
+      await storyContainer.waitForInitialization();
+
+      const controller = storyContainer.getStoryController();
+      if (controller) {
+        // Spy on nextScene
+        const nextSceneSpy = vi.spyOn(controller, 'nextScene');
+
+        storyContainer.advanceAfterChallenge();
+
+        expect(nextSceneSpy).toHaveBeenCalledTimes(1);
+        nextSceneSpy.mockRestore();
+      }
+    });
+
+    it('should handle errors gracefully when nextScene fails', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      await storyContainer.waitForInitialization();
+
+      const controller = storyContainer.getStoryController();
+      if (controller) {
+        // Make nextScene throw
+        vi.spyOn(controller, 'nextScene').mockImplementation(() => {
+          throw new Error('No next scene');
+        });
+
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        // Should not throw
+        expect(() => storyContainer.advanceAfterChallenge()).not.toThrow();
+
+        expect(warnSpy).toHaveBeenCalled();
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('should show challenge completion banner (AC #3)', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      await storyContainer.waitForInitialization();
+
+      storyContainer.advanceAfterChallenge();
+
+      const banner = container.querySelector('.da-challenge-complete-banner');
+      expect(banner).not.toBeNull();
+      expect(banner?.textContent).toBe('Challenge Complete!');
+      expect(banner?.getAttribute('role')).toBe('status');
+      expect(banner?.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('should remove existing banner before showing a new one', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      await storyContainer.waitForInitialization();
+
+      // Call twice
+      storyContainer.advanceAfterChallenge();
+      storyContainer.advanceAfterChallenge();
+
+      const banners = container.querySelectorAll('.da-challenge-complete-banner');
+      expect(banners.length).toBe(1);
+    });
+  });
+
   // Story 10.3: Options Pattern Tests
   describe('Story 10.3: Options Pattern', () => {
     it('should accept currentMode and onModeChange options', () => {

@@ -58,9 +58,9 @@
         },
         "number": {
           "type": "integer",
-          "description": "Act number (1-5)",
-          "minimum": 1,
-          "maximum": 5
+          "description": "Act number (0-10)",
+          "minimum": 0,
+          "maximum": 10
         },
         "title": {
           "type": "string",
@@ -78,7 +78,7 @@
         "cpuStage": {
           "type": "string",
           "description": "CPU stage for this act",
-          "enum": ["micro4", "micro8", "micro16", "micro32", "micro32p", "micro32s"]
+          "enum": ["mechanical", "relay", "vacuum", "transistor", "micro4", "micro8", "micro16", "micro32", "micro32p", "micro32s", "future"]
         },
         "chapters": {
           "type": "array",
@@ -97,8 +97,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier (e.g., 'chapter-1-1')",
-          "pattern": "^chapter-\\d+-\\d+$"
+          "description": "Unique identifier (e.g., 'chapter-1-1', 'chapter-0-1b')",
+          "pattern": "^chapter-\\d+-[\\w]+$"
         },
         "number": {
           "type": "integer",
@@ -116,8 +116,8 @@
         },
         "year": {
           "type": "string",
-          "description": "Year for historical context",
-          "pattern": "^\\d{4}$"
+          "description": "Year for historical context (e.g., '1971', '35,000 BC', '3000 BC - 1840')",
+          "pattern": "^[\\d,]+(\\s*(BC|AD|BCE|CE))?(\\s*-\\s*[\\d,]+(\\s*(BC|AD|BCE|CE))?)?$"
         },
         "scenes": {
           "type": "array",
@@ -136,13 +136,13 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier (e.g., 'scene-1-1-1')",
-          "pattern": "^scene-\\d+-\\d+-\\d+$"
+          "description": "Unique identifier (e.g., 'scene-1-1-1', 'scene-0-1b-0')",
+          "pattern": "^scene-[\\w]+-[\\w]+-[\\w]+$"
         },
         "type": {
           "type": "string",
           "description": "Scene type determines primary content",
-          "enum": ["narrative", "dialogue", "choice", "challenge"]
+          "enum": ["narrative", "dialogue", "choice", "challenge", "persona", "transition", "decision", "builder"]
         },
         "setting": {
           "$ref": "#/definitions/SceneSettingData"
@@ -282,6 +282,10 @@
         "description": {
           "type": "string",
           "description": "Longer description"
+        },
+        "nextScene": {
+          "type": "string",
+          "description": "ID of the next scene for this choice"
         }
       }
     },

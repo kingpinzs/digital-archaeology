@@ -149,7 +149,7 @@ development_status:
   epic-9-retrospective: done
 
   # Epic 10: Story Mode Experience
-  epic-10: in-progress
+  epic-10: done
   10-1-implement-story-lab-mode-toggle: done
   10-2-create-story-mode-layout: done
   10-3-create-fixed-navigation-bar: done
@@ -175,9 +175,17 @@ development_status:
   10-23-first-discoverer-mind-experience: done
   10-24-fix-act0-persona-timeline: done
   10-25-add-e2e-test-infrastructure: done
-  epic-10-retrospective: optional
+  epic-10-retrospective: done
 
-  # Epic 11: Multi-Stage Architecture
+  # Tech Debt: Epic 10 Retrospective (blocks Epic 11)
+  # Source: epic-10-retro-2026-02-06.md
+  # Execution order: TD-3 → TD-1 → TD-2 → TD-4
+  td-3-content-audit-schema-enforcement: done
+  td-1-implement-choice-branching: done
+  td-2-close-story-lab-story-loop: done
+  td-4-story-mode-journey-e2e-tests: backlog
+
+  # Epic 11: Multi-Stage Architecture (requires all TD stories complete)
   epic-11: backlog
   11-1-create-stage-selector-ui: backlog
   11-2-implement-stage-configuration-system: backlog

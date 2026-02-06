@@ -85,6 +85,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Validate story content
+        run: npm run validate:content
+
       - name: Run tests
         run: npm test -- --run --reporter=verbose
 

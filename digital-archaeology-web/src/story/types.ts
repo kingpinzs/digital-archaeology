@@ -113,6 +113,8 @@ export interface ChoiceData {
   title: string;
   /** Longer description explaining the choice */
   description: string;
+  /** Target scene ID for branching navigation (falls back to scene-level nextScene if absent) */
+  nextScene?: string;
 }
 
 /**
@@ -173,7 +175,7 @@ export interface ChallengeData {
  */
 export interface PersonaConstraint {
   /** Type of constraint affecting the persona */
-  type: 'technical' | 'economic' | 'political' | 'knowledge';
+  type: 'technical' | 'economic' | 'political' | 'knowledge' | 'material';
   /** Description of the constraint */
   description: string;
 }

@@ -208,9 +208,17 @@ export class StoryController {
   selectChoice(choiceId: string): void {
     try {
       this.engine.recordChoice(choiceId);
-      // For now, choices advance to nextScene
-      // Future: implement branching based on choice
-      this.engine.nextScene();
+      const scene = this.engine.getCurrentScene();
+      const choice = scene?.choices?.find(c => c.id === choiceId);
+      if (!choice) {
+        console.warn(`Choice "${choiceId}" not found in scene "${scene?.id}"`);
+        return;
+      }
+      if (choice.nextScene) {
+        this.engine.goToScene(choice.nextScene);
+      } else {
+        this.engine.nextScene();
+      }
     } catch (error) {
       console.warn('Cannot process choice:', error);
     }

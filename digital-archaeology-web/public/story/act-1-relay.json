@@ -761,7 +761,7 @@
                   "codeSnippet": "// First remote computing session (1940)\n// \n// Location: Dartmouth College, NH\n// Computer: Bell Labs NYC (250 miles away)\n// Connection: Telephone line + teletype\n// \n// Problem sent: (2 + 3i) × (4 - 2i)\n// Answer received: 14 + 8i\n// Time: A few seconds\n// \n// Witnesses included:\n// - John von Neumann\n// - Norbert Wiener\n// - Many other mathematicians"
                 }
               ],
-              "nextScene": "chapter-1-3"
+              "nextScene": "scene-1-3-1"
             }
           ]
         },

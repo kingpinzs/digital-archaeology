@@ -379,6 +379,42 @@ export class StoryModeContainer {
   }
 
   /**
+   * Advance story to next scene after a completed challenge.
+   * Called by App when user returns from lab with all objectives complete.
+   * Shows a completion banner (AC #3) then advances to the next scene.
+   */
+  advanceAfterChallenge(): void {
+    try {
+      this.storyController?.nextScene();
+      // Show completion acknowledgment after scene renders (AC #3)
+      this.showChallengeCompletionBanner();
+    } catch (error) {
+      console.warn('Cannot advance story after challenge:', error);
+    }
+  }
+
+  /**
+   * Show a brief "Challenge Complete!" banner after returning from a completed challenge.
+   * Satisfies AC #3: visual acknowledgment of challenge completion on the next scene.
+   */
+  private showChallengeCompletionBanner(): void {
+    if (!this.element) return;
+
+    // Remove any existing banner from a previous cycle
+    this.element.querySelector('.da-challenge-complete-banner')?.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'da-challenge-complete-banner';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'polite');
+    banner.textContent = 'Challenge Complete!';
+    this.element.prepend(banner);
+
+    // Remove after CSS animation completes
+    banner.addEventListener('animationend', () => banner.remove());
+  }
+
+  /**
    * Update the current mode and sync StoryNav's ModeToggle state.
    * @param mode - The new active mode
    */

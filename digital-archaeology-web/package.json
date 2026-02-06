@@ -19,7 +19,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'No linter configured yet'"
+    "lint": "echo 'No linter configured yet'",
+    "validate:content": "npx tsx scripts/validate-story-content.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.2.0",

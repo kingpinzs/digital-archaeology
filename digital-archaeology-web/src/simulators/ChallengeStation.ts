@@ -28,11 +28,17 @@ export class ChallengeStation {
   // Objectives sidebar
   private challengeObjectives: ChallengeObjectives | null = null;
 
-  // Return to story callback
-  private onReturnToStory: (() => void) | null = null;
+  // Return to story callback (passes completion status)
+  private onReturnToStory: ((completed: boolean) => void) | null = null;
 
   // Return to story button
   private returnButton: HTMLButtonElement | null = null;
+
+  // Track whether all objectives have been completed
+  private allObjectivesCompleted: boolean = false;
+
+  // Track current challenge scene ID (for re-entry preservation)
+  private currentSceneId: string | null = null;
 
   /**
    * Mount the challenge station to a DOM element.
@@ -46,8 +52,15 @@ export class ChallengeStation {
   /**
    * Set the callback for returning to story mode.
    */
-  setOnReturnToStory(callback: () => void): void {
+  setOnReturnToStory(callback: (completed: boolean) => void): void {
     this.onReturnToStory = callback;
+  }
+
+  /**
+   * Get the scene ID of the currently active challenge.
+   */
+  getCurrentSceneId(): string | null {
+    return this.currentSceneId;
   }
 
   /**
@@ -56,6 +69,10 @@ export class ChallengeStation {
   setChallengeContext(context: ChallengeContext): void {
     // Tear down any existing simulator
     this.clearSimulator();
+
+    // Reset completion tracking for new challenge
+    this.allObjectivesCompleted = false;
+    this.currentSceneId = context.sceneId;
 
     if (!this.simulatorContainer || !this.sidebarContainer) return;
 
@@ -97,7 +114,7 @@ export class ChallengeStation {
     this.returnButton.textContent = 'Return to Story';
     this.returnButton.setAttribute('aria-label', 'Return to story mode');
     this.returnButton.addEventListener('click', () => {
-      this.onReturnToStory?.();
+      this.onReturnToStory?.(this.allObjectivesCompleted);
     });
     this.sidebarContainer.appendChild(this.returnButton);
 
@@ -113,6 +130,7 @@ export class ChallengeStation {
         this.challengeObjectives?.setObjectiveComplete(objectiveId, true);
       },
       onAllObjectivesComplete: () => {
+        this.allObjectivesCompleted = true;
         this.returnButton?.classList.remove('da-challenge-station-return-btn--hidden');
       },
     };
@@ -149,6 +167,8 @@ export class ChallengeStation {
     this.sidebarContainer = null;
     this.onReturnToStory = null;
     this.returnButton = null;
+    this.allObjectivesCompleted = false;
+    this.currentSceneId = null;
   }
 
   /**

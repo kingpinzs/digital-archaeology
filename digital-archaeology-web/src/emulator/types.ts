@@ -263,9 +263,20 @@ export interface WorkerReadyEvent {
 }
 
 /**
+ * Command to initialize assembler WASM module with a specific path (Story 11.2).
+ */
+export interface InitAssemblerWasmCommand {
+  type: 'INIT_WASM';
+  payload: {
+    /** Path to WASM JS glue file, relative to BASE_URL (e.g., 'wasm/micro4-asm.js') */
+    wasmJsPath: string;
+  };
+}
+
+/**
  * Union of all assembler commands (main → worker).
  */
-export type AssemblerCommand = AssembleCommand;
+export type AssemblerCommand = InitAssemblerWasmCommand | AssembleCommand;
 
 /**
  * Union of all assembler events (worker → main).
@@ -591,6 +602,19 @@ export interface CPUState {
  * ============================================================================ */
 
 /**
+ * Command to initialize WASM module with a specific path (Story 11.2).
+ * Sent by the bridge to tell the worker which WASM module to load.
+ * Must be sent before any other commands.
+ */
+export interface InitWasmCommand {
+  type: 'INIT_WASM';
+  payload: {
+    /** Path to WASM JS glue file, relative to BASE_URL (e.g., 'wasm/micro4-cpu.js') */
+    wasmJsPath: string;
+  };
+}
+
+/**
  * Command to load a program into CPU memory.
  */
 export interface LoadProgramCommand {
@@ -696,6 +720,7 @@ export interface GetBreakpointsCommand {
  * Union of all emulator commands (main → worker).
  */
 export type EmulatorCommand =
+  | InitWasmCommand
   | LoadProgramCommand
   | StepCommand
   | RunCommand

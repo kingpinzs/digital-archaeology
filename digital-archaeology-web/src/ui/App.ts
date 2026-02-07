@@ -7,6 +7,7 @@ import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
 import type { LabStage } from './StageSelector';
+import { getStageConfig } from '../config/stageConfig';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
@@ -647,6 +648,9 @@ export class App {
    */
   private handleStageChange(stage: LabStage): void {
     this.currentStage = stage;
+    // Story 11.2: Resolve config for selected stage
+    const config = getStageConfig(stage);
+    console.log(`Stage changed to ${config.meta.label} (${stage}), ready: ${config.ready}`);
     // Sync selector display (ensures bidirectional consistency if called programmatically)
     this.menuBar?.getStageSelector()?.setStage(stage);
     this.saveSettings();
@@ -1450,8 +1454,13 @@ export class App {
     if (!this.circuitRenderer) return;
 
     try {
-      // Load the Micro4 circuit JSON
-      await this.circuitRenderer.loadCircuit('/circuits/micro4-circuit.json');
+      // Story 11.2: Load circuit from stage config
+      const circuitPath = getStageConfig(this.currentStage).circuit.path;
+      if (!circuitPath) {
+        console.warn(`No circuit available for stage: ${this.currentStage}`);
+        return;
+      }
+      await this.circuitRenderer.loadCircuit(`/${circuitPath}`);
       this.circuitLoaded = true;
 
       // Initialize the CPU-Circuit bridge
@@ -1660,7 +1669,10 @@ export class App {
   private initHdlViewerPanel(): void {
     if (this.hdlViewerPanel) return;
 
+    // Story 11.2: Pass HDL path from stage config
+    const hdlPath = getStageConfig(this.currentStage).hdl.path ?? undefined;
     this.hdlViewerPanel = new HdlViewerPanel({
+      hdlPath,
       onClose: () => {
         // Optional: update menu state when closed
       },
@@ -2028,7 +2040,8 @@ export class App {
     this.assemblerBridge = new AssemblerBridge();
 
     // Initialize asynchronously - don't block UI
-    this.assemblerBridge.init().catch((error) => {
+    // Story 11.2: Pass current stage so bridge sends config-derived WASM path
+    this.assemblerBridge.init(this.currentStage).catch((error) => {
       console.error('Failed to initialize AssemblerBridge:', error);
       this.statusBar?.updateState({
         assemblyStatus: 'error',
@@ -2059,7 +2072,8 @@ export class App {
     this.emulatorBridge = new EmulatorBridge();
 
     // Initialize asynchronously - don't block UI
-    this.emulatorBridge.init().catch((error) => {
+    // Story 11.2: Pass current stage so bridge sends config-derived WASM path
+    this.emulatorBridge.init(this.currentStage).catch((error) => {
       console.error('Failed to initialize EmulatorBridge:', error);
       // Show warning in status bar so user knows emulator won't work (Issue #4 fix)
       this.statusBar?.updateState({
@@ -2103,7 +2117,7 @@ export class App {
     if (!this.emulatorBridge.isReady) {
       // Emulator not ready yet - try to wait for init
       try {
-        await this.emulatorBridge.init();
+        await this.emulatorBridge.init(this.currentStage);
       } catch {
         console.error('EmulatorBridge not ready for program load');
         this.statusBar?.updateState({ loadStatus: null, pcValue: null, cycleCount: 0 });
@@ -3339,8 +3353,9 @@ export class App {
     }
 
     try {
-      // Load the program source
-      const source = await loadExampleProgram(program.filename);
+      // Story 11.2: Load from config-derived programs path
+      const programsDir = getStageConfig(this.currentStage).programs.directory ?? undefined;
+      const source = await loadExampleProgram(program.filename, programsDir);
 
       // Set the editor content
       if (this.editor) {

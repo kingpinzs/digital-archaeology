@@ -38,11 +38,18 @@ export function isAssemblerCommand(data: unknown): data is AssemblerCommand {
     return false;
   }
   const obj = data as Record<string, unknown>;
-  if (obj.type !== 'ASSEMBLE' || typeof obj.payload !== 'object' || !obj.payload) {
+  if (typeof obj.payload !== 'object' || !obj.payload) {
     return false;
   }
   const payload = obj.payload as Record<string, unknown>;
-  return typeof payload.source === 'string';
+  switch (obj.type) {
+    case 'ASSEMBLE':
+      return typeof payload.source === 'string';
+    case 'INIT_WASM':
+      return typeof payload.wasmJsPath === 'string';
+    default:
+      return false;
+  }
 }
 
 /**
@@ -101,15 +108,18 @@ export function handleAssemble(
 }
 
 /**
- * Initialize the WASM module.
+ * Initialize the WASM module from a given JS glue file path (Story 11.2).
+ * Path is received via INIT_WASM message from the main thread.
  * Returns true on success, false on failure (sets initError).
+ *
+ * @param wasmJsPath - Path to WASM JS glue file relative to BASE_URL (e.g., 'wasm/micro4-asm.js')
  */
-async function initializeWasm(): Promise<boolean> {
+async function initializeWasm(wasmJsPath: string): Promise<boolean> {
   try {
     // Dynamic import for WASM module using absolute path from origin.
     // The @vite-ignore comment prevents Vite from statically analyzing this import,
     // which is necessary since the WASM is served from /public at runtime.
-    const wasmUrl = new URL(`${import.meta.env.BASE_URL}wasm/micro4-asm.js`, self.location.origin).href;
+    const wasmUrl = new URL(`${import.meta.env.BASE_URL}${wasmJsPath}`, self.location.origin).href;
     const createModule = await import(/* @vite-ignore */ wasmUrl);
     const module: AssemblerModule = await createModule.default();
 
@@ -134,6 +144,39 @@ async function initializeWasm(): Promise<boolean> {
  */
 function handleMessage(event: MessageEvent): void {
   const data = event.data;
+
+  // Handle INIT_WASM before type guard check (Story 11.2)
+  if (data && typeof data === 'object' && data.type === 'INIT_WASM') {
+    const rawPayload = data.payload;
+    if (!rawPayload || typeof rawPayload !== 'object' || typeof (rawPayload as Record<string, unknown>).wasmJsPath !== 'string') {
+      self.postMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: { line: 0, message: 'INIT_WASM: missing or invalid wasmJsPath in payload' },
+      } satisfies AssembleErrorEvent);
+      return;
+    }
+    const wasmJsPath = (rawPayload as { wasmJsPath: string }).wasmJsPath;
+    initializeWasm(wasmJsPath).then((success) => {
+      if (success) {
+        self.postMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      } else {
+        self.postMessage({
+          type: 'ASSEMBLE_ERROR',
+          payload: {
+            line: 0,
+            message: `Worker initialization failed: ${initError}`,
+          },
+        } satisfies AssembleErrorEvent);
+      }
+    }).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Unknown INIT_WASM error';
+      self.postMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: { line: 0, message: `Worker initialization error: ${message}` },
+      } satisfies AssembleErrorEvent);
+    });
+    return;
+  }
 
   if (!isAssemblerCommand(data)) {
     console.warn('[AssemblerWorker] Unknown message type:', data);
@@ -160,35 +203,14 @@ function handleMessage(event: MessageEvent): void {
       break;
     }
     default: {
-      // Type system ensures this is exhaustive, but log just in case
+      // INIT_WASM is handled before the type guard, so this handles truly unknown types
       console.warn('[AssemblerWorker] Unhandled message type:', data);
     }
   }
 }
 
-/**
- * Worker initialization.
- * Load WASM and notify main thread when ready.
- */
-async function init(): Promise<void> {
-  const success = await initializeWasm();
-
-  if (success) {
-    self.postMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
-  } else {
-    // Send error event so main thread knows initialization failed
-    self.postMessage({
-      type: 'ASSEMBLE_ERROR',
-      payload: {
-        line: 0,
-        message: `Worker initialization failed: ${initError}`,
-      },
-    } satisfies AssembleErrorEvent);
-  }
-}
-
-// Only run initialization when in a real Web Worker context (not during testing)
-// Check for DedicatedWorkerGlobalScope by verifying importScripts exists (only in workers)
+// Only set up message handler when in a real Web Worker context (not during testing).
+// Worker waits for INIT_WASM message from bridge before loading WASM (Story 11.2).
 const isWorkerContext =
   typeof self !== 'undefined' &&
   typeof self.postMessage === 'function' &&
@@ -196,5 +218,4 @@ const isWorkerContext =
 
 if (isWorkerContext) {
   self.onmessage = handleMessage;
-  init();
 }

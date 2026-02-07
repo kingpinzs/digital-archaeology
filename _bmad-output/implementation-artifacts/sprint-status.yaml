@@ -188,7 +188,7 @@ development_status:
   # Epic 11: Multi-Stage Architecture (requires all TD stories complete)
   epic-11: in-progress
   11-1-create-stage-selector-ui: done
-  11-2-implement-stage-configuration-system: backlog
+  11-2-implement-stage-configuration-system: done
   11-3-implement-stage-specific-wasm-loading: backlog
   11-4-implement-stage-specific-syntax-highlighting: backlog
   11-5-implement-stage-specific-circuit-loading: backlog

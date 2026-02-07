@@ -17,6 +17,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Add two numbers (5+3=8)',
     concepts: ['LDA', 'ADD', 'STA', 'memory'],
     difficulty: 'beginner',
+    stage: 'micro4',
   },
   {
     filename: 'multiply.asm',
@@ -25,6 +26,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Multiply via repeated addition',
     concepts: ['loops', 'repeated addition', 'accumulator'],
     difficulty: 'intermediate',
+    stage: 'micro4',
   },
   {
     filename: 'divide.asm',
@@ -33,6 +35,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Divide two numbers with remainder',
     concepts: ['loops', 'subtraction', 'remainder'],
     difficulty: 'intermediate',
+    stage: 'micro4',
   },
   {
     filename: 'negative.asm',
@@ -41,6 +44,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: "Two's complement negation",
     concepts: ["two's complement", 'NOT', 'increment'],
     difficulty: 'intermediate',
+    stage: 'micro4',
   },
 
   // Loop programs
@@ -51,6 +55,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Count down from N to 0',
     concepts: ['loops', 'JNZ', 'decrement'],
     difficulty: 'beginner',
+    stage: 'micro4',
   },
 
   // Algorithm programs
@@ -61,6 +66,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Generate Fibonacci sequence',
     concepts: ['sequences', 'multiple variables', 'loops'],
     difficulty: 'intermediate',
+    stage: 'micro4',
   },
   {
     filename: 'max.asm',
@@ -69,6 +75,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Find maximum of two numbers',
     concepts: ['comparison', 'conditional jumps', 'branching'],
     difficulty: 'beginner',
+    stage: 'micro4',
   },
   {
     filename: 'factorial.asm',
@@ -77,6 +84,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Calculate factorial of N',
     concepts: ['recursion simulation', 'multiplication'],
     difficulty: 'advanced',
+    stage: 'micro4',
   },
   {
     filename: 'bubble_sort.asm',
@@ -85,6 +93,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Sort array using bubble sort',
     concepts: ['arrays', 'nested loops', 'swapping'],
     difficulty: 'advanced',
+    stage: 'micro4',
   },
   {
     filename: 'gcd.asm',
@@ -93,6 +102,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Greatest common divisor',
     concepts: ['Euclidean algorithm', 'modulo'],
     difficulty: 'advanced',
+    stage: 'micro4',
   },
 
   // Bitwise programs
@@ -103,6 +113,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Test AND, OR, XOR, NOT',
     concepts: ['AND', 'OR', 'XOR', 'NOT', 'bit manipulation'],
     difficulty: 'intermediate',
+    stage: 'micro4',
   },
 
   // Reference programs
@@ -113,6 +124,7 @@ export const EXAMPLE_PROGRAMS: ExampleProgram[] = [
     description: 'Demo of all Micro4 instructions',
     concepts: ['complete ISA reference'],
     difficulty: 'beginner',
+    stage: 'micro4',
   },
 ];
 

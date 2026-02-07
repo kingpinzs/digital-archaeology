@@ -14,6 +14,7 @@ export interface StageInfo {
   icon: string;
   dataWidth: string;
   addressSpace: string;
+  instructionCount: number;
 }
 
 /** Ordered list of all lab stages for rendering */
@@ -23,12 +24,12 @@ export const LAB_STAGES: readonly LabStage[] = [
 
 /** Display metadata keyed by stage */
 export const STAGE_METADATA: Record<LabStage, StageInfo> = {
-  micro4:   { label: 'Micro4',    icon: '4',  dataWidth: '4-bit',  addressSpace: '256 B' },
-  micro8:   { label: 'Micro8',    icon: '8',  dataWidth: '8-bit',  addressSpace: '64 KB' },
-  micro16:  { label: 'Micro16',   icon: '16', dataWidth: '16-bit', addressSpace: '1 MB' },
-  micro32:  { label: 'Micro32',   icon: '32', dataWidth: '32-bit', addressSpace: '4 GB' },
-  micro32p: { label: 'Micro32-P', icon: 'P',  dataWidth: '32-bit', addressSpace: '4 GB' },
-  micro32s: { label: 'Micro32-S', icon: 'S',  dataWidth: '32-bit', addressSpace: '4 GB' },
+  micro4:   { label: 'Micro4',    icon: '4',  dataWidth: '4-bit',  addressSpace: '256 B',  instructionCount: 16 },
+  micro8:   { label: 'Micro8',    icon: '8',  dataWidth: '8-bit',  addressSpace: '64 KB',  instructionCount: 80 },
+  micro16:  { label: 'Micro16',   icon: '16', dataWidth: '16-bit', addressSpace: '1 MB',   instructionCount: 100 },
+  micro32:  { label: 'Micro32',   icon: '32', dataWidth: '32-bit', addressSpace: '4 GB',   instructionCount: 200 },
+  micro32p: { label: 'Micro32-P', icon: 'P',  dataWidth: '32-bit', addressSpace: '4 GB',   instructionCount: 200 },
+  micro32s: { label: 'Micro32-S', icon: 'S',  dataWidth: '32-bit', addressSpace: '4 GB',   instructionCount: 200 },
 };
 
 /**

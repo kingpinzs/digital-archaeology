@@ -27,6 +27,8 @@ export interface ExampleProgram {
   concepts: string[];
   /** Difficulty level for learners */
   difficulty: ExampleDifficulty;
+  /** CPU stage this program belongs to (Story 11.2). Defaults to 'micro4' if omitted. */
+  stage?: string;
 }
 
 /**

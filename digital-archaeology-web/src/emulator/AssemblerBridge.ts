@@ -12,7 +12,10 @@ import type {
   AssemblerError,
   AssemblerErrorType,
   CodeSnippet,
+  InitAssemblerWasmCommand,
 } from './types';
+import { getStageConfig } from '../config/stageConfig';
+import type { LabStage } from '../config/stageConfig';
 
 /**
  * Default timeout for assembly operations in milliseconds.
@@ -145,6 +148,7 @@ export class AssemblerBridge {
   private worker: Worker | null = null;
   private initialized = false;
   private initPromise: Promise<void> | null = null;
+  private stage: LabStage = 'micro4';
 
   /**
    * Whether the bridge is initialized and ready for use.
@@ -155,10 +159,12 @@ export class AssemblerBridge {
 
   /**
    * Initialize the bridge by creating the worker and waiting for WORKER_READY.
+   * Sends INIT_WASM with the stage's assembler WASM path (Story 11.2).
    *
+   * @param stage - The CPU stage to initialize the assembler for (default: 'micro4')
    * @throws Error if worker creation fails or initialization times out
    */
-  init(): Promise<void> {
+  init(stage: LabStage = 'micro4'): Promise<void> {
     if (this.initialized) {
       return Promise.resolve();
     }
@@ -168,7 +174,12 @@ export class AssemblerBridge {
       return this.initPromise;
     }
 
-    this.initPromise = this.doInit();
+    this.stage = stage;
+    this.initPromise = this.doInit().catch((error) => {
+      // Clear initPromise on failure so subsequent init() calls can retry
+      this.initPromise = null;
+      throw error;
+    });
     return this.initPromise;
   }
 
@@ -215,6 +226,21 @@ export class AssemblerBridge {
 
       this.worker.addEventListener('message', handleMessage);
       this.worker.addEventListener('error', handleError);
+
+      // Send INIT_WASM with config-derived path (Story 11.2)
+      const config = getStageConfig(this.stage);
+      const wasmJsPath = config.wasm.assemblerJs;
+      if (!wasmJsPath) {
+        clearTimeout(timeout);
+        this.worker.terminate();
+        this.worker = null;
+        reject(new Error(`No assembler WASM available for stage: ${this.stage}`));
+        return;
+      }
+      this.worker.postMessage({
+        type: 'INIT_WASM',
+        payload: { wasmJsPath },
+      } satisfies InitAssemblerWasmCommand);
     });
   }
 

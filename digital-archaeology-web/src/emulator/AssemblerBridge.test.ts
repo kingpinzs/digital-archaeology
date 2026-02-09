@@ -562,6 +562,133 @@ describe('AssemblerBridge', () => {
     });
   });
 
+  describe('reinit() (Story 11.3)', () => {
+    it('should terminate old worker and create new one', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      expect(bridge.isReady).toBe(true);
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      globalThis.Worker = SecondMockWorkerConstructor as unknown as typeof Worker;
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await reinitPromise;
+
+      // Old worker terminated
+      expect(mockWorker.terminated).toBe(true);
+      expect(bridge.isReady).toBe(true);
+    });
+
+    it('should send INIT_WASM with new stage config', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      globalThis.Worker = SecondMockWorkerConstructor as unknown as typeof Worker;
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await reinitPromise;
+
+      // New worker should have received INIT_WASM
+      const initWasmCalls = secondMockWorker.postMessageCalls.filter(
+        (call: unknown) => (call as { type: string }).type === 'INIT_WASM'
+      );
+      expect(initWasmCalls.length).toBe(1);
+      expect((initWasmCalls[0] as { payload: { wasmJsPath: string } }).payload.wasmJsPath).toBe('wasm/micro4-asm.js');
+    });
+
+    it('should reject if new stage WASM load fails', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      globalThis.Worker = SecondMockWorkerConstructor as unknown as typeof Worker;
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({
+        type: 'ASSEMBLE_ERROR',
+        payload: { line: 0, message: 'WASM load failed for new stage' },
+      } satisfies AssembleErrorEvent);
+
+      await expect(reinitPromise).rejects.toThrow('WASM load failed for new stage');
+      expect(bridge.isReady).toBe(false);
+    });
+
+    it('should work on uninitialized bridge', async () => {
+      const bridge = new AssemblerBridge();
+
+      const reinitPromise = bridge.reinit('micro4');
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await reinitPromise;
+
+      expect(bridge.isReady).toBe(true);
+      bridge.terminate();
+    });
+
+    it('should allow assembly after reinit', async () => {
+      const bridge = new AssemblerBridge();
+
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await initPromise;
+
+      // Reinit with fresh mock
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      globalThis.Worker = SecondMockWorkerConstructor as unknown as typeof Worker;
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await reinitPromise;
+
+      // Now assemble should work
+      const assemblePromise = bridge.assemble('LDA 5\nHLT');
+      secondMockWorker.simulateMessage({
+        type: 'ASSEMBLE_SUCCESS',
+        payload: { binary: [0x15, 0xf0], size: 2 },
+      } satisfies AssembleSuccessEvent);
+
+      const result = await assemblePromise;
+      expect(result.success).toBe(true);
+
+      bridge.terminate();
+    });
+  });
+
   describe('terminate()', () => {
     it('terminates the worker', async () => {
       const bridge = new AssemblerBridge();

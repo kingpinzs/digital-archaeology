@@ -7,7 +7,7 @@ import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
 import type { LabStage } from './StageSelector';
-import { getStageConfig } from '../config/stageConfig';
+import { getStageConfig, isStageReady } from '../config/stageConfig';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
@@ -235,6 +235,9 @@ export class App {
 
   // Breakpoints map: address → line number (Story 5.8)
   private breakpoints: Map<number, number> = new Map();
+
+  // Stage switching state (Story 11.3)
+  private isStageSwitching: boolean = false;
 
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
@@ -642,18 +645,152 @@ export class App {
   }
 
   /**
-   * Handle CPU stage change from StageSelector (Story 11.1).
-   * Updates current stage and persists the selection.
+   * Handle CPU stage change from StageSelector (Story 11.1, 11.3).
+   * Checks stage readiness, reinitializes WASM bridges, resets state, handles errors.
    * @param stage - The new CPU stage
    */
   private handleStageChange(stage: LabStage): void {
-    this.currentStage = stage;
-    // Story 11.2: Resolve config for selected stage
+    // Prevent concurrent stage switches
+    if (this.isStageSwitching) return;
+
     const config = getStageConfig(stage);
-    console.log(`Stage changed to ${config.meta.label} (${stage}), ready: ${config.ready}`);
-    // Sync selector display (ensures bidirectional consistency if called programmatically)
-    this.menuBar?.getStageSelector()?.setStage(stage);
-    this.saveSettings();
+
+    // AC #5: Block switch to unready stages with "Coming Soon" message
+    if (!isStageReady(stage)) {
+      this.statusBar?.updateState({ loadStatus: `${config.meta.label} — Coming Soon` });
+      // Revert selector display to current stage
+      this.menuBar?.getStageSelector()?.setStage(this.currentStage);
+      return;
+    }
+
+    // Same stage — no action needed
+    if (stage === this.currentStage) return;
+
+    // Set flag BEFORE async call to prevent race condition (CR H-2)
+    this.isStageSwitching = true;
+
+    // Perform async stage switch
+    this.performStageSwitch(stage, config).catch((error) => {
+      console.error('Stage switch failed:', error);
+      this.isStageSwitching = false;
+    });
+  }
+
+  /**
+   * Perform the async stage switch: reinit bridges, reset state, update UI (Story 11.3).
+   * @param stage - The new CPU stage
+   * @param config - The stage configuration
+   */
+  private async performStageSwitch(stage: LabStage, config: ReturnType<typeof getStageConfig>): Promise<void> {
+    const previousStage = this.currentStage;
+
+    // AC #6: Show loading indicator
+    this.statusBar?.updateState({ loadStatus: `Loading ${config.meta.label}...` });
+
+    try {
+      // AC #8: Stop running execution if active
+      if (this.isRunning && this.emulatorBridge) {
+        this.isRunning = false;
+        try {
+          await this.emulatorBridge.stop();
+        } catch {
+          // Ignore stop errors during stage switch
+        }
+      }
+
+      // AC #1, #2, #3: Reinitialize both bridges in parallel with new stage WASM
+      await Promise.all([
+        this.emulatorBridge?.reinit(stage),
+        this.assemblerBridge?.reinit(stage),
+      ]);
+
+      // Update current stage
+      this.currentStage = stage;
+
+      // AC #8: Reset CPU state display
+      this.cpuState = null;
+      this.lastAssembleResult = null;
+      this.hasValidAssembly = false;
+      this.sourceMap = null;
+
+      // Clear editor highlight from previous stage (CR H-4)
+      this.editor?.clearHighlight();
+
+      // Clear state history (step-back)
+      this.stateHistory = [];
+      this.historyPointer = -1;
+
+      // Clear breakpoints
+      this.breakpoints.clear();
+      this.breakpointsView?.updateState({ breakpoints: [] });
+
+      // Reset views
+      this.registerView?.updateState({ pc: 0, accumulator: 0 });
+      this.flagsView?.updateState({ zeroFlag: false });
+      // TODO(CR M-1): 256 is micro4's memory size. When additional stages ship,
+      // StageConfig should expose a memorySize field. Emulator's first STATE_UPDATE
+      // will correct the display, so this is a safe cosmetic default for now.
+      this.memoryView?.updateState({ memory: new Uint8Array(256), pc: 0 });
+      this.runtimeErrorPanel?.clearError();
+      this.errorPanel?.clearErrors();
+      this.binaryOutputPanel?.setBinary(null);
+
+      // Reset toolbar state (CR H-3)
+      this.toolbar?.updateState({
+        canAssemble: true,
+        canRun: false,
+        canPause: false,
+        canStep: false,
+        canStepBack: false,
+        canReset: false,
+        isRunning: false,
+      });
+
+      // Reload circuit for new stage if circuit panel is visible (CR M-3)
+      if (this.circuitRenderer) {
+        this.circuitLoaded = false;
+        if (this.cpuCircuitBridge) {
+          this.cpuCircuitBridge.clearCache();
+          this.cpuCircuitBridge = null;
+        }
+        await this.loadCircuitAndInitializeBridge();
+      }
+
+      // Sync selector display and persist
+      this.menuBar?.getStageSelector()?.setStage(stage);
+      this.saveSettings();
+
+      // AC #6: Show success
+      this.statusBar?.updateState({ loadStatus: `Switched to ${config.meta.label}` });
+
+    } catch (error) {
+      // AC #7: Error recovery — revert to previous stage (CR H-1/M-2)
+      console.error(`Failed to switch to ${config.meta.label}:`, error);
+      this.currentStage = previousStage;
+      this.menuBar?.getStageSelector()?.setStage(previousStage);
+
+      // Attempt to revert bridges to previous stage's WASM
+      try {
+        await Promise.all([
+          this.emulatorBridge?.reinit(previousStage),
+          this.assemblerBridge?.reinit(previousStage),
+        ]);
+      } catch (revertError) {
+        // Critical: both stages broken, user must reload
+        console.error('Failed to revert bridges:', revertError);
+        this.statusBar?.updateState({
+          loadStatus: 'Critical error: unable to revert. Please reload the page.',
+        });
+        return;
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.statusBar?.updateState({
+        loadStatus: `Failed to load ${config.meta.label}: ${errorMessage}`,
+      });
+    } finally {
+      this.isStageSwitching = false;
+    }
   }
 
   /**

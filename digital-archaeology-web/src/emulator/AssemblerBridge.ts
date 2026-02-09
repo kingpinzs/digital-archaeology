@@ -337,6 +337,26 @@ export class AssemblerBridge {
   }
 
   /**
+   * Reinitialize the bridge with a new stage (Story 11.3).
+   * Terminates the existing worker and creates a new one with the new stage's WASM module.
+   *
+   * @param stage - The new CPU stage to switch to
+   * @throws Error if new WASM initialization fails
+   */
+  async reinit(stage: LabStage): Promise<void> {
+    // 1. Terminate existing worker (if any)
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
+    // 2. Reset flags
+    this.initialized = false;
+    this.initPromise = null;
+    // 3. Init with new stage
+    await this.init(stage);
+  }
+
+  /**
    * Terminate the worker and clean up resources.
    */
   terminate(): void {

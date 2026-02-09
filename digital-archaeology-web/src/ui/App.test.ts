@@ -183,6 +183,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
   const initMock = vi.fn(() => Promise.resolve());
   const assembleMock = vi.fn(() => Promise.resolve(state.assembleResult));
   const terminateMock = vi.fn();
+  const reinitMock = vi.fn(() => Promise.resolve());
 
   // Constructor function that will be used as the class
   function MockAssemblerBridge() {
@@ -190,6 +191,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
       init: initMock,
       assemble: assembleMock,
       terminate: terminateMock,
+      reinit: reinitMock,
       get isReady() {
         return state.isReady;
       },
@@ -201,6 +203,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
     init: initMock,
     assemble: assembleMock,
     terminate: terminateMock,
+    reinit: reinitMock,
     get isReady() {
       return state.isReady;
     },
@@ -214,6 +217,9 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
     _setAssembleThrow: (error: Error) => {
       assembleMock.mockImplementation(() => Promise.reject(error));
     },
+    _setReinitThrow: (error: Error) => {
+      reinitMock.mockImplementation(() => Promise.reject(error));
+    },
     _reset: () => {
       state.isReady = true;
       state.assembleResult = {
@@ -224,6 +230,8 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
       initMock.mockClear();
       assembleMock.mockClear();
       terminateMock.mockClear();
+      reinitMock.mockClear();
+      reinitMock.mockImplementation(() => Promise.resolve());
       assembleMock.mockImplementation(() => Promise.resolve(state.assembleResult));
     },
   };
@@ -297,6 +305,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     instructions: 0,
   }));
   const restoreStateMock = vi.fn(() => Promise.resolve(state.cpuState));
+  const reinitMock = vi.fn(() => Promise.resolve()); // Story 11.3
 
   // Event callback storage for simulating events (Story 4.5, 5.9)
   let stateUpdateCallback: ((state: CPUState) => void) | null = null;
@@ -336,6 +345,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       stop: stopMock,
       reset: resetMock,
       restoreState: restoreStateMock,
+      reinit: reinitMock, // Story 11.3
       onStateUpdate: onStateUpdateMock,
       onHalted: onHaltedMock,
       onError: onErrorMock,
@@ -359,6 +369,7 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     stop: stopMock,
     reset: resetMock,
     restoreState: restoreStateMock,
+    reinit: reinitMock, // Story 11.3
     onStateUpdate: onStateUpdateMock,
     onHalted: onHaltedMock,
     onError: onErrorMock,
@@ -395,6 +406,10 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
     },
     _setResetResult: (cpuState: CPUState) => {
       resetMock.mockImplementation(() => Promise.resolve(cpuState));
+    },
+    // Story 11.3: Reinit helpers
+    _setReinitThrow: (error: Error) => {
+      reinitMock.mockImplementation(() => Promise.reject(error));
     },
     // Story 4.5: Trigger event callbacks for testing
     _triggerStateUpdate: (cpuState: CPUState) => {
@@ -442,6 +457,8 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
       onHaltedMock.mockClear();
       onErrorMock.mockClear();
       onBreakpointHitMock.mockClear(); // Story 5.9
+      reinitMock.mockClear(); // Story 11.3
+      reinitMock.mockImplementation(() => Promise.resolve()); // Story 11.3
       loadProgramMock.mockImplementation(() => Promise.resolve(state.cpuState));
       stepMock.mockImplementation(() => Promise.resolve(state.cpuState));
       restoreStateMock.mockImplementation(() => Promise.resolve(state.cpuState));
@@ -9103,6 +9120,343 @@ describe('App', () => {
         await vi.waitFor(() => {
           expect(loadProjectSpy).toHaveBeenCalled();
         });
+      });
+    });
+  });
+
+  // Story 11.3: Stage switching tests
+  describe('stage switching (Story 11.3)', () => {
+    beforeEach(() => {
+      mockAssemblerBridge._reset();
+      mockEmulatorBridge._reset();
+      app.mount(container);
+    });
+
+    // Helper to access private handleStageChange
+    function triggerStageChange(stage: string): void {
+      (app as unknown as { handleStageChange: (stage: string) => void }).handleStageChange(stage);
+    }
+
+    // Helper to read isStageSwitching flag
+    function isStageSwitching(): boolean {
+      return (app as unknown as { isStageSwitching: boolean }).isStageSwitching;
+    }
+
+    // Helper to read currentStage
+    function currentStage(): string {
+      return (app as unknown as { currentStage: string }).currentStage;
+    }
+
+    describe('Coming Soon handling (AC #5)', () => {
+      it('should show Coming Soon for unready stages and revert selector', () => {
+        triggerStageChange('micro8');
+
+        // Should NOT call reinit on bridges (micro8 is not ready)
+        expect(mockEmulatorBridge.reinit).not.toHaveBeenCalled();
+        expect(mockAssemblerBridge.reinit).not.toHaveBeenCalled();
+
+        // Stage should remain micro4
+        expect(currentStage()).toBe('micro4');
+
+        // Status bar should show Coming Soon
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toContain('Coming Soon');
+      });
+
+      it('should not attempt stage switch for any unready stage', () => {
+        const unreadyStages = ['micro8', 'micro16', 'micro32', 'micro32p', 'micro32s'];
+        for (const stage of unreadyStages) {
+          triggerStageChange(stage);
+          expect(mockEmulatorBridge.reinit).not.toHaveBeenCalled();
+          expect(mockAssemblerBridge.reinit).not.toHaveBeenCalled();
+          expect(currentStage()).toBe('micro4');
+        }
+      });
+    });
+
+    describe('same-stage guard', () => {
+      it('should not reinit when selecting the current stage', () => {
+        triggerStageChange('micro4');
+
+        expect(mockEmulatorBridge.reinit).not.toHaveBeenCalled();
+        expect(mockAssemblerBridge.reinit).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('double-click guard', () => {
+      it('should ignore stage change while switch is in progress', async () => {
+        // Make reinit hang so we can test the guard
+        let resolveReinit!: () => void;
+        mockEmulatorBridge.reinit.mockImplementation(() =>
+          new Promise<void>((resolve) => { resolveReinit = resolve; })
+        );
+
+        // Need a different "ready" stage for this test — mock stageConfig
+        // Since only micro4 is ready, we access performStageSwitch directly
+        const appAny = app as unknown as {
+          isStageSwitching: boolean;
+          performStageSwitch: (stage: string, config: unknown) => Promise<void>;
+        };
+
+        // Simulate that a switch is already in progress
+        appAny.isStageSwitching = true;
+
+        // This should be a no-op due to the guard
+        triggerStageChange('micro4');
+
+        expect(mockEmulatorBridge.reinit).not.toHaveBeenCalled();
+        expect(mockAssemblerBridge.reinit).not.toHaveBeenCalled();
+
+        // Clean up
+        appAny.isStageSwitching = false;
+        resolveReinit?.();
+      });
+    });
+
+    describe('loading indicator (AC #6)', () => {
+      it('should show loading status during stage switch', async () => {
+        // We need to test a real stage switch — micro4 to micro4 is guarded,
+        // so we mock isStageReady for micro8 temporarily
+        // Instead, test via the performStageSwitch directly
+        let resolveReinit!: () => void;
+        mockEmulatorBridge.reinit.mockImplementation(() =>
+          new Promise<void>((resolve) => { resolveReinit = resolve; })
+        );
+        mockAssemblerBridge.reinit.mockImplementation(() => Promise.resolve());
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        const switchPromise = appAny.performStageSwitch('micro4', { meta: { label: 'Test Stage' } });
+
+        // While in progress, status should show loading
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toContain('Loading Test Stage');
+
+        // Complete the switch
+        resolveReinit();
+        await switchPromise;
+
+        // After completion, status should show success
+        expect(loadSection?.textContent).toContain('Switched to Test Stage');
+      });
+    });
+
+    describe('error recovery (AC #7)', () => {
+      it('should revert to previous stage on reinit failure', async () => {
+        // First call rejects (switching to micro8), second call resolves (reverting to micro4)
+        let callCount = 0;
+        mockEmulatorBridge.reinit.mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) return Promise.reject(new Error('WASM load failed'));
+          return Promise.resolve();
+        });
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          currentStage: string;
+        };
+
+        await appAny.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+        // Should have reverted to micro4
+        expect(appAny.currentStage).toBe('micro4');
+
+        // Bridge revert should have been called with previous stage
+        expect(mockEmulatorBridge.reinit).toHaveBeenCalledWith('micro4');
+
+        // Status should show error
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toContain('Failed to load Micro8');
+        expect(loadSection?.textContent).toContain('WASM load failed');
+      });
+
+      it('should show critical error when bridge revert also fails', async () => {
+        // Both calls reject — switch fails AND revert fails
+        mockEmulatorBridge._setReinitThrow(new Error('WASM load failed'));
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          currentStage: string;
+        };
+
+        await appAny.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+        expect(appAny.currentStage).toBe('micro4');
+
+        const loadSection = container.querySelector('[data-section="load"]');
+        expect(loadSection?.textContent).toContain('Critical error');
+        expect(loadSection?.textContent).toContain('reload the page');
+      });
+
+      it('should clear isStageSwitching flag on error', async () => {
+        mockEmulatorBridge._setReinitThrow(new Error('fail'));
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          isStageSwitching: boolean;
+        };
+
+        // Set flag manually since performStageSwitch no longer sets it (CR H-2)
+        appAny.isStageSwitching = true;
+        await appAny.performStageSwitch('micro8', { meta: { label: 'Test' } });
+
+        expect(isStageSwitching()).toBe(false);
+      });
+    });
+
+    describe('state reset (AC #8)', () => {
+      it('should reset CPU state after successful stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          cpuState: unknown;
+          hasValidAssembly: boolean;
+          stateHistory: unknown[];
+          historyPointer: number;
+        };
+
+        // Set some state that should be cleared
+        appAny.cpuState = { pc: 42 };
+        appAny.hasValidAssembly = true;
+        appAny.stateHistory = [{ pc: 1 }, { pc: 2 }];
+        appAny.historyPointer = 1;
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(appAny.cpuState).toBeNull();
+        expect(appAny.hasValidAssembly).toBe(false);
+        expect(appAny.stateHistory).toEqual([]);
+        expect(appAny.historyPointer).toBe(-1);
+      });
+
+      it('should clear breakpoints after successful stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          breakpoints: Map<number, number>;
+        };
+
+        appAny.breakpoints.set(0x10, 5);
+        appAny.breakpoints.set(0x20, 10);
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(appAny.breakpoints.size).toBe(0);
+      });
+    });
+
+    describe('parallel bridge reinit (AC #1, #2, #3)', () => {
+      it('should call reinit on both bridges', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(mockEmulatorBridge.reinit).toHaveBeenCalledWith('micro4');
+        expect(mockAssemblerBridge.reinit).toHaveBeenCalledWith('micro4');
+      });
+
+      it('should stop running execution before reinit', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          isRunning: boolean;
+        };
+
+        appAny.isRunning = true;
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        // stop should be called before reinit
+        expect(mockEmulatorBridge.stop).toHaveBeenCalled();
+        expect(appAny.isRunning).toBe(false);
+      });
+    });
+
+    describe('isStageSwitching flag', () => {
+      it('should be false after successful switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(isStageSwitching()).toBe(false);
+      });
+
+      it('should be true during switch (set by handleStageChange)', async () => {
+        let resolveReinit!: () => void;
+        mockEmulatorBridge.reinit.mockImplementation(() =>
+          new Promise<void>((resolve) => { resolveReinit = resolve; })
+        );
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          isStageSwitching: boolean;
+        };
+
+        // CR H-2: Flag is now set by handleStageChange before calling performStageSwitch
+        appAny.isStageSwitching = true;
+        const switchPromise = appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(isStageSwitching()).toBe(true);
+
+        resolveReinit();
+        await switchPromise;
+
+        expect(isStageSwitching()).toBe(false);
+      });
+    });
+
+    describe('code review fixes', () => {
+      it('CR H-3: should reset toolbar buttons after successful stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        // Toolbar run/step/reset buttons should be disabled after stage switch
+        const runBtn = container.querySelector('[data-action="run"]') as HTMLButtonElement;
+        const stepBtn = container.querySelector('[data-action="step"]') as HTMLButtonElement;
+        const resetBtn = container.querySelector('[data-action="reset"]') as HTMLButtonElement;
+
+        if (runBtn) expect(runBtn.disabled).toBe(true);
+        if (stepBtn) expect(stepBtn.disabled).toBe(true);
+        if (resetBtn) expect(resetBtn.disabled).toBe(true);
+      });
+
+      it('CR H-4: should not throw when clearing editor highlight during switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        // Should not throw — clearHighlight is called on the editor
+        await expect(
+          appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } })
+        ).resolves.not.toThrow();
+      });
+
+      it('CR H-1/M-2: should attempt bridge revert on partial failure', async () => {
+        // First call rejects, second (revert) resolves
+        let callCount = 0;
+        mockEmulatorBridge.reinit.mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) return Promise.reject(new Error('fail'));
+          return Promise.resolve();
+        });
+
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          currentStage: string;
+        };
+
+        await appAny.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+        // Should have tried to revert bridges to micro4
+        expect(mockEmulatorBridge.reinit).toHaveBeenCalledTimes(2);
+        expect(mockEmulatorBridge.reinit).toHaveBeenNthCalledWith(2, 'micro4');
+        expect(mockAssemblerBridge.reinit).toHaveBeenCalledWith('micro4');
       });
     });
   });

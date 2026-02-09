@@ -903,6 +903,200 @@ describe('EmulatorBridge', () => {
     });
   });
 
+  describe('reinit() (Story 11.3)', () => {
+    it('should terminate old worker and create new one', async () => {
+      // Init first
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      expect(bridge.isReady).toBe(true);
+
+      // Create a fresh mock for the second worker
+      const secondMockWorker = new MockWorker();
+      let workerCount = 0;
+      class SecondMockWorkerConstructor {
+        constructor() {
+          workerCount++;
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      // Reinit with same stage
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await reinitPromise;
+
+      // Old worker should have been terminated
+      expect(mockWorker.terminate).toHaveBeenCalled();
+      // New worker should have been created
+      expect(workerCount).toBe(1);
+      expect(bridge.isReady).toBe(true);
+    });
+
+    it('should stop running execution before terminating', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      // Start running
+      bridge.run(60);
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await reinitPromise;
+
+      // STOP should have been sent to old worker before termination
+      const stopCalls = mockWorker.postMessage.mock.calls.filter(
+        (call) => call[0]?.type === 'STOP'
+      );
+      expect(stopCalls.length).toBe(1);
+    });
+
+    it('should preserve event subscriptions across reinit', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      // Subscribe to events
+      const stateCallback = vi.fn();
+      const haltedCallback = vi.fn();
+      const errorCallback = vi.fn();
+      bridge.onStateUpdate(stateCallback);
+      bridge.onHalted(haltedCallback);
+      bridge.onError(errorCallback);
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await reinitPromise;
+
+      // Subscriptions should still work on new worker
+      secondMockWorker.simulateMessage({
+        type: 'STATE_UPDATE',
+        payload: createMockCPUState({ pc: 42 }),
+      });
+
+      expect(stateCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ pc: 42 })
+      );
+    });
+
+    it('should reject if new stage WASM load fails', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({
+        type: 'ERROR',
+        payload: { message: 'WASM load failed for new stage' },
+      });
+
+      await expect(reinitPromise).rejects.toThrow('WASM load failed for new stage');
+      expect(bridge.isReady).toBe(false);
+    });
+
+    it('should send INIT_WASM with new stage config', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      const reinitPromise = bridge.reinit('micro4');
+      secondMockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await reinitPromise;
+
+      // New worker should have received INIT_WASM
+      const initWasmCalls = secondMockWorker.postMessage.mock.calls.filter(
+        (call) => call[0]?.type === 'INIT_WASM'
+      );
+      expect(initWasmCalls.length).toBe(1);
+      expect(initWasmCalls[0][0].payload.wasmJsPath).toBe('wasm/micro4-cpu.js');
+    });
+
+    it('should work after being called on uninitialized bridge', async () => {
+      // Don't init first - call reinit directly
+      const freshBridge = new EmulatorBridge();
+      const freshMock = new MockWorker();
+      class FreshMockWorkerConstructor {
+        constructor() {
+          return freshMock;
+        }
+      }
+      vi.stubGlobal('Worker', FreshMockWorkerConstructor);
+
+      const reinitPromise = freshBridge.reinit('micro4');
+      freshMock.simulateMessage({ type: 'EMULATOR_READY' });
+      await reinitPromise;
+
+      expect(freshBridge.isReady).toBe(true);
+      freshBridge.terminate();
+    });
+
+    it('should handle concurrent reinit calls safely', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      // Create fresh mock for reinit
+      const secondMockWorker = new MockWorker();
+      class SecondMockWorkerConstructor {
+        constructor() {
+          return secondMockWorker;
+        }
+      }
+      vi.stubGlobal('Worker', SecondMockWorkerConstructor);
+
+      // Call reinit twice rapidly
+      const reinit1 = bridge.reinit('micro4');
+      const reinit2 = bridge.reinit('micro4');
+
+      secondMockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+
+      // Both should resolve (second returns same promise via init dedup)
+      await reinit1;
+      await reinit2;
+
+      expect(bridge.isReady).toBe(true);
+    });
+  });
+
   describe('isReady', () => {
     it('should be false before init', () => {
       const newBridge = new EmulatorBridge();

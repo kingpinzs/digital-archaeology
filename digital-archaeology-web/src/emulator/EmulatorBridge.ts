@@ -534,6 +534,38 @@ export class EmulatorBridge {
   }
 
   /**
+   * Reinitialize the bridge with a new stage (Story 11.3).
+   * Terminates the existing worker and creates a new one with the new stage's WASM module.
+   * Preserves all event subscriptions (UI components remain connected).
+   *
+   * @param stage - The new CPU stage to switch to
+   * @throws Error if new WASM initialization fails
+   */
+  async reinit(stage: LabStage): Promise<void> {
+    // 1. Stop execution if running
+    if (this.isRunning && this.worker) {
+      this.isRunning = false;
+      this.worker.postMessage({ type: 'STOP' });
+    }
+    // 2. Remove permanent listener
+    if (this.worker && this.boundMessageHandler) {
+      this.worker.removeEventListener('message', this.boundMessageHandler);
+      this.boundMessageHandler = null;
+    }
+    // 3. Terminate worker (cleans up WASM via GC)
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+    }
+    // 4. Reset flags (but NOT subscriber sets — they survive reinit)
+    this.initialized = false;
+    this.initPromise = null;
+    this.isRunning = false;
+    // 5. Init with new stage
+    await this.init(stage);
+  }
+
+  /**
    * Terminate the worker and clean up all resources.
    * After calling this, the bridge cannot be reused.
    */

@@ -122,6 +122,8 @@ const {
     editor: {
       create: vi.fn(() => mockEditorInstance),
       defineTheme: vi.fn(),
+      // Story 11.4: Dynamic language switching
+      setModelLanguage: vi.fn(),
       // MouseTargetType enum (Story 5.8)
       MouseTargetType: {
         UNKNOWN: 0,
@@ -1586,6 +1588,57 @@ describe('Editor', () => {
       const editor = new Editor();
       editor.mount(container);
       expect(() => editor.clearHighlight()).not.toThrow();
+      editor.destroy();
+    });
+  });
+
+  describe('setLanguage (Story 11.4)', () => {
+    it('should call monaco.editor.setModelLanguage with correct language ID', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockMonaco.editor.setModelLanguage.mockClear();
+
+      editor.setLanguage('micro8');
+
+      expect(mockMonaco.editor.setModelLanguage).toHaveBeenCalledWith(
+        mockModel,
+        'micro8'
+      );
+      expect(mockMonaco.editor.setModelLanguage).toHaveBeenCalledTimes(1);
+
+      editor.destroy();
+    });
+
+    it('should not throw when editor is not mounted', () => {
+      const editor = new Editor();
+      expect(() => editor.setLanguage('micro8')).not.toThrow();
+      expect(mockMonaco.editor.setModelLanguage).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when model is null', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockEditorInstance.getModel.mockReturnValueOnce(null);
+      mockMonaco.editor.setModelLanguage.mockClear();
+
+      expect(() => editor.setLanguage('micro8')).not.toThrow();
+      expect(mockMonaco.editor.setModelLanguage).not.toHaveBeenCalled();
+
+      editor.destroy();
+    });
+
+    it('should accept any valid language ID string', () => {
+      const editor = new Editor();
+      editor.mount(container);
+      mockMonaco.editor.setModelLanguage.mockClear();
+
+      editor.setLanguage('micro16');
+
+      expect(mockMonaco.editor.setModelLanguage).toHaveBeenCalledWith(
+        mockModel,
+        'micro16'
+      );
+
       editor.destroy();
     });
   });

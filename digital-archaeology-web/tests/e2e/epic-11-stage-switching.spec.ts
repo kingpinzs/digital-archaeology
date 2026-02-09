@@ -1,6 +1,6 @@
 /**
  * Epic 11: Stage Switching - E2E Tests
- * Tests Stories 11.1, 11.2, 11.3
+ * Tests Stories 11.1, 11.2, 11.3, 11.4
  *
  * Note: Only Micro4 is currently a ready and unlocked stage.
  * Other stages are locked in the selector, so full WASM reload
@@ -10,6 +10,7 @@
  * - Locked stages display lock icon and are not selectable
  * - Selecting current stage (micro4) closes dropdown without errors
  * - No JavaScript errors during stage selector interactions
+ * - Editor has correct syntax language for the active stage (Story 11.4)
  */
 
 import { test, expect } from '../support/fixtures';
@@ -150,6 +151,32 @@ test.describe('Epic 11: Stage Switching', () => {
 
       // THEN: Status bar should still be visible
       await expect(page.locator('.da-statusbar')).toBeVisible();
+    });
+  });
+
+  test.describe('Story 11.4: Stage-Specific Syntax Highlighting', () => {
+    test('[11.4] should have Monaco editor with micro4 language for default stage', async ({ page }) => {
+      // THEN: Monaco editor should be present
+      const editor = page.locator('.monaco-editor');
+      await expect(editor).toBeVisible();
+
+      // THEN: The editor model should be set to micro4 language
+      // Monaco attaches a data-mode-id attribute to the editor container
+      const monacoContainer = page.locator('[data-mode-id]');
+      await expect(monacoContainer).toHaveAttribute('data-mode-id', 'micro4');
+    });
+
+    test('[11.4] should retain syntax highlighting after stage selector interaction', async ({ page }) => {
+      // GIVEN: Editor has micro4 syntax highlighting
+      await expect(page.locator('.monaco-editor')).toBeVisible();
+
+      // WHEN: User opens and closes stage selector (no stage change)
+      await page.locator('.da-stage-selector-trigger').click();
+      await page.locator('[data-stage="micro4"]').click();
+
+      // THEN: Editor language should still be micro4
+      const monacoContainer = page.locator('[data-mode-id]');
+      await expect(monacoContainer).toHaveAttribute('data-mode-id', 'micro4');
     });
   });
 });

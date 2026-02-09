@@ -109,6 +109,8 @@ vi.mock('monaco-editor', () => ({
   editor: {
     create: vi.fn(() => mockEditorInstance),
     defineTheme: vi.fn(),
+    // Story 11.4: Dynamic language switching via setLanguage()
+    setModelLanguage: vi.fn(),
     // MouseTargetType enum for line click and breakpoint detection (Story 5.8, 6.9)
     MouseTargetType: {
       UNKNOWN: 0,
@@ -9342,6 +9344,24 @@ describe('App', () => {
         await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
 
         expect(appAny.breakpoints.size).toBe(0);
+      });
+    });
+
+    describe('language switching (Story 11.4)', () => {
+      it('should call editor.setLanguage with correct language ID during stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+        };
+
+        const editor = app.getEditor();
+        const setLanguageSpy = vi.spyOn(editor!, 'setLanguage');
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(setLanguageSpy).toHaveBeenCalledWith('micro4');
+        expect(setLanguageSpy).toHaveBeenCalledTimes(1);
+
+        setLanguageSpy.mockRestore();
       });
     });
 

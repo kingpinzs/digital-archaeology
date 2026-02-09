@@ -2,7 +2,8 @@
 // Monaco Editor wrapper component for the code panel
 
 import * as monaco from 'monaco-editor';
-import { registerMicro4Language, micro4LanguageId } from './micro4-language';
+import { micro4LanguageId } from './micro4-language';
+import { registerAllLanguages } from './languageRegistry';
 import type { AssemblerError } from '@emulator/index';
 
 /**
@@ -120,7 +121,7 @@ export class Editor {
   mount(container: HTMLElement): void {
     this.container = container;
     this.registerTheme();
-    registerMicro4Language();
+    registerAllLanguages();
     this.createEditor();
   }
 
@@ -135,14 +136,38 @@ export class Editor {
       base: 'vs-dark',
       inherit: true,
       rules: [
-        // Control flow (pink) - HLT, JMP, JZ
+        // Control flow (pink) - HLT, JMP, JZ, NOP
         { token: 'keyword.control', foreground: 'ff79c6' },
 
-        // Memory operations (cyan) - LDA, STA, ADD, SUB, LDI
+        // Jump/branch (pink) - JMP, JZ, JNZ, LOOP (Micro8+)
+        { token: 'keyword.jump', foreground: 'ff79c6' },
+
+        // Memory operations (cyan) - LDA, STA, ADD, SUB, LDI, MOV
         { token: 'keyword', foreground: '8be9fd' },
 
-        // Directives (purple) - ORG, DB
+        // Arithmetic (cyan) - ADD, MUL, DIV, CMP (Micro8+)
+        { token: 'keyword.arithmetic', foreground: '8be9fd' },
+
+        // Logic/bitwise (cyan) - AND, OR, XOR, SHL (Micro8+)
+        { token: 'keyword.logic', foreground: '8be9fd' },
+
+        // Stack operations (green) - PUSH, POP, CALL, RET (Micro8+)
+        { token: 'keyword.stack', foreground: '50fa7b' },
+
+        // String operations (green) - MOVSB, REP, STOSW (Micro16)
+        { token: 'keyword.string', foreground: '50fa7b' },
+
+        // I/O operations (orange) - IN, OUT, INT (Micro8+)
+        { token: 'keyword.io', foreground: 'ffb86c' },
+
+        // Flag manipulation (purple) - SCF, CCF, CMF (Micro8+)
+        { token: 'keyword.flag', foreground: 'bd93f9' },
+
+        // Directives (purple) - ORG, DB, SEGMENT
         { token: 'directive', foreground: 'bd93f9' },
+
+        // Register names (yellow) - R0, AX, SP, HL (Micro8+)
+        { token: 'register', foreground: 'f1fa8c' },
 
         // Comments (muted gray-blue)
         { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
@@ -156,6 +181,7 @@ export class Editor {
         // Numbers (orange)
         { token: 'number', foreground: 'ffb86c' },
         { token: 'number.hex', foreground: 'ffb86c' },
+        { token: 'number.binary', foreground: 'ffb86c' },
       ],
       colors: { ...DA_DARK_THEME_COLORS },
     });
@@ -356,6 +382,20 @@ export class Editor {
    */
   setValue(content: string): void {
     this.editor?.setValue(content);
+  }
+
+  /**
+   * Switch the editor's language for syntax highlighting (Story 11.4).
+   * Uses Monaco's setModelLanguage to re-tokenize content with new rules.
+   * Preserves undo history, cursor position, and decorations.
+   *
+   * @param languageId - The Monaco language ID to switch to (e.g., 'micro8')
+   */
+  setLanguage(languageId: string): void {
+    if (!this.editor) return;
+    const model = this.editor.getModel();
+    if (!model) return;
+    monaco.editor.setModelLanguage(model, languageId);
   }
 
   /**

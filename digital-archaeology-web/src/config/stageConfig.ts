@@ -5,6 +5,18 @@
 import type { LabStage, StageInfo } from '../ui/StageSelector';
 import { LAB_STAGES, STAGE_METADATA } from '../ui/StageSelector';
 
+/**
+ * Language ID constants for stage syntax configuration (Story 11.4).
+ * These must match the exported languageId constants in each language file
+ * (micro4-language.ts, micro8-language.ts, micro16-language.ts).
+ * Defined here to avoid circular imports with Monaco-dependent language modules.
+ */
+const LANGUAGE_IDS = {
+  micro4: 'micro4',
+  micro8: 'micro8',
+  micro16: 'micro16',
+} as const;
+
 // Re-export for single-import convenience
 export type { LabStage, StageInfo };
 export { LAB_STAGES, STAGE_METADATA };
@@ -75,7 +87,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     circuit: { path: 'circuits/micro4-circuit.json' },
     hdl: { path: 'hdl/04_micro4_cpu.m4hdl' },
     programs: { directory: 'programs/' },
-    syntax: { languageId: 'micro4' },
+    syntax: { languageId: LANGUAGE_IDS.micro4 },
   },
   micro8: {
     meta: STAGE_METADATA.micro8,
@@ -84,7 +96,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     circuit: { path: null },
     hdl: { path: null },
     programs: { directory: 'programs/micro8/' },
-    syntax: { languageId: null },
+    syntax: { languageId: LANGUAGE_IDS.micro8 },
   },
   micro16: {
     meta: STAGE_METADATA.micro16,
@@ -93,7 +105,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     circuit: { path: null },
     hdl: { path: null },
     programs: { directory: 'programs/micro16/' },
-    syntax: { languageId: null },
+    syntax: { languageId: LANGUAGE_IDS.micro16 },
   },
   micro32: {
     meta: STAGE_METADATA.micro32,

@@ -142,14 +142,24 @@ describe('stageConfig', () => {
       expect(getStageConfig('micro32s').programs.directory).toBeNull();
     });
 
-    it('should have null circuit, hdl, and syntax for all non-micro4 stages', () => {
+    it('should have null circuit and hdl for all non-micro4 stages', () => {
       const placeholderStages: LabStage[] = ['micro8', 'micro16', 'micro32', 'micro32p', 'micro32s'];
       for (const stage of placeholderStages) {
         const config = getStageConfig(stage);
         expect(config.circuit.path).toBeNull();
         expect(config.hdl.path).toBeNull();
-        expect(config.syntax.languageId).toBeNull();
       }
+    });
+
+    it('should have stage-specific language IDs for micro8 and micro16 (Story 11.4)', () => {
+      expect(getStageConfig('micro8').syntax.languageId).toBe('micro8');
+      expect(getStageConfig('micro16').syntax.languageId).toBe('micro16');
+    });
+
+    it('should have null syntax languageId for micro32/32p/32s', () => {
+      expect(getStageConfig('micro32').syntax.languageId).toBeNull();
+      expect(getStageConfig('micro32p').syntax.languageId).toBeNull();
+      expect(getStageConfig('micro32s').syntax.languageId).toBeNull();
     });
   });
 

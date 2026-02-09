@@ -13,7 +13,7 @@ import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
 import { setTheme, initTheme } from './theme';
 import type { ThemeMode, LabStation } from './theme';
-import { Editor, parseInstruction, findLinesWithOpcodes } from '@editor/index';
+import { Editor, parseInstruction, findLinesWithOpcodes, getLanguageIdForStage } from '@editor/index';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
@@ -715,6 +715,9 @@ export class App {
 
       // Clear editor highlight from previous stage (CR H-4)
       this.editor?.clearHighlight();
+
+      // Story 11.4: Switch editor language to match new CPU stage
+      this.editor?.setLanguage(getLanguageIdForStage(stage));
 
       // Clear state history (step-back)
       this.stateHistory = [];

@@ -226,6 +226,9 @@ export class App {
   // Flag indicating if circuit is loaded and ready (Story 6.13)
   private circuitLoaded: boolean = false;
 
+  // Empty state element for circuit panel when no circuit is available (Story 11.5)
+  private circuitEmptyStateElement: HTMLElement | null = null;
+
   // HdlViewerPanel for viewing HDL files (Story 7.1)
   private hdlViewerPanel: HdlViewerPanel | null = null;
 
@@ -749,8 +752,12 @@ export class App {
         isRunning: false,
       });
 
-      // Reload circuit for new stage if circuit panel is visible (CR M-3)
+      // Story 11.5: Reload circuit for new stage if circuit panel is visible
       if (this.circuitRenderer) {
+        // Clear visual state before reload
+        this.circuitRenderer.clearHighlightedGates();
+        this.circuitRenderer.clearClickedGate();
+
         this.circuitLoaded = false;
         if (this.cpuCircuitBridge) {
           this.cpuCircuitBridge.clearCache();
@@ -785,6 +792,20 @@ export class App {
           loadStatus: 'Critical error: unable to revert. Please reload the page.',
         });
         return;
+      }
+
+      // Story 11.5 CR H-3: Restore circuit for reverted stage
+      if (this.circuitRenderer) {
+        this.circuitLoaded = false;
+        if (this.cpuCircuitBridge) {
+          this.cpuCircuitBridge.clearCache();
+          this.cpuCircuitBridge = null;
+        }
+        try {
+          await this.loadCircuitAndInitializeBridge();
+        } catch (circuitError) {
+          console.error('Failed to restore previous circuit:', circuitError);
+        }
       }
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -1568,6 +1589,8 @@ export class App {
    * @returns void
    */
   private destroyCircuitRenderer(): void {
+    // Story 11.5: Clean up empty state overlay before destroying renderer
+    this.hideCircuitEmptyState();
     if (this.zoomControlsToolbar) {
       this.zoomControlsToolbar.destroy();
       this.zoomControlsToolbar = null;
@@ -1585,9 +1608,9 @@ export class App {
   }
 
   /**
-   * Load the Micro4 circuit and initialize the CPU-Circuit bridge (Story 6.13).
-   * Called after CircuitRenderer is mounted.
-   * Handles errors gracefully by logging and continuing without circuit visualization.
+   * Load the stage-specific circuit and initialize the CPU-Circuit bridge (Story 6.13, 11.5).
+   * Called after CircuitRenderer is mounted or after stage switch.
+   * Handles errors gracefully by logging and showing empty state.
    * @returns void
    */
   private async loadCircuitAndInitializeBridge(): Promise<void> {
@@ -1595,13 +1618,32 @@ export class App {
 
     try {
       // Story 11.2: Load circuit from stage config
-      const circuitPath = getStageConfig(this.currentStage).circuit.path;
+      const stageConfig = getStageConfig(this.currentStage);
+      const circuitPath = stageConfig.circuit.path;
       if (!circuitPath) {
+        // Story 11.5 CR H-4: Clean up stale circuit state before showing empty state
+        this.circuitLoaded = false;
+        if (this.cpuCircuitBridge) {
+          this.cpuCircuitBridge.clearCache();
+          this.cpuCircuitBridge = null;
+        }
+        this.breadcrumbNav?.setPath([{ id: 'cpu', label: 'CPU', level: 0 }]);
+        this.showCircuitEmptyState(stageConfig.meta.label);
         console.warn(`No circuit available for stage: ${this.currentStage}`);
         return;
       }
+
+      // Story 11.5: Hide empty state before loading new circuit
+      this.hideCircuitEmptyState();
+
       await this.circuitRenderer.loadCircuit(`/${circuitPath}`);
       this.circuitLoaded = true;
+
+      // Story 11.5: Reset zoom/pan to show full circuit after loading new stage
+      this.circuitRenderer.resetZoom();
+
+      // Story 11.5: Reset breadcrumb navigation to root level
+      this.breadcrumbNav?.setPath([{ id: 'cpu', label: 'CPU', level: 0 }]);
 
       // Initialize the CPU-Circuit bridge
       this.cpuCircuitBridge = new CPUCircuitBridge();
@@ -1616,9 +1658,45 @@ export class App {
 
       console.log('Circuit loaded and bridge initialized');
     } catch (error) {
-      // Log error but continue - circuit visualization is optional
+      // Story 11.5 CR H-4: Show empty state on circuit load failure
       console.error('Failed to load circuit:', error);
       this.circuitLoaded = false;
+      const stageConfig = getStageConfig(this.currentStage);
+      this.showCircuitEmptyState(stageConfig.meta.label);
+    }
+  }
+
+  /**
+   * Show an empty state message in the circuit panel when no circuit is available (Story 11.5).
+   * Uses createElement + textContent for XSS safety.
+   * @param stageName - The display name of the current stage
+   */
+  private showCircuitEmptyState(stageName: string): void {
+    if (!this.container) return;
+    this.hideCircuitEmptyState();
+
+    const circuitContent = this.container.querySelector('.da-circuit-panel .da-panel-content');
+    if (!circuitContent) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'da-circuit-empty-state';
+    overlay.setAttribute('data-testid', 'circuit-empty-state');
+
+    const message = document.createElement('p');
+    message.textContent = `No circuit available for ${stageName}`;
+    overlay.appendChild(message);
+
+    circuitContent.appendChild(overlay);
+    this.circuitEmptyStateElement = overlay;
+  }
+
+  /**
+   * Hide the circuit empty state overlay (Story 11.5).
+   */
+  private hideCircuitEmptyState(): void {
+    if (this.circuitEmptyStateElement) {
+      this.circuitEmptyStateElement.remove();
+      this.circuitEmptyStateElement = null;
     }
   }
 
@@ -1634,8 +1712,8 @@ export class App {
     const model = this.circuitRenderer.getCircuitModel();
     if (!model) return;
 
-    // Map CPU state to circuit data
-    const newCircuitData = this.cpuCircuitBridge.mapStateToCircuit(cpuState, model);
+    // Map CPU state to circuit data (Story 11.5: pass current stage for stage-aware mapping)
+    const newCircuitData = this.cpuCircuitBridge.mapStateToCircuit(cpuState, model, this.currentStage);
 
     // Update the circuit renderer
     if (animate) {

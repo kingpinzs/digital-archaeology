@@ -154,6 +154,32 @@ test.describe('Epic 11: Stage Switching', () => {
     });
   });
 
+  test.describe('Story 11.5: Stage-Specific Circuit Loading', () => {
+    test('[11.5] should have circuit panel with canvas on initial Micro4 load', async ({ page }) => {
+      // GIVEN: App loads in Lab Mode with Micro4 (default)
+      // THEN: Circuit panel should be visible
+      const circuitPanel = page.locator('.da-circuit-panel');
+      await expect(circuitPanel).toBeVisible();
+
+      // THEN: Circuit panel should have canvas element (CircuitRenderer mounted)
+      const canvas = circuitPanel.locator('canvas');
+      await expect(canvas).toBeVisible();
+    });
+
+    test('[11.5] should retain circuit panel after reselecting current stage', async ({ page }) => {
+      // GIVEN: Circuit panel has canvas on initial load
+      await expect(page.locator('.da-circuit-panel canvas')).toBeVisible();
+
+      // WHEN: User opens stage selector and re-selects Micro4 (same stage)
+      await page.locator('.da-stage-selector-trigger').click();
+      await page.locator('[data-stage="micro4"]').click();
+
+      // THEN: Circuit panel should still have canvas (same stage, circuit preserved)
+      const canvas = page.locator('.da-circuit-panel canvas');
+      await expect(canvas).toBeVisible();
+    });
+  });
+
   test.describe('Story 11.4: Stage-Specific Syntax Highlighting', () => {
     test('[11.4] should have Monaco editor with micro4 language for default stage', async ({ page }) => {
       // THEN: Monaco editor should be present

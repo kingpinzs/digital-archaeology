@@ -362,6 +362,80 @@ describe('CPUCircuitBridge', () => {
     });
   });
 
+  describe('stage-aware mapping (Story 11.5)', () => {
+    it('should preserve Micro4 mapping behavior for micro4 stage', () => {
+      const cpuState = createTestCPUState({ pc: 42, ir: 0x10 }); // LDA
+      const result = bridge.mapStateToCircuit(cpuState, circuitModel, 'micro4');
+
+      // Standard Micro4 mapping should work
+      expect(getWireState(result, 'pc')).toEqual(numberToBitArray(42, 8));
+      expect(getWireState(result, 'is_lda')).toEqual([1]);
+      expect(getWireState(result, 'acc_load')).toEqual([1]);
+    });
+
+    it('should use generic mapping for unknown stages', () => {
+      // Create circuit data with generic wire names matching CPUState fields
+      const genericCircuitData: CircuitData = {
+        cycle: 0,
+        stable: true,
+        wires: [
+          { id: 0, name: 'pc', width: 8, is_input: false, is_output: false, state: [0, 0, 0, 0, 0, 0, 0, 0] },
+          { id: 1, name: 'accumulator', width: 8, is_input: false, is_output: false, state: [0, 0, 0, 0, 0, 0, 0, 0] },
+        ],
+        gates: [],
+      };
+      const genericModel = new CircuitModel(genericCircuitData);
+
+      const cpuState = createTestCPUState({ pc: 5, accumulator: 10 });
+      const result = bridge.mapStateToCircuit(cpuState, genericModel, 'micro8');
+
+      // Generic mapping matches CPUState field names to wire names
+      expect(getWireState(result, 'pc')).toEqual(numberToBitArray(5, 8));
+      expect(getWireState(result, 'accumulator')).toEqual(numberToBitArray(10, 8));
+    });
+
+    it('should clear and rebuild cache when switching stages', () => {
+      // First call with micro4
+      const cpuState = createTestCPUState({ pc: 10 });
+      bridge.mapStateToCircuit(cpuState, circuitModel, 'micro4');
+
+      // Switch to a different stage — cache should be rebuilt
+      bridge.clearCache();
+      const result = bridge.mapStateToCircuit(cpuState, circuitModel, 'micro4');
+
+      // Should still produce correct results after cache rebuild
+      expect(getWireState(result, 'pc')).toEqual(numberToBitArray(10, 8));
+    });
+
+    it('should default to micro4 mapping when no stage specified', () => {
+      const cpuState = createTestCPUState({ ir: 0x30 }); // ADD
+      const result = bridge.mapStateToCircuit(cpuState, circuitModel);
+
+      // Should use micro4 mapping by default (backward compatible)
+      expect(getWireState(result, 'is_add')).toEqual([1]);
+      expect(getWireState(result, 'acc_load')).toEqual([1]);
+    });
+
+    it('should handle generic mapping with narrower wire widths by truncating', () => {
+      // Create circuit where pc is only 4 bits but CPUState pc is 8-bit
+      const narrowCircuit: CircuitData = {
+        cycle: 0,
+        stable: true,
+        wires: [
+          { id: 0, name: 'pc', width: 4, is_input: false, is_output: false, state: [0, 0, 0, 0] },
+        ],
+        gates: [],
+      };
+      const narrowModel = new CircuitModel(narrowCircuit);
+
+      const cpuState = createTestCPUState({ pc: 255 }); // 8-bit value into 4-bit wire
+      const result = bridge.mapStateToCircuit(cpuState, narrowModel, 'micro8');
+
+      // Generic mapping adapts to wire width (4 bits), lower 4 bits of 255 = 0xF = [1,1,1,1]
+      expect(getWireState(result, 'pc')).toEqual([1, 1, 1, 1]);
+    });
+  });
+
   describe('does not mutate original model', () => {
     it('returns a new CircuitData object', () => {
       const cpuState = createTestCPUState({ pc: 42 });

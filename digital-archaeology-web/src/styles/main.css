@@ -515,6 +515,23 @@
   position: relative; /* Positioning context for signal values panel overlay */
 }
 
+/* Circuit empty state overlay (Story 11.5) */
+.da-circuit-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--da-bg-primary);
+  z-index: 1;
+}
+
+.da-circuit-empty-state p {
+  color: var(--da-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 /* Circuit Canvas (Story 6.1) */
 .da-circuit-canvas {
   display: block;

@@ -9365,6 +9365,321 @@ describe('App', () => {
       });
     });
 
+    describe('circuit reload on stage switch (Story 11.5)', () => {
+      it('should call resetZoom on circuitRenderer after stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+          loadCircuitAndInitializeBridge: () => Promise<void>;
+        };
+
+        // Set up a mock circuit renderer
+        const mockResetZoom = vi.fn();
+        const mockLoadCircuit = vi.fn().mockResolvedValue(undefined);
+        const mockClearHighlightedGates = vi.fn();
+        const mockClearClickedGate = vi.fn();
+        const mockGetCircuitModel = vi.fn().mockReturnValue(null);
+
+        appAny.circuitRenderer = {
+          resetZoom: mockResetZoom,
+          loadCircuit: mockLoadCircuit,
+          clearHighlightedGates: mockClearHighlightedGates,
+          clearClickedGate: mockClearClickedGate,
+          getCircuitModel: mockGetCircuitModel,
+        };
+        appAny.circuitLoaded = true;
+        appAny.cpuCircuitBridge = { clearCache: vi.fn() };
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(mockResetZoom).toHaveBeenCalled();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+      });
+
+      it('should clear highlighted gates and clicked gate before circuit reload', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+        };
+
+        const mockClearHighlightedGates = vi.fn();
+        const mockClearClickedGate = vi.fn();
+
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockResolvedValue(undefined),
+          clearHighlightedGates: mockClearHighlightedGates,
+          clearClickedGate: mockClearClickedGate,
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        appAny.circuitLoaded = true;
+        appAny.cpuCircuitBridge = { clearCache: vi.fn() };
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        expect(mockClearHighlightedGates).toHaveBeenCalled();
+        expect(mockClearClickedGate).toHaveBeenCalled();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+      });
+
+      it('should reset BreadcrumbNav to root path after stage switch', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+        };
+
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockResolvedValue(undefined),
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        appAny.circuitLoaded = true;
+        appAny.cpuCircuitBridge = { clearCache: vi.fn() };
+
+        const breadcrumb = app.getBreadcrumbNav();
+        const setPathSpy = breadcrumb ? vi.spyOn(breadcrumb, 'setPath') : null;
+
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        if (setPathSpy) {
+          expect(setPathSpy).toHaveBeenCalledWith([{ id: 'cpu', label: 'CPU', level: 0 }]);
+          setPathSpy.mockRestore();
+        }
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+      });
+    });
+
+    describe('circuit empty state (Story 11.5)', () => {
+      it('should show empty state when switching to stage with null circuit path', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+        };
+
+        // Set up mock circuit renderer (simulates circuit panel being visible)
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockResolvedValue(undefined),
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+
+        // Switch to micro32 which has circuit.path: null
+        await appAny.performStageSwitch('micro32', { meta: { label: 'Micro32' } });
+
+        // Should show empty state message in the circuit panel
+        const emptyState = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyState).not.toBeNull();
+        expect(emptyState?.textContent).toContain('No circuit available');
+        expect(emptyState?.textContent).toContain('Micro32');
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+      });
+
+      it('should hide empty state when switching to stage with valid circuit', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+          circuitEmptyStateElement: HTMLElement | null;
+        };
+
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockResolvedValue(undefined),
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+
+        // First switch to micro32 (null circuit) to show empty state
+        await appAny.performStageSwitch('micro32', { meta: { label: 'Micro32' } });
+
+        const emptyState = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyState).not.toBeNull();
+
+        // Now switch to micro4 (has circuit) — empty state should be hidden
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        const emptyStateAfter = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyStateAfter).toBeNull();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+      });
+
+      it('should not show empty state when circuit renderer is not mounted', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: null;
+        };
+
+        // No circuit renderer mounted
+        appAny.circuitRenderer = null;
+
+        // Switch to micro32 (null circuit)
+        await appAny.performStageSwitch('micro32', { meta: { label: 'Micro32' } });
+
+        // No empty state should appear since there's no circuit panel
+        const emptyState = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyState).toBeNull();
+      });
+
+      it('should handle loadCircuit failure gracefully with empty state', async () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+        };
+
+        // Set up mock that fails on loadCircuit
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockRejectedValue(new Error('Network error')),
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+
+        // Switch to micro4 (has circuit path but load will fail)
+        await appAny.performStageSwitch('micro4', { meta: { label: 'Micro4' } });
+
+        // CR H-4: circuitLoaded should be false
+        expect(appAny.circuitLoaded).toBe(false);
+
+        // CR H-4: Error should be logged
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Failed to load circuit'),
+          expect.any(Error),
+        );
+
+        // CR H-4: Empty state should be shown after load failure
+        const emptyState = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyState).not.toBeNull();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        consoleErrorSpy.mockRestore();
+      });
+
+      it('should clear stale circuit state when switching to stage with null circuit path (CR H-4)', async () => {
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+        };
+
+        const mockClearCache = vi.fn();
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: vi.fn().mockResolvedValue(undefined),
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        // Simulate existing circuit loaded state
+        appAny.circuitLoaded = true;
+        appAny.cpuCircuitBridge = { clearCache: mockClearCache };
+
+        // Switch to micro32 (null circuit path)
+        await appAny.performStageSwitch('micro32', { meta: { label: 'Micro32' } });
+
+        // All stale circuit state must be cleared
+        expect(mockClearCache).toHaveBeenCalled();
+        expect(appAny.cpuCircuitBridge).toBeNull();
+        expect(appAny.circuitLoaded).toBe(false);
+
+        // Empty state should be visible
+        const emptyState = container.querySelector('[data-testid="circuit-empty-state"]');
+        expect(emptyState).not.toBeNull();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+      });
+
+      it('should restore circuit after stage switch failure (CR H-3)', async () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const appAny = app as unknown as {
+          performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+          circuitRenderer: { resetZoom: ReturnType<typeof vi.fn>; loadCircuit: ReturnType<typeof vi.fn>; clearHighlightedGates: ReturnType<typeof vi.fn>; clearClickedGate: ReturnType<typeof vi.fn>; getCircuitModel: ReturnType<typeof vi.fn> } | null;
+          circuitLoaded: boolean;
+          cpuCircuitBridge: { clearCache: ReturnType<typeof vi.fn> } | null;
+          emulatorBridge: { reinit: ReturnType<typeof vi.fn>; terminate: ReturnType<typeof vi.fn> } | null;
+          assemblerBridge: { reinit: ReturnType<typeof vi.fn>; terminate: ReturnType<typeof vi.fn> } | null;
+          currentStage: string;
+        };
+
+        // First reinit call (new stage) fails, second (revert) succeeds
+        appAny.emulatorBridge = {
+          reinit: vi.fn().mockRejectedValueOnce(new Error('fail')).mockResolvedValue(undefined),
+          terminate: vi.fn(),
+        } as unknown as typeof appAny.emulatorBridge;
+        appAny.assemblerBridge = {
+          reinit: vi.fn().mockResolvedValue(undefined),
+          terminate: vi.fn(),
+        } as unknown as typeof appAny.assemblerBridge;
+
+        const mockLoadCircuit = vi.fn().mockResolvedValue(undefined);
+        appAny.circuitRenderer = {
+          resetZoom: vi.fn(),
+          loadCircuit: mockLoadCircuit,
+          clearHighlightedGates: vi.fn(),
+          clearClickedGate: vi.fn(),
+          getCircuitModel: vi.fn().mockReturnValue(null),
+        };
+        appAny.circuitLoaded = true;
+        appAny.cpuCircuitBridge = { clearCache: vi.fn() };
+
+        // Switch to micro8 — will fail because emulatorBridge.reinit throws on first call
+        // Revert succeeds (second reinit resolves), then circuit restore runs
+        await appAny.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+        // Should have attempted to reload circuit for reverted stage
+        expect(mockLoadCircuit).toHaveBeenCalled();
+
+        // Cleanup
+        appAny.circuitRenderer = null;
+        appAny.circuitLoaded = false;
+        appAny.cpuCircuitBridge = null;
+        consoleErrorSpy.mockRestore();
+      });
+    });
+
     describe('parallel bridge reinit (AC #1, #2, #3)', () => {
       it('should call reinit on both bridges', async () => {
         const appAny = app as unknown as {

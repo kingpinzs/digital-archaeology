@@ -2,6 +2,7 @@
 // Bridge between CPU emulator state and circuit visualization (Story 6.13)
 
 import type { CPUState } from '@emulator/types';
+import type { LabStage } from '../config/stageConfig';
 import type { CircuitModel } from './CircuitModel';
 import type { CircuitData, CircuitWire } from './types';
 
@@ -77,11 +78,30 @@ export function numberToBitArray(value: number, width: number): number[] {
 }
 
 /**
+ * Generic CPUState field-to-wire mapping with alias support.
+ * Each entry maps a CPUState field to possible wire names (tried in order).
+ * Used for stages without a specific wire mapping config.
+ */
+const GENERIC_STATE_MAPPINGS: { field: keyof CPUState; wireNames: string[] }[] = [
+  { field: 'pc', wireNames: ['pc'] },
+  { field: 'accumulator', wireNames: ['accumulator', 'acc'] },
+  { field: 'ir', wireNames: ['ir'] },
+  { field: 'mar', wireNames: ['mar'] },
+  { field: 'mdr', wireNames: ['mdr'] },
+];
+
+/** Stages with specialized wire mapping (currently only micro4) */
+const MICRO4_STAGE = 'micro4';
+
+/**
  * Bridge class that maps CPU emulator state to circuit wire states.
  *
  * This class translates CPUState (from the emulator) into CircuitData
  * (for the visualizer), enabling the circuit diagram to reflect the
  * actual CPU state during execution.
+ *
+ * Story 11.5: Stage-aware — uses specialized Micro4 mapping or generic
+ * name-matching for other stages.
  */
 export class CPUCircuitBridge {
   /** Cache of wire name to ID mappings for performance */
@@ -89,12 +109,14 @@ export class CPUCircuitBridge {
 
   /**
    * Maps CPUState to CircuitData wire states.
+   * Stage-aware: uses specialized mapping for Micro4, generic for other stages.
    *
    * @param cpuState - Current emulator state
    * @param circuitModel - Circuit model to base the output on
+   * @param stage - Optional stage identifier (defaults to 'micro4' for backward compatibility)
    * @returns Updated CircuitData with new wire states reflecting CPU state
    */
-  mapStateToCircuit(cpuState: CPUState, circuitModel: CircuitModel): CircuitData {
+  mapStateToCircuit(cpuState: CPUState, circuitModel: CircuitModel, stage?: LabStage): CircuitData {
     // Build wire name cache if not already done
     if (this.wireNameToId.size === 0) {
       this.buildWireNameCache(circuitModel);
@@ -103,6 +125,21 @@ export class CPUCircuitBridge {
     // Clone the circuit data to avoid mutating the original
     const circuitData = this.cloneCircuitData(circuitModel);
 
+    // Story 11.5: Use stage-specific or generic mapping
+    const effectiveStage = stage ?? MICRO4_STAGE;
+    if (effectiveStage === MICRO4_STAGE) {
+      this.mapMicro4State(circuitData, cpuState);
+    } else {
+      this.mapGenericState(circuitData, cpuState, circuitModel);
+    }
+
+    return circuitData;
+  }
+
+  /**
+   * Micro4-specific state mapping with full wire name and control signal support.
+   */
+  private mapMicro4State(circuitData: CircuitData, cpuState: CPUState): void {
     // Map register values
     this.setWireState(circuitData, WIRE_NAMES.PC, numberToBitArray(cpuState.pc, 8));
     this.setWireState(circuitData, WIRE_NAMES.ACC, numberToBitArray(cpuState.accumulator, 4));
@@ -123,8 +160,42 @@ export class CPUCircuitBridge {
 
     // Map control signals (derived from instruction and state)
     this.mapControlSignals(circuitData, opcode, cpuState);
+  }
 
-    return circuitData;
+  /**
+   * Generic state mapping: matches CPUState field names to circuit wire names.
+   * Used for stages without a specialized mapping config.
+   * Story 11.5: Safe fallback that maps numeric fields by matching wire names.
+   */
+  private mapGenericState(circuitData: CircuitData, cpuState: CPUState, circuitModel: CircuitModel): void {
+    // Map numeric fields with alias support (try each wire name, use first match)
+    for (const { field, wireNames } of GENERIC_STATE_MAPPINGS) {
+      const value = cpuState[field];
+      if (typeof value === 'number') {
+        for (const wireName of wireNames) {
+          const wire = circuitModel.getWireByName(wireName);
+          if (wire) {
+            this.setWireState(circuitData, wireName, numberToBitArray(value, wire.width));
+            break;
+          }
+        }
+      }
+    }
+
+    // Map boolean flags (try each wire name, use first match to avoid double-writes)
+    const boolFieldMappings: { field: keyof CPUState; wireNames: string[] }[] = [
+      { field: 'zeroFlag', wireNames: ['z_flag', 'zeroFlag'] },
+      { field: 'halted', wireNames: ['halt', 'halted'] },
+    ];
+    for (const { field, wireNames } of boolFieldMappings) {
+      for (const wireName of wireNames) {
+        const wire = circuitModel.getWireByName(wireName);
+        if (wire) {
+          this.setWireState(circuitData, wireName, [cpuState[field] ? 1 : 0]);
+          break;
+        }
+      }
+    }
   }
 
   /**

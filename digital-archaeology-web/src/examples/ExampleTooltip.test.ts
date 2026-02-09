@@ -13,6 +13,7 @@ describe('ExampleTooltip (Story 8.3)', () => {
     description: 'A test program description',
     concepts: ['LDA', 'ADD', 'memory'],
     difficulty: 'beginner',
+    stage: 'micro4',
   };
 
   beforeEach(() => {
@@ -196,6 +197,7 @@ describe('ExampleTooltip (Story 8.3)', () => {
         description: 'Different description',
         concepts: ['loops', 'branching'],
         difficulty: 'advanced',
+        stage: 'micro4',
       };
       tooltip.show(differentProgram, anchorElement);
 

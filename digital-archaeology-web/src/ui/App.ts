@@ -3532,11 +3532,14 @@ export class App {
     this.exampleBrowserContainer = document.createElement('div');
     this.exampleBrowserContainer.className = 'da-example-browser-container';
 
-    // Create the browser
-    this.exampleBrowser = new ExampleBrowser({
-      onSelect: (program: ExampleProgram) => this.handleExampleSelect(program),
-      onClose: () => this.hideExampleBrowser(),
-    });
+    // Create the browser with current stage for filtering (Story 11.6)
+    this.exampleBrowser = new ExampleBrowser(
+      {
+        onSelect: (program: ExampleProgram) => this.handleExampleSelect(program),
+        onClose: () => this.hideExampleBrowser(),
+      },
+      this.currentStage,
+    );
 
     // Mount to document body
     document.body.appendChild(this.exampleBrowserContainer);

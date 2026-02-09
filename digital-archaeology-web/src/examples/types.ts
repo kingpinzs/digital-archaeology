@@ -1,6 +1,8 @@
 // src/examples/types.ts
 // Type definitions for example programs feature
 
+import type { LabStage } from '../config/stageConfig';
+
 /**
  * Categories for grouping example programs.
  */
@@ -27,8 +29,8 @@ export interface ExampleProgram {
   concepts: string[];
   /** Difficulty level for learners */
   difficulty: ExampleDifficulty;
-  /** CPU stage this program belongs to (Story 11.2). Defaults to 'micro4' if omitted. */
-  stage?: string;
+  /** CPU stage this program belongs to (Story 11.6: required, typed as LabStage). */
+  stage: LabStage;
 }
 
 /**

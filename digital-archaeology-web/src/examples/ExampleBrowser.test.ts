@@ -22,7 +22,7 @@ describe('ExampleBrowser', () => {
       onClose: vi.fn(),
     };
 
-    browser = new ExampleBrowser(callbacks);
+    browser = new ExampleBrowser(callbacks, 'micro4');
   });
 
   afterEach(() => {
@@ -57,7 +57,7 @@ describe('ExampleBrowser', () => {
       const element = browser.render();
       const items = element.querySelectorAll('.da-example-item');
 
-      expect(items.length).toBe(12); // All 12 example programs
+      expect(items.length).toBe(12); // All 12 Micro4 example programs
 
       // Check first item
       const firstItem = items[0] as HTMLElement;
@@ -78,6 +78,75 @@ describe('ExampleBrowser', () => {
       expect(names).toContain('Add Two Numbers');
       expect(names).toContain('Fibonacci');
       expect(names).toContain('Bubble Sort');
+    });
+  });
+
+  describe('stage-specific rendering (Story 11.6)', () => {
+    it('should render 12 programs for Micro4 stage', () => {
+      const micro4Browser = new ExampleBrowser(callbacks, 'micro4');
+      const element = micro4Browser.render();
+      const items = element.querySelectorAll('.da-example-item');
+      expect(items.length).toBe(12);
+      micro4Browser.destroy();
+    });
+
+    it('should render 15 programs for Micro8 stage', () => {
+      const micro8Browser = new ExampleBrowser(callbacks, 'micro8');
+      const element = micro8Browser.render();
+      const items = element.querySelectorAll('.da-example-item');
+      expect(items.length).toBe(15);
+      micro8Browser.destroy();
+    });
+
+    it('should render 13 programs for Micro16 stage', () => {
+      const micro16Browser = new ExampleBrowser(callbacks, 'micro16');
+      const element = micro16Browser.render();
+      const items = element.querySelectorAll('.da-example-item');
+      expect(items.length).toBe(13);
+      micro16Browser.destroy();
+    });
+
+    it('should render empty state for stage with no programs (Story 11.6)', () => {
+      const micro32Browser = new ExampleBrowser(callbacks, 'micro32');
+      const element = micro32Browser.render();
+
+      // Should have empty state
+      const emptyState = element.querySelector('[data-testid="example-empty-state"]');
+      expect(emptyState).not.toBeNull();
+      expect(emptyState!.textContent).toContain('No examples available');
+
+      // Should NOT have program items
+      const items = element.querySelectorAll('.da-example-item');
+      expect(items.length).toBe(0);
+
+      micro32Browser.destroy();
+    });
+
+    it('should render empty state message as text, not HTML (Code Review L1 - XSS safety)', () => {
+      const micro32Browser = new ExampleBrowser(callbacks, 'micro32');
+      const element = micro32Browser.render();
+
+      const emptyState = element.querySelector('[data-testid="example-empty-state"]');
+      expect(emptyState).not.toBeNull();
+
+      // The message should be plain text (no child elements besides the <p>)
+      const paragraph = emptyState!.querySelector('p');
+      expect(paragraph).not.toBeNull();
+      expect(paragraph!.childElementCount).toBe(0); // text only, no nested HTML
+      expect(paragraph!.textContent).toContain('No examples available');
+
+      micro32Browser.destroy();
+    });
+
+    it('should only show categories with programs for the selected stage (Story 11.6)', () => {
+      // Micro8 has no 'loops' category programs
+      const micro8Browser = new ExampleBrowser(callbacks, 'micro8');
+      const element = micro8Browser.render();
+      const headers = element.querySelectorAll('.da-example-category-header');
+      const headerTexts = Array.from(headers).map((h) => h.textContent?.trim());
+      expect(headerTexts).not.toContain(CATEGORY_LABELS.loops);
+      expect(headerTexts).toContain(CATEGORY_LABELS.reference);
+      micro8Browser.destroy();
     });
   });
 
@@ -186,6 +255,22 @@ describe('ExampleBrowser', () => {
 
       expect(callbacks.onClose).toHaveBeenCalled();
     });
+
+    it('should close on Escape even in empty state (Code Review M2)', () => {
+      // Destroy the default micro4 browser first
+      browser.destroy();
+
+      // Create and mount an empty-state browser
+      const emptyBrowser = new ExampleBrowser(callbacks, 'micro32');
+      emptyBrowser.mount(container);
+
+      // Escape should still trigger onClose
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(callbacks.onClose).toHaveBeenCalled();
+
+      emptyBrowser.destroy();
+    });
   });
 
   describe('program selection', () => {
@@ -216,6 +301,44 @@ describe('ExampleBrowser', () => {
       expect(callbacks.onSelect).toHaveBeenCalledTimes(1);
       expect(selectedProgram).not.toBeNull();
     });
+
+    it('should call onSelect with correct Micro8 program when clicked (Code Review H3)', () => {
+      // Create a Micro8 browser
+      const micro8Browser = new ExampleBrowser(callbacks, 'micro8');
+      micro8Browser.mount(container);
+
+      const items = container.querySelectorAll<HTMLElement>('.da-example-item');
+      // Click the first item (basic_mov.asm in micro8)
+      const basicMovItem = Array.from(items).find(
+        (item) => item.dataset.filename === 'basic_mov.asm'
+      );
+      basicMovItem?.click();
+
+      expect(callbacks.onSelect).toHaveBeenCalledTimes(1);
+      expect(selectedProgram?.filename).toBe('basic_mov.asm');
+      expect(selectedProgram?.stage).toBe('micro8');
+
+      micro8Browser.destroy();
+    });
+
+    it('should call onSelect with correct Micro16 program when clicked (Code Review H3)', () => {
+      // Create a Micro16 browser
+      const micro16Browser = new ExampleBrowser(callbacks, 'micro16');
+      micro16Browser.mount(container);
+
+      const items = container.querySelectorAll<HTMLElement>('.da-example-item');
+      // Click the segments.asm item (unique to micro16)
+      const segmentsItem = Array.from(items).find(
+        (item) => item.dataset.filename === 'segments.asm'
+      );
+      segmentsItem?.click();
+
+      expect(callbacks.onSelect).toHaveBeenCalledTimes(1);
+      expect(selectedProgram?.filename).toBe('segments.asm');
+      expect(selectedProgram?.stage).toBe('micro16');
+
+      micro16Browser.destroy();
+    });
   });
 
   describe('getPrograms', () => {
@@ -242,6 +365,27 @@ describe('ExampleBrowser', () => {
     });
 
     it('should stop listening to keyboard events', () => {
+      browser.mount(container);
+      browser.destroy();
+
+      // This should not call onClose since browser is destroyed
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('should clean up empty state DOM on destroy (Story 11.6)', () => {
+      const micro32Browser = new ExampleBrowser(callbacks, 'micro32');
+      micro32Browser.mount(container);
+
+      expect(container.querySelector('[data-testid="example-empty-state"]')).not.toBeNull();
+
+      micro32Browser.destroy();
+
+      expect(container.querySelector('[data-testid="example-empty-state"]')).toBeNull();
+    });
+
+    it('should stop listening to keyboard events after destroy', () => {
       browser.mount(container);
       browser.destroy();
 

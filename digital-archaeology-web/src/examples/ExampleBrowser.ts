@@ -5,6 +5,8 @@ import type { ExampleProgram, ExampleBrowserCallbacks, ExampleCategory } from '.
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
 import { getProgramsByCategory } from './exampleMetadata';
 import { ExampleTooltip } from './ExampleTooltip';
+import type { LabStage } from '../config/stageConfig';
+import { getStageConfig } from '../config/stageConfig';
 
 /**
  * ExampleBrowser displays a categorized submenu of example programs.
@@ -13,6 +15,7 @@ import { ExampleTooltip } from './ExampleTooltip';
 export class ExampleBrowser {
   private element: HTMLElement | null = null;
   private callbacks: ExampleBrowserCallbacks;
+  private stage: LabStage;
   private programsByCategory: Map<ExampleCategory, ExampleProgram[]>;
   private focusedIndex: number = 0;
   private focusableItems: HTMLElement[] = [];
@@ -35,9 +38,10 @@ export class ExampleBrowser {
   private itemHoverHandlers: Map<HTMLElement, { enter: () => void; leave: () => void }> =
     new Map();
 
-  constructor(callbacks: ExampleBrowserCallbacks) {
+  constructor(callbacks: ExampleBrowserCallbacks, stage: LabStage) {
     this.callbacks = callbacks;
-    this.programsByCategory = getProgramsByCategory();
+    this.stage = stage;
+    this.programsByCategory = getProgramsByCategory(stage);
     this.boundHandleKeydown = this.handleKeydown.bind(this);
     this.boundHandleDocumentClick = this.handleDocumentClick.bind(this);
   }
@@ -52,8 +56,12 @@ export class ExampleBrowser {
     this.element.setAttribute('role', 'menu');
     this.element.setAttribute('aria-label', 'Example programs');
 
-    this.renderContent();
-    this.cacheAndSetupItems();
+    if (this.programsByCategory.size === 0) {
+      this.renderEmptyState();
+    } else {
+      this.renderContent();
+      this.cacheAndSetupItems();
+    }
 
     return this.element;
   }
@@ -137,6 +145,19 @@ export class ExampleBrowser {
       }
     }
     return programs;
+  }
+
+  private renderEmptyState(): void {
+    if (!this.element) return;
+
+    const emptyState = document.createElement('div');
+    emptyState.className = 'da-example-empty-state';
+    emptyState.setAttribute('data-testid', 'example-empty-state');
+    const message = document.createElement('p');
+    const stageConfig = getStageConfig(this.stage);
+    message.textContent = `No examples available for ${stageConfig.meta.label}`;
+    emptyState.appendChild(message);
+    this.element.appendChild(emptyState);
   }
 
   private renderContent(): void {

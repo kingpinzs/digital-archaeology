@@ -3,21 +3,39 @@ import { describe, it, expect } from 'vitest';
 import {
   EXAMPLE_PROGRAMS,
   getProgramsByCategory,
+  getProgramsByStage,
   findProgramByFilename,
 } from './exampleMetadata';
 import { CATEGORY_ORDER, DIFFICULTY_LABELS } from './types';
 import type { ExampleCategory, ExampleDifficulty } from './types';
+import type { LabStage } from '../config/stageConfig';
 
 describe('exampleMetadata', () => {
   describe('EXAMPLE_PROGRAMS', () => {
-    it('should contain all 12 example programs', () => {
-      expect(EXAMPLE_PROGRAMS).toHaveLength(12);
+    it('should contain all 40 example programs (Story 11.6)', () => {
+      expect(EXAMPLE_PROGRAMS).toHaveLength(40);
     });
 
-    it('should have unique filenames', () => {
-      const filenames = EXAMPLE_PROGRAMS.map((p) => p.filename);
-      const uniqueFilenames = new Set(filenames);
-      expect(uniqueFilenames.size).toBe(filenames.length);
+    it('should have 12 Micro4 programs (Story 11.6)', () => {
+      expect(EXAMPLE_PROGRAMS.filter((p) => p.stage === 'micro4')).toHaveLength(12);
+    });
+
+    it('should have 15 Micro8 programs (Story 11.6)', () => {
+      expect(EXAMPLE_PROGRAMS.filter((p) => p.stage === 'micro8')).toHaveLength(15);
+    });
+
+    it('should have 13 Micro16 programs (Story 11.6)', () => {
+      expect(EXAMPLE_PROGRAMS.filter((p) => p.stage === 'micro16')).toHaveLength(13);
+    });
+
+    it('should have unique filenames within each stage (Story 11.6)', () => {
+      const stages: LabStage[] = ['micro4', 'micro8', 'micro16'];
+      for (const stage of stages) {
+        const stagePrograms = EXAMPLE_PROGRAMS.filter((p) => p.stage === stage);
+        const filenames = stagePrograms.map((p) => p.filename);
+        const uniqueFilenames = new Set(filenames);
+        expect(uniqueFilenames.size).toBe(filenames.length);
+      }
     });
 
     it('should have all required properties for each program', () => {
@@ -29,6 +47,7 @@ describe('exampleMetadata', () => {
         expect(program.concepts).toBeDefined();
         expect(Array.isArray(program.concepts)).toBe(true);
         expect(program.difficulty).toBeTruthy();
+        expect(program.stage).toBeTruthy();
       }
     });
 
@@ -63,45 +82,138 @@ describe('exampleMetadata', () => {
         expect(validCategories).toContain(program.category);
       }
     });
+
+    it('should only use valid stages (Story 11.6)', () => {
+      const validStages: LabStage[] = ['micro4', 'micro8', 'micro16'];
+      for (const program of EXAMPLE_PROGRAMS) {
+        expect(validStages).toContain(program.stage);
+      }
+    });
+  });
+
+  describe('getProgramsByStage (Story 11.6)', () => {
+    it('should return 12 programs for micro4', () => {
+      expect(getProgramsByStage('micro4')).toHaveLength(12);
+    });
+
+    it('should return 15 programs for micro8', () => {
+      expect(getProgramsByStage('micro8')).toHaveLength(15);
+    });
+
+    it('should return 13 programs for micro16', () => {
+      expect(getProgramsByStage('micro16')).toHaveLength(13);
+    });
+
+    it('should return 0 programs for micro32 (no examples yet)', () => {
+      expect(getProgramsByStage('micro32')).toHaveLength(0);
+    });
+
+    it('should return 0 programs for micro32p (no examples yet)', () => {
+      expect(getProgramsByStage('micro32p')).toHaveLength(0);
+    });
+
+    it('should return 0 programs for micro32s (no examples yet)', () => {
+      expect(getProgramsByStage('micro32s')).toHaveLength(0);
+    });
+
+    it('should only return programs matching the requested stage', () => {
+      const micro8Programs = getProgramsByStage('micro8');
+      for (const program of micro8Programs) {
+        expect(program.stage).toBe('micro8');
+      }
+    });
   });
 
   describe('getProgramsByCategory', () => {
-    it('should return a Map with all categories', () => {
+    it('should return a Map with all categories when called without stage (backward compatible, Code Review M1)', () => {
       const grouped = getProgramsByCategory();
+      // Without stage filter, all 5 categories have at least one program across all stages
       expect(grouped.size).toBe(CATEGORY_ORDER.length);
 
       for (const category of CATEGORY_ORDER) {
         expect(grouped.has(category)).toBe(true);
+        expect(grouped.get(category)!.length).toBeGreaterThan(0);
       }
     });
 
-    it('should group programs correctly', () => {
+    it('should group Micro4 programs correctly when filtered by stage (Story 11.6)', () => {
+      const grouped = getProgramsByCategory('micro4');
+      const micro4Programs = getProgramsByStage('micro4');
+
+      // Verify all categories with programs are present and totals match (Code Review L2: self-validating)
+      let total = 0;
+      for (const programs of grouped.values()) {
+        expect(programs.length).toBeGreaterThan(0);
+        for (const p of programs) {
+          expect(p.stage).toBe('micro4');
+        }
+        total += programs.length;
+      }
+      expect(total).toBe(micro4Programs.length);
+
+      // Micro4 has programs in all 5 categories
+      expect(grouped.size).toBe(5);
+      expect(grouped.has('arithmetic')).toBe(true);
+      expect(grouped.has('loops')).toBe(true);
+      expect(grouped.has('algorithms')).toBe(true);
+      expect(grouped.has('bitwise')).toBe(true);
+      expect(grouped.has('reference')).toBe(true);
+    });
+
+    it('should group Micro8 programs correctly when filtered by stage (Story 11.6)', () => {
+      const grouped = getProgramsByCategory('micro8');
+      const micro8Programs = getProgramsByStage('micro8');
+
+      // Verify totals match and all programs belong to micro8
+      let total = 0;
+      for (const programs of grouped.values()) {
+        expect(programs.length).toBeGreaterThan(0);
+        for (const p of programs) {
+          expect(p.stage).toBe('micro8');
+        }
+        total += programs.length;
+      }
+      expect(total).toBe(micro8Programs.length);
+
+      // Micro8 has no loop programs
+      expect(grouped.has('loops')).toBe(false);
+      expect(grouped.has('arithmetic')).toBe(true);
+      expect(grouped.has('algorithms')).toBe(true);
+    });
+
+    it('should group Micro16 programs correctly when filtered by stage (Story 11.6)', () => {
+      const grouped = getProgramsByCategory('micro16');
+      const micro16Programs = getProgramsByStage('micro16');
+
+      // Verify totals match and all programs belong to micro16
+      let total = 0;
+      for (const programs of grouped.values()) {
+        expect(programs.length).toBeGreaterThan(0);
+        for (const p of programs) {
+          expect(p.stage).toBe('micro16');
+        }
+        total += programs.length;
+      }
+      expect(total).toBe(micro16Programs.length);
+
+      // Micro16 has no loop or algorithm programs
+      expect(grouped.has('loops')).toBe(false);
+      expect(grouped.has('algorithms')).toBe(false);
+      expect(grouped.has('arithmetic')).toBe(true);
+    });
+
+    it('should return empty map for stages with no programs (Story 11.6)', () => {
+      const grouped = getProgramsByCategory('micro32');
+      expect(grouped.size).toBe(0);
+    });
+
+    it('should return all programs when no stage is specified (backward compatible)', () => {
       const grouped = getProgramsByCategory();
-
-      // Check arithmetic has expected programs
-      const arithmetic = grouped.get('arithmetic');
-      expect(arithmetic).toBeDefined();
-      expect(arithmetic!.length).toBe(4); // add, multiply, divide, negative
-
-      // Check algorithms has expected programs
-      const algorithms = grouped.get('algorithms');
-      expect(algorithms).toBeDefined();
-      expect(algorithms!.length).toBe(5); // fibonacci, max, factorial, bubble_sort, gcd
-
-      // Check loops
-      const loops = grouped.get('loops');
-      expect(loops).toBeDefined();
-      expect(loops!.length).toBe(1); // countdown
-
-      // Check bitwise
-      const bitwise = grouped.get('bitwise');
-      expect(bitwise).toBeDefined();
-      expect(bitwise!.length).toBe(1); // bitwise_test
-
-      // Check reference
-      const reference = grouped.get('reference');
-      expect(reference).toBeDefined();
-      expect(reference!.length).toBe(1); // all_instructions
+      let total = 0;
+      for (const programs of grouped.values()) {
+        total += programs.length;
+      }
+      expect(total).toBe(EXAMPLE_PROGRAMS.length);
     });
 
     it('should include all programs when summed across categories', () => {
@@ -129,6 +241,31 @@ describe('exampleMetadata', () => {
 
     it('should be case-sensitive', () => {
       const program = findProgramByFilename('ADD.asm');
+      expect(program).toBeNull();
+    });
+
+    it('should disambiguate duplicate filenames when stage is provided (Code Review H1)', () => {
+      // arithmetic.asm exists in micro4, micro8, and micro16
+      const micro8Version = findProgramByFilename('arithmetic.asm', 'micro8');
+      expect(micro8Version).not.toBeNull();
+      expect(micro8Version!.stage).toBe('micro8');
+      expect(micro8Version!.description).toContain('16-bit arithmetic');
+
+      const micro16Version = findProgramByFilename('arithmetic.asm', 'micro16');
+      expect(micro16Version).not.toBeNull();
+      expect(micro16Version!.stage).toBe('micro16');
+    });
+
+    it('should return first match when stage is not provided (backward compatible)', () => {
+      // Without stage, returns first match (micro8 comes before micro16 in array)
+      const program = findProgramByFilename('basic_mov.asm');
+      expect(program).not.toBeNull();
+      expect(program!.stage).toBe('micro8');
+    });
+
+    it('should return null when filename exists in other stages but not the specified one (Code Review H2)', () => {
+      // add.asm only exists in micro4
+      const program = findProgramByFilename('add.asm', 'micro8');
       expect(program).toBeNull();
     });
   });

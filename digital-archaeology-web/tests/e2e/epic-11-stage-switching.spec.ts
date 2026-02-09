@@ -180,6 +180,50 @@ test.describe('Epic 11: Stage Switching', () => {
     });
   });
 
+  test.describe('Story 11.6: Stage-Specific Examples', () => {
+    test('[11.6] should show File menu with Examples menu item', async ({ page }) => {
+      // GIVEN: App loads in Lab Mode
+      // WHEN: User opens File menu
+      await page.locator('[data-menu="file"]').click();
+
+      // THEN: Examples menu item should be visible
+      const examplesItem = page.locator('[data-action="examples"]');
+      await expect(examplesItem).toBeVisible();
+    });
+
+    test('[11.6] should open example browser with programs on Micro4 initial load', async ({ page }) => {
+      // GIVEN: App loads in Lab Mode with Micro4 (default)
+      // WHEN: User opens File > Examples
+      await page.locator('[data-menu="file"]').click();
+      await page.locator('[data-action="examples"]').click();
+
+      // THEN: Example browser should be visible with program items
+      const browserContainer = page.locator('.da-example-browser');
+      await expect(browserContainer).toBeVisible();
+
+      // THEN: Should show Micro4 example program items (Code Review M3: verify count AND content)
+      const items = browserContainer.locator('.da-example-item');
+      await expect(items).toHaveCount(12);
+
+      // THEN: Should contain known Micro4 programs (not just a count)
+      await expect(browserContainer.locator('.da-menu-item-label', { hasText: 'Add Two Numbers' })).toBeVisible();
+      await expect(browserContainer.locator('.da-menu-item-label', { hasText: 'Fibonacci' })).toBeVisible();
+    });
+
+    test('[11.6] should close example browser on Escape', async ({ page }) => {
+      // GIVEN: Example browser is open
+      await page.locator('[data-menu="file"]').click();
+      await page.locator('[data-action="examples"]').click();
+      await expect(page.locator('.da-example-browser')).toBeVisible();
+
+      // WHEN: User presses Escape
+      await page.keyboard.press('Escape');
+
+      // THEN: Browser should be closed
+      await expect(page.locator('.da-example-browser')).not.toBeVisible();
+    });
+  });
+
   test.describe('Story 11.4: Stage-Specific Syntax Highlighting', () => {
     test('[11.4] should have Monaco editor with micro4 language for default stage', async ({ page }) => {
       // THEN: Monaco editor should be present

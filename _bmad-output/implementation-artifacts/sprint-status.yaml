@@ -192,7 +192,7 @@ development_status:
   11-3-implement-stage-specific-wasm-loading: done
   11-4-implement-stage-specific-syntax-highlighting: done
   11-5-implement-stage-specific-circuit-loading: done
-  11-6-implement-stage-specific-examples: backlog
+  11-6-implement-stage-specific-examples: done
   11-7-implement-url-routing-for-stages: backlog
   epic-11-retrospective: optional
 

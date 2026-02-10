@@ -186,7 +186,7 @@ development_status:
   td-4-story-mode-journey-e2e-tests: done
 
   # Epic 11: Multi-Stage Architecture (requires all TD stories complete)
-  epic-11: in-progress
+  epic-11: done
   11-1-create-stage-selector-ui: done
   11-2-implement-stage-configuration-system: done
   11-3-implement-stage-specific-wasm-loading: done
@@ -194,7 +194,7 @@ development_status:
   11-5-implement-stage-specific-circuit-loading: done
   11-6-implement-stage-specific-examples: done
   11-7-implement-url-routing-for-stages: done
-  epic-11-retrospective: optional
+  epic-11-retrospective: done
 
   # Epic 12: Micro8 Stage
   epic-12: backlog

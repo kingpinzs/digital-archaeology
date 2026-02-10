@@ -249,4 +249,83 @@ test.describe('Epic 11: Stage Switching', () => {
       await expect(monacoContainer).toHaveAttribute('data-mode-id', 'micro4');
     });
   });
+
+  test.describe('Story 11.7: URL Routing', () => {
+    test('[11.7] should set URL hash to #/lab/micro4 on initial load', async ({ page }) => {
+      // GIVEN: App loads with no hash
+      // (beforeEach navigates to '/')
+
+      // THEN: URL should be set to default route
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+    });
+
+    test('[11.7] should navigate to lab/micro4 when visiting #/lab/micro4', async ({ page }) => {
+      // WHEN: Navigate directly to a stage URL
+      await page.goto('/#/lab/micro4');
+      await page.waitForLoadState('networkidle');
+
+      // THEN: Stage selector should show Micro4
+      const trigger = page.locator('.da-stage-selector-trigger');
+      await expect(trigger).toContainText('Micro4');
+
+      // AND: URL should remain
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+    });
+
+    test('[11.7] should fallback to micro4 for invalid stage URL', async ({ page }) => {
+      // WHEN: Navigate to an invalid stage hash (triggers hashchange on already-loaded page)
+      await page.evaluate(() => { window.location.hash = '#/lab/invalid'; });
+
+      // THEN: App normalizes the URL via handleRouteChange → replaceState
+      await expect(async () => {
+        const hash = await page.evaluate(() => window.location.hash);
+        expect(hash).toBe('#/lab/micro4');
+      }).toPass({ timeout: 5000 });
+
+      // AND: Stage selector should still show Micro4
+      const trigger = page.locator('.da-stage-selector-trigger');
+      await expect(trigger).toContainText('Micro4');
+    });
+
+    test('[11.7] should show #/story when switching to story mode', async ({ page }) => {
+      // GIVEN: App is in lab mode
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+
+      // WHEN: Click story mode toggle in MenuBar (use first match to avoid strict mode)
+      const storyBtn = page.locator('.da-menubar-toggle [data-mode="story"]');
+      await storyBtn.click();
+
+      // THEN: URL should change to story mode
+      await expect(page).toHaveURL(/#\/story/);
+    });
+
+    test('[11.7] should switch back to lab URL when returning from story mode', async ({ page }) => {
+      // GIVEN: Switch to story mode via MenuBar
+      await page.locator('.da-menubar-toggle [data-mode="story"]').click();
+      await expect(page).toHaveURL(/#\/story/);
+
+      // WHEN: Switch back to lab via StoryNav's mode toggle (visible in story mode)
+      // The MenuBar toggle is covered by story overlay, so use the story nav's toggle
+      const labBtn = page.locator('.da-mode-toggle-btn[data-mode="lab"]');
+      await labBtn.click();
+
+      // THEN: URL should return to lab with stage
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+    });
+
+    test('[11.7] should navigate via browser back button between mode changes', async ({ page }) => {
+      // GIVEN: Start in lab mode
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+
+      // WHEN: Switch to story mode (pushes history) via MenuBar
+      await page.locator('.da-menubar-toggle [data-mode="story"]').click();
+      await expect(page).toHaveURL(/#\/story/);
+
+      // AND: Press browser back button
+      await page.goBack();
+
+      // THEN: Should return to lab mode URL
+      await expect(page).toHaveURL(/#\/lab\/micro4/);
+    });
+  });
 });

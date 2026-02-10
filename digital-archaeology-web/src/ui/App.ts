@@ -32,6 +32,8 @@ import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
 import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, downloadBinaryFile, readTextFile } from '../state';
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
+import { HashRouter, parseHash } from '../router';
+import type { RouteState } from '../router';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -242,6 +244,10 @@ export class App {
   // Stage switching state (Story 11.3)
   private isStageSwitching: boolean = false;
 
+  // Hash router for URL-based stage/mode routing (Story 11.7)
+  private router: HashRouter = new HashRouter();
+  private isRouteUpdating: boolean = false;
+
   // Panel visibility state
   private panelVisibility: PanelVisibility = {
     code: true,
@@ -327,6 +333,10 @@ export class App {
     // Note: Now uses settings from SettingsStorage with backward compatibility
     this.currentMode = initTheme();
 
+    // Story 11.7: Check URL hash and override settings if present
+    // Must come AFTER initTheme so it can override the localStorage-loaded mode
+    this.initializeFromRoute();
+
     this.render();
     this.initializeMenuBar();
     // Sync menu bar with initial mode from localStorage (Story 10.1)
@@ -363,6 +373,10 @@ export class App {
 
     // Add beforeunload listener for unsaved work warning (Story 9.7)
     window.addEventListener('beforeunload', this.boundBeforeUnload);
+
+    // Story 11.7: Start hash router and listen for URL changes
+    this.router.onRouteChange((route) => this.handleRouteChange(route));
+    this.router.start();
 
     // Story 9.2: Load saved project from IndexedDB (async, non-blocking)
     this.loadSavedProject();
@@ -641,6 +655,11 @@ export class App {
     // Story 9.1: Persist theme setting to unified storage
     this.saveSettings();
 
+    // Story 11.7: Push URL update (only if not triggered by router to prevent re-entrant loop)
+    if (!this.isRouteUpdating) {
+      this.router.navigate(mode, this.currentStage);
+    }
+
     // If switching to lab mode with a challenge context, activate the challenge station
     if (mode === 'lab' && challengeContext) {
       this.activateChallengeStation(challengeContext);
@@ -677,6 +696,65 @@ export class App {
       console.error('Stage switch failed:', error);
       this.isStageSwitching = false;
     });
+  }
+
+  /**
+   * Initialize mode and stage from URL hash if present (Story 11.7).
+   * If a hash is present, parse it and override localStorage settings.
+   * If no hash, set the URL from the current (localStorage-loaded) settings.
+   */
+  private initializeFromRoute(): void {
+    const hash = window.location.hash;
+
+    if (hash && hash !== '#' && hash !== '#/') {
+      // URL has a route — parse and override localStorage settings
+      const route = parseHash(hash);
+      this.currentMode = route.mode;
+
+      // Only override stage if in lab mode, stage is valid, AND stage is ready/unlocked (CR H-1)
+      if (route.mode === 'lab') {
+        if (isStageReady(route.stage) && this.unlockedStages.includes(route.stage)) {
+          this.currentStage = route.stage;
+        }
+        // else: keep currentStage from localStorage (default micro4)
+      }
+
+      // Update the theme to match the route's mode
+      setTheme(route.mode);
+
+      // Replace URL to normalize it (e.g., #/lab/invalid → #/lab/micro4)
+      this.router.replace(this.currentMode, this.currentStage);
+    } else {
+      // No hash — backward compatible: use localStorage settings, set URL
+      this.router.replace(this.currentMode, this.currentStage);
+    }
+  }
+
+  /**
+   * Handle route change from browser navigation (hashchange event) (Story 11.7).
+   * Uses isRouteUpdating flag to prevent re-entrant loops.
+   */
+  private handleRouteChange(route: RouteState): void {
+    // Don't process route changes during async stage switching (CR H-2)
+    if (this.isStageSwitching) return;
+
+    this.isRouteUpdating = true;
+    try {
+      // Handle mode change
+      if (route.mode !== this.currentMode) {
+        this.handleModeChange(route.mode);
+      }
+
+      // Handle stage change (only in lab mode)
+      if (route.mode === 'lab' && route.stage !== this.currentStage) {
+        this.handleStageChange(route.stage);
+      }
+
+      // Normalize URL to match actual app state (e.g., #/lab/invalid → #/lab/micro4)
+      this.router.replace(this.currentMode, this.currentStage);
+    } finally {
+      this.isRouteUpdating = false;
+    }
   }
 
   /**
@@ -770,6 +848,11 @@ export class App {
       this.menuBar?.getStageSelector()?.setStage(stage);
       this.saveSettings();
 
+      // Story 11.7: Push URL update (only if not triggered by router)
+      if (!this.isRouteUpdating) {
+        this.router.navigate('lab', stage);
+      }
+
       // AC #6: Show success
       this.statusBar?.updateState({ loadStatus: `Switched to ${config.meta.label}` });
 
@@ -778,6 +861,9 @@ export class App {
       console.error(`Failed to switch to ${config.meta.label}:`, error);
       this.currentStage = previousStage;
       this.menuBar?.getStageSelector()?.setStage(previousStage);
+
+      // Story 11.7: Revert URL to previous stage (no history entry)
+      this.router.replace('lab', previousStage);
 
       // Attempt to revert bridges to previous stage's WASM
       try {
@@ -4110,6 +4196,9 @@ export class App {
 
     // Remove beforeunload listener (Story 9.7)
     window.removeEventListener('beforeunload', this.boundBeforeUnload);
+
+    // Story 11.7: Stop hash router
+    this.router.stop();
 
     // Destroy menu bar
     this.destroyMenuBar();

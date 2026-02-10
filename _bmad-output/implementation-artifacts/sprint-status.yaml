@@ -193,7 +193,7 @@ development_status:
   11-4-implement-stage-specific-syntax-highlighting: done
   11-5-implement-stage-specific-circuit-loading: done
   11-6-implement-stage-specific-examples: done
-  11-7-implement-url-routing-for-stages: backlog
+  11-7-implement-url-routing-for-stages: done
   epic-11-retrospective: optional
 
   # Epic 12: Micro8 Stage

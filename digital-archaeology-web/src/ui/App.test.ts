@@ -575,6 +575,8 @@ describe('App', () => {
     app.destroy();
     document.body.removeChild(container);
     globalThis.fetch = originalFetch;
+    // Story 11.7: Reset hash to prevent leaking between tests
+    window.location.hash = '';
   });
 
   describe('edit menu actions', () => {
@@ -9793,6 +9795,140 @@ describe('App', () => {
         expect(mockEmulatorBridge.reinit).toHaveBeenNthCalledWith(2, 'micro4');
         expect(mockAssemblerBridge.reinit).toHaveBeenCalledWith('micro4');
       });
+    });
+  });
+
+  describe('URL routing integration (Story 11.7)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let appAny: any;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      window.location.hash = '';
+      localStorage.removeItem('da-theme');
+      document.documentElement.classList.remove('story-mode', 'lab-mode');
+    });
+
+    afterEach(async () => {
+      // Let any pending hashchange events settle
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    it('should set URL hash on mount when no hash present (backward compat)', () => {
+      window.location.hash = '';
+      app.mount(container);
+      // Should set default hash via replaceState
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should read mode from URL hash on mount', () => {
+      window.location.hash = '#/story';
+      app.mount(container);
+      expect(app.getCurrentMode()).toBe('story');
+    });
+
+    it('should read stage from URL hash on mount', () => {
+      window.location.hash = '#/lab/micro4';
+      app.mount(container);
+      appAny = app as unknown as { currentStage: string };
+      expect(appAny.currentStage).toBe('micro4');
+    });
+
+    it('should normalize invalid stage in URL to micro4', () => {
+      window.location.hash = '#/lab/invalid';
+      app.mount(container);
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should normalize invalid mode in URL to lab', () => {
+      window.location.hash = '#/invalid';
+      app.mount(container);
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should update URL hash when mode changes via button', () => {
+      app.mount(container);
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+      expect(window.location.hash).toBe('#/story');
+    });
+
+    it('should update URL hash back to lab when switching back from story', () => {
+      app.mount(container);
+      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
+      storyBtn.click();
+      expect(window.location.hash).toBe('#/story');
+
+      const labBtn = container.querySelector('[data-mode="lab"]') as HTMLButtonElement;
+      labBtn.click();
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should not create re-entrant loop when route triggers mode change', async () => {
+      app.mount(container);
+      appAny = app as unknown as { isRouteUpdating: boolean; router: { navigate: unknown } };
+
+      // Set hash directly to trigger hashchange → handleRouteChange
+      window.location.hash = '#/story';
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(app.getCurrentMode()).toBe('story');
+      // isRouteUpdating should be false after processing
+      expect(appAny.isRouteUpdating).toBe(false);
+    });
+
+    it('should update URL hash when stage switch completes (Task 8.3)', async () => {
+      app.mount(container);
+      const appAny2 = app as unknown as {
+        performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+      };
+
+      await appAny2.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+      // URL should reflect new stage after successful switch
+      expect(window.location.hash).toBe('#/lab/micro8');
+    });
+
+    it('should trigger stage change when hashchange fires with different stage (Task 8.5)', async () => {
+      app.mount(container);
+
+      // Simulate browser navigation changing hash to a different stage
+      window.location.hash = '#/lab/micro8';
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // handleStageChange should have been called (but micro8 is locked,
+      // so it won't actually switch — URL gets normalized back to micro4)
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should revert URL hash when stage switch fails (Task 8.7)', async () => {
+      app.mount(container);
+      // First call rejects, second call resolves (revert)
+      let callCount = 0;
+      mockEmulatorBridge.reinit.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) return Promise.reject(new Error('WASM load failed'));
+        return Promise.resolve();
+      });
+
+      const appAny2 = app as unknown as {
+        performStageSwitch: (stage: string, config: { meta: { label: string } }) => Promise<void>;
+      };
+
+      await appAny2.performStageSwitch('micro8', { meta: { label: 'Micro8' } });
+
+      // URL should be reverted to micro4 after failed switch
+      expect(window.location.hash).toBe('#/lab/micro4');
+    });
+
+    it('should stop router on destroy', () => {
+      app.mount(container);
+      appAny = app as unknown as { router: { boundHandler: unknown; callback: unknown } };
+      expect(appAny.router.boundHandler).not.toBeNull();
+
+      app.destroy();
+      expect(appAny.router.boundHandler).toBeNull();
+      expect(appAny.router.callback).toBeNull(); // CR M-1: callback cleared on stop
     });
   });
 });

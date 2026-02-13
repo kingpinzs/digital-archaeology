@@ -104,6 +104,8 @@ describe('micro8-language', () => {
     it('should define stack keywords', () => {
       expect(micro8MonarchLanguage.stackKeywords).toContain('PUSH');
       expect(micro8MonarchLanguage.stackKeywords).toContain('POP');
+      expect(micro8MonarchLanguage.stackKeywords).toContain('PUSH16');
+      expect(micro8MonarchLanguage.stackKeywords).toContain('POP16');
       expect(micro8MonarchLanguage.stackKeywords).toContain('CALL');
       expect(micro8MonarchLanguage.stackKeywords).toContain('RET');
       expect(micro8MonarchLanguage.stackKeywords).toContain('RETI');
@@ -131,6 +133,8 @@ describe('micro8-language', () => {
     });
 
     it('should define registers', () => {
+      // Exact count: R0-R7(8) + A,B,C,D,E,H,L(7) + SP,PC(2) + HL,BC,DE(3) = 20
+      expect(micro8MonarchLanguage.registers).toHaveLength(20);
       // Numbered registers
       expect(micro8MonarchLanguage.registers).toContain('R0');
       expect(micro8MonarchLanguage.registers).toContain('R7');
@@ -139,8 +143,9 @@ describe('micro8-language', () => {
       expect(micro8MonarchLanguage.registers).toContain('B');
       expect(micro8MonarchLanguage.registers).toContain('H');
       expect(micro8MonarchLanguage.registers).toContain('L');
-      // Stack pointer and register pairs
+      // Stack pointer, program counter, and register pairs
       expect(micro8MonarchLanguage.registers).toContain('SP');
+      expect(micro8MonarchLanguage.registers).toContain('PC');
       expect(micro8MonarchLanguage.registers).toContain('HL');
       expect(micro8MonarchLanguage.registers).toContain('BC');
       expect(micro8MonarchLanguage.registers).toContain('DE');
@@ -150,6 +155,25 @@ describe('micro8-language', () => {
       expect(micro8MonarchLanguage.tokenizer).toBeDefined();
       expect(micro8MonarchLanguage.tokenizer.root).toBeDefined();
       expect(Array.isArray(micro8MonarchLanguage.tokenizer.root)).toBe(true);
+    });
+  });
+
+  describe('mnemonic completeness (CR M-1)', () => {
+    it('should have exactly 68 unique instruction mnemonics across all keyword categories', () => {
+      const allMnemonics = [
+        ...micro8MonarchLanguage.controlKeywords,
+        ...micro8MonarchLanguage.jumpKeywords,
+        ...micro8MonarchLanguage.memoryKeywords,
+        ...micro8MonarchLanguage.arithmeticKeywords,
+        ...micro8MonarchLanguage.logicKeywords,
+        ...micro8MonarchLanguage.stackKeywords,
+        ...micro8MonarchLanguage.ioKeywords,
+        ...micro8MonarchLanguage.flagKeywords,
+      ] as string[];
+      expect(allMnemonics).toHaveLength(68);
+      // Verify no duplicates across categories
+      const unique = new Set(allMnemonics);
+      expect(unique.size).toBe(68);
     });
   });
 
@@ -388,6 +412,12 @@ describe('micro8-language', () => {
       const result = getMatchingRule('HL');
       expect(result).not.toBeNull();
       expect(micro8MonarchLanguage.registers).toContain('HL');
+    });
+
+    it('should match program counter (PC) as register (CR L-2)', () => {
+      const result = getMatchingRule('PC');
+      expect(result).not.toBeNull();
+      expect(micro8MonarchLanguage.registers).toContain('PC');
     });
 
     it('should match label references as identifiers', () => {

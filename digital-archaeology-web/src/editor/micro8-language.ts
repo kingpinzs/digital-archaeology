@@ -1,5 +1,5 @@
 // src/editor/micro8-language.ts
-// Micro8 assembly language definition for Monaco Editor (Story 11.4)
+// Micro8 assembly language definition for Monaco Editor (Stories 11.4, 12.3)
 
 import * as monaco from 'monaco-editor';
 
@@ -106,7 +106,7 @@ export const micro8MonarchLanguage: monaco.languages.IMonarchLanguage = {
   registers: [
     'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7',
     'A', 'B', 'C', 'D', 'E', 'H', 'L',
-    'SP', 'HL', 'BC', 'DE',
+    'SP', 'PC', 'HL', 'BC', 'DE',
   ],
 
   tokenizer: {

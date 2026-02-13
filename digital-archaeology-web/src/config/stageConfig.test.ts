@@ -123,7 +123,7 @@ describe('stageConfig', () => {
     });
 
     it('should have null WASM paths for stages without WASM assets', () => {
-      // micro8 has emulatorJs (Story 12.1) but no assemblerJs yet
+      // micro8 has both emulatorJs (Story 12.1) and assemblerJs (Story 12.2)
       // micro16+ have no WASM assets at all
       const fullyNullWasmStages: LabStage[] = ['micro16', 'micro32', 'micro32p', 'micro32s'];
       for (const stage of fullyNullWasmStages) {
@@ -133,10 +133,10 @@ describe('stageConfig', () => {
       }
     });
 
-    it('should have micro8 emulatorJs path but null assemblerJs (Story 12.1)', () => {
+    it('should have micro8 emulatorJs and assemblerJs paths (Stories 12.1, 12.2)', () => {
       const config = getStageConfig('micro8');
       expect(config.wasm.emulatorJs).toBe('wasm/micro8-cpu.js');
-      expect(config.wasm.assemblerJs).toBeNull();
+      expect(config.wasm.assemblerJs).toBe('wasm/micro8-asm.js');
     });
 
     it('should have programs directory for micro8 and micro16', () => {

@@ -92,7 +92,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
   micro8: {
     meta: STAGE_METADATA.micro8,
     ready: false,
-    wasm: { emulatorJs: null, assemblerJs: null },
+    wasm: { emulatorJs: 'wasm/micro8-cpu.js', assemblerJs: null },
     circuit: { path: null },
     hdl: { path: null },
     programs: { directory: 'programs/micro8/' },

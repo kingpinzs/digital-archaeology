@@ -9,8 +9,10 @@
 
 import type {
   EmulatorModule,
+  Micro8EmulatorModule,
   EmulatorCommand,
   CPUState,
+  Micro8CPUState,
   StateUpdateEvent,
   HaltedEvent,
   EmulatorErrorEvent,
@@ -20,15 +22,22 @@ import type {
   RuntimeErrorType,
   RuntimeErrorContext,
 } from './types';
-import { validateEmulatorModule } from './types';
+import { validateEmulatorModule, validateMicro8EmulatorModule } from './types';
 
 // Self is typed as DedicatedWorkerGlobalScope via reference lib above
 declare const self: DedicatedWorkerGlobalScope;
 
 /**
  * Global WASM module instance, initialized on worker startup.
+ * Can be either Micro4 (EmulatorModule) or Micro8 (Micro8EmulatorModule).
  */
-let wasmModule: EmulatorModule | null = null;
+let wasmModule: EmulatorModule | Micro8EmulatorModule | null = null;
+
+/**
+ * Current stage identifier. Set during INIT_WASM, used to dispatch
+ * stage-specific validation and state reading.
+ */
+let currentStage: string | null = null;
 
 /**
  * Initialization error message, if WASM loading failed.
@@ -225,7 +234,7 @@ export function isEmulatorCommand(data: unknown): data is EmulatorCommand {
         typeof payload.address === 'number' &&
         Number.isFinite(payload.address) &&
         payload.address >= 0 &&
-        payload.address <= 255
+        payload.address <= 65535
       );
     }
     case 'CLEAR_BREAKPOINT': {
@@ -237,7 +246,7 @@ export function isEmulatorCommand(data: unknown): data is EmulatorCommand {
         typeof payload.address === 'number' &&
         Number.isFinite(payload.address) &&
         payload.address >= 0 &&
-        payload.address <= 255
+        payload.address <= 65535
       );
     }
     case 'GET_BREAKPOINTS':
@@ -286,11 +295,65 @@ export function readCPUState(module: EmulatorModule): CPUState {
 }
 
 /**
+ * Read current CPU state from a Micro8 WASM module.
+ * Creates a copy of 64KB memory to avoid detached buffer issues.
+ * Sets accumulator to 0 for CPUState compatibility with existing UI consumers.
+ */
+export function readMicro8CPUState(module: Micro8EmulatorModule): Micro8CPUState {
+  const hasError = module._has_error() === 1;
+
+  // Read all 8 registers
+  const registers: number[] = [];
+  for (let i = 0; i < 8; i++) {
+    registers.push(module._get_reg(i));
+  }
+
+  return {
+    pc: module._get_pc(),
+    accumulator: 0, // Compatibility placeholder — Micro8 uses registers, not accumulator
+    zeroFlag: module._get_zero_flag() === 1,
+    halted: module._is_halted() === 1,
+    error: hasError,
+    errorMessage: hasError
+      ? module.UTF8ToString(module._get_error_message())
+      : null,
+    // 64KB memory for Micro8
+    memory: new Uint8Array(
+      module.HEAPU8.buffer,
+      module._get_memory_ptr(),
+      65536
+    ).slice(),
+    ir: module._get_ir(),
+    mar: module._get_mar(),
+    mdr: module._get_mdr(),
+    cycles: module._get_cycles(),
+    instructions: module._get_instructions(),
+    // Micro8-specific fields
+    registers,
+    sp: module._get_sp(),
+    carryFlag: module._get_carry_flag() === 1,
+    signFlag: module._get_sign_flag() === 1,
+    overflowFlag: module._get_overflow_flag() === 1,
+  };
+}
+
+/**
+ * Read CPU state from the module, dispatching to the correct reader
+ * based on the current stage.
+ */
+export function readStateFromModule(module: EmulatorModule | Micro8EmulatorModule): CPUState {
+  if (currentStage === 'micro8') {
+    return readMicro8CPUState(module as Micro8EmulatorModule);
+  }
+  return readCPUState(module as EmulatorModule);
+}
+
+/**
  * Handle LOAD_PROGRAM command.
  * Resets CPU, copies binary to WASM memory, loads into CPU.
  */
 export function handleLoadProgram(
-  module: EmulatorModule,
+  module: EmulatorModule | Micro8EmulatorModule,
   binary: Uint8Array | ArrayLike<number>,
   startAddr: number = 0
 ): void {
@@ -316,7 +379,7 @@ export function handleLoadProgram(
   // Send state update
   self.postMessage({
     type: 'STATE_UPDATE',
-    payload: readCPUState(module),
+    payload: readStateFromModule(module),
   } satisfies StateUpdateEvent);
 }
 
@@ -331,12 +394,12 @@ export function handleLoadProgram(
  * This is intentional: STEP should always advance execution by one instruction,
  * while RUN should stop before executing code at a breakpoint address.
  */
-export function handleStep(module: EmulatorModule): void {
+export function handleStep(module: EmulatorModule | Micro8EmulatorModule): void {
   // Don't step if already halted or in error state
   if (module._is_halted() === 1 || module._has_error() === 1) {
     self.postMessage({
       type: 'STATE_UPDATE',
-      payload: readCPUState(module),
+      payload: readStateFromModule(module),
     } satisfies StateUpdateEvent);
     return;
   }
@@ -348,7 +411,7 @@ export function handleStep(module: EmulatorModule): void {
   if (module._is_halted() === 1) {
     self.postMessage({
       type: 'STATE_UPDATE',
-      payload: readCPUState(module),
+      payload: readStateFromModule(module),
     } satisfies StateUpdateEvent);
     self.postMessage({ type: 'HALTED' } satisfies HaltedEvent);
     return;
@@ -362,7 +425,7 @@ export function handleStep(module: EmulatorModule): void {
       payload: {
         message: errorMessage,
         address: module._get_pc(),
-        context: buildErrorContext(module, errorMessage),
+        context: buildErrorContext(module as EmulatorModule, errorMessage),
       },
     } satisfies EmulatorErrorEvent);
     return;
@@ -380,7 +443,7 @@ export function handleStep(module: EmulatorModule): void {
   // Send state update
   self.postMessage({
     type: 'STATE_UPDATE',
-    payload: readCPUState(module),
+    payload: readStateFromModule(module),
   } satisfies StateUpdateEvent);
 }
 
@@ -391,7 +454,7 @@ export function handleStep(module: EmulatorModule): void {
  * @param module - The WASM emulator module
  * @param speed - Instructions per ~16ms tick. 0 = max speed (1000 per tick, 0ms interval)
  */
-function startRunInterval(module: EmulatorModule, speed: number): void {
+function startRunInterval(module: EmulatorModule | Micro8EmulatorModule, speed: number): void {
   const instructionsPerTick = speed === 0 ? 1000 : Math.max(1, Math.floor(speed));
   const intervalMs = speed === 0 ? 0 : 16; // ~60fps for throttled, 0 for max
 
@@ -402,7 +465,7 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
         handleStop();
         self.postMessage({
           type: 'STATE_UPDATE',
-          payload: readCPUState(module),
+          payload: readStateFromModule(module),
         } satisfies StateUpdateEvent);
         self.postMessage({ type: 'HALTED' } satisfies HaltedEvent);
         return;
@@ -417,7 +480,7 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
           payload: {
             message: errorMessage,
             address: module._get_pc(),
-            context: buildErrorContext(module, errorMessage),
+            context: buildErrorContext(module as EmulatorModule, errorMessage),
           },
         } satisfies EmulatorErrorEvent);
         return;
@@ -429,7 +492,7 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
         handleStop();
         self.postMessage({
           type: 'STATE_UPDATE',
-          payload: readCPUState(module),
+          payload: readStateFromModule(module),
         } satisfies StateUpdateEvent);
         self.postMessage({
           type: 'BREAKPOINT_HIT',
@@ -445,7 +508,7 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
     // Send state update (throttled to once per tick)
     self.postMessage({
       type: 'STATE_UPDATE',
-      payload: readCPUState(module),
+      payload: readStateFromModule(module),
     } satisfies StateUpdateEvent);
   }, intervalMs);
 }
@@ -455,7 +518,7 @@ function startRunInterval(module: EmulatorModule, speed: number): void {
  * Start continuous execution with configurable speed.
  * @param speed - Instructions per ~16ms tick. 0 = max speed (1000 per tick, 0ms interval)
  */
-export function handleRun(module: EmulatorModule, speed: number): void {
+export function handleRun(module: EmulatorModule | Micro8EmulatorModule, speed: number): void {
   // Don't start if already running
   if (runIntervalId !== null) {
     return;
@@ -465,7 +528,7 @@ export function handleRun(module: EmulatorModule, speed: number): void {
   if (module._is_halted() === 1 || module._has_error() === 1) {
     self.postMessage({
       type: 'STATE_UPDATE',
-      payload: readCPUState(module),
+      payload: readStateFromModule(module),
     } satisfies StateUpdateEvent);
     return;
   }
@@ -491,7 +554,7 @@ export function handleStop(): void {
  * @param module - The WASM emulator module
  * @param speed - New execution speed (0 = max speed, >0 = instructions per ~16ms tick)
  */
-export function handleSetSpeed(module: EmulatorModule, speed: number): void {
+export function handleSetSpeed(module: EmulatorModule | Micro8EmulatorModule, speed: number): void {
   // Only update if currently running
   if (runIntervalId === null) {
     return;
@@ -507,7 +570,7 @@ export function handleSetSpeed(module: EmulatorModule, speed: number): void {
  * Reset CPU state (preserves memory) and return new state.
  * Also clears all breakpoints (Task 2.5, Story 5.8).
  */
-export function handleReset(module: EmulatorModule): void {
+export function handleReset(module: EmulatorModule | Micro8EmulatorModule): void {
   // Stop any running execution
   handleStop();
 
@@ -520,7 +583,7 @@ export function handleReset(module: EmulatorModule): void {
   // Send state update
   self.postMessage({
     type: 'STATE_UPDATE',
-    payload: readCPUState(module),
+    payload: readStateFromModule(module),
   } satisfies StateUpdateEvent);
 
   // Notify main thread that breakpoints were cleared
@@ -534,10 +597,10 @@ export function handleReset(module: EmulatorModule): void {
  * Handle GET_STATE command.
  * Return current CPU state without modifying anything.
  */
-export function handleGetState(module: EmulatorModule): void {
+export function handleGetState(module: EmulatorModule | Micro8EmulatorModule): void {
   self.postMessage({
     type: 'STATE_UPDATE',
-    payload: readCPUState(module),
+    payload: readStateFromModule(module),
   } satisfies StateUpdateEvent);
 }
 
@@ -560,7 +623,7 @@ export function handleGetState(module: EmulatorModule): void {
  * @param state - The CPU state to restore
  */
 export function handleRestoreState(
-  module: EmulatorModule,
+  module: EmulatorModule | Micro8EmulatorModule,
   state: CPUState
 ): void {
   // Stop any running execution
@@ -585,7 +648,7 @@ export function handleRestoreState(
   // Note: PC and other registers are reset to initial values by cpu_reset_instance
   self.postMessage({
     type: 'STATE_UPDATE',
-    payload: readCPUState(module),
+    payload: readStateFromModule(module),
   } satisfies StateUpdateEvent);
 }
 
@@ -593,7 +656,7 @@ export function handleRestoreState(
  * Handle SET_BREAKPOINT command (Story 5.8).
  * Add a breakpoint at the specified address.
  *
- * @param address - Memory address to set breakpoint at (0-255)
+ * @param address - Memory address to set breakpoint at (0-65535)
  */
 export function handleSetBreakpoint(address: number): void {
   breakpoints.add(address);
@@ -609,7 +672,7 @@ export function handleSetBreakpoint(address: number): void {
  * Handle CLEAR_BREAKPOINT command (Story 5.8).
  * Remove a breakpoint at the specified address.
  *
- * @param address - Memory address to clear breakpoint from (0-255)
+ * @param address - Memory address to clear breakpoint from (0-65535)
  */
 export function handleClearBreakpoint(address: number): void {
   breakpoints.delete(address);
@@ -639,26 +702,47 @@ export function handleGetBreakpoints(): void {
  *
  * @param wasmJsPath - Path to WASM JS glue file relative to BASE_URL (e.g., 'wasm/micro4-cpu.js')
  */
-async function initializeWasm(wasmJsPath: string): Promise<boolean> {
+async function initializeWasm(wasmJsPath: string, stage: string = 'micro4'): Promise<boolean> {
   try {
     // Dynamic import for WASM module using absolute path from origin.
     // The @vite-ignore comment prevents Vite from statically analyzing this import,
     // which is necessary since the WASM is served from /public at runtime.
     const wasmUrl = new URL(`${import.meta.env.BASE_URL}${wasmJsPath}`, self.location.origin).href;
     const createModule = await import(/* @vite-ignore */ wasmUrl);
-    const module: EmulatorModule = await createModule.default();
+    const module = await createModule.default();
 
-    // Validate the module loaded correctly
-    const validationError = validateEmulatorModule(module);
-    if (validationError) {
-      initError = `WASM validation failed: missing exports [${validationError.missingExports.join(', ')}], missing runtime methods [${validationError.missingRuntimeMethods.join(', ')}]`;
-      return false;
+    // Stage-aware validation
+    if (stage === 'micro8') {
+      const validationError = validateMicro8EmulatorModule(module);
+      if (validationError) {
+        initError = `WASM validation failed: missing exports [${validationError.missingExports.join(', ')}], missing runtime methods [${validationError.missingRuntimeMethods.join(', ')}]`;
+        return false;
+      }
+
+      wasmModule = module as Micro8EmulatorModule;
+      currentStage = stage;
+
+      // Initialize CPU on load — Micro8 init returns 1 on success, 0 on failure
+      const initResult = (module as Micro8EmulatorModule)._cpu_init_instance();
+      if (initResult === 0) {
+        initError = 'Micro8 CPU initialization failed (memory allocation error)';
+        wasmModule = null;
+        currentStage = null;
+        return false;
+      }
+    } else {
+      const validationError = validateEmulatorModule(module);
+      if (validationError) {
+        initError = `WASM validation failed: missing exports [${validationError.missingExports.join(', ')}], missing runtime methods [${validationError.missingRuntimeMethods.join(', ')}]`;
+        return false;
+      }
+
+      wasmModule = module as EmulatorModule;
+      currentStage = stage;
+
+      // Initialize CPU on load
+      (module as EmulatorModule)._cpu_init_instance();
     }
-
-    wasmModule = module;
-
-    // Initialize CPU on load
-    module._cpu_init_instance();
 
     return true;
   } catch (error) {
@@ -685,7 +769,8 @@ function handleMessage(event: MessageEvent): void {
       return;
     }
     const wasmJsPath = (rawPayload as { wasmJsPath: string }).wasmJsPath;
-    initializeWasm(wasmJsPath).then((success) => {
+    const stage = (rawPayload as { wasmJsPath: string; stage?: string }).stage ?? 'micro4';
+    initializeWasm(wasmJsPath, stage).then((success) => {
       if (success) {
         self.postMessage({ type: 'EMULATOR_READY' } satisfies EmulatorReadyEvent);
       } else {
@@ -745,7 +830,7 @@ function handleMessage(event: MessageEvent): void {
       // Send state update so UI reflects current state after stopping
       self.postMessage({
         type: 'STATE_UPDATE',
-        payload: readCPUState(wasmModule),
+        payload: readStateFromModule(wasmModule),
       } satisfies StateUpdateEvent);
       break;
     }

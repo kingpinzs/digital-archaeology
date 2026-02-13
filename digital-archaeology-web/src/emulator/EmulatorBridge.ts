@@ -217,7 +217,7 @@ export class EmulatorBridge {
       }
       this.worker.postMessage({
         type: 'INIT_WASM',
-        payload: { wasmJsPath },
+        payload: { wasmJsPath, stage: this.stage },
       } satisfies InitWasmCommand);
     });
   }

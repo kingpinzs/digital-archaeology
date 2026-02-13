@@ -187,6 +187,41 @@ describe('EmulatorBridge', () => {
 
       vi.useRealTimers();
     });
+
+    it('should send INIT_WASM payload with stage: micro4 by default (Story 12.1)', async () => {
+      const initPromise = bridge.init();
+      mockWorker.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      const initWasmCalls = mockWorker.postMessage.mock.calls.filter(
+        (call) => call[0]?.type === 'INIT_WASM'
+      );
+      expect(initWasmCalls.length).toBe(1);
+      expect(initWasmCalls[0][0].payload.stage).toBe('micro4');
+    });
+
+    it('should send INIT_WASM payload with stage: micro8 when initialized with micro8 (Story 12.1)', async () => {
+      const micro8Bridge = new EmulatorBridge();
+      const freshMock = new MockWorker();
+      class FreshMockWorkerConstructor {
+        constructor() {
+          return freshMock;
+        }
+      }
+      vi.stubGlobal('Worker', FreshMockWorkerConstructor);
+
+      const initPromise = micro8Bridge.init('micro8');
+      freshMock.simulateMessage({ type: 'EMULATOR_READY' });
+      await initPromise;
+
+      const initWasmCalls = freshMock.postMessage.mock.calls.filter(
+        (call) => call[0]?.type === 'INIT_WASM'
+      );
+      expect(initWasmCalls.length).toBe(1);
+      expect(initWasmCalls[0][0].payload.stage).toBe('micro8');
+
+      micro8Bridge.terminate();
+    });
   });
 
   describe('loadProgram()', () => {

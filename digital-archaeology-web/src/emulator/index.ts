@@ -27,6 +27,10 @@ export type {
   EmulatorModule,
   EmulatorModuleFactory,
   CPUState,
+  // Story 12.1: Micro8 emulator types
+  Micro8EmulatorModule,
+  Micro8EmulatorModuleFactory,
+  Micro8CPUState,
   LoadProgramCommand,
   StepCommand,
   RunCommand,
@@ -55,6 +59,11 @@ export {
   validateEmulatorModule,
   REQUIRED_EMULATOR_EXPORTS,
   REQUIRED_EMULATOR_RUNTIME_METHODS,
+  // Story 12.1: Micro8 validation
+  validateMicro8EmulatorModule,
+  REQUIRED_MICRO8_EMULATOR_EXPORTS,
+  REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS,
+  isMicro8CPUState,
 } from './types';
 
 // Bridge exports

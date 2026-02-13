@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   isEmulatorCommand,
   readCPUState,
+  readMicro8CPUState,
   handleLoadProgram,
   handleStep,
   handleRun,
@@ -19,7 +20,8 @@ import {
   classifyError,
   buildErrorContext,
 } from './emulator.worker';
-import type { EmulatorModule, EmulatorCommand, CPUState } from './types';
+import type { EmulatorModule, EmulatorCommand, CPUState, Micro8EmulatorModule } from './types';
+import { isMicro8CPUState } from './types';
 
 /**
  * Create a mock EmulatorModule for testing.
@@ -61,6 +63,58 @@ function createMockModule(overrides: Partial<EmulatorModule> = {}): EmulatorModu
     // Statistics
     _get_cycles: vi.fn(() => 0),
     _get_instructions: vi.fn(() => 0),
+
+    ...overrides,
+  };
+}
+
+/**
+ * Create a mock Micro8EmulatorModule for testing.
+ * All functions return sensible defaults that can be overridden per test.
+ */
+function createMockMicro8Module(overrides: Partial<Micro8EmulatorModule> = {}): Micro8EmulatorModule {
+  // Create a mock HEAPU8 with 65536+ bytes for Micro8 memory
+  const heapBuffer = new ArrayBuffer(131072);
+  const heapU8 = new Uint8Array(heapBuffer);
+
+  return {
+    ccall: vi.fn(),
+    cwrap: vi.fn(),
+    HEAPU8: heapU8,
+    UTF8ToString: vi.fn((ptr: number) => `error at ${ptr}`),
+    _malloc: vi.fn((_size: number) => 65536),
+    _free: vi.fn(),
+
+    // CPU lifecycle
+    _cpu_init_instance: vi.fn(() => 1), // Returns 1 on success
+    _cpu_reset_instance: vi.fn(),
+    _cpu_step_instance: vi.fn(() => 2),
+    _cpu_load_program_instance: vi.fn(),
+
+    // State accessors (shared with Micro4)
+    _get_pc: vi.fn(() => 0),
+    _get_zero_flag: vi.fn(() => 0),
+    _is_halted: vi.fn(() => 0),
+    _has_error: vi.fn(() => 0),
+    _get_error_message: vi.fn(() => 0),
+    _get_memory_ptr: vi.fn(() => 0),
+
+    // Internal registers (shared)
+    _get_ir: vi.fn(() => 0),
+    _get_mar: vi.fn(() => 0),
+    _get_mdr: vi.fn(() => 0),
+
+    // Statistics (shared)
+    _get_cycles: vi.fn(() => 0),
+    _get_instructions: vi.fn(() => 0),
+
+    // Micro8-specific accessors
+    _get_reg: vi.fn((_i: number) => 0),
+    _get_sp: vi.fn(() => 0xFFFF),
+    _get_flags: vi.fn(() => 0),
+    _get_carry_flag: vi.fn(() => 0),
+    _get_sign_flag: vi.fn(() => 0),
+    _get_overflow_flag: vi.fn(() => 0),
 
     ...overrides,
   };
@@ -1085,6 +1139,155 @@ describe('Emulator Worker', () => {
     it('should be case-insensitive', () => {
       expect(classifyError('MEMORY ERROR')).toBe('MEMORY_ERROR');
       expect(classifyError('Stack OVERFLOW')).toBe('STACK_OVERFLOW');
+    });
+  });
+
+  describe('readMicro8CPUState (Story 12.1)', () => {
+    it('should read all 8 registers via _get_reg loop', () => {
+      const module = createMockMicro8Module({
+        _get_reg: vi.fn((i: number) => (i + 1) * 10), // R0=10, R1=20, ..., R7=80
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.registers).toHaveLength(8);
+      expect(state.registers[0]).toBe(10);
+      expect(state.registers[7]).toBe(80);
+      expect(module._get_reg).toHaveBeenCalledTimes(8);
+    });
+
+    it('should read 16-bit stack pointer', () => {
+      const module = createMockMicro8Module({
+        _get_sp: vi.fn(() => 0xFFFE),
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.sp).toBe(0xFFFE);
+    });
+
+    it('should read all 4 flags', () => {
+      const module = createMockMicro8Module({
+        _get_zero_flag: vi.fn(() => 1),
+        _get_carry_flag: vi.fn(() => 1),
+        _get_sign_flag: vi.fn(() => 0),
+        _get_overflow_flag: vi.fn(() => 1),
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.zeroFlag).toBe(true);
+      expect(state.carryFlag).toBe(true);
+      expect(state.signFlag).toBe(false);
+      expect(state.overflowFlag).toBe(true);
+    });
+
+    it('should read 64KB memory', () => {
+      const module = createMockMicro8Module();
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.memory).toBeInstanceOf(Uint8Array);
+      expect(state.memory.length).toBe(65536);
+    });
+
+    it('should set accumulator to 0 for CPUState compatibility', () => {
+      const module = createMockMicro8Module();
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.accumulator).toBe(0);
+    });
+
+    it('should satisfy isMicro8CPUState type guard', () => {
+      const module = createMockMicro8Module({
+        _get_reg: vi.fn((i: number) => i),
+        _get_sp: vi.fn(() => 0xFF00),
+        _get_carry_flag: vi.fn(() => 1),
+        _get_sign_flag: vi.fn(() => 0),
+        _get_overflow_flag: vi.fn(() => 1),
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(isMicro8CPUState(state)).toBe(true);
+    });
+
+    it('should read error state correctly', () => {
+      const module = createMockMicro8Module({
+        _has_error: vi.fn(() => 1),
+        _get_error_message: vi.fn(() => 200),
+        UTF8ToString: vi.fn(() => 'Stack overflow'),
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.error).toBe(true);
+      expect(state.errorMessage).toBe('Stack overflow');
+    });
+
+    it('should read internal registers (ir, mar, mdr)', () => {
+      const module = createMockMicro8Module({
+        _get_ir: vi.fn(() => 0xAB),
+        _get_mar: vi.fn(() => 0x1234),
+        _get_mdr: vi.fn(() => 0xCD),
+      });
+
+      const state = readMicro8CPUState(module);
+
+      expect(state.ir).toBe(0xAB);
+      expect(state.mar).toBe(0x1234);
+      expect(state.mdr).toBe(0xCD);
+    });
+  });
+
+  describe('breakpoint address validation (Story 12.1)', () => {
+    it('should accept breakpoint at address 65535 (Micro8 max)', () => {
+      const command = {
+        type: 'SET_BREAKPOINT',
+        payload: { address: 65535 },
+      };
+      expect(isEmulatorCommand(command)).toBe(true);
+    });
+
+    it('should reject breakpoint at address 65536', () => {
+      const command = {
+        type: 'SET_BREAKPOINT',
+        payload: { address: 65536 },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should accept CLEAR_BREAKPOINT at address 65535', () => {
+      const command = {
+        type: 'CLEAR_BREAKPOINT',
+        payload: { address: 65535 },
+      };
+      expect(isEmulatorCommand(command)).toBe(true);
+    });
+
+    it('should reject CLEAR_BREAKPOINT at address 65536', () => {
+      const command = {
+        type: 'CLEAR_BREAKPOINT',
+        payload: { address: 65536 },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
+    });
+
+    it('should still accept address 0', () => {
+      const command = {
+        type: 'SET_BREAKPOINT',
+        payload: { address: 0 },
+      };
+      expect(isEmulatorCommand(command)).toBe(true);
+    });
+
+    it('should still reject negative addresses', () => {
+      const command = {
+        type: 'SET_BREAKPOINT',
+        payload: { address: -1 },
+      };
+      expect(isEmulatorCommand(command)).toBe(false);
     });
   });
 

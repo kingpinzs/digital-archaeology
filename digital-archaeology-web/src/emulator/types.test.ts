@@ -33,6 +33,11 @@ import type {
   RuntimeErrorContext,
   SignalValue,
 } from './types';
+import type {
+  Micro8EmulatorModule,
+  Micro8EmulatorModuleFactory,
+  Micro8CPUState,
+} from './types';
 import {
   validateAssemblerModule,
   REQUIRED_WASM_EXPORTS,
@@ -40,6 +45,10 @@ import {
   validateEmulatorModule,
   REQUIRED_EMULATOR_EXPORTS,
   REQUIRED_EMULATOR_RUNTIME_METHODS,
+  validateMicro8EmulatorModule,
+  REQUIRED_MICRO8_EMULATOR_EXPORTS,
+  REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS,
+  isMicro8CPUState,
 } from './types';
 
 describe('Emulator Types', () => {
@@ -1505,6 +1514,544 @@ describe('Expected CPU Emulator Behavior', () => {
 
       expect(expectedError.setsError).toBe(true);
       expect(expectedError.setsHalted).toBe(true);
+    });
+  });
+});
+
+/* ============================================================================
+ * Micro8 CPU Emulator Module Types Tests (Story 12.1)
+ * ============================================================================ */
+
+describe('Micro8 CPU Emulator Types (Story 12.1)', () => {
+  describe('Micro8EmulatorModule interface', () => {
+    it('should define all required WASM wrapper methods including Micro8-specific ones', () => {
+      const mockModule: Partial<Micro8EmulatorModule> = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => 1,
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_reg: () => 0,
+        _get_sp: () => 0,
+        _get_pc: () => 0,
+        _get_flags: () => 0,
+        _get_zero_flag: () => 0,
+        _get_carry_flag: () => 0,
+        _get_sign_flag: () => 0,
+        _get_overflow_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+      };
+
+      // Micro8-specific: init returns number (1=success, 0=failure)
+      expect(mockModule._cpu_init_instance).toBeDefined();
+      expect(typeof mockModule._cpu_init_instance!()).toBe('number');
+
+      // Micro8-specific: register array access
+      expect(mockModule._get_reg).toBeDefined();
+
+      // Micro8-specific: stack pointer
+      expect(mockModule._get_sp).toBeDefined();
+
+      // Micro8-specific: 4 flags
+      expect(mockModule._get_flags).toBeDefined();
+      expect(mockModule._get_carry_flag).toBeDefined();
+      expect(mockModule._get_sign_flag).toBeDefined();
+      expect(mockModule._get_overflow_flag).toBeDefined();
+    });
+
+    it('should have _cpu_init_instance return number (not void like Micro4)', () => {
+      // Micro8 uses dynamic memory allocation, so init can fail
+      const mockModule: Partial<Micro8EmulatorModule> = {
+        _cpu_init_instance: () => 1,
+      };
+
+      const result = mockModule._cpu_init_instance!();
+      expect(result).toBe(1); // 1 = success
+      expect(typeof result).toBe('number');
+    });
+
+    it('should have _get_reg that accepts an index parameter', () => {
+      // Micro8 has 8 registers accessed by index (0-7)
+      const mockModule: Partial<Micro8EmulatorModule> = {
+        _get_reg: (index: number) => index * 10,
+      };
+
+      expect(mockModule._get_reg!(0)).toBe(0);
+      expect(mockModule._get_reg!(3)).toBe(30);
+      expect(mockModule._get_reg!(7)).toBe(70);
+    });
+  });
+
+  describe('Micro8EmulatorModuleFactory', () => {
+    it('should be a function that returns a Promise<Micro8EmulatorModule>', async () => {
+      const mockFactory: Micro8EmulatorModuleFactory = async () => {
+        return {
+          ccall: () => 0,
+          cwrap: () => () => 0,
+          HEAPU8: new Uint8Array(0),
+          UTF8ToString: () => '',
+          _malloc: () => 0,
+          _free: () => {},
+          _cpu_init_instance: () => 1,
+          _cpu_reset_instance: () => {},
+          _cpu_step_instance: () => 0,
+          _cpu_load_program_instance: () => {},
+          _get_reg: () => 0,
+          _get_sp: () => 0,
+          _get_pc: () => 0,
+          _get_flags: () => 0,
+          _get_zero_flag: () => 0,
+          _get_carry_flag: () => 0,
+          _get_sign_flag: () => 0,
+          _get_overflow_flag: () => 0,
+          _is_halted: () => 0,
+          _has_error: () => 0,
+          _get_error_message: () => 0,
+          _get_memory_ptr: () => 0,
+          _get_ir: () => 0,
+          _get_mar: () => 0,
+          _get_mdr: () => 0,
+          _get_cycles: () => 0,
+          _get_instructions: () => 0,
+        };
+      };
+
+      const module = await mockFactory();
+      expect(module).toBeDefined();
+      expect(typeof module._cpu_init_instance).toBe('function');
+      expect(typeof module._get_reg).toBe('function');
+      expect(typeof module._get_sp).toBe('function');
+    });
+  });
+});
+
+describe('Micro8 WASM Module Validation (Story 12.1)', () => {
+  describe('REQUIRED_MICRO8_EMULATOR_EXPORTS', () => {
+    it('should include all required Micro8 CPU function exports', () => {
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_cpu_init_instance');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_cpu_reset_instance');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_cpu_step_instance');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_cpu_load_program_instance');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_reg');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_sp');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_pc');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_flags');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_zero_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_carry_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_sign_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_overflow_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_is_halted');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_has_error');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_error_message');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_memory_ptr');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_ir');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_mar');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_mdr');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_cycles');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_instructions');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_malloc');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_free');
+    });
+
+    it('should have exactly 23 required exports', () => {
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toHaveLength(23);
+    });
+
+    it('should NOT include Micro4-specific _get_accumulator', () => {
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).not.toContain('_get_accumulator');
+    });
+
+    it('should include Micro8-specific exports not in Micro4', () => {
+      // These exist in Micro8 but not in Micro4's REQUIRED_EMULATOR_EXPORTS
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_reg');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_sp');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_flags');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_carry_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_sign_flag');
+      expect(REQUIRED_MICRO8_EMULATOR_EXPORTS).toContain('_get_overflow_flag');
+
+      // Verify these are NOT in Micro4's list
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_reg');
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_sp');
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_flags');
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_carry_flag');
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_sign_flag');
+      expect(REQUIRED_EMULATOR_EXPORTS).not.toContain('_get_overflow_flag');
+    });
+
+    it('should have no duplicate entries', () => {
+      const unique = new Set(REQUIRED_MICRO8_EMULATOR_EXPORTS);
+      expect(unique.size).toBe(REQUIRED_MICRO8_EMULATOR_EXPORTS.length);
+    });
+  });
+
+  describe('REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS', () => {
+    it('should include all required Emscripten runtime methods', () => {
+      expect(REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS).toContain('ccall');
+      expect(REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS).toContain('cwrap');
+      expect(REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS).toContain('HEAPU8');
+      expect(REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS).toContain('UTF8ToString');
+    });
+
+    it('should match Micro4 runtime methods (consistent across stages)', () => {
+      expect(REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS).toEqual(
+        REQUIRED_EMULATOR_RUNTIME_METHODS
+      );
+    });
+  });
+
+  describe('validateMicro8EmulatorModule', () => {
+    const createValidMicro8Module = () => ({
+      ccall: () => 0,
+      cwrap: () => () => 0,
+      HEAPU8: new Uint8Array(0),
+      UTF8ToString: () => '',
+      _malloc: () => 0,
+      _free: () => {},
+      _cpu_init_instance: () => 1,
+      _cpu_reset_instance: () => {},
+      _cpu_step_instance: () => 0,
+      _cpu_load_program_instance: () => {},
+      _get_reg: () => 0,
+      _get_sp: () => 0,
+      _get_pc: () => 0,
+      _get_flags: () => 0,
+      _get_zero_flag: () => 0,
+      _get_carry_flag: () => 0,
+      _get_sign_flag: () => 0,
+      _get_overflow_flag: () => 0,
+      _is_halted: () => 0,
+      _has_error: () => 0,
+      _get_error_message: () => 0,
+      _get_memory_ptr: () => 0,
+      _get_ir: () => 0,
+      _get_mar: () => 0,
+      _get_mdr: () => 0,
+      _get_cycles: () => 0,
+      _get_instructions: () => 0,
+    });
+
+    it('should return null for valid Micro8 module with all exports', () => {
+      const error = validateMicro8EmulatorModule(createValidMicro8Module());
+      expect(error).toBeNull();
+    });
+
+    it('should detect missing Micro8-specific exports', () => {
+      const moduleWithMissingExports = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => 1,
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+        // Missing Micro8-specific: _get_reg, _get_sp, _get_flags, _get_carry_flag, _get_sign_flag, _get_overflow_flag
+      };
+
+      const error = validateMicro8EmulatorModule(moduleWithMissingExports);
+      expect(error).not.toBeNull();
+      expect(error?.missingExports).toContain('_get_reg');
+      expect(error?.missingExports).toContain('_get_sp');
+      expect(error?.missingExports).toContain('_get_flags');
+      expect(error?.missingExports).toContain('_get_carry_flag');
+      expect(error?.missingExports).toContain('_get_sign_flag');
+      expect(error?.missingExports).toContain('_get_overflow_flag');
+      expect(error?.missingRuntimeMethods).toHaveLength(0);
+    });
+
+    it('should detect missing runtime methods', () => {
+      const moduleWithMissingRuntime = {
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => 1,
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_reg: () => 0,
+        _get_sp: () => 0,
+        _get_pc: () => 0,
+        _get_flags: () => 0,
+        _get_zero_flag: () => 0,
+        _get_carry_flag: () => 0,
+        _get_sign_flag: () => 0,
+        _get_overflow_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+        // Missing: ccall, cwrap, HEAPU8, UTF8ToString
+      };
+
+      const error = validateMicro8EmulatorModule(moduleWithMissingRuntime);
+      expect(error).not.toBeNull();
+      expect(error?.missingRuntimeMethods).toContain('ccall');
+      expect(error?.missingRuntimeMethods).toContain('cwrap');
+      expect(error?.missingRuntimeMethods).toContain('HEAPU8');
+      expect(error?.missingRuntimeMethods).toContain('UTF8ToString');
+      expect(error?.missingExports).toHaveLength(0);
+    });
+
+    it('should reject null module', () => {
+      const error = validateMicro8EmulatorModule(null);
+      expect(error).not.toBeNull();
+      expect(error?.missingExports.length).toBeGreaterThan(0);
+      expect(error?.missingRuntimeMethods.length).toBeGreaterThan(0);
+    });
+
+    it('should reject undefined module', () => {
+      const error = validateMicro8EmulatorModule(undefined);
+      expect(error).not.toBeNull();
+    });
+
+    it('should reject non-object module', () => {
+      const error = validateMicro8EmulatorModule('not an object');
+      expect(error).not.toBeNull();
+    });
+
+    it('should detect when HEAPU8 is not a Uint8Array', () => {
+      const moduleWithBadHeap = {
+        ...createValidMicro8Module(),
+        HEAPU8: 'not a Uint8Array',
+      };
+
+      const error = validateMicro8EmulatorModule(moduleWithBadHeap);
+      expect(error).not.toBeNull();
+      expect(error?.missingRuntimeMethods).toContain('HEAPU8');
+    });
+
+    it('should NOT accept a Micro4 module as valid Micro8 module', () => {
+      // A Micro4 module has _get_accumulator but not _get_reg, _get_sp, etc.
+      const micro4Module = {
+        ccall: () => 0,
+        cwrap: () => () => 0,
+        HEAPU8: new Uint8Array(0),
+        UTF8ToString: () => '',
+        _malloc: () => 0,
+        _free: () => {},
+        _cpu_init_instance: () => {},
+        _cpu_reset_instance: () => {},
+        _cpu_step_instance: () => 0,
+        _cpu_load_program_instance: () => {},
+        _get_pc: () => 0,
+        _get_accumulator: () => 0,
+        _get_zero_flag: () => 0,
+        _is_halted: () => 0,
+        _has_error: () => 0,
+        _get_error_message: () => 0,
+        _get_memory_ptr: () => 0,
+        _get_ir: () => 0,
+        _get_mar: () => 0,
+        _get_mdr: () => 0,
+        _get_cycles: () => 0,
+        _get_instructions: () => 0,
+      };
+
+      const error = validateMicro8EmulatorModule(micro4Module);
+      expect(error).not.toBeNull();
+      expect(error?.missingExports).toContain('_get_reg');
+      expect(error?.missingExports).toContain('_get_sp');
+      expect(error?.missingExports).toContain('_get_flags');
+    });
+  });
+});
+
+/* ============================================================================
+ * Micro8CPUState and isMicro8CPUState Tests (Story 12.1)
+ * ============================================================================ */
+
+describe('Micro8CPUState (Story 12.1)', () => {
+  function createMicro8CPUState(overrides: Partial<Micro8CPUState> = {}): Micro8CPUState {
+    return {
+      pc: 0x0100,
+      accumulator: 0, // Compatibility placeholder
+      zeroFlag: false,
+      halted: false,
+      error: false,
+      errorMessage: null,
+      memory: new Uint8Array(65536),
+      ir: 0,
+      mar: 0,
+      mdr: 0,
+      cycles: 0,
+      instructions: 0,
+      registers: [0, 0, 0, 0, 0, 0, 0, 0],
+      sp: 0xFFFF,
+      carryFlag: false,
+      signFlag: false,
+      overflowFlag: false,
+      ...overrides,
+    };
+  }
+
+  describe('Micro8CPUState interface', () => {
+    it('should include all CPUState base fields plus Micro8-specific fields', () => {
+      const state = createMicro8CPUState({
+        pc: 0x0200,
+        registers: [10, 20, 30, 40, 50, 60, 70, 80],
+        sp: 0xFFFE,
+        carryFlag: true,
+        signFlag: true,
+        overflowFlag: false,
+      });
+
+      // Base CPUState fields
+      expect(state.pc).toBe(0x0200);
+      expect(state.accumulator).toBe(0); // Compat placeholder
+      expect(state.zeroFlag).toBe(false);
+      expect(state.halted).toBe(false);
+      expect(state.error).toBe(false);
+      expect(state.errorMessage).toBeNull();
+      expect(state.memory).toBeInstanceOf(Uint8Array);
+      expect(state.ir).toBe(0);
+      expect(state.mar).toBe(0);
+      expect(state.mdr).toBe(0);
+      expect(state.cycles).toBe(0);
+      expect(state.instructions).toBe(0);
+
+      // Micro8-specific fields
+      expect(state.registers).toEqual([10, 20, 30, 40, 50, 60, 70, 80]);
+      expect(state.sp).toBe(0xFFFE);
+      expect(state.carryFlag).toBe(true);
+      expect(state.signFlag).toBe(true);
+      expect(state.overflowFlag).toBe(false);
+    });
+
+    it('should be structurally compatible with CPUState (satisfies StateUpdateEvent.payload)', () => {
+      const micro8State: Micro8CPUState = createMicro8CPUState();
+      // Micro8CPUState extends CPUState, so it should be assignable to CPUState
+      const cpuState: CPUState = micro8State;
+
+      expect(cpuState.pc).toBe(micro8State.pc);
+      expect(cpuState.accumulator).toBe(0);
+    });
+
+    it('should have registers array with 8 elements', () => {
+      const state = createMicro8CPUState({
+        registers: [1, 2, 3, 4, 5, 6, 7, 8],
+      });
+
+      expect(state.registers).toHaveLength(8);
+      expect(state.registers[0]).toBe(1);
+      expect(state.registers[7]).toBe(8);
+    });
+
+    it('should support 64KB memory', () => {
+      const state = createMicro8CPUState();
+      expect(state.memory.length).toBe(65536);
+    });
+  });
+
+  describe('isMicro8CPUState type guard', () => {
+    it('should return true for a valid Micro8CPUState', () => {
+      const state = createMicro8CPUState();
+      expect(isMicro8CPUState(state)).toBe(true);
+    });
+
+    it('should return true with populated register values', () => {
+      const state = createMicro8CPUState({
+        registers: [0xFF, 0xAB, 0, 0, 0, 0, 0, 0x42],
+        sp: 0x8000,
+        carryFlag: true,
+        signFlag: false,
+        overflowFlag: true,
+      });
+      expect(isMicro8CPUState(state)).toBe(true);
+    });
+
+    it('should return false for a plain CPUState (Micro4)', () => {
+      const state: CPUState = {
+        pc: 0,
+        accumulator: 5,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        memory: new Uint8Array(256),
+        ir: 0,
+        mar: 0,
+        mdr: 0,
+        cycles: 0,
+        instructions: 0,
+      };
+      expect(isMicro8CPUState(state)).toBe(false);
+    });
+
+    it('should return false for partial Micro8 state (missing registers)', () => {
+      const partialState = {
+        pc: 0,
+        accumulator: 0,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        memory: new Uint8Array(256),
+        ir: 0,
+        mar: 0,
+        mdr: 0,
+        cycles: 0,
+        instructions: 0,
+        sp: 0xFFFF,
+        carryFlag: false,
+        signFlag: false,
+        overflowFlag: false,
+        // Missing: registers
+      } as CPUState;
+      expect(isMicro8CPUState(partialState)).toBe(false);
+    });
+
+    it('should return false when registers is not an array', () => {
+      const badState = {
+        pc: 0,
+        accumulator: 0,
+        zeroFlag: false,
+        halted: false,
+        error: false,
+        errorMessage: null,
+        memory: new Uint8Array(256),
+        ir: 0,
+        mar: 0,
+        mdr: 0,
+        cycles: 0,
+        instructions: 0,
+        registers: 'not an array',
+        sp: 0xFFFF,
+        carryFlag: false,
+        signFlag: false,
+        overflowFlag: false,
+      } as unknown as CPUState;
+      expect(isMicro8CPUState(badState)).toBe(false);
     });
   });
 });

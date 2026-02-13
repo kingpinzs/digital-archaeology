@@ -1,11 +1,12 @@
 #!/bin/bash
 # ============================================================================
-# Micro4 WASM Build Script
+# Digital Archaeology WASM Build Script
 # ============================================================================
 #
 # PURPOSE:
-#   Compiles the Micro4 assembler and CPU emulator from C to WebAssembly
+#   Compiles CPU emulators and assemblers from C to WebAssembly
 #   using Emscripten. The outputs can run in Web Workers in the browser.
+#   Currently supports: Micro4 (assembler + CPU), Micro8 (CPU).
 #
 # PREREQUISITES:
 #   1. Emscripten SDK (emsdk) must be installed and activated:
@@ -27,10 +28,12 @@
 #   ./build.sh
 #
 # OUTPUT:
-#   ../public/wasm/micro4-asm.js   - Assembler glue code (ES6 module)
-#   ../public/wasm/micro4-asm.wasm - Assembler WebAssembly binary
-#   ../public/wasm/micro4-cpu.js   - CPU emulator glue code (ES6 module)
-#   ../public/wasm/micro4-cpu.wasm - CPU emulator WebAssembly binary
+#   ../public/wasm/micro4-asm.js   - Micro4 assembler glue code (ES6 module)
+#   ../public/wasm/micro4-asm.wasm - Micro4 assembler WebAssembly binary
+#   ../public/wasm/micro4-cpu.js   - Micro4 CPU emulator glue code (ES6 module)
+#   ../public/wasm/micro4-cpu.wasm - Micro4 CPU emulator WebAssembly binary
+#   ../public/wasm/micro8-cpu.js   - Micro8 CPU emulator glue code (ES6 module)
+#   ../public/wasm/micro8-cpu.wasm - Micro8 CPU emulator WebAssembly binary
 #
 # CONFIGURATION:
 #   Build settings are in emscripten-config.json (optional, for reference).
@@ -49,6 +52,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Source paths (relative to project root's parent - the cpu_ideas repo)
 MICRO4_SRC="$(dirname "$PROJECT_ROOT")/src/micro4"
+MICRO8_SRC="$(dirname "$PROJECT_ROOT")/src/micro8"
 
 # Output path
 OUTPUT_DIR="$PROJECT_ROOT/public/wasm"
@@ -58,7 +62,7 @@ OUTPUT_DIR="$PROJECT_ROOT/public/wasm"
 # ---------------------------------------------------------------------------
 
 echo "=========================================="
-echo "Micro4 WASM Build (Assembler + CPU)"
+echo "Digital Archaeology WASM Build"
 echo "=========================================="
 echo ""
 
@@ -103,6 +107,18 @@ fi
 # Check for CPU source file
 if [ ! -f "$MICRO4_SRC/cpu.c" ]; then
     echo "ERROR: Micro4 CPU source not found at: $MICRO4_SRC/cpu.c"
+    exit 1
+fi
+
+# Check for Micro8 source files
+if [ ! -f "$MICRO8_SRC/cpu.c" ]; then
+    echo "ERROR: Micro8 CPU source not found at: $MICRO8_SRC/cpu.c"
+    exit 1
+fi
+
+if [ ! -f "$SCRIPT_DIR/micro8-cpu-bindings.c" ]; then
+    echo "ERROR: Micro8 CPU bindings not found at: $SCRIPT_DIR/micro8-cpu-bindings.c"
+    echo "Please create the micro8-cpu-bindings.c file with JavaScript-callable wrappers."
     exit 1
 fi
 
@@ -176,6 +192,31 @@ emcc \
   -o "$OUTPUT_DIR/micro4-cpu.js"
 
 # ---------------------------------------------------------------------------
+# Compile Micro8 CPU Emulator
+# ---------------------------------------------------------------------------
+
+echo ""
+echo "Compiling Micro8 CPU emulator..."
+
+# Micro8 CPU emulator compilation
+# Same flags as Micro4, adapted for Micro8's larger state (8 regs, 64KB memory)
+
+emcc \
+  -O2 \
+  -s MODULARIZE=1 \
+  -s EXPORT_ES6=1 \
+  -s ENVIRONMENT='worker' \
+  -s EXPORTED_FUNCTIONS='["_cpu_init_instance","_cpu_reset_instance","_cpu_step_instance","_cpu_load_program_instance","_get_reg","_get_sp","_get_pc","_get_flags","_get_zero_flag","_get_carry_flag","_get_sign_flag","_get_overflow_flag","_is_halted","_has_error","_get_error_message","_get_memory_ptr","_get_ir","_get_mar","_get_mdr","_get_cycles","_get_instructions","_malloc","_free"]' \
+  -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString","HEAPU8"]' \
+  -s ALLOW_MEMORY_GROWTH=1 \
+  -s INITIAL_MEMORY=1048576 \
+  -s STACK_SIZE=65536 \
+  -I"$MICRO8_SRC" \
+  "$MICRO8_SRC/cpu.c" \
+  "$SCRIPT_DIR/micro8-cpu-bindings.c" \
+  -o "$OUTPUT_DIR/micro8-cpu.js"
+
+# ---------------------------------------------------------------------------
 # Verify Output
 # ---------------------------------------------------------------------------
 
@@ -205,31 +246,52 @@ if [ ! -f "$OUTPUT_DIR/micro4-cpu.wasm" ]; then
     exit 1
 fi
 
+# Check Micro8 CPU output files exist
+if [ ! -f "$OUTPUT_DIR/micro8-cpu.js" ]; then
+    echo "ERROR: Expected output file not found: $OUTPUT_DIR/micro8-cpu.js"
+    exit 1
+fi
+
+if [ ! -f "$OUTPUT_DIR/micro8-cpu.wasm" ]; then
+    echo "ERROR: Expected output file not found: $OUTPUT_DIR/micro8-cpu.wasm"
+    exit 1
+fi
+
 # Report file sizes
 ASM_JS_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-asm.js" | awk '{print $5}')
 ASM_WASM_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-asm.wasm" | awk '{print $5}')
-CPU_JS_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-cpu.js" | awk '{print $5}')
-CPU_WASM_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-cpu.wasm" | awk '{print $5}')
+M4_CPU_JS_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-cpu.js" | awk '{print $5}')
+M4_CPU_WASM_SIZE=$(ls -lh "$OUTPUT_DIR/micro4-cpu.wasm" | awk '{print $5}')
+M8_CPU_JS_SIZE=$(ls -lh "$OUTPUT_DIR/micro8-cpu.js" | awk '{print $5}')
+M8_CPU_WASM_SIZE=$(ls -lh "$OUTPUT_DIR/micro8-cpu.wasm" | awk '{print $5}')
 
 echo "Output files:"
-echo "  Assembler:"
+echo "  Micro4 Assembler:"
 echo "    $OUTPUT_DIR/micro4-asm.js   ($ASM_JS_SIZE)"
 echo "    $OUTPUT_DIR/micro4-asm.wasm ($ASM_WASM_SIZE)"
-echo "  CPU Emulator:"
-echo "    $OUTPUT_DIR/micro4-cpu.js   ($CPU_JS_SIZE)"
-echo "    $OUTPUT_DIR/micro4-cpu.wasm ($CPU_WASM_SIZE)"
+echo "  Micro4 CPU Emulator:"
+echo "    $OUTPUT_DIR/micro4-cpu.js   ($M4_CPU_JS_SIZE)"
+echo "    $OUTPUT_DIR/micro4-cpu.wasm ($M4_CPU_WASM_SIZE)"
+echo "  Micro8 CPU Emulator:"
+echo "    $OUTPUT_DIR/micro8-cpu.js   ($M8_CPU_JS_SIZE)"
+echo "    $OUTPUT_DIR/micro8-cpu.wasm ($M8_CPU_WASM_SIZE)"
 echo ""
 
 # Size sanity checks
 ASM_WASM_BYTES=$(stat -c%s "$OUTPUT_DIR/micro4-asm.wasm" 2>/dev/null || stat -f%z "$OUTPUT_DIR/micro4-asm.wasm")
-CPU_WASM_BYTES=$(stat -c%s "$OUTPUT_DIR/micro4-cpu.wasm" 2>/dev/null || stat -f%z "$OUTPUT_DIR/micro4-cpu.wasm")
+M4_CPU_WASM_BYTES=$(stat -c%s "$OUTPUT_DIR/micro4-cpu.wasm" 2>/dev/null || stat -f%z "$OUTPUT_DIR/micro4-cpu.wasm")
+M8_CPU_WASM_BYTES=$(stat -c%s "$OUTPUT_DIR/micro8-cpu.wasm" 2>/dev/null || stat -f%z "$OUTPUT_DIR/micro8-cpu.wasm")
 
 if [ "$ASM_WASM_BYTES" -gt 102400 ]; then
-    echo "WARNING: Assembler WASM file is larger than expected (>100KB)."
+    echo "WARNING: Micro4 assembler WASM file is larger than expected (>100KB)."
 fi
 
-if [ "$CPU_WASM_BYTES" -gt 51200 ]; then
-    echo "WARNING: CPU WASM file is larger than expected (>50KB)."
+if [ "$M4_CPU_WASM_BYTES" -gt 51200 ]; then
+    echo "WARNING: Micro4 CPU WASM file is larger than expected (>50KB)."
+fi
+
+if [ "$M8_CPU_WASM_BYTES" -gt 204800 ]; then
+    echo "WARNING: Micro8 CPU WASM file is larger than expected (>200KB)."
 fi
 
 echo "=========================================="

@@ -566,6 +566,166 @@ export interface EmulatorModule {
  */
 export type EmulatorModuleFactory = () => Promise<EmulatorModule>;
 
+/* ============================================================================
+ * Micro8 CPU Emulator Module Types (Story 12.1)
+ * ============================================================================ */
+
+/**
+ * Emscripten module interface for the Micro8 CPU emulator.
+ *
+ * Key differences from EmulatorModule (Micro4):
+ * - 8 general-purpose registers accessed via _get_reg(index)
+ * - 16-bit PC and SP (vs 8-bit in Micro4)
+ * - 4 flags: Zero, Carry, Sign, Overflow (vs just Zero)
+ * - 64KB address space (vs 256 bytes)
+ * - _cpu_init_instance returns number (1=success, 0=failure) due to dynamic memory allocation
+ *
+ * @example
+ * ```typescript
+ * const createModule = await import('/wasm/micro8-cpu.js');
+ * const Module: Micro8EmulatorModule = await createModule.default();
+ * Module._cpu_init_instance(); // Returns 1 on success
+ * const r0 = Module._get_reg(0);
+ * ```
+ */
+export interface Micro8EmulatorModule {
+  /** Call a C function by name. */
+  ccall: (
+    name: string,
+    returnType: 'number' | 'string' | null,
+    argTypes: Array<'number' | 'string' | 'array'>,
+    args: unknown[]
+  ) => number | string | null;
+
+  /** Create a wrapped JavaScript function for calling C code. */
+  cwrap: (
+    name: string,
+    returnType: 'number' | 'string' | null,
+    argTypes: Array<'number' | 'string'>
+  ) => (...args: unknown[]) => number | string | null;
+
+  /** Direct access to the WASM heap as a Uint8Array. */
+  HEAPU8: Uint8Array;
+
+  /** Convert a pointer to a null-terminated UTF8 string. */
+  UTF8ToString: (ptr: number, maxLength?: number) => string;
+
+  /** Allocate memory in the WASM heap. */
+  _malloc: (size: number) => number;
+
+  /** Free previously allocated memory. */
+  _free: (ptr: number) => void;
+
+  /* CPU Lifecycle Functions */
+
+  /**
+   * Initialize the CPU, allocating 64KB memory.
+   * @returns 1 on success, 0 on failure (memory allocation failed)
+   */
+  _cpu_init_instance: () => number;
+
+  /** Reset the CPU state while preserving memory contents. */
+  _cpu_reset_instance: () => void;
+
+  /**
+   * Execute one instruction.
+   * @returns Number of cycles consumed (0 if halted or error)
+   */
+  _cpu_step_instance: () => number;
+
+  /**
+   * Load a program into CPU memory.
+   * @param ptr - Pointer to program data in WASM memory (use _malloc)
+   * @param size - Number of bytes to load
+   * @param addr - Starting address (16-bit, 0x0000-0xFFFF)
+   */
+  _cpu_load_program_instance: (ptr: number, size: number, addr: number) => void;
+
+  /* Register Accessors */
+
+  /**
+   * Get a general-purpose register value by index.
+   * @param index - Register index (0-7 for R0-R7)
+   * @returns 8-bit register value
+   */
+  _get_reg: (index: number) => number;
+
+  /**
+   * Get the Stack Pointer value.
+   * @returns 16-bit SP value (0x0000-0xFFFF)
+   */
+  _get_sp: () => number;
+
+  /**
+   * Get the current Program Counter value.
+   * @returns 16-bit PC value (0x0000-0xFFFF)
+   */
+  _get_pc: () => number;
+
+  /* Flag Accessors */
+
+  /**
+   * Get the raw flags register.
+   * @returns 8-bit flags (bits: 7=Sign, 6=Zero, 2=Overflow, 0=Carry)
+   */
+  _get_flags: () => number;
+
+  /** @returns 1 if zero flag set, 0 otherwise */
+  _get_zero_flag: () => number;
+
+  /** @returns 1 if carry flag set, 0 otherwise */
+  _get_carry_flag: () => number;
+
+  /** @returns 1 if sign flag set, 0 otherwise */
+  _get_sign_flag: () => number;
+
+  /** @returns 1 if overflow flag set, 0 otherwise */
+  _get_overflow_flag: () => number;
+
+  /* State Accessors */
+
+  /** @returns 1 if halted, 0 if running */
+  _is_halted: () => number;
+
+  /** @returns 1 if error occurred, 0 otherwise */
+  _has_error: () => number;
+
+  /**
+   * Get pointer to error message string. Use UTF8ToString() to convert.
+   * Valid only until next CPU operation.
+   */
+  _get_error_message: () => number;
+
+  /**
+   * Get pointer to 64KB memory array.
+   * Create view: new Uint8Array(Module.HEAPU8.buffer, Module._get_memory_ptr(), 65536)
+   * Do NOT cache - buffer may be replaced on memory growth.
+   */
+  _get_memory_ptr: () => number;
+
+  /* Internal Registers (debugging/visualization) */
+
+  /** @returns 8-bit Instruction Register value */
+  _get_ir: () => number;
+
+  /** @returns 16-bit Memory Address Register value */
+  _get_mar: () => number;
+
+  /** @returns 8-bit Memory Data Register value */
+  _get_mdr: () => number;
+
+  /* Statistics */
+
+  /** @returns Total CPU cycles executed */
+  _get_cycles: () => number;
+
+  /** @returns Total instructions executed */
+  _get_instructions: () => number;
+}
+
+/** Factory function type for creating the Micro8EmulatorModule. */
+export type Micro8EmulatorModuleFactory = () => Promise<Micro8EmulatorModule>;
+
 /**
  * CPU state snapshot for UI updates.
  * Contains all visible CPU state for rendering.
@@ -598,6 +758,53 @@ export interface CPUState {
 }
 
 /* ============================================================================
+ * Micro8 CPU State (Story 12.1)
+ * ============================================================================ */
+
+/**
+ * Extended CPU state snapshot for Micro8 UI updates.
+ *
+ * Extends CPUState with Micro8-specific fields: 8 general-purpose registers,
+ * 16-bit stack pointer, and additional flags (carry, sign, overflow).
+ *
+ * The base `accumulator` field is set to 0 as a compatibility placeholder —
+ * existing Micro4 UI consumers (App.ts, RegisterView.ts, CPUCircuitBridge.ts)
+ * read `state.accumulator` and will receive a harmless zero value until
+ * Story 12.4 adds stage-specific UI rendering.
+ */
+export interface Micro8CPUState extends CPUState {
+  /** General-purpose registers R0-R7 (8-bit values) */
+  registers: number[];
+  /** Stack Pointer (16-bit, 0x0000-0xFFFF) */
+  sp: number;
+  /** Carry flag */
+  carryFlag: boolean;
+  /** Sign flag */
+  signFlag: boolean;
+  /** Overflow flag */
+  overflowFlag: boolean;
+}
+
+/**
+ * Type guard to check if a CPUState is actually a Micro8CPUState.
+ * Checks for the presence and correct types of Micro8-specific fields.
+ */
+export function isMicro8CPUState(state: CPUState): state is Micro8CPUState {
+  return (
+    'registers' in state &&
+    Array.isArray((state as Micro8CPUState).registers) &&
+    'sp' in state &&
+    typeof (state as Micro8CPUState).sp === 'number' &&
+    'carryFlag' in state &&
+    typeof (state as Micro8CPUState).carryFlag === 'boolean' &&
+    'signFlag' in state &&
+    typeof (state as Micro8CPUState).signFlag === 'boolean' &&
+    'overflowFlag' in state &&
+    typeof (state as Micro8CPUState).overflowFlag === 'boolean'
+  );
+}
+
+/* ============================================================================
  * Emulator Worker Message Protocol
  * ============================================================================ */
 
@@ -611,6 +818,8 @@ export interface InitWasmCommand {
   payload: {
     /** Path to WASM JS glue file, relative to BASE_URL (e.g., 'wasm/micro4-cpu.js') */
     wasmJsPath: string;
+    /** CPU stage identifier (e.g., 'micro4', 'micro8'). Defaults to 'micro4' if omitted. */
+    stage?: string;
   };
 }
 
@@ -931,6 +1140,94 @@ export function validateEmulatorModule(
       return typeof mod[name] !== 'function';
     }
   );
+
+  if (missingExports.length === 0 && missingRuntimeMethods.length === 0) {
+    return null;
+  }
+
+  return { missingExports, missingRuntimeMethods };
+}
+
+/* ============================================================================
+ * Micro8 Emulator Module Validation (Story 12.1)
+ * ============================================================================ */
+
+/**
+ * Required exports from the Micro8 WASM emulator module.
+ * Used for runtime validation that the module loaded correctly.
+ *
+ * Key differences from REQUIRED_EMULATOR_EXPORTS (Micro4):
+ * - _get_reg (register array access) instead of _get_accumulator
+ * - _get_sp (16-bit stack pointer, not present in Micro4)
+ * - _get_flags (raw flags register)
+ * - _get_carry_flag, _get_sign_flag, _get_overflow_flag (additional flags)
+ */
+export const REQUIRED_MICRO8_EMULATOR_EXPORTS = [
+  '_cpu_init_instance',
+  '_cpu_reset_instance',
+  '_cpu_step_instance',
+  '_cpu_load_program_instance',
+  '_get_reg',
+  '_get_sp',
+  '_get_pc',
+  '_get_flags',
+  '_get_zero_flag',
+  '_get_carry_flag',
+  '_get_sign_flag',
+  '_get_overflow_flag',
+  '_is_halted',
+  '_has_error',
+  '_get_error_message',
+  '_get_memory_ptr',
+  '_get_ir',
+  '_get_mar',
+  '_get_mdr',
+  '_get_cycles',
+  '_get_instructions',
+  '_malloc',
+  '_free',
+] as const;
+
+/**
+ * Required Emscripten runtime methods for the Micro8 emulator module.
+ * Same as Micro4 - runtime methods are consistent across stages.
+ */
+export const REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS = [
+  'ccall',
+  'cwrap',
+  'HEAPU8',
+  'UTF8ToString',
+] as const;
+
+/**
+ * Validates that a loaded Micro8 emulator module has all required exports.
+ *
+ * @param module - The loaded Emscripten module to validate
+ * @returns null if valid, or an EmulatorValidationError describing missing exports
+ */
+export function validateMicro8EmulatorModule(
+  module: unknown
+): EmulatorValidationError | null {
+  if (!module || typeof module !== 'object') {
+    return {
+      missingExports: [...REQUIRED_MICRO8_EMULATOR_EXPORTS],
+      missingRuntimeMethods: [...REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS],
+    };
+  }
+
+  const mod = module as Record<string, unknown>;
+
+  const missingExports = REQUIRED_MICRO8_EMULATOR_EXPORTS.filter(
+    (name) => typeof mod[name] !== 'function'
+  );
+
+  const missingRuntimeMethods =
+    REQUIRED_MICRO8_EMULATOR_RUNTIME_METHODS.filter((name) => {
+      if (name === 'HEAPU8') {
+        return !(mod[name] instanceof Uint8Array);
+      }
+      return typeof mod[name] !== 'function';
+    });
 
   if (missingExports.length === 0 && missingRuntimeMethods.length === 0) {
     return null;

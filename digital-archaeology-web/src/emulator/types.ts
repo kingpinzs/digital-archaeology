@@ -902,7 +902,7 @@ export interface SetSpeedCommand {
 export interface SetBreakpointCommand {
   type: 'SET_BREAKPOINT';
   payload: {
-    /** Memory address to set breakpoint at (0-255 for Micro4) */
+    /** Memory address to set breakpoint at (0-255 for Micro4, 0-65535 for Micro8) */
     address: number;
   };
 }
@@ -913,7 +913,7 @@ export interface SetBreakpointCommand {
 export interface ClearBreakpointCommand {
   type: 'CLEAR_BREAKPOINT';
   payload: {
-    /** Memory address to clear breakpoint from (0-255 for Micro4) */
+    /** Memory address to clear breakpoint from (0-255 for Micro4, 0-65535 for Micro8) */
     address: number;
   };
 }

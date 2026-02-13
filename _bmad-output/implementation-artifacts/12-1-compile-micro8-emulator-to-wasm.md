@@ -1,6 +1,6 @@
 # Story 12.1: Compile Micro8 Emulator to WASM
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -329,6 +329,48 @@ All code review items have been addressed:
 4. ~~**Update `handleLoadProgram()`**~~ — DONE: All handler signatures accept `EmulatorModule | Micro8EmulatorModule`. Bridge sends `stage` in INIT_WASM payload.
 5. ~~**Add worker tests**~~ — DONE: 303 tests passing — `readMicro8CPUState` tests (8 registers, SP, flags, memory, type guard), breakpoint range tests (65535 accepted, 65536 rejected), INIT_WASM stage payload tests.
 
+## Code Review Findings (Round 2)
+
+**Reviewer:** Claude Opus 4.6 (adversarial code review)
+**Date:** 2026-02-13
+**Status:** ALL FIXED — 1 High, 2 Medium, 4 Low
+
+### HIGH: buildErrorContext() Micro4-Specific for All Stages (H1)
+
+`emulator.worker.ts:142-162` — `buildErrorContext()` used Micro4-specific opcode extraction `(ir >> 4) & 0xf` and 16-entry `INSTRUCTION_MNEMONICS` table, but was called for Micro8 modules via unsafe `module as EmulatorModule` casts at lines 428 and 483. Micro8 opcodes are full bytes, not high nibbles.
+
+**Fix:** Made `buildErrorContext()` stage-aware — dispatches on `currentStage`. Micro8 path uses full IR byte as opcode and formats as `OP_0xNN`. Removed unsafe type casts.
+
+### MEDIUM: No Test for readStateFromModule Dispatch (M1)
+
+`emulator.worker.test.ts` — `readStateFromModule()` stage dispatch was untested. Added `__testing_setCurrentStage()` helper and three tests: micro4 dispatch, micro8 dispatch, null-stage default.
+
+### MEDIUM: handleRestoreState uint16_t Overflow (M2)
+
+`micro8-cpu-bindings.c:87` — `cpu_load_program()` takes `uint16_t size`. For Micro8, `memoryArray.length = 65536` wraps to 0 via `(uint16_t)size` cast, silently restoring nothing.
+
+**Fix:** Added `memcpy` fast path in C binding when `size == MEM_SIZE && start_addr == 0`.
+
+### LOW: Stale JSDoc Comments (L1-L4)
+
+- L1: `types.ts:905,916` — Breakpoint address range updated to include Micro8 (0-65535)
+- L2: `emulator.worker.ts:1-6` — Module JSDoc updated to say "Micro4 or Micro8"
+- L3: `index.ts:4` — Module comment updated to say "Micro4/Micro8"
+- L4: `emulator.worker.ts:636` — Comment updated to be stage-aware
+
+### Actions Taken
+
+- [x] H1: Made `buildErrorContext()` stage-aware with Micro8 opcode path, removed unsafe casts
+- [x] M1: Added `__testing_setCurrentStage()`, 3 new `readStateFromModule` dispatch tests, 1 new `buildErrorContext` Micro8 test
+- [x] M2: Added `memcpy` fast path in `cpu_load_program_instance()` for full-memory restore
+- [x] L1-L4: Updated all stale JSDoc comments across 3 files
+
+### Verification
+
+- 380 emulator-module tests passing (types: 120, worker: 106, bridge: 81, assembler-worker: 19, stageConfig: 22, assembler-bridge: 32)
+- No new TypeScript errors (`npx tsc --noEmit` — only pre-existing Editor.test.ts error)
+- Zero test regressions
+
 ## Dev Agent Record
 
 ### Agent Model Used
@@ -347,6 +389,8 @@ Claude Opus 4.6
 - **CODE REVIEW: Worker changes ARE needed**: The existing `emulator.worker.ts` uses Micro4-specific validation (`validateEmulatorModule` requires `_get_accumulator`) and Micro4-specific state reading (`readCPUState` calls `_get_accumulator()`, reads 256 bytes). The worker must be updated to support stage-aware validation and state reading before Micro8 WASM can function end-to-end. `EmulatorBridge.ts` is correctly stage-aware and needs no changes.
 - **stageConfig.test.ts fix**: Updated the "should have null WASM paths for non-micro4 stages" test which was asserting ALL non-micro4 stages have null `emulatorJs`. Now correctly excludes micro8 and has a dedicated micro8 test.
 - **Test count**: Added 21 new Micro8-specific tests across `types.test.ts` (19 tests) and `stageConfig.test.ts` (2 new tests). Full suite: 133 tests passing across both modified files.
+- **Code review rework complete**: All 5 remaining work items addressed — stage-aware `initializeWasm()`, `readMicro8CPUState()`, `Micro8CPUState` interface, union handler signatures, worker tests. 380 emulator-specific tests passing (types: 120, worker: 106, bridge: 81, assembler-worker: 19, assembler-bridge: 32, stageConfig: 22).
+- **Code review round 2 complete**: Fixed 1 HIGH (buildErrorContext stage-aware), 2 MEDIUM (readStateFromModule tests, uint16_t overflow), 4 LOW (stale JSDoc). Added `__testing_setCurrentStage()` helper, 4 new tests, `memcpy` fast path in C bindings.
 
 ### Change Log
 

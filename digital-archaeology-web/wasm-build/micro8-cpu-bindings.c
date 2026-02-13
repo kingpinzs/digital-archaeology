@@ -84,7 +84,12 @@ int cpu_step_instance(void) {
 EMSCRIPTEN_KEEPALIVE
 void cpu_load_program_instance(const uint8_t* program, int size, uint16_t start_addr) {
     if (!g_initialized || size < 0 || size > MEM_SIZE) return;
-    cpu_load_program(&g_cpu, program, (uint16_t)size, start_addr);
+    // Full-memory restore: direct memcpy avoids uint16_t overflow (65536 wraps to 0)
+    if (size == MEM_SIZE && start_addr == 0) {
+        memcpy(g_cpu.memory, program, MEM_SIZE);
+    } else {
+        cpu_load_program(&g_cpu, program, (uint16_t)size, start_addr);
+    }
 }
 
 /* ============================================================================

@@ -1,7 +1,7 @@
 /**
  * Emulator Module
  *
- * WASM-based Micro4 assembler and CPU emulator.
+ * WASM-based assembler and CPU emulator (Micro4/Micro8).
  * Runs in Web Workers for non-blocking execution.
  */
 

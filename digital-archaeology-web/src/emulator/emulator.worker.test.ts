@@ -10,6 +10,7 @@ import {
   isEmulatorCommand,
   readCPUState,
   readMicro8CPUState,
+  readStateFromModule,
   handleLoadProgram,
   handleStep,
   handleRun,
@@ -19,6 +20,7 @@ import {
   handleSetSpeed,
   classifyError,
   buildErrorContext,
+  __testing_setCurrentStage,
 } from './emulator.worker';
 import type { EmulatorModule, EmulatorCommand, CPUState, Micro8EmulatorModule } from './types';
 import { isMicro8CPUState } from './types';
@@ -1358,6 +1360,81 @@ describe('Emulator Worker', () => {
       expect(context.instruction).toBe('RES');
       expect(context.opcode).toBe(0xc);
       expect(context.componentName).toBe('Control Unit');
+    });
+
+    it('should produce stage-aware context for Micro8 (full-byte opcode)', () => {
+      __testing_setCurrentStage('micro8');
+      try {
+        const module = createMockMicro8Module({
+          _get_pc: vi.fn(() => 0x1000),
+          _get_ir: vi.fn(() => 0xAB),
+        });
+
+        const context = buildErrorContext(module, 'Stack overflow');
+
+        expect(context.errorType).toBe('STACK_OVERFLOW');
+        expect(context.pc).toBe(0x1000);
+        expect(context.instruction).toBe('OP_0xAB');
+        expect(context.opcode).toBe(0xAB);
+        expect(context.componentName).toBe('Control Unit');
+      } finally {
+        __testing_setCurrentStage(null);
+      }
+    });
+  });
+
+  describe('readStateFromModule dispatch (Story 12.1)', () => {
+    it('should dispatch to readCPUState for micro4 stage', () => {
+      __testing_setCurrentStage('micro4');
+      try {
+        const module = createMockModule({
+          _get_accumulator: vi.fn(() => 42),
+          _get_pc: vi.fn(() => 10),
+        });
+
+        const state = readStateFromModule(module);
+
+        expect(state.accumulator).toBe(42);
+        expect(state.pc).toBe(10);
+        expect(isMicro8CPUState(state)).toBe(false);
+      } finally {
+        __testing_setCurrentStage(null);
+      }
+    });
+
+    it('should dispatch to readMicro8CPUState for micro8 stage', () => {
+      __testing_setCurrentStage('micro8');
+      try {
+        const module = createMockMicro8Module({
+          _get_pc: vi.fn(() => 0x2000),
+          _get_reg: vi.fn((i: number) => i * 10),
+          _get_sp: vi.fn(() => 0xFFFE),
+        });
+
+        const state = readStateFromModule(module);
+
+        expect(state.pc).toBe(0x2000);
+        expect(state.accumulator).toBe(0); // Compatibility placeholder
+        expect(isMicro8CPUState(state)).toBe(true);
+        if (isMicro8CPUState(state)) {
+          expect(state.registers).toEqual([0, 10, 20, 30, 40, 50, 60, 70]);
+          expect(state.sp).toBe(0xFFFE);
+        }
+      } finally {
+        __testing_setCurrentStage(null);
+      }
+    });
+
+    it('should default to micro4 when currentStage is null', () => {
+      __testing_setCurrentStage(null);
+      const module = createMockModule({
+        _get_accumulator: vi.fn(() => 99),
+      });
+
+      const state = readStateFromModule(module);
+
+      expect(state.accumulator).toBe(99);
+      expect(isMicro8CPUState(state)).toBe(false);
     });
   });
 });

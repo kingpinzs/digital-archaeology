@@ -198,7 +198,7 @@ development_status:
 
   # Epic 12: Micro8 Stage
   epic-12: in-progress
-  12-1-compile-micro8-emulator-to-wasm: in-progress  # Code review: needs rework — worker uses Micro4-specific validation/state reading
+  12-1-compile-micro8-emulator-to-wasm: done  # Code review round 2 complete, all findings fixed, 380 emulator tests passing
   12-2-compile-micro8-assembler-to-wasm: backlog
   12-3-create-micro8-syntax-highlighting: backlog
   12-4-create-8-register-display: backlog

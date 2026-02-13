@@ -1,7 +1,7 @@
 /**
  * Emulator Web Worker
  *
- * Runs the Micro4 CPU emulator WASM module in a dedicated worker thread
+ * Runs the CPU emulator WASM module (Micro4 or Micro8) in a dedicated worker thread
  * to avoid blocking the UI during program execution.
  */
 
@@ -38,6 +38,15 @@ let wasmModule: EmulatorModule | Micro8EmulatorModule | null = null;
  * stage-specific validation and state reading.
  */
 let currentStage: string | null = null;
+
+/**
+ * Set the current stage (test-only). Exported for unit tests that need to
+ * verify stage-aware dispatch in readStateFromModule and buildErrorContext.
+ * @internal
+ */
+export function __testing_setCurrentStage(stage: string | null): void {
+  currentStage = stage;
+}
 
 /**
  * Initialization error message, if WASM loading failed.
@@ -138,14 +147,28 @@ export function classifyError(message: string): RuntimeErrorType {
 /**
  * Build rich error context from current CPU state (Story 5.10).
  * Extracts PC, instruction, opcode, and component name for error display.
+ * Stage-aware: Micro4 extracts opcode from IR high nibble; Micro8 uses full IR byte.
  */
 export function buildErrorContext(
-  module: EmulatorModule,
+  module: EmulatorModule | Micro8EmulatorModule,
   message: string
 ): RuntimeErrorContext {
   const pc = module._get_pc();
   const ir = module._get_ir();
-  // Micro4 opcodes are the high nibble of the IR (upper 4 bits)
+
+  if (currentStage === 'micro8') {
+    // Micro8: full-byte opcode, no mnemonic table yet (Story 12.4 scope)
+    return {
+      errorType: classifyError(message),
+      pc,
+      instruction: `OP_0x${ir.toString(16).toUpperCase().padStart(2, '0')}`,
+      opcode: ir,
+      componentName: 'Control Unit',
+      signalValues: undefined,
+    };
+  }
+
+  // Micro4: opcodes are the high nibble of the IR (upper 4 bits)
   const opcode = (ir >> 4) & 0xf;
   const instruction = INSTRUCTION_MNEMONICS[opcode] ?? 'UNK';
   const componentName = getComponentForOpcode(opcode);
@@ -425,7 +448,7 @@ export function handleStep(module: EmulatorModule | Micro8EmulatorModule): void 
       payload: {
         message: errorMessage,
         address: module._get_pc(),
-        context: buildErrorContext(module as EmulatorModule, errorMessage),
+        context: buildErrorContext(module, errorMessage),
       },
     } satisfies EmulatorErrorEvent);
     return;
@@ -480,7 +503,7 @@ function startRunInterval(module: EmulatorModule | Micro8EmulatorModule, speed: 
           payload: {
             message: errorMessage,
             address: module._get_pc(),
-            context: buildErrorContext(module as EmulatorModule, errorMessage),
+            context: buildErrorContext(module, errorMessage),
           },
         } satisfies EmulatorErrorEvent);
         return;
@@ -633,7 +656,7 @@ export function handleRestoreState(
   module._cpu_reset_instance();
 
   // Restore memory by loading the memory contents as if it were a program
-  // This restores the full 256-byte memory state
+  // This restores the full memory state (256 bytes for Micro4, 64KB for Micro8)
   const memoryArray =
     state.memory instanceof Uint8Array
       ? state.memory

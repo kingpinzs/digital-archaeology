@@ -9979,4 +9979,136 @@ describe('App', () => {
       expect(appAny.router.callback).toBeNull(); // CR M-1: callback cleared on stop
     });
   });
+
+  describe('StackView Integration (Story 12.5)', () => {
+    let app: App;
+    let container: HTMLDivElement;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+      app = new App();
+      mockEditorInstance._resetContent();
+    });
+
+    afterEach(() => {
+      app.destroy();
+      document.body.removeChild(container);
+    });
+
+    describe('mount and initialization', () => {
+      it('should mount StackView in state panel content area', () => {
+        app.mount(container);
+
+        const stackView = container.querySelector('.da-stack-view');
+        expect(stackView).not.toBeNull();
+      });
+
+      it('should render StackView inside .da-state-panel .da-panel-content', () => {
+        app.mount(container);
+
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const stackView = stateContent?.querySelector('.da-stack-view');
+        expect(stackView).not.toBeNull();
+      });
+
+      it('should render StackView after BreakpointsView in DOM order', () => {
+        app.mount(container);
+
+        const stateContent = container.querySelector('.da-state-panel .da-panel-content');
+        const children = Array.from(stateContent?.children ?? []);
+        const breakpointsViewIdx = children.findIndex(el => el.classList.contains('da-breakpoints-view'));
+        const stackViewIdx = children.findIndex(el => el.classList.contains('da-stack-view'));
+
+        expect(breakpointsViewIdx).toBeLessThan(stackViewIdx);
+      });
+    });
+
+    describe('getStackView accessor', () => {
+      it('should return StackView instance after mount', () => {
+        app.mount(container);
+        expect(app.getStackView()).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        expect(app.getStackView()).toBeNull();
+      });
+    });
+
+    describe('Micro8 stack state dispatch (Story 12.5)', () => {
+      it('should pass sp and memory to StackView when state is Micro8', async () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+        const memory = new Uint8Array(65536);
+        memory[0xFFFF] = 0x42;
+        memory[0xFFFE] = 0xAA;
+        const micro8State = {
+          pc: 0x0100,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: memory,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+          registers: [0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11],
+          sp: 0xFFFD,
+          carryFlag: false,
+          signFlag: false,
+          overflowFlag: false,
+        };
+
+        (appAny.updateStackView as (state: unknown) => void)(micro8State);
+
+        // Should show 2 stack entries (depth = 0xFFFF - 0xFFFD = 2)
+        const rows = container.querySelectorAll('.da-stack-row');
+        expect(rows.length).toBe(2);
+      });
+
+      it('should not update StackView when state is Micro4', async () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+        const micro4State = {
+          pc: 10,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        };
+
+        (appAny.updateStackView as (state: unknown) => void)(micro4State);
+
+        // Stack should remain in its initial state (empty, just title)
+        const rows = container.querySelectorAll('.da-stack-row');
+        expect(rows.length).toBe(0);
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove StackView from DOM on destroy', () => {
+        app.mount(container);
+        expect(container.querySelector('.da-stack-view')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-stack-view')).toBeNull();
+      });
+
+      it('should set stackView to null on destroy', () => {
+        app.mount(container);
+        expect(app.getStackView()).not.toBeNull();
+        app.destroy();
+        expect(app.getStackView()).toBeNull();
+      });
+    });
+  });
 });

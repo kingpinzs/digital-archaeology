@@ -22,7 +22,7 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import type { ChallengeContext } from '@story/types';
 import { ChallengeStation } from '@simulators/ChallengeStation';
-import { RegisterView, FlagsView, MemoryView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
+import { RegisterView, FlagsView, MemoryView, StackView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
 import type { BreadcrumbItem, ZoomControlsCallbacks, CircuitData } from '@visualizer/index';
@@ -203,6 +203,9 @@ export class App {
   // MemoryView for displaying CPU memory (Story 5.5)
   private memoryView: MemoryView | null = null;
 
+  // StackView for displaying CPU stack contents (Story 12.5)
+  private stackView: StackView | null = null;
+
   // BreakpointsView for displaying active breakpoints (Story 5.8)
   private breakpointsView: BreakpointsView | null = null;
 
@@ -315,6 +318,7 @@ export class App {
     this.destroyFlagsView();
     this.destroyMemoryView();
     this.destroyBreakpointsView();
+    this.destroyStackView();
     this.destroyRuntimeErrorPanel();
     this.destroyCircuitRenderer();
     this.destroySignalValuesPanel();
@@ -353,6 +357,7 @@ export class App {
     this.initializeFlagsView();
     this.initializeMemoryView();
     this.initializeBreakpointsView();
+    this.initializeStackView();
     this.initializeRuntimeErrorPanel();
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
@@ -808,11 +813,14 @@ export class App {
       this.breakpoints.clear();
       this.breakpointsView?.updateState({ breakpoints: [] });
 
-      // Reset views (Story 12.4: stage-aware register reset)
+      // Reset views (Story 12.4: stage-aware register reset, Story 12.5: stack reset)
       if (this.currentStage === 'micro8') {
         this.registerView?.updateState({ pc: 0, sp: 0xFFFF, registers: [0, 0, 0, 0, 0, 0, 0, 0] });
+        this.stackView?.updateState({ sp: 0xFFFF, memory: new Uint8Array(65536) });
       } else {
         this.registerView?.updateState({ pc: 0, accumulator: 0 });
+        // Clear StackView when not in Micro8 (AC #5: Stack section NOT shown for Micro4)
+        this.stackView?.updateState({ sp: 0xFFFF, memory: new Uint8Array(0) });
       }
       this.flagsView?.updateState({ zeroFlag: false });
       // TODO(CR M-1): 256 is micro4's memory size. When additional stages ship,
@@ -1548,8 +1556,44 @@ export class App {
   }
 
   /**
-   * Initialize the RuntimeErrorPanel in the State panel (Story 5.10).
+   * Initialize the StackView in the State panel (Story 12.5).
    * Mounts after BreakpointsView in the panel content.
+   * Only visible in Micro8 stage — render is guarded by updateStackView.
+   * @returns void
+   */
+  private initializeStackView(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.stackView = new StackView();
+    this.stackView.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the StackView component (Story 12.5).
+   * @returns void
+   */
+  private destroyStackView(): void {
+    if (this.stackView) {
+      this.stackView.destroy();
+      this.stackView = null;
+    }
+  }
+
+  /**
+   * Get the StackView instance (Story 12.5).
+   * Primarily used for testing and external state inspection.
+   * @returns The StackView instance or null if not mounted
+   */
+  getStackView(): StackView | null {
+    return this.stackView;
+  }
+
+  /**
+   * Initialize the RuntimeErrorPanel in the State panel (Story 5.10).
+   * Mounts after StackView in the panel content.
    * @returns void
    */
   private initializeRuntimeErrorPanel(): void {
@@ -1806,6 +1850,20 @@ export class App {
       this.registerView?.updateState({
         pc: state.pc,
         accumulator: state.accumulator,
+      });
+    }
+  }
+
+  /**
+   * Update StackView with the given CPU state if in Micro8 mode (Story 12.5).
+   * Only updates when state is Micro8CPUState (has sp and memory fields).
+   * @param state - The CPU state to display
+   */
+  private updateStackView(state: CPUState): void {
+    if (isMicro8CPUState(state)) {
+      this.stackView?.updateState({
+        sp: state.sp,
+        memory: state.memory,
       });
     }
   }
@@ -2475,6 +2533,9 @@ export class App {
       // Update RegisterView with initial state (Stories 5.3, 12.4)
       this.updateRegisterView(this.cpuState);
 
+      // Update StackView with initial state (Story 12.5)
+      this.updateStackView(this.cpuState);
+
       // Update FlagsView with initial state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2637,6 +2698,9 @@ export class App {
       // Update RegisterView with reset state (Stories 5.3, 12.4)
       this.updateRegisterView(this.cpuState);
 
+      // Update StackView with reset state (Story 12.5)
+      this.updateStackView(this.cpuState);
+
       // Update FlagsView with reset state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2738,6 +2802,9 @@ export class App {
       // Update RegisterView with new state (Stories 5.3, 12.4)
       this.updateRegisterView(this.cpuState);
 
+      // Update StackView with new state (Story 12.5)
+      this.updateStackView(this.cpuState);
+
       // Update FlagsView with new state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2821,6 +2888,9 @@ export class App {
 
       // Update RegisterView with historical state (Stories 5.3, 12.4)
       this.updateRegisterView(historicalState);
+
+      // Update StackView with historical state (Story 12.5)
+      this.updateStackView(historicalState);
 
       // Update FlagsView with historical state (Story 5.4)
       this.flagsView?.updateState({
@@ -2997,6 +3067,9 @@ export class App {
         // Update RegisterView during RUN mode (Stories 5.3, 12.4)
         this.updateRegisterView(state);
 
+        // Update StackView during RUN mode (Story 12.5)
+        this.updateStackView(state);
+
         // Update FlagsView during RUN mode (Story 5.4)
         this.flagsView?.updateState({
           zeroFlag: state.zeroFlag,
@@ -3077,6 +3150,9 @@ export class App {
     // Update RegisterView with final halted state (Stories 5.3, 12.4)
     if (this.cpuState) {
       this.updateRegisterView(this.cpuState);
+
+      // Update StackView with final halted state (Story 12.5)
+      this.updateStackView(this.cpuState);
 
       // Update FlagsView with final halted state (Story 5.4)
       this.flagsView?.updateState({
@@ -3170,6 +3246,9 @@ export class App {
     // Update RegisterView with state at breakpoint (Stories 5.3, 12.4)
     if (this.cpuState) {
       this.updateRegisterView(this.cpuState);
+
+      // Update StackView with state at breakpoint (Story 12.5)
+      this.updateStackView(this.cpuState);
 
       // Update FlagsView with state at breakpoint (Story 5.4)
       this.flagsView?.updateState({
@@ -4244,6 +4323,9 @@ export class App {
 
     // Destroy BreakpointsView (Story 5.8)
     this.destroyBreakpointsView();
+
+    // Destroy StackView (Story 12.5)
+    this.destroyStackView();
 
     // Destroy RuntimeErrorPanel (Story 5.10)
     this.destroyRuntimeErrorPanel();

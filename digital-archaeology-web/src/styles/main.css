@@ -2233,6 +2233,82 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   StackView Component Styles (Story 12.5)
+   Displays CPU stack contents in the State panel, after BreakpointsView.
+   ============================================================================= */
+
+.da-stack-view {
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-stack-view__title {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-stack-view__info {
+  font-size: 11px;
+  color: var(--da-text-secondary);
+  margin-bottom: 6px;
+}
+
+.da-stack-view__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-stack-view__empty {
+  font-size: 12px;
+  color: var(--da-text-secondary);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.da-stack-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-stack-row:last-child {
+  border-bottom: none;
+}
+
+.da-stack-row--sp {
+  border-left: 2px solid var(--da-accent);
+  padding-left: 6px;
+}
+
+.da-stack-row--return-addr {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.da-stack-addr {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--da-text-secondary);
+}
+
+.da-stack-value {
+  font-size: 12px;
+  color: var(--da-text-primary);
+}
+
+/* Flash animation for changed stack values - reuses da-register-flash keyframes */
+.da-stack-changed {
+  animation: da-register-flash 300ms ease-out;
+}
+
+/* =============================================================================
    MemoryView Component Styles (Story 5.5, 5.6)
    Displays scrollable hex dump of CPU memory (256 nibbles)
    Story 5.6 adds jump-to-address UI

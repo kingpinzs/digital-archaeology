@@ -10,6 +10,9 @@ export type { FlagsViewState, FlagsViewOptions } from './FlagsView';
 export { MemoryView } from './MemoryView';
 export type { MemoryViewState, MemoryViewOptions } from './MemoryView';
 
+export { StackView } from './StackView';
+export type { StackViewState } from './StackView';
+
 export { BreakpointsView } from './BreakpointsView';
 export type { BreakpointsViewState, BreakpointsViewOptions, BreakpointEntry } from './BreakpointsView';
 

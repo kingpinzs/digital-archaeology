@@ -17,7 +17,7 @@ import { Editor, parseInstruction, findLinesWithOpcodes, getLanguageIdForStage }
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { ErrorPanel } from './ErrorPanel';
 import { BinaryOutputPanel } from './BinaryOutputPanel';
-import { AssemblerBridge, EmulatorBridge } from '@emulator/index';
+import { AssemblerBridge, EmulatorBridge, isMicro8CPUState } from '@emulator/index';
 import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import type { ChallengeContext } from '@story/types';
@@ -808,8 +808,12 @@ export class App {
       this.breakpoints.clear();
       this.breakpointsView?.updateState({ breakpoints: [] });
 
-      // Reset views
-      this.registerView?.updateState({ pc: 0, accumulator: 0 });
+      // Reset views (Story 12.4: stage-aware register reset)
+      if (this.currentStage === 'micro8') {
+        this.registerView?.updateState({ pc: 0, sp: 0xFFFF, registers: [0, 0, 0, 0, 0, 0, 0, 0] });
+      } else {
+        this.registerView?.updateState({ pc: 0, accumulator: 0 });
+      }
       this.flagsView?.updateState({ zeroFlag: false });
       // TODO(CR M-1): 256 is micro4's memory size. When additional stages ship,
       // StageConfig should expose a memorySize field. Emulator's first STATE_UPDATE
@@ -1787,6 +1791,26 @@ export class App {
   }
 
   /**
+   * Update RegisterView with the given CPU state, dispatching between Micro4 and Micro8 formats.
+   * Micro8 state includes registers[] and sp; Micro4 uses pc + accumulator. (Story 12.4)
+   * @param state - The CPU state to display
+   */
+  private updateRegisterView(state: CPUState): void {
+    if (isMicro8CPUState(state)) {
+      this.registerView?.updateState({
+        pc: state.pc,
+        sp: state.sp,
+        registers: state.registers,
+      });
+    } else {
+      this.registerView?.updateState({
+        pc: state.pc,
+        accumulator: state.accumulator,
+      });
+    }
+  }
+
+  /**
    * Update the circuit visualization from CPU state (Story 6.13).
    * Maps CPU state to circuit wire states and updates the renderer.
    * @param cpuState - The current CPU state
@@ -2448,11 +2472,8 @@ export class App {
       // Highlight the first instruction after load (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
 
-      // Update RegisterView with initial state (Story 5.3)
-      this.registerView?.updateState({
-        pc: this.cpuState.pc,
-        accumulator: this.cpuState.accumulator,
-      });
+      // Update RegisterView with initial state (Stories 5.3, 12.4)
+      this.updateRegisterView(this.cpuState);
 
       // Update FlagsView with initial state (Story 5.4)
       this.flagsView?.updateState({
@@ -2613,11 +2634,8 @@ export class App {
       // Highlight the first instruction after reset (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
 
-      // Update RegisterView with reset state (Story 5.3)
-      this.registerView?.updateState({
-        pc: this.cpuState.pc,
-        accumulator: this.cpuState.accumulator,
-      });
+      // Update RegisterView with reset state (Stories 5.3, 12.4)
+      this.updateRegisterView(this.cpuState);
 
       // Update FlagsView with reset state (Story 5.4)
       this.flagsView?.updateState({
@@ -2717,11 +2735,8 @@ export class App {
       // Highlight current instruction line in editor (Story 5.1)
       this.highlightCurrentInstruction(this.cpuState.pc);
 
-      // Update RegisterView with new state (Story 5.3)
-      this.registerView?.updateState({
-        pc: this.cpuState.pc,
-        accumulator: this.cpuState.accumulator,
-      });
+      // Update RegisterView with new state (Stories 5.3, 12.4)
+      this.updateRegisterView(this.cpuState);
 
       // Update FlagsView with new state (Story 5.4)
       this.flagsView?.updateState({
@@ -2804,11 +2819,8 @@ export class App {
       // Highlight the instruction at historical PC (not emulator's reset PC)
       this.highlightCurrentInstruction(historicalState.pc);
 
-      // Update RegisterView with historical state (Story 5.3)
-      this.registerView?.updateState({
-        pc: historicalState.pc,
-        accumulator: historicalState.accumulator,
-      });
+      // Update RegisterView with historical state (Stories 5.3, 12.4)
+      this.updateRegisterView(historicalState);
 
       // Update FlagsView with historical state (Story 5.4)
       this.flagsView?.updateState({
@@ -2982,11 +2994,8 @@ export class App {
           pcValue: state.pc,
           cycleCount: state.cycles,
         });
-        // Update RegisterView during RUN mode (Story 5.3)
-        this.registerView?.updateState({
-          pc: state.pc,
-          accumulator: state.accumulator,
-        });
+        // Update RegisterView during RUN mode (Stories 5.3, 12.4)
+        this.updateRegisterView(state);
 
         // Update FlagsView during RUN mode (Story 5.4)
         this.flagsView?.updateState({
@@ -3065,12 +3074,9 @@ export class App {
       loadStatus: 'Halted',
     });
 
-    // Update RegisterView with final halted state (Story 5.3)
+    // Update RegisterView with final halted state (Stories 5.3, 12.4)
     if (this.cpuState) {
-      this.registerView?.updateState({
-        pc: this.cpuState.pc,
-        accumulator: this.cpuState.accumulator,
-      });
+      this.updateRegisterView(this.cpuState);
 
       // Update FlagsView with final halted state (Story 5.4)
       this.flagsView?.updateState({
@@ -3161,12 +3167,9 @@ export class App {
       }
     }
 
-    // Update RegisterView with state at breakpoint (Story 5.3)
+    // Update RegisterView with state at breakpoint (Stories 5.3, 12.4)
     if (this.cpuState) {
-      this.registerView?.updateState({
-        pc: this.cpuState.pc,
-        accumulator: this.cpuState.accumulator,
-      });
+      this.updateRegisterView(this.cpuState);
 
       // Update FlagsView with state at breakpoint (Story 5.4)
       this.flagsView?.updateState({

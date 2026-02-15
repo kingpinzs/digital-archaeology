@@ -486,6 +486,12 @@ const { MockEmulatorBridge, mockEmulatorBridge } = vi.hoisted(() => {
 vi.mock('@emulator/index', () => ({
   AssemblerBridge: MockAssemblerBridge,
   EmulatorBridge: MockEmulatorBridge,
+  // Story 12.4: isMicro8CPUState type guard for stage-aware register updates
+  isMicro8CPUState: (state: Record<string, unknown>) =>
+    'registers' in state &&
+    Array.isArray(state.registers) &&
+    'sp' in state &&
+    typeof state.sp === 'number',
 }));
 
 // Story 9.4 + 9.5: Mock file export utilities
@@ -6163,6 +6169,48 @@ describe('App', () => {
 
         const accValue = container.querySelector('[data-register="accumulator"] .da-register-value');
         expect(accValue?.textContent).toBe('0x0 (0)');
+      });
+    });
+
+    describe('Micro8 state dispatch (Story 12.4)', () => {
+      it('should pass registers and sp to RegisterView when state is Micro8', async () => {
+        // Manually set cpuState to a Micro8-shaped state and call updateRegisterView
+        const appAny = app as unknown as Record<string, unknown>;
+        const micro8State = {
+          pc: 0x0100,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+          registers: [0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11],
+          sp: 0xFFFE,
+          carryFlag: false,
+          signFlag: false,
+          overflowFlag: false,
+        };
+
+        // Call the private helper directly
+        (appAny.updateRegisterView as (state: unknown) => void)(micro8State);
+
+        // Should render Micro8 layout with R0-R7 and SP, not ACC
+        const r0Value = container.querySelector('[data-register="r0"] .da-register-value');
+        expect(r0Value?.textContent).toBe('0x0A (10)');
+
+        const spValue = container.querySelector('[data-register="sp"] .da-register-value');
+        expect(spValue?.textContent).toBe('0xFFFE (65534)');
+
+        const pcValue = container.querySelector('[data-register="pc"] .da-register-value');
+        expect(pcValue?.textContent).toBe('0x0100 (256)');
+
+        const accRow = container.querySelector('[data-register="accumulator"]');
+        expect(accRow).toBeNull();
       });
     });
 

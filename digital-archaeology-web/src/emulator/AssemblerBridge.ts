@@ -14,7 +14,7 @@ import type {
   CodeSnippet,
   InitAssemblerWasmCommand,
 } from './types';
-import { getStageConfig } from '../config/stageConfig';
+import { getStageConfig, getStageMemorySize, getNextStage } from '../config/stageConfig';
 import type { LabStage } from '../config/stageConfig';
 
 /**
@@ -117,6 +117,37 @@ function isFixable(
   // Only SYNTAX_ERROR is auto-fixable (e.g., typos in instruction names)
   // VALUE_ERROR and CONSTRAINT_ERROR require user judgment about correct values
   return type === 'SYNTAX_ERROR';
+}
+
+/**
+ * Build a CONSTRAINT_ERROR result when binary exceeds stage memory limit (Story 18.2).
+ * Returns a failed AssembleResult with descriptive message and next-stage suggestion.
+ */
+function buildMemoryConstraintError(
+  binarySize: number,
+  memoryLimit: number,
+  stage: LabStage,
+): AssembleResult {
+  const config = getStageConfig(stage);
+  const nextStage = getNextStage(stage);
+  const nextConfig = nextStage ? getStageConfig(nextStage) : null;
+
+  let suggestion = `Reduce program size to fit in ${memoryLimit} bytes`;
+  if (nextConfig) {
+    suggestion += `, or advance to ${nextConfig.meta.label} (${nextConfig.meta.addressSpace} memory)`;
+  }
+
+  return {
+    success: false,
+    binary: null,
+    error: {
+      line: 0,
+      message: `Program size (${binarySize} bytes) exceeds ${config.meta.label} memory limit (${memoryLimit} bytes)`,
+      type: 'CONSTRAINT_ERROR',
+      suggestion,
+      fixable: false,
+    },
+  };
 }
 
 /**
@@ -280,9 +311,18 @@ export class AssemblerBridge {
 
         if (data.type === 'ASSEMBLE_SUCCESS') {
           cleanup();
+          const binary = new Uint8Array(data.payload.binary);
+
+          // Story 18.2: Enforce memory limit
+          const memoryLimit = getStageMemorySize(this.stage);
+          if (binary.length > memoryLimit) {
+            resolve(buildMemoryConstraintError(binary.length, memoryLimit, this.stage));
+            return;
+          }
+
           resolve({
             success: true,
-            binary: new Uint8Array(data.payload.binary),
+            binary,
             error: null,
           });
         } else if (data.type === 'ASSEMBLE_ERROR') {

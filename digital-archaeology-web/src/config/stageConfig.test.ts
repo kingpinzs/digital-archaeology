@@ -9,6 +9,11 @@ import {
   type LabStage,
   LAB_STAGES,
   STAGE_METADATA,
+  getStageConstraints,
+  getStageMemorySize,
+  getNextStage,
+  type StageConstraints,
+  type InstructionCategory,
 } from './stageConfig';
 
 describe('stageConfig', () => {
@@ -168,6 +173,244 @@ describe('stageConfig', () => {
       expect(getStageConfig('micro32').syntax.languageId).toBeNull();
       expect(getStageConfig('micro32p').syntax.languageId).toBeNull();
       expect(getStageConfig('micro32s').syntax.languageId).toBeNull();
+    });
+  });
+
+  // Story 18.1: Stage Constraints
+  describe('StageConstraints (Story 18.1)', () => {
+    it('should have constraints field on every StageConfig', () => {
+      for (const stage of LAB_STAGES) {
+        const config = getStageConfig(stage);
+        expect(config).toHaveProperty('constraints');
+        expect(config.constraints).toBeDefined();
+      }
+    });
+
+    it('should have correct StageConstraints shape for every stage', () => {
+      for (const stage of LAB_STAGES) {
+        const c = getStageConfig(stage).constraints;
+        expect(c).toHaveProperty('memorySize');
+        expect(c).toHaveProperty('registerCount');
+        expect(c).toHaveProperty('instructionSet');
+        expect(c).toHaveProperty('stackSupported');
+        expect(c).toHaveProperty('defaultPc');
+        expect(c).toHaveProperty('defaultSp');
+        expect(c.instructionSet).toHaveProperty('opcodeCount');
+        expect(c.instructionSet).toHaveProperty('categories');
+        expect(Array.isArray(c.instructionSet.categories)).toBe(true);
+      }
+    });
+
+    // AC #1: Micro4 has 256-byte memory limit
+    it('should define Micro4 memory size as exactly 256 bytes', () => {
+      const c = getStageConstraints('micro4');
+      expect(c.memorySize).toBe(256);
+    });
+
+    // AC #2: Micro8 has 64KB memory limit
+    it('should define Micro8 memory size as exactly 65536 bytes', () => {
+      const c = getStageConstraints('micro8');
+      expect(c.memorySize).toBe(65536);
+    });
+
+    it('should define Micro16 memory size as exactly 1048576 bytes (1MB)', () => {
+      const c = getStageConstraints('micro16');
+      expect(c.memorySize).toBe(1048576);
+    });
+
+    it('should define Micro32 memory size as 4GB (4294967296)', () => {
+      const c = getStageConstraints('micro32');
+      expect(c.memorySize).toBe(4294967296);
+    });
+
+    it('should define Micro32-P memory size same as Micro32', () => {
+      expect(getStageConstraints('micro32p').memorySize)
+        .toBe(getStageConstraints('micro32').memorySize);
+    });
+
+    it('should define Micro32-S memory size same as Micro32', () => {
+      expect(getStageConstraints('micro32s').memorySize)
+        .toBe(getStageConstraints('micro32').memorySize);
+    });
+
+    // AC #4: Register count limits
+    it('should define Micro4 register count as 0 (accumulator-only)', () => {
+      expect(getStageConstraints('micro4').registerCount).toBe(0);
+    });
+
+    it('should define Micro8 register count as 8 (R0-R7)', () => {
+      expect(getStageConstraints('micro8').registerCount).toBe(8);
+    });
+
+    it('should define Micro16 register count as 12 (8 general + 4 segment)', () => {
+      expect(getStageConstraints('micro16').registerCount).toBe(12);
+    });
+
+    it('should define Micro32/P/S register count as 16', () => {
+      expect(getStageConstraints('micro32').registerCount).toBe(16);
+      expect(getStageConstraints('micro32p').registerCount).toBe(16);
+      expect(getStageConstraints('micro32s').registerCount).toBe(16);
+    });
+
+    // AC #3: Instruction set limits
+    it('should have instruction set opcode count matching STAGE_METADATA.instructionCount', () => {
+      for (const stage of LAB_STAGES) {
+        const c = getStageConstraints(stage);
+        expect(c.instructionSet.opcodeCount).toBe(STAGE_METADATA[stage].instructionCount);
+      }
+    });
+
+    it('should have Micro4 with exactly 4 categories: arithmetic, logic, data-transfer, control-flow', () => {
+      const cats: readonly InstructionCategory[] = getStageConstraints('micro4').instructionSet.categories;
+      expect(cats).toHaveLength(4);
+      expect(cats).toContain('arithmetic');
+      expect(cats).toContain('logic');
+      expect(cats).toContain('data-transfer');
+      expect(cats).toContain('control-flow');
+      expect(cats).not.toContain('stack');
+      expect(cats).not.toContain('subroutine');
+      expect(cats).not.toContain('interrupt');
+      expect(cats).not.toContain('multiply');
+    });
+
+    it('should have Micro8 with exactly 9 categories including stack, subroutine, interrupt, io, comparison', () => {
+      const cats = getStageConstraints('micro8').instructionSet.categories;
+      expect(cats).toHaveLength(9);
+      expect(cats).toContain('stack');
+      expect(cats).toContain('subroutine');
+      expect(cats).toContain('interrupt');
+      expect(cats).toContain('io');
+      expect(cats).toContain('comparison');
+      expect(cats).not.toContain('multiply');
+      expect(cats).not.toContain('segment');
+    });
+
+    it('should have Micro16 with exactly 11 categories including multiply and segment', () => {
+      const cats = getStageConstraints('micro16').instructionSet.categories;
+      expect(cats).toHaveLength(11);
+      expect(cats).toContain('multiply');
+      expect(cats).toContain('segment');
+      expect(cats).not.toContain('protection');
+      expect(cats).not.toContain('paging');
+    });
+
+    it('should have Micro32+ with exactly 13 categories including protection and paging', () => {
+      for (const stage of ['micro32', 'micro32p', 'micro32s'] as LabStage[]) {
+        const cats = getStageConstraints(stage).instructionSet.categories;
+        expect(cats).toHaveLength(13);
+        expect(cats).toContain('protection');
+        expect(cats).toContain('paging');
+      }
+    });
+
+    // Stack support
+    it('should have stackSupported false for Micro4', () => {
+      expect(getStageConstraints('micro4').stackSupported).toBe(false);
+    });
+
+    it('should have stackSupported true for Micro8+', () => {
+      for (const stage of ['micro8', 'micro16', 'micro32', 'micro32p', 'micro32s'] as LabStage[]) {
+        expect(getStageConstraints(stage).stackSupported).toBe(true);
+      }
+    });
+
+    // Default PC/SP
+    it('should have Micro4 defaultPc as 0', () => {
+      expect(getStageConstraints('micro4').defaultPc).toBe(0);
+    });
+
+    it('should have Micro8 defaultPc as 0x0200 and defaultSp as 0xFFFF', () => {
+      const c = getStageConstraints('micro8');
+      expect(c.defaultPc).toBe(0x0200);
+      expect(c.defaultSp).toBe(0xFFFF);
+    });
+
+    it('should have Micro16 defaultPc as 0x0100 and defaultSp as 0xFFFE', () => {
+      const c = getStageConstraints('micro16');
+      expect(c.defaultPc).toBe(0x0100);
+      expect(c.defaultSp).toBe(0xFFFE);
+    });
+
+    it('should have Micro4 defaultSp as null (no stack)', () => {
+      expect(getStageConstraints('micro4').defaultSp).toBeNull();
+    });
+  });
+
+  // Story 18.1: Accessor functions
+  describe('getStageConstraints (Story 18.1)', () => {
+    it('should return valid StageConstraints for every LabStage', () => {
+      for (const stage of LAB_STAGES) {
+        const c: StageConstraints = getStageConstraints(stage);
+        expect(c).toBeDefined();
+        expect(typeof c.memorySize).toBe('number');
+        expect(typeof c.registerCount).toBe('number');
+        expect(typeof c.stackSupported).toBe('boolean');
+        expect(typeof c.defaultPc).toBe('number');
+      }
+    });
+
+    it('should return same constraints as getStageConfig(stage).constraints', () => {
+      for (const stage of LAB_STAGES) {
+        expect(getStageConstraints(stage)).toBe(getStageConfig(stage).constraints);
+      }
+    });
+  });
+
+  describe('getStageMemorySize (Story 18.1)', () => {
+    it('should return 256 for micro4', () => {
+      expect(getStageMemorySize('micro4')).toBe(256);
+    });
+
+    it('should return 65536 for micro8', () => {
+      expect(getStageMemorySize('micro8')).toBe(65536);
+    });
+
+    it('should return 1048576 for micro16', () => {
+      expect(getStageMemorySize('micro16')).toBe(1048576);
+    });
+
+    it('should return 4294967296 for micro32', () => {
+      expect(getStageMemorySize('micro32')).toBe(4294967296);
+    });
+
+    it('should return correct memory size for every stage', () => {
+      for (const stage of LAB_STAGES) {
+        expect(getStageMemorySize(stage)).toBe(getStageConstraints(stage).memorySize);
+      }
+    });
+  });
+
+  // Story 18.2: getNextStage helper
+  describe('getNextStage (Story 18.2)', () => {
+    it('should return micro8 as next stage after micro4', () => {
+      expect(getNextStage('micro4')).toBe('micro8');
+    });
+
+    it('should return micro16 as next stage after micro8', () => {
+      expect(getNextStage('micro8')).toBe('micro16');
+    });
+
+    it('should return micro32 as next stage after micro16', () => {
+      expect(getNextStage('micro16')).toBe('micro32');
+    });
+
+    it('should return micro32p as next stage after micro32', () => {
+      expect(getNextStage('micro32')).toBe('micro32p');
+    });
+
+    it('should return micro32s as next stage after micro32p', () => {
+      expect(getNextStage('micro32p')).toBe('micro32s');
+    });
+
+    it('should return null for last stage (micro32s)', () => {
+      expect(getNextStage('micro32s')).toBeNull();
+    });
+
+    it('should follow LAB_STAGES order for all stages', () => {
+      for (let i = 0; i < LAB_STAGES.length - 1; i++) {
+        expect(getNextStage(LAB_STAGES[i])).toBe(LAB_STAGES[i + 1]);
+      }
+      expect(getNextStage(LAB_STAGES[LAB_STAGES.length - 1])).toBeNull();
     });
   });
 

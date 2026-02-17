@@ -726,4 +726,162 @@ describe('AssemblerBridge', () => {
       expect(() => bridge.terminate()).not.toThrow();
     });
   });
+
+  // Story 18.2: Memory limit enforcement
+  describe('memory limit enforcement (Story 18.2)', () => {
+    /** Helper: init bridge with given stage and WORKER_READY */
+    async function initBridge(bridge: AssemblerBridge, stage: 'micro4' | 'micro8' = 'micro4') {
+      const initPromise = bridge.init(stage);
+      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+      await initPromise;
+    }
+
+    /** Helper: simulate ASSEMBLE_SUCCESS with binary of given size */
+    function simulateSuccessWithSize(size: number) {
+      const binary = new Array(size).fill(0);
+      mockWorker.simulateMessage({
+        type: 'ASSEMBLE_SUCCESS',
+        payload: { binary },
+      } satisfies AssembleSuccessEvent);
+    }
+
+    it('rejects binary that exceeds micro4 memory limit (256 bytes)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257); // 1 byte over 256
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.binary).toBeNull();
+      expect(result.error).not.toBeNull();
+    });
+
+    it('accepts binary that fits within micro4 memory limit', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(100); // Well under 256
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.binary).not.toBeNull();
+      expect(result.binary!.length).toBe(100);
+      expect(result.error).toBeNull();
+    });
+
+    it('accepts binary at exact micro4 memory limit boundary (256 bytes)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(256); // Exactly at limit
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.binary).not.toBeNull();
+      expect(result.binary!.length).toBe(256);
+      expect(result.error).toBeNull();
+    });
+
+    it('error message contains program size and memory limit', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(300);
+      const result = await assemblePromise;
+
+      expect(result.error!.message).toContain('300 bytes');
+      expect(result.error!.message).toContain('256 bytes');
+      expect(result.error!.message).toContain('Micro4');
+    });
+
+    it('error suggestion mentions next stage name and memory size', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(300);
+      const result = await assemblePromise;
+
+      expect(result.error!.suggestion).toContain('Micro8');
+      expect(result.error!.suggestion).toContain('64 KB');
+      expect(result.error!.suggestion).toContain('Reduce program size');
+    });
+
+    it('error type is CONSTRAINT_ERROR', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      expect(result.error!.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('error.fixable is false', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      expect(result.error!.fixable).toBe(false);
+    });
+
+    it('error.line is 0 (program-level error)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      expect(result.error!.line).toBe(0);
+    });
+
+    it('enforces micro8 memory limit (65536 bytes)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro8');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(65537); // 1 byte over 65536
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error!.type).toBe('CONSTRAINT_ERROR');
+      expect(result.error!.message).toContain('65537 bytes');
+      expect(result.error!.message).toContain('65536 bytes');
+      expect(result.error!.message).toContain('Micro8');
+    });
+
+    it('micro8 error suggestion mentions Micro16', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro8');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(65537);
+      const result = await assemblePromise;
+
+      expect(result.error!.suggestion).toContain('Micro16');
+      expect(result.error!.suggestion).toContain('1 MB');
+    });
+
+    it('accepts empty binary (0 bytes)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('');
+      simulateSuccessWithSize(0);
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.binary!.length).toBe(0);
+    });
+  });
 });

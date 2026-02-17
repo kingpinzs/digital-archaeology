@@ -53,6 +53,60 @@ export interface StageSyntaxConfig {
   languageId: string | null;
 }
 
+/**
+ * Instruction categories available at a CPU stage (Story 18.1).
+ * Used to define what types of instructions a stage supports,
+ * enabling constraint enforcement in Stories 18.2-18.3.
+ */
+export type InstructionCategory =
+  | 'arithmetic'
+  | 'logic'
+  | 'data-transfer'
+  | 'control-flow'
+  | 'comparison'
+  | 'stack'
+  | 'subroutine'
+  | 'interrupt'
+  | 'io'
+  | 'multiply'
+  | 'segment'
+  | 'protection'
+  | 'paging';
+
+/**
+ * Instruction set capabilities for a CPU stage (Story 18.1).
+ */
+export interface StageInstructionSet {
+  /** Total number of distinct opcodes (matches STAGE_METADATA.instructionCount) */
+  readonly opcodeCount: number;
+  /** Instruction categories available at this stage */
+  readonly categories: readonly InstructionCategory[];
+}
+
+/**
+ * Period-accurate constraints for a CPU stage (Story 18.1).
+ * Defines the authentic limitations each stage has — memory size, register count,
+ * instruction set capabilities, and stack support. These drive constraint
+ * enforcement (Stories 18.2-18.3) and educational error messages (Story 18.4).
+ *
+ * Data sources: src/micro{4,8,16}/cpu.h for implemented stages;
+ * Micro32+ use placeholder values pending Epic 14 ISA definition.
+ */
+export interface StageConstraints {
+  /** Memory size in bytes (e.g., 256, 65536, 1048576) */
+  readonly memorySize: number;
+  /** Number of programmer-visible general-purpose registers (0 = accumulator-only) */
+  readonly registerCount: number;
+  /** Instruction set capabilities for this stage */
+  readonly instructionSet: StageInstructionSet;
+  /** Whether this stage has a hardware stack with PUSH/POP */
+  readonly stackSupported: boolean;
+  /** Default program counter value on reset */
+  readonly defaultPc: number;
+  /** Default stack pointer value on reset (null if no stack) */
+  readonly defaultSp: number | null;
+}
+
 /** Complete configuration for a single CPU stage */
 export interface StageConfig {
   /** Stage metadata (label, icon, dataWidth, addressSpace) */
@@ -69,7 +123,31 @@ export interface StageConfig {
   programs: StageProgramsConfig;
   /** Syntax highlighting language */
   syntax: StageSyntaxConfig;
+  /** Period-accurate constraints for this stage (Story 18.1) */
+  constraints: StageConstraints;
 }
+
+/**
+ * Shared constraints for all Micro32 variants (Story 18.1, CR fix).
+ * Pipeline (32-P) and superscalar (32-S) are microarchitecture, not ISA —
+ * all three share identical instruction sets, memory, and register constraints.
+ * Placeholder values pending Epic 14 ISA definition.
+ */
+const MICRO32_CONSTRAINTS: StageConstraints = {
+  memorySize: 4294967296,    // 4 GB (per STAGE_METADATA addressSpace)
+  registerCount: 16,         // Placeholder — ISA defined in Epic 14
+  instructionSet: {
+    opcodeCount: 200,
+    categories: [
+      'arithmetic', 'logic', 'data-transfer', 'control-flow',
+      'comparison', 'stack', 'subroutine', 'interrupt', 'io',
+      'multiply', 'segment', 'protection', 'paging',
+    ],
+  },
+  stackSupported: true,
+  defaultPc: 0,              // Placeholder — ISA defined in Epic 14
+  defaultSp: 0xFFFFFFFE,     // Placeholder — ISA defined in Epic 14
+};
 
 /**
  * Registry of all stage configurations.
@@ -88,6 +166,17 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: 'hdl/04_micro4_cpu.m4hdl' },
     programs: { directory: 'programs/' },
     syntax: { languageId: LANGUAGE_IDS.micro4 },
+    constraints: {
+      memorySize: 256,           // src/micro4/cpu.h: MEM_SIZE 256
+      registerCount: 0,          // Accumulator-only architecture
+      instructionSet: {
+        opcodeCount: 16,
+        categories: ['arithmetic', 'logic', 'data-transfer', 'control-flow'],
+      },
+      stackSupported: false,
+      defaultPc: 0,
+      defaultSp: null,
+    },
   },
   micro8: {
     meta: STAGE_METADATA.micro8,
@@ -97,6 +186,20 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: null },
     programs: { directory: 'programs/micro8/' },
     syntax: { languageId: LANGUAGE_IDS.micro8 },
+    constraints: {
+      memorySize: 65536,         // src/micro8/cpu.h: MEM_SIZE 65536
+      registerCount: 8,          // R0-R7
+      instructionSet: {
+        opcodeCount: 80,
+        categories: [
+          'arithmetic', 'logic', 'data-transfer', 'control-flow',
+          'comparison', 'stack', 'subroutine', 'interrupt', 'io',
+        ],
+      },
+      stackSupported: true,
+      defaultPc: 0x0200,         // src/micro8/cpu.h: DEFAULT_PC
+      defaultSp: 0xFFFF,         // src/micro8/cpu.h: DEFAULT_SP
+    },
   },
   micro16: {
     meta: STAGE_METADATA.micro16,
@@ -106,6 +209,21 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: null },
     programs: { directory: 'programs/micro16/' },
     syntax: { languageId: LANGUAGE_IDS.micro16 },
+    constraints: {
+      memorySize: 1048576,       // src/micro16/cpu.h: MEM_SIZE 0x100000
+      registerCount: 12,         // 8 general-purpose + 4 segment registers
+      instructionSet: {
+        opcodeCount: 100,
+        categories: [
+          'arithmetic', 'logic', 'data-transfer', 'control-flow',
+          'comparison', 'stack', 'subroutine', 'interrupt', 'io',
+          'multiply', 'segment',
+        ],
+      },
+      stackSupported: true,
+      defaultPc: 0x0100,         // src/micro16/cpu.h: DEFAULT_PC
+      defaultSp: 0xFFFE,         // src/micro16/cpu.h: DEFAULT_SP
+    },
   },
   micro32: {
     meta: STAGE_METADATA.micro32,
@@ -115,6 +233,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: null },
     programs: { directory: null },
     syntax: { languageId: null },
+    constraints: MICRO32_CONSTRAINTS,
   },
   micro32p: {
     meta: STAGE_METADATA.micro32p,
@@ -124,6 +243,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: null },
     programs: { directory: null },
     syntax: { languageId: null },
+    constraints: MICRO32_CONSTRAINTS,
   },
   micro32s: {
     meta: STAGE_METADATA.micro32s,
@@ -133,6 +253,7 @@ export const STAGE_CONFIGS: Record<LabStage, StageConfig> = {
     hdl: { path: null },
     programs: { directory: null },
     syntax: { languageId: null },
+    constraints: MICRO32_CONSTRAINTS,
   },
 };
 
@@ -150,4 +271,27 @@ export function getStageConfig(stage: LabStage): StageConfig {
  */
 export function isStageReady(stage: LabStage): boolean {
   return STAGE_CONFIGS[stage].ready;
+}
+
+/**
+ * Get the period-accurate constraints for a specific stage (Story 18.1).
+ * Returns memory size, register count, instruction set capabilities, and stack support.
+ */
+export function getStageConstraints(stage: LabStage): StageConstraints {
+  return STAGE_CONFIGS[stage].constraints;
+}
+
+/**
+ * Get the memory size in bytes for a specific stage (Story 18.1).
+ * Convenience accessor — equivalent to getStageConstraints(stage).memorySize.
+ */
+export function getStageMemorySize(stage: LabStage): number {
+  return STAGE_CONFIGS[stage].constraints.memorySize;
+}
+
+/** Returns the next stage in LAB_STAGES order, or null for the last stage (Story 18.2) */
+export function getNextStage(stage: LabStage): LabStage | null {
+  const index = LAB_STAGES.indexOf(stage);
+  if (index === -1 || index === LAB_STAGES.length - 1) return null;
+  return LAB_STAGES[index + 1];
 }

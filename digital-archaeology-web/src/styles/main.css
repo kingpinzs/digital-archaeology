@@ -920,6 +920,22 @@ body.da-resizing * {
   margin: 0 8px;
 }
 
+/* Experimentation mode toggle (Story 18.5) */
+.da-experimentation-toggle {
+  position: relative;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.2s ease;
+}
+
+.da-experimentation-toggle--active {
+  background-color: color-mix(in srgb, var(--da-accent) 25%, transparent);
+  color: var(--da-accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--da-accent) 30%, transparent);
+}
+
+.da-experimentation-toggle--active:hover {
+  background-color: color-mix(in srgb, var(--da-accent) 35%, transparent);
+}
+
 /* ==============================
    Mode Toggle (Story/Lab)
    ============================== */

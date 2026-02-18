@@ -186,6 +186,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
   const assembleMock = vi.fn(() => Promise.resolve(state.assembleResult));
   const terminateMock = vi.fn();
   const reinitMock = vi.fn(() => Promise.resolve());
+  const setExperimentationModeMock = vi.fn();
 
   // Constructor function that will be used as the class
   function MockAssemblerBridge() {
@@ -194,6 +195,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
       assemble: assembleMock,
       terminate: terminateMock,
       reinit: reinitMock,
+      setExperimentationMode: setExperimentationModeMock,
       get isReady() {
         return state.isReady;
       },
@@ -206,6 +208,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
     assemble: assembleMock,
     terminate: terminateMock,
     reinit: reinitMock,
+    setExperimentationMode: setExperimentationModeMock,
     get isReady() {
       return state.isReady;
     },
@@ -233,6 +236,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
       assembleMock.mockClear();
       terminateMock.mockClear();
       reinitMock.mockClear();
+      setExperimentationModeMock.mockClear();
       reinitMock.mockImplementation(() => Promise.resolve());
       assembleMock.mockImplementation(() => Promise.resolve(state.assembleResult));
     },
@@ -10280,6 +10284,67 @@ describe('App', () => {
         expect(app.getCallRetVisualizer()).not.toBeNull();
         app.destroy();
         expect(app.getCallRetVisualizer()).toBeNull();
+      });
+    });
+  });
+
+  describe('experimentation mode (Story 18.5)', () => {
+    beforeEach(() => {
+      mockAssemblerBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      app.mount(container);
+    });
+
+    it('should call setExperimentationMode on assembler bridge during initialization', () => {
+      expect(mockAssemblerBridge.setExperimentationMode).toHaveBeenCalledWith(false);
+    });
+
+    it('should toggle experimentation mode when toolbar toggle is clicked', () => {
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]') as HTMLButtonElement;
+      expect(expBtn).not.toBeNull();
+
+      expBtn.click();
+
+      // Should call setExperimentationMode(true) on bridge
+      expect(mockAssemblerBridge.setExperimentationMode).toHaveBeenCalledWith(true);
+    });
+
+    it('should persist experimentation mode to localStorage on toggle', () => {
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]') as HTMLButtonElement;
+      expBtn.click();
+
+      // Check localStorage was updated
+      const stored = localStorage.getItem('digital-archaeology-settings');
+      expect(stored).not.toBeNull();
+      const settings = JSON.parse(stored!);
+      expect(settings.experimentationMode).toBe(true);
+    });
+
+    it('should show "(Experimentation Mode)" suffix in status bar after assembly in experimentation mode', async () => {
+      // Set up editor content and trigger content change to enable assemble
+      mockEditorInstance._setContent('LDA 5');
+      mockEditorInstance.getValue.mockReturnValue('LDA 5');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      // Set assembly result with experimentation flag
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: new Uint8Array([0x01, 0x05]),
+        error: null,
+        assembledInExperimentationMode: true,
+      });
+
+      // Click assemble
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      expect(assembleBtn.disabled).toBe(false);
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        const assemblySection = container.querySelector('[data-section="assembly"]');
+        expect(assemblySection?.textContent).toContain('(Experimentation Mode)');
       });
     });
   });

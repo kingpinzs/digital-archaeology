@@ -126,12 +126,22 @@ export class SettingsStorage {
   /**
    * Migrate settings from older versions to current.
    * v1 → v2: Add currentStage and unlockedStages fields.
+   * v2 → v3: Add experimentationMode field (Story 18.5).
    */
   private migrateSettings(parsed: Record<string, unknown>): Record<string, unknown> {
+    let migrated = false;
     if (typeof parsed.version === 'number' && parsed.version < 2) {
       parsed.currentStage = parsed.currentStage ?? 'micro4';
       parsed.unlockedStages = parsed.unlockedStages ?? ['micro4'];
       parsed.version = 2;
+      migrated = true;
+    }
+    if (typeof parsed.version === 'number' && parsed.version < 3) {
+      parsed.experimentationMode = parsed.experimentationMode ?? false;
+      parsed.version = 3;
+      migrated = true;
+    }
+    if (migrated) {
       // Persist migration
       try {
         localStorage.setItem(this.storageKey, JSON.stringify(parsed));

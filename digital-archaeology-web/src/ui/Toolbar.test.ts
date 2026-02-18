@@ -24,6 +24,7 @@ describe('Toolbar', () => {
       onSpeedChange: vi.fn(),
       onHelpClick: vi.fn(),
       onSettingsClick: vi.fn(),
+      onExperimentationModeToggle: vi.fn(),
     };
   });
 
@@ -788,6 +789,126 @@ describe('Toolbar', () => {
 
       toolbar.updateState({ canRun: false });
       expect(runBtn.title).toBe('Assemble first (F5)');
+    });
+  });
+
+  describe('experimentation mode toggle (Story 18.5)', () => {
+    it('should render experimentation mode toggle button', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn).not.toBeNull();
+      expect(expBtn?.textContent).toContain('\u2697');
+
+      toolbar.destroy();
+    });
+
+    it('should have da-experimentation-toggle CSS class', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.classList.contains('da-experimentation-toggle')).toBe(true);
+
+      toolbar.destroy();
+    });
+
+    it('should have aria-pressed="false" when mode is OFF', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.getAttribute('aria-pressed')).toBe('false');
+
+      toolbar.destroy();
+    });
+
+    it('should have aria-pressed="true" when mode is ON', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ isExperimentationMode: true });
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.getAttribute('aria-pressed')).toBe('true');
+
+      toolbar.destroy();
+    });
+
+    it('should have active CSS class when mode is ON', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ isExperimentationMode: true });
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.classList.contains('da-experimentation-toggle--active')).toBe(true);
+
+      toolbar.destroy();
+    });
+
+    it('should remove active CSS class when mode is toggled OFF', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ isExperimentationMode: true });
+      toolbar.updateState({ isExperimentationMode: false });
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.classList.contains('da-experimentation-toggle--active')).toBe(false);
+
+      toolbar.destroy();
+    });
+
+    it('should show bypass tooltip when mode is OFF', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]') as HTMLButtonElement;
+      expect(expBtn.title).toBe('Experimentation Mode: Bypass stage constraints');
+
+      toolbar.destroy();
+    });
+
+    it('should show active tooltip when mode is ON', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      toolbar.updateState({ isExperimentationMode: true });
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]') as HTMLButtonElement;
+      expect(expBtn.title).toBe('Experimentation Mode: Active \u2014 constraints bypassed');
+
+      toolbar.destroy();
+    });
+
+    it('should call onExperimentationModeToggle when clicked', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]') as HTMLButtonElement;
+      expBtn.click();
+
+      expect(mockCallbacks.onExperimentationModeToggle).toHaveBeenCalledTimes(1);
+
+      toolbar.destroy();
+    });
+
+    it('should have correct aria-label for screen readers', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const expBtn = container.querySelector('[data-action="experimentation-toggle"]');
+      expect(expBtn?.getAttribute('aria-label')).toBe('Toggle experimentation mode');
+
+      toolbar.destroy();
+    });
+
+    it('should initialize isExperimentationMode to false in default state', () => {
+      const toolbar = new Toolbar(mockCallbacks);
+      toolbar.mount(container);
+
+      const state = toolbar.getState();
+      expect(state.isExperimentationMode).toBe(false);
+
+      toolbar.destroy();
     });
   });
 

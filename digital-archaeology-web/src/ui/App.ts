@@ -30,7 +30,7 @@ import { CircuitBuilder, ComponentPalette } from '@builder/index';
 import { HdlViewerPanel } from '@hdl/index';
 import { ExampleBrowser, loadExampleProgram } from '@examples/index';
 import type { ExampleProgram } from '@examples/index';
-import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, downloadBinaryFile, readTextFile } from '../state';
+import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, downloadBinaryFile, readTextFile, DEFAULT_SETTINGS } from '../state';
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 import { HashRouter, parseHash } from '../router';
 import type { RouteState } from '../router';
@@ -249,6 +249,9 @@ export class App {
 
   // Stage switching state (Story 11.3)
   private isStageSwitching: boolean = false;
+
+  // Experimentation mode — bypasses stage constraints (Story 18.5)
+  private isExperimentationMode: boolean = false;
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -2484,6 +2487,9 @@ export class App {
   private initializeAssemblerBridge(): void {
     this.assemblerBridge = new AssemblerBridge();
 
+    // Story 18.5: Sync experimentation mode to bridge before init
+    this.assemblerBridge.setExperimentationMode(this.isExperimentationMode);
+
     // Initialize asynchronously - don't block UI
     // Story 11.2: Pass current stage so bridge sends config-derived WASM path
     this.assemblerBridge.init(this.currentStage).catch((error) => {
@@ -3370,6 +3376,17 @@ export class App {
   }
 
   /**
+   * Toggle experimentation mode on/off (Story 18.5).
+   * Persists to settings, syncs to assembler bridge, and updates toolbar.
+   */
+  private toggleExperimentationMode(): void {
+    this.isExperimentationMode = !this.isExperimentationMode;
+    this.settingsStorage.setSetting('experimentationMode', this.isExperimentationMode);
+    this.assemblerBridge?.setExperimentationMode(this.isExperimentationMode);
+    this.toolbar?.updateState({ isExperimentationMode: this.isExperimentationMode });
+  }
+
+  /**
    * Handle assembly of the current editor content.
    * Updates status bar during operation and enables execution buttons on success.
    * Includes debounce protection against rapid triggering.
@@ -3418,9 +3435,11 @@ export class App {
 
       if (result.success) {
         const byteCount = result.binary?.length ?? 0;
+        // Story 18.5: Annotate status message when assembled in experimentation mode
+        const expSuffix = result.assembledInExperimentationMode ? ' (Experimentation Mode)' : '';
         this.statusBar?.updateState({
           assemblyStatus: 'success',
-          assemblyMessage: `${byteCount} bytes`,
+          assemblyMessage: `${byteCount} bytes${expSuffix}`,
         });
         // Mark assembly as valid (Story 3.7)
         this.hasValidAssembly = true;
@@ -4001,6 +4020,9 @@ export class App {
     // Story 11.1: Apply persisted stage selection
     this.currentStage = settings.currentStage;
     this.unlockedStages = settings.unlockedStages;
+
+    // Story 18.5: Apply persisted experimentation mode
+    this.isExperimentationMode = settings.experimentationMode;
   }
 
   /**
@@ -4019,7 +4041,8 @@ export class App {
       editorOptions: this.settingsStorage.getSetting('editorOptions'),
       currentStage: this.currentStage,
       unlockedStages: this.unlockedStages,
-      version: 2,
+      experimentationMode: this.isExperimentationMode,
+      version: DEFAULT_SETTINGS.version,
     };
     this.settingsStorage.saveSettings(settings);
   }
@@ -4108,13 +4131,18 @@ export class App {
       onSpeedChange: (speed) => this.handleSpeedChange(speed),
       onHelpClick: () => { /* Epic 20: Educational Content */ },
       onSettingsClick: () => { /* Epic 9: Settings */ },
+      onExperimentationModeToggle: () => this.toggleExperimentationMode(),
     };
 
     this.toolbar = new Toolbar(callbacks);
     this.toolbar.mount(toolbarContainer as HTMLElement);
 
     // Story 9.1: Apply persisted speed to toolbar
-    this.toolbar.updateState({ speed: this.executionSpeed });
+    // Story 18.5: Apply persisted experimentation mode to toolbar
+    this.toolbar.updateState({
+      speed: this.executionSpeed,
+      isExperimentationMode: this.isExperimentationMode,
+    });
   }
 
   /**

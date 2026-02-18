@@ -170,6 +170,8 @@ export interface AssembleResult {
   binary: Uint8Array | null;
   /** Error details if assembly failed, null otherwise */
   error: AssemblerError | null;
+  /** Whether this result was produced with experimentation mode active (Story 18.5) */
+  assembledInExperimentationMode?: boolean;
 }
 
 /**

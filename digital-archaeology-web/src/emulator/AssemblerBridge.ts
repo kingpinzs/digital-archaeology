@@ -235,12 +235,21 @@ export class AssemblerBridge {
   private initialized = false;
   private initPromise: Promise<void> | null = null;
   private stage: LabStage = 'micro4';
+  private experimentationMode: boolean = false;
 
   /**
    * Whether the bridge is initialized and ready for use.
    */
   get isReady(): boolean {
     return this.initialized && this.worker !== null;
+  }
+
+  /**
+   * Enable or disable experimentation mode (Story 18.5).
+   * When enabled, memory limit and instruction set constraint checks are bypassed.
+   */
+  setExperimentationMode(enabled: boolean): void {
+    this.experimentationMode = enabled;
   }
 
   /**
@@ -368,17 +377,20 @@ export class AssemblerBridge {
           cleanup();
           const binary = new Uint8Array(data.payload.binary);
 
-          // Story 18.2: Enforce memory limit
-          const memoryLimit = getStageMemorySize(this.stage);
-          if (binary.length > memoryLimit) {
-            resolve(buildMemoryConstraintError(binary.length, memoryLimit, this.stage));
-            return;
+          // Story 18.2: Enforce memory limit (bypassed in experimentation mode — Story 18.5)
+          if (!this.experimentationMode) {
+            const memoryLimit = getStageMemorySize(this.stage);
+            if (binary.length > memoryLimit) {
+              resolve(buildMemoryConstraintError(binary.length, memoryLimit, this.stage));
+              return;
+            }
           }
 
           resolve({
             success: true,
             binary,
             error: null,
+            assembledInExperimentationMode: this.experimentationMode || undefined,
           });
         } else if (data.type === 'ASSEMBLE_ERROR') {
           cleanup();
@@ -386,12 +398,15 @@ export class AssemblerBridge {
           // Story 18.3: Check if "unknown instruction" is actually a stage constraint.
           // If the instruction exists in a later stage, return CONSTRAINT_ERROR with
           // educational guidance instead of a generic SYNTAX_ERROR.
-          const unknownMnemonic = extractUnknownInstruction(data.payload.message);
-          if (unknownMnemonic) {
-            const earliestStage = findEarliestStageForInstruction(unknownMnemonic);
-            if (earliestStage !== null && LAB_STAGES.indexOf(earliestStage) > LAB_STAGES.indexOf(this.stage)) {
-              resolve(buildInstructionSetError(unknownMnemonic, data.payload.line, this.stage, source, earliestStage));
-              return;
+          // Bypassed in experimentation mode (Story 18.5) — let errors pass through as normal.
+          if (!this.experimentationMode) {
+            const unknownMnemonic = extractUnknownInstruction(data.payload.message);
+            if (unknownMnemonic) {
+              const earliestStage = findEarliestStageForInstruction(unknownMnemonic);
+              if (earliestStage !== null && LAB_STAGES.indexOf(earliestStage) > LAB_STAGES.indexOf(this.stage)) {
+                resolve(buildInstructionSetError(unknownMnemonic, data.payload.line, this.stage, source, earliestStage));
+                return;
+              }
             }
           }
 

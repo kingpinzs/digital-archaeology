@@ -47,6 +47,8 @@ export interface AppSettings {
   currentStage: LabStage;
   /** Stages the user has unlocked (Story 11.1) */
   unlockedStages: LabStage[];
+  /** Whether experimentation mode is active — bypasses stage constraints (Story 18.5) */
+  experimentationMode: boolean;
   /** Version for migration support */
   version: number;
 }
@@ -69,7 +71,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   currentStage: 'micro4',
   unlockedStages: ['micro4'],
-  version: 2,
+  experimentationMode: false,
+  version: 3,
 };
 
 /** Valid lab stages for type guard validation - derived from single source of truth */
@@ -150,6 +153,7 @@ export function isValidSettings(value: unknown): value is AppSettings {
     VALID_LAB_STAGES.includes(obj.currentStage) &&
     Array.isArray(obj.unlockedStages) &&
     obj.unlockedStages.every((s: unknown) => typeof s === 'string' && VALID_LAB_STAGES.includes(s as string)) &&
+    typeof obj.experimentationMode === 'boolean' &&
     typeof obj.version === 'number'
   );
 }

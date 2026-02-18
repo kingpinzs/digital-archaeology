@@ -335,7 +335,7 @@ describe('SettingsStorage (Story 9.1)', () => {
       expect(result).not.toBeNull();
       expect(result?.currentStage).toBe('micro4');
       expect(result?.unlockedStages).toEqual(['micro4']);
-      expect(result?.version).toBe(2);
+      expect(result?.version).toBe(3); // v1 → v2 → v3 chained migration
     });
 
     it('should persist migrated v2 settings to localStorage', () => {
@@ -352,25 +352,24 @@ describe('SettingsStorage (Story 9.1)', () => {
 
       // Verify migration was persisted (setItem called with v2 data)
       const persisted = JSON.parse(localStorageMock[SETTINGS_STORAGE_KEY]);
-      expect(persisted.version).toBe(2);
+      expect(persisted.version).toBe(3); // v1 → v2 → v3 chained migration
       expect(persisted.currentStage).toBe('micro4');
       expect(persisted.unlockedStages).toEqual(['micro4']);
     });
 
-    it('should not modify already-v2 settings', () => {
-      const v2Settings: AppSettings = {
+    it('should not modify already-v3 settings', () => {
+      const v3Settings: AppSettings = {
         ...DEFAULT_SETTINGS,
         currentStage: 'micro8',
         unlockedStages: ['micro4', 'micro8'],
-        version: 2,
       };
-      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v2Settings);
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v3Settings);
 
       const result = storage.loadSettings();
 
       expect(result?.currentStage).toBe('micro8');
       expect(result?.unlockedStages).toEqual(['micro4', 'micro8']);
-      expect(result?.version).toBe(2);
+      expect(result?.version).toBe(3);
     });
 
     it('should preserve existing v1 settings values during migration', () => {
@@ -413,6 +412,87 @@ describe('SettingsStorage (Story 9.1)', () => {
         'custom-key',
         expect.any(String)
       );
+    });
+  });
+
+  describe('experimentation mode (Story 18.5)', () => {
+    it('DEFAULT_SETTINGS.experimentationMode should be false', () => {
+      expect(DEFAULT_SETTINGS.experimentationMode).toBe(false);
+    });
+
+    it('should accept settings with experimentationMode: true', () => {
+      const settings: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        experimentationMode: true,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(settings);
+
+      const result = storage.loadSettings();
+      expect(result).not.toBeNull();
+      expect(result?.experimentationMode).toBe(true);
+    });
+
+    it('should accept settings with experimentationMode: false', () => {
+      const settings: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        experimentationMode: false,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(settings);
+
+      const result = storage.loadSettings();
+      expect(result).not.toBeNull();
+      expect(result?.experimentationMode).toBe(false);
+    });
+
+    it('should reject settings with non-boolean experimentationMode', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify({
+        ...DEFAULT_SETTINGS,
+        experimentationMode: 'yes',
+      });
+
+      const result = storage.loadSettings();
+      expect(result).toBeNull();
+      consoleSpy.mockRestore();
+    });
+
+    it('should migrate v2 settings to v3 with experimentationMode: false', () => {
+      const v2Settings = {
+        theme: 'lab',
+        speed: 60,
+        panelWidths: { code: 350, state: 280 },
+        editorOptions: { fontSize: 14, tabSize: 2, wordWrap: 'off', minimap: false },
+        currentStage: 'micro8',
+        unlockedStages: ['micro4', 'micro8'],
+        version: 2,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v2Settings);
+
+      const result = storage.loadSettings();
+
+      expect(result).not.toBeNull();
+      expect(result?.experimentationMode).toBe(false);
+      expect(result?.version).toBe(3);
+      expect(result?.currentStage).toBe('micro8');
+    });
+
+    it('should persist v2 to v3 migration to localStorage', () => {
+      const v2Settings = {
+        theme: 'lab',
+        speed: 60,
+        panelWidths: { code: 350, state: 280 },
+        editorOptions: { fontSize: 14, tabSize: 2, wordWrap: 'off', minimap: false },
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        version: 2,
+      };
+      localStorageMock[SETTINGS_STORAGE_KEY] = JSON.stringify(v2Settings);
+
+      storage.loadSettings();
+
+      const persisted = JSON.parse(localStorageMock[SETTINGS_STORAGE_KEY]);
+      expect(persisted.version).toBe(3);
+      expect(persisted.experimentationMode).toBe(false);
     });
   });
 

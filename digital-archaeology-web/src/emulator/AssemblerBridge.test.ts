@@ -1116,4 +1116,108 @@ describe('AssemblerBridge', () => {
       expect(result.error!.educationalContext).toContain('PUSH');
     });
   });
+
+  describe('experimentation mode (Story 18.5)', () => {
+    it('memory limit check is SKIPPED when experimentation mode is ON', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(true);
+
+      const assemblePromise = bridge.assemble('NOP');
+      // Micro4 has 256 byte limit — send 300 bytes which normally would fail
+      simulateSuccessWithSize(300);
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.binary).not.toBeNull();
+      expect(result.binary!.length).toBe(300);
+    });
+
+    it('memory limit check is ENFORCED when experimentation mode is OFF', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(false);
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(300);
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error?.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('instruction set constraint check is SKIPPED when experimentation mode is ON', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(true);
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      // Normally this would be intercepted as CONSTRAINT_ERROR for PUSH in micro4
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      // Should pass through as normal SYNTAX_ERROR, NOT CONSTRAINT_ERROR
+      expect(result.success).toBe(false);
+      expect(result.error?.type).not.toBe('CONSTRAINT_ERROR');
+    });
+
+    it('instruction set constraint check is ENFORCED when experimentation mode is OFF', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(false);
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error?.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('assembledInExperimentationMode is true on success when mode is ON', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(true);
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(10);
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.assembledInExperimentationMode).toBe(true);
+    });
+
+    it('assembledInExperimentationMode is undefined on success when mode is OFF', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+      bridge.setExperimentationMode(false);
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(10);
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(true);
+      expect(result.assembledInExperimentationMode).toBeUndefined();
+    });
+
+    it('setExperimentationMode toggles bypass on and off', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      // Enable — oversized binary should succeed
+      bridge.setExperimentationMode(true);
+      let assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(300);
+      let result = await assemblePromise;
+      expect(result.success).toBe(true);
+
+      // Disable — oversized binary should fail
+      bridge.setExperimentationMode(false);
+      assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(300);
+      result = await assemblePromise;
+      expect(result.success).toBe(false);
+      expect(result.error?.type).toBe('CONSTRAINT_ERROR');
+    });
+  });
 });

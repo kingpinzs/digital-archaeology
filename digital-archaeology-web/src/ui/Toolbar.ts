@@ -22,6 +22,8 @@ export interface ToolbarState {
   isRunning: boolean;
   /** Current execution speed in Hz (1-1000) */
   speed: number;
+  /** Whether experimentation mode is active — bypasses stage constraints (Story 18.5) */
+  isExperimentationMode: boolean;
 }
 
 /**
@@ -48,6 +50,8 @@ export interface ToolbarCallbacks {
   onHelpClick: () => void;
   /** Called when Settings button is clicked */
   onSettingsClick: () => void;
+  /** Called when experimentation mode toggle is clicked (Story 18.5) */
+  onExperimentationModeToggle: () => void;
 }
 
 /**
@@ -80,6 +84,7 @@ export class Toolbar {
       canStepBack: false,
       isRunning: false,
       speed: 60,
+      isExperimentationMode: false,
     };
   }
 
@@ -214,6 +219,31 @@ export class Toolbar {
         </button>
       </div>
     `;
+
+    // Create experimentation mode toggle button via createElement (Story 18.5)
+    const rightGroup = toolbar.querySelector('.da-toolbar-group--right');
+    if (rightGroup) {
+      const helpBtn = rightGroup.querySelector('[data-action="help"]');
+      if (helpBtn) {
+        const expDivider = document.createElement('div');
+        expDivider.className = 'da-toolbar-divider';
+
+        const expBtn = document.createElement('button');
+        expBtn.className = 'da-toolbar-btn da-toolbar-btn--icon da-experimentation-toggle';
+        expBtn.setAttribute('data-action', 'experimentation-toggle');
+        expBtn.setAttribute('aria-label', 'Toggle experimentation mode');
+        expBtn.setAttribute('aria-pressed', 'false');
+        expBtn.title = 'Experimentation Mode: Bypass stage constraints';
+
+        const icon = document.createElement('span');
+        icon.className = 'da-toolbar-btn-icon';
+        icon.textContent = '\u2697';
+        expBtn.appendChild(icon);
+
+        rightGroup.insertBefore(expDivider, helpBtn);
+        rightGroup.insertBefore(expBtn, helpBtn);
+      }
+    }
 
     return toolbar;
   }
@@ -350,6 +380,9 @@ export class Toolbar {
       case 'settings':
         this.callbacks.onSettingsClick();
         break;
+      case 'experimentation-toggle':
+        this.callbacks.onExperimentationModeToggle();
+        break;
     }
   }
 
@@ -381,6 +414,16 @@ export class Toolbar {
       // Update aria-pressed for toggle state
       runBtn.setAttribute('aria-pressed', 'false');
       pauseBtn.setAttribute('aria-pressed', this.state.isRunning ? 'true' : 'false');
+    }
+
+    // Update experimentation mode toggle (Story 18.5)
+    const expToggle = this.buttons.get('experimentation-toggle');
+    if (expToggle) {
+      expToggle.setAttribute('aria-pressed', String(this.state.isExperimentationMode));
+      expToggle.title = this.state.isExperimentationMode
+        ? 'Experimentation Mode: Active \u2014 constraints bypassed'
+        : 'Experimentation Mode: Bypass stage constraints';
+      expToggle.classList.toggle('da-experimentation-toggle--active', this.state.isExperimentationMode);
     }
 
     // Update speed slider and label

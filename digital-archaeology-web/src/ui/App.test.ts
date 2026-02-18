@@ -10348,4 +10348,157 @@ describe('App', () => {
       });
     });
   });
+
+  describe('discovery tracking (Story 19.1)', () => {
+    beforeEach(() => {
+      localStorage.clear();
+      mockAssemblerBridge._reset();
+      mockEditorInstance._resetContent();
+      contentChangeListeners.length = 0;
+      app.mount(container);
+    });
+
+    it('should mount discovery notification container', () => {
+      const toastContainer = container.querySelector('.da-discovery-toast-container');
+      expect(toastContainer).not.toBeNull();
+      expect(toastContainer?.getAttribute('role')).toBe('status');
+    });
+
+    it('should show discovery toast on first successful assembly', async () => {
+      mockEditorInstance._setContent('NOP');
+      mockEditorInstance.getValue.mockReturnValue('NOP');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: new Uint8Array([0x00]),
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        const toast = container.querySelector('.da-discovery-toast');
+        expect(toast).not.toBeNull();
+      });
+    });
+
+    it('should persist discoveries to localStorage after assembly', async () => {
+      mockEditorInstance._setContent('NOP');
+      mockEditorInstance.getValue.mockReturnValue('NOP');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: new Uint8Array([0x00]),
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        const stored = localStorage.getItem('digital-archaeology-discoveries');
+        expect(stored).not.toBeNull();
+        const profile = JSON.parse(stored!);
+        expect(profile.discoveries.length).toBeGreaterThan(0);
+        expect(profile.discoveries.some((d: { type: string }) => d.type === 'first-assembly')).toBe(true);
+      });
+    });
+
+    it('should NOT show duplicate discoveries on second assembly', async () => {
+      mockEditorInstance._setContent('NOP');
+      mockEditorInstance.getValue.mockReturnValue('NOP');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: new Uint8Array([0x00]),
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+
+      // First assembly
+      assembleBtn.click();
+      await vi.waitFor(() => {
+        const stored = localStorage.getItem('digital-archaeology-discoveries');
+        expect(stored).not.toBeNull();
+      });
+
+      // Second assembly
+      assembleBtn.click();
+      await vi.waitFor(() => {
+        expect(mockAssemblerBridge.assemble).toHaveBeenCalledTimes(2);
+      });
+
+      // Should NOT have duplicated first-assembly in storage
+      const stored = localStorage.getItem('digital-archaeology-discoveries');
+      const profile = JSON.parse(stored!);
+      const firstAssemblyCount = profile.discoveries.filter((d: { type: string }) => d.type === 'first-assembly').length;
+      expect(firstAssemblyCount).toBe(1);
+    });
+
+    it('should NOT show discoveries on failed assembly', async () => {
+      mockEditorInstance._setContent('INVALID');
+      mockEditorInstance.getValue.mockReturnValue('INVALID');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      mockAssemblerBridge._setAssembleResult({
+        success: false,
+        binary: null,
+        error: { line: 1, message: 'Unknown instruction' },
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        const assemblySection = container.querySelector('[data-section="assembly"]');
+        expect(assemblySection?.textContent).toContain('Unknown instruction');
+      });
+
+      expect(container.querySelector('.da-discovery-toast')).toBeNull();
+      expect(localStorage.getItem('digital-archaeology-discoveries')).toBeNull();
+    });
+
+    it('should detect subroutine discovery when CALL instruction is assembled', async () => {
+      mockEditorInstance._setContent('CALL sub\nRET');
+      mockEditorInstance.getValue.mockReturnValue('CALL sub\nRET');
+      if (contentChangeListeners.length > 0) {
+        contentChangeListeners[0]();
+      }
+
+      mockAssemblerBridge._setAssembleResult({
+        success: true,
+        binary: new Uint8Array([0x01, 0x02]),
+        error: null,
+      });
+
+      const assembleBtn = container.querySelector('[data-action="assemble"]') as HTMLButtonElement;
+      assembleBtn.click();
+
+      await vi.waitFor(() => {
+        const stored = localStorage.getItem('digital-archaeology-discoveries');
+        expect(stored).not.toBeNull();
+        const profile = JSON.parse(stored!);
+        expect(profile.discoveries.some((d: { type: string }) => d.type === 'first-subroutine')).toBe(true);
+      });
+    });
+
+    it('should remove discovery notification container on destroy', () => {
+      expect(container.querySelector('.da-discovery-toast-container')).not.toBeNull();
+      app.destroy();
+      expect(container.querySelector('.da-discovery-toast-container')).toBeNull();
+    });
+  });
 });

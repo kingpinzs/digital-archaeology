@@ -34,6 +34,7 @@ import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, dow
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 import { HashRouter, parseHash } from '../router';
 import type { RouteState } from '../router';
+import { DiscoveryStorage, DiscoveryDetector, DiscoveryNotification } from '../progress';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -253,6 +254,11 @@ export class App {
   // Experimentation mode — bypasses stage constraints (Story 18.5)
   private isExperimentationMode: boolean = false;
 
+  // Discovery tracking (Story 19.1)
+  private discoveryStorage: DiscoveryStorage = new DiscoveryStorage();
+  private discoveryDetector: DiscoveryDetector = new DiscoveryDetector(this.discoveryStorage);
+  private discoveryNotification: DiscoveryNotification = new DiscoveryNotification();
+
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
   private isRouteUpdating: boolean = false;
@@ -331,6 +337,7 @@ export class App {
     this.destroySignalValuesPanel();
     this.destroyBreadcrumbNav();
     this.destroyHdlViewerPanel();
+    this.discoveryNotification.destroy();
 
     this.container = container;
     this.isMounted = true;
@@ -367,6 +374,8 @@ export class App {
     this.initializeStackView();
     this.initializeCallRetVisualizer();
     this.initializeRuntimeErrorPanel();
+    // Story 19.1: Mount discovery notification toast container
+    this.discoveryNotification.mount(container);
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
     this.initializeBreadcrumbNav();
@@ -3444,6 +3453,17 @@ export class App {
         // Mark assembly as valid (Story 3.7)
         this.hasValidAssembly = true;
 
+        // Story 19.1: Detect and announce first-time discoveries
+        const discoveries = this.discoveryDetector.detect(
+          source,
+          this.currentStage,
+          result.assembledInExperimentationMode ?? false,
+        );
+        for (const discovery of discoveries) {
+          this.discoveryStorage.addDiscovery(discovery);
+          this.discoveryNotification.show(discovery);
+        }
+
         // Build source map for PC-to-line correlation (Story 5.1)
         this.sourceMap = this.buildSourceMap(source);
 
@@ -4461,6 +4481,9 @@ export class App {
 
     // Destroy example browser
     this.destroyExampleBrowser();
+
+    // Destroy discovery notification (Story 19.1)
+    this.discoveryNotification.destroy();
 
     // Destroy resizers
     this.destroyResizers();

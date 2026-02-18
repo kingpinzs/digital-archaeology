@@ -1998,6 +1998,19 @@ body.da-resizing * {
   transform: scale(0.98);
 }
 
+/* Educational context callout for constraint errors (Story 18.4) */
+.da-error-educational-context {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--da-accent);
+  background: var(--da-bg-secondary);
+  font-style: italic;
+  font-size: 0.9em;
+  color: var(--da-text-secondary);
+  line-height: 1.4;
+}
+
 /* =============================================================================
    Binary Output Panel Component (Story 3.6)
    Displays assembled binary as hex dump with 16 bytes per row
@@ -2252,6 +2265,27 @@ body.da-resizing * {
   letter-spacing: 0.05em;
 }
 
+.da-stack-view__operation {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-stack-view__operation--call {
+  background: rgba(0, 200, 120, 0.15);
+  color: var(--da-signal-high);
+}
+
+.da-stack-view__operation--ret {
+  background: rgba(0, 150, 255, 0.15);
+  color: var(--da-accent);
+}
+
 .da-stack-view__info {
   font-size: 11px;
   color: var(--da-text-secondary);
@@ -2306,6 +2340,99 @@ body.da-resizing * {
 /* Flash animation for changed stack values - reuses da-register-flash keyframes */
 .da-stack-changed {
   animation: da-register-flash 300ms ease-out;
+}
+
+/* =============================================================================
+   CallRetVisualizer Component Styles (Story 12.6)
+   Visualizes CALL/RET operations with flow diagram
+   ============================================================================= */
+
+.da-callret {
+  padding: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-callret__title {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--da-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-callret__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.da-callret__content--active {
+  animation: da-register-flash 400ms ease-out;
+}
+
+.da-callret__badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  width: fit-content;
+}
+
+.da-callret__badge--call {
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+}
+
+.da-callret__badge--ret {
+  background: var(--da-signal-high);
+  color: var(--da-bg-primary);
+}
+
+.da-callret__badge--idle {
+  background: var(--da-bg-secondary);
+  color: var(--da-text-secondary);
+}
+
+.da-callret__pc,
+.da-callret__stack,
+.da-callret__sp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.da-callret__label {
+  color: var(--da-text-secondary);
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.da-callret__value {
+  color: var(--da-text-primary);
+  font-weight: 600;
+}
+
+.da-callret__arrow {
+  color: var(--da-accent);
+  font-weight: 700;
+  animation: da-callret-arrow 300ms ease-out;
+}
+
+.da-callret__idle-msg {
+  font-size: 11px;
+  color: var(--da-text-secondary);
+  font-style: italic;
+}
+
+/* Arrow pulse animation */
+@keyframes da-callret-arrow {
+  0% { transform: scaleX(0.5); opacity: 0.3; }
+  100% { transform: scaleX(1); opacity: 1; }
 }
 
 /* =============================================================================

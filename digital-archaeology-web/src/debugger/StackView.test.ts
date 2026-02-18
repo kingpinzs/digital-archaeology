@@ -351,6 +351,83 @@ describe('StackView', () => {
     });
   });
 
+  describe('CALL/RET operation label (Story 12.6, Task 5)', () => {
+    it('should not show operation label on first update', () => {
+      stackView.mount(container);
+      const memory = new Uint8Array(65536);
+      memory[0xFFFF] = 0x00;
+      memory[0xFFFE] = 0x10;
+      // SP = 0xFFFD means 2 bytes pushed (like a CALL), but first update → no label
+      stackView.updateState({ sp: 0xFFFD, memory });
+
+      const opLabel = container.querySelector('.da-stack-view__operation');
+      expect(opLabel).toBeNull();
+    });
+
+    it('should show "CALL pushed" when SP decreases by 2', () => {
+      stackView.mount(container);
+      const memory = new Uint8Array(65536);
+      // First update: SP at default (stack empty)
+      stackView.updateState({ sp: 0xFFFF, memory });
+
+      // Second update: SP decreased by 2 → CALL detected
+      memory[0xFFFF] = 0x00;
+      memory[0xFFFE] = 0x10;
+      stackView.updateState({ sp: 0xFFFD, memory });
+
+      const opLabel = container.querySelector('.da-stack-view__operation');
+      expect(opLabel).not.toBeNull();
+      expect(opLabel?.textContent).toBe('CALL pushed');
+      expect(opLabel?.classList.contains('da-stack-view__operation--call')).toBe(true);
+    });
+
+    it('should show "RET popped" when SP increases by 2', () => {
+      stackView.mount(container);
+      const memory = new Uint8Array(65536);
+      memory[0xFFFF] = 0x00;
+      memory[0xFFFE] = 0x10;
+      // First update: stack has 2 bytes (as after a CALL)
+      stackView.updateState({ sp: 0xFFFD, memory });
+
+      // Second update: SP increased by 2 → RET detected
+      stackView.updateState({ sp: 0xFFFF, memory });
+
+      const opLabel = container.querySelector('.da-stack-view__operation');
+      expect(opLabel).not.toBeNull();
+      expect(opLabel?.textContent).toBe('RET popped');
+      expect(opLabel?.classList.contains('da-stack-view__operation--ret')).toBe(true);
+    });
+
+    it('should not show label when SP changes by non-2 amount', () => {
+      stackView.mount(container);
+      const memory = new Uint8Array(65536);
+      stackView.updateState({ sp: 0xFFFF, memory });
+
+      // SP decreased by 1 (regular PUSH, not CALL)
+      memory[0xFFFF] = 0x42;
+      stackView.updateState({ sp: 0xFFFE, memory });
+
+      const opLabel = container.querySelector('.da-stack-view__operation');
+      expect(opLabel).toBeNull();
+    });
+
+    it('should clear label when subsequent step is not CALL/RET', () => {
+      stackView.mount(container);
+      const memory = new Uint8Array(65536);
+      stackView.updateState({ sp: 0xFFFF, memory });
+
+      // CALL: SP -2
+      memory[0xFFFF] = 0x00;
+      memory[0xFFFE] = 0x10;
+      stackView.updateState({ sp: 0xFFFD, memory });
+      expect(container.querySelector('.da-stack-view__operation')).not.toBeNull();
+
+      // Next step: SP unchanged (normal instruction)
+      stackView.updateState({ sp: 0xFFFD, memory });
+      expect(container.querySelector('.da-stack-view__operation')).toBeNull();
+    });
+  });
+
   describe('destroy (Task 5.7)', () => {
     it('should remove from DOM cleanly', () => {
       stackView.mount(container);

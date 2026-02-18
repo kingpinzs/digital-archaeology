@@ -13,6 +13,9 @@ export type { MemoryViewState, MemoryViewOptions } from './MemoryView';
 export { StackView } from './StackView';
 export type { StackViewState } from './StackView';
 
+export { CallRetVisualizer } from './CallRetVisualizer';
+export type { CallRetVisualizerState } from './CallRetVisualizer';
+
 export { BreakpointsView } from './BreakpointsView';
 export type { BreakpointsViewState, BreakpointsViewOptions, BreakpointEntry } from './BreakpointsView';
 

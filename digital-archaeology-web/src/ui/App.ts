@@ -7,7 +7,7 @@ import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
 import type { LabStage } from './StageSelector';
-import { getStageConfig, isStageReady } from '../config/stageConfig';
+import { getStageConfig, isStageReady, getStageMemorySize, getStageConstraints } from '../config/stageConfig';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
 import type { PanelId } from './PanelHeader';
@@ -22,7 +22,7 @@ import type { AssembleResult, AssemblerError, CPUState } from '@emulator/index';
 import { StoryModeContainer } from '@story/index';
 import type { ChallengeContext } from '@story/types';
 import { ChallengeStation } from '@simulators/ChallengeStation';
-import { RegisterView, FlagsView, MemoryView, StackView, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
+import { RegisterView, FlagsView, MemoryView, StackView, CallRetVisualizer, BreakpointsView, RuntimeErrorPanel } from '@debugger/index';
 import type { BreakpointEntry, RuntimeErrorContext } from '@debugger/index';
 import { CircuitRenderer, ZoomControlsToolbar, getGatesForInstruction, getSignalPathForInstruction, getInstructionsForGate, SignalValuesPanel, BreadcrumbNav, CPUCircuitBridge } from '@visualizer/index';
 import type { BreadcrumbItem, ZoomControlsCallbacks, CircuitData } from '@visualizer/index';
@@ -206,6 +206,9 @@ export class App {
   // StackView for displaying CPU stack contents (Story 12.5)
   private stackView: StackView | null = null;
 
+  // CallRetVisualizer for visualizing CALL/RET operations (Story 12.6)
+  private callRetVisualizer: CallRetVisualizer | null = null;
+
   // BreakpointsView for displaying active breakpoints (Story 5.8)
   private breakpointsView: BreakpointsView | null = null;
 
@@ -319,6 +322,7 @@ export class App {
     this.destroyMemoryView();
     this.destroyBreakpointsView();
     this.destroyStackView();
+    this.destroyCallRetVisualizer();
     this.destroyRuntimeErrorPanel();
     this.destroyCircuitRenderer();
     this.destroySignalValuesPanel();
@@ -358,6 +362,7 @@ export class App {
     this.initializeMemoryView();
     this.initializeBreakpointsView();
     this.initializeStackView();
+    this.initializeCallRetVisualizer();
     this.initializeRuntimeErrorPanel();
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
@@ -813,20 +818,23 @@ export class App {
       this.breakpoints.clear();
       this.breakpointsView?.updateState({ breakpoints: [] });
 
-      // Reset views (Story 12.4: stage-aware register reset, Story 12.5: stack reset)
+      // Reset views (Story 12.4: stage-aware register reset, Story 12.5: stack reset, Story 12.6: callret reset)
       if (this.currentStage === 'micro8') {
-        this.registerView?.updateState({ pc: 0, sp: 0xFFFF, registers: [0, 0, 0, 0, 0, 0, 0, 0] });
-        this.stackView?.updateState({ sp: 0xFFFF, memory: new Uint8Array(65536) });
+        const { defaultSp, memorySize } = getStageConstraints('micro8');
+        const sp = defaultSp!; // Micro8 always has stack (stackSupported: true)
+        this.registerView?.updateState({ pc: 0, sp, registers: [0, 0, 0, 0, 0, 0, 0, 0] });
+        this.stackView?.updateState({ sp, memory: new Uint8Array(memorySize) });
+        this.callRetVisualizer?.updateState({ pc: 0, sp, memory: new Uint8Array(memorySize) });
       } else {
         this.registerView?.updateState({ pc: 0, accumulator: 0 });
-        // Clear StackView when not in Micro8 (AC #5: Stack section NOT shown for Micro4)
-        this.stackView?.updateState({ sp: 0xFFFF, memory: new Uint8Array(0) });
+        // Clear StackView and CallRetVisualizer when not in Micro8
+        this.stackView?.updateState({ sp: 0, memory: new Uint8Array(0) });
+        this.callRetVisualizer?.updateState({ pc: 0, sp: 0, memory: new Uint8Array(0) });
       }
       this.flagsView?.updateState({ zeroFlag: false });
-      // TODO(CR M-1): 256 is micro4's memory size. When additional stages ship,
-      // StageConfig should expose a memorySize field. Emulator's first STATE_UPDATE
-      // will correct the display, so this is a safe cosmetic default for now.
-      this.memoryView?.updateState({ memory: new Uint8Array(256), pc: 0 });
+      // Cap default buffer at 64KB — emulator's first STATE_UPDATE replaces this
+      const defaultBufSize = Math.min(getStageMemorySize(this.currentStage), 65536);
+      this.memoryView?.updateState({ memory: new Uint8Array(defaultBufSize), pc: 0 });
       this.runtimeErrorPanel?.clearError();
       this.errorPanel?.clearErrors();
       this.binaryOutputPanel?.setBinary(null);
@@ -1592,8 +1600,44 @@ export class App {
   }
 
   /**
-   * Initialize the RuntimeErrorPanel in the State panel (Story 5.10).
+   * Initialize the CallRetVisualizer in the State panel (Story 12.6).
    * Mounts after StackView in the panel content.
+   * Only visible in Micro8 stage — render is guarded by updateCallRetVisualizer.
+   * @returns void
+   */
+  private initializeCallRetVisualizer(): void {
+    if (!this.container) return;
+
+    const stateContent = this.container.querySelector('.da-state-panel .da-panel-content');
+    if (!stateContent) return;
+
+    this.callRetVisualizer = new CallRetVisualizer();
+    this.callRetVisualizer.mount(stateContent as HTMLElement);
+  }
+
+  /**
+   * Destroy the CallRetVisualizer component (Story 12.6).
+   * @returns void
+   */
+  private destroyCallRetVisualizer(): void {
+    if (this.callRetVisualizer) {
+      this.callRetVisualizer.destroy();
+      this.callRetVisualizer = null;
+    }
+  }
+
+  /**
+   * Get the CallRetVisualizer instance (Story 12.6).
+   * Primarily used for testing and external state inspection.
+   * @returns The CallRetVisualizer instance or null if not mounted
+   */
+  getCallRetVisualizer(): CallRetVisualizer | null {
+    return this.callRetVisualizer;
+  }
+
+  /**
+   * Initialize the RuntimeErrorPanel in the State panel (Story 5.10).
+   * Mounts after CallRetVisualizer in the panel content.
    * @returns void
    */
   private initializeRuntimeErrorPanel(): void {
@@ -1862,6 +1906,21 @@ export class App {
   private updateStackView(state: CPUState): void {
     if (isMicro8CPUState(state)) {
       this.stackView?.updateState({
+        sp: state.sp,
+        memory: state.memory,
+      });
+    }
+  }
+
+  /**
+   * Update CallRetVisualizer with the given CPU state if in Micro8 mode (Story 12.6).
+   * Only updates when state is Micro8CPUState (has sp and memory fields).
+   * @param state - The CPU state to display
+   */
+  private updateCallRetVisualizer(state: CPUState): void {
+    if (isMicro8CPUState(state)) {
+      this.callRetVisualizer?.updateState({
+        pc: state.pc,
         sp: state.sp,
         memory: state.memory,
       });
@@ -2536,6 +2595,9 @@ export class App {
       // Update StackView with initial state (Story 12.5)
       this.updateStackView(this.cpuState);
 
+      // Update CallRetVisualizer with initial state (Story 12.6)
+      this.updateCallRetVisualizer(this.cpuState);
+
       // Update FlagsView with initial state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2701,6 +2763,9 @@ export class App {
       // Update StackView with reset state (Story 12.5)
       this.updateStackView(this.cpuState);
 
+      // Update CallRetVisualizer with reset state (Story 12.6)
+      this.updateCallRetVisualizer(this.cpuState);
+
       // Update FlagsView with reset state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2805,6 +2870,9 @@ export class App {
       // Update StackView with new state (Story 12.5)
       this.updateStackView(this.cpuState);
 
+      // Update CallRetVisualizer with new state (Story 12.6)
+      this.updateCallRetVisualizer(this.cpuState);
+
       // Update FlagsView with new state (Story 5.4)
       this.flagsView?.updateState({
         zeroFlag: this.cpuState.zeroFlag,
@@ -2891,6 +2959,9 @@ export class App {
 
       // Update StackView with historical state (Story 12.5)
       this.updateStackView(historicalState);
+
+      // Update CallRetVisualizer with historical state (Story 12.6)
+      this.updateCallRetVisualizer(historicalState);
 
       // Update FlagsView with historical state (Story 5.4)
       this.flagsView?.updateState({
@@ -3070,6 +3141,9 @@ export class App {
         // Update StackView during RUN mode (Story 12.5)
         this.updateStackView(state);
 
+        // Update CallRetVisualizer during RUN mode (Story 12.6)
+        this.updateCallRetVisualizer(state);
+
         // Update FlagsView during RUN mode (Story 5.4)
         this.flagsView?.updateState({
           zeroFlag: state.zeroFlag,
@@ -3153,6 +3227,9 @@ export class App {
 
       // Update StackView with final halted state (Story 12.5)
       this.updateStackView(this.cpuState);
+
+      // Update CallRetVisualizer with final halted state (Story 12.6)
+      this.updateCallRetVisualizer(this.cpuState);
 
       // Update FlagsView with final halted state (Story 5.4)
       this.flagsView?.updateState({
@@ -3249,6 +3326,9 @@ export class App {
 
       // Update StackView with state at breakpoint (Story 12.5)
       this.updateStackView(this.cpuState);
+
+      // Update CallRetVisualizer with state at breakpoint (Story 12.6)
+      this.updateCallRetVisualizer(this.cpuState);
 
       // Update FlagsView with state at breakpoint (Story 5.4)
       this.flagsView?.updateState({
@@ -4326,6 +4406,9 @@ export class App {
 
     // Destroy StackView (Story 12.5)
     this.destroyStackView();
+
+    // Destroy CallRetVisualizer (Story 12.6)
+    this.destroyCallRetVisualizer();
 
     // Destroy RuntimeErrorPanel (Story 5.10)
     this.destroyRuntimeErrorPanel();

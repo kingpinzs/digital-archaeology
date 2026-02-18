@@ -295,3 +295,162 @@ export function getNextStage(stage: LabStage): LabStage | null {
   if (index === -1 || index === LAB_STAGES.length - 1) return null;
   return LAB_STAGES[index + 1];
 }
+
+/**
+ * Instruction mnemonics recognized by each stage's assembler (Story 18.3).
+ * Each stage has its own independent instruction set — later stages are NOT strict
+ * supersets (e.g., Micro4's LDA/STA become LD/ST in Micro8).
+ *
+ * Data sources:
+ * - micro4: src/micro4/assembler.c, process_line() — 16 mnemonics
+ * - micro8: src/micro8/assembler.c, instructions[] table — 68 mnemonics
+ * - micro16: src/micro16/assembler.c, instructions[] table + special-case parsing — 99 mnemonics
+ * - micro32+: Placeholder (uses micro16 set pending Epic 14 ISA definition)
+ */
+const MICRO16_INSTRUCTIONS: readonly string[] = [
+  // Source: src/micro16/assembler.c, instructions[] lookup table (no-operand and single-operand):
+  'NOP', 'HLT', 'WAIT', 'CLI', 'STI', 'CLC', 'STC', 'CMC', 'CLD', 'STD',
+  'PUSHF', 'POPF', 'IRET', 'PUSHA', 'POPA', 'LEAVE', 'RET', 'RETF',
+  'INC', 'DEC', 'NEG', 'NOT', 'PUSH', 'POP',
+  'JMP', 'CALL', 'JZ', 'JE', 'JNZ', 'JNE', 'JC', 'JB', 'JNC', 'JAE',
+  'JS', 'JNS', 'JO', 'JNO', 'JL', 'JGE', 'JLE', 'JG', 'JA', 'JBE',
+  'JR', 'LOOP', 'LOOPZ', 'LOOPE', 'LOOPNZ', 'LOOPNE',
+  'MOVSB', 'MOVSW', 'CMPSB', 'CMPSW', 'STOSB', 'STOSW', 'LODSB', 'LODSW',
+  // Source: src/micro16/assembler.c, special-case parsing (multi-operand):
+  'INT', 'REP', 'REPZ', 'REPE', 'REPNZ', 'REPNE',
+  'MOV', 'XCHG', 'ADD', 'ADC', 'SUB', 'SBC', 'AND', 'OR', 'XOR',
+  'CMP', 'TEST', 'SHL', 'SHR', 'SAR', 'ROL', 'ROR', 'RCL', 'RCR',
+  'MUL', 'IMUL', 'DIV', 'IDIV', 'ENTER', 'RETI',
+  'LD', 'ST', 'LDB', 'STB', 'LEA', 'LDS', 'LES',
+  'IN', 'OUT', 'INB', 'OUTB',
+];
+
+const STAGE_INSTRUCTIONS: Record<LabStage, readonly string[]> = {
+  micro4: [
+    // Source: src/micro4/assembler.c, process_line() — 16 mnemonics
+    'HLT', 'LDA', 'STA', 'ADD', 'SUB', 'JMP', 'JZ', 'LDI',
+    'AND', 'XOR', 'OR', 'NOT', 'SHL', 'SHR', 'INC', 'DEC',
+  ],
+  micro8: [
+    // Source: src/micro8/assembler.c, instructions[] table — 68 mnemonics
+    'NOP', 'HLT', 'LDI', 'LD', 'ST', 'LDZ', 'STZ', 'LDI16', 'MOV16', 'MOV',
+    'ADD', 'ADC', 'SUB', 'SBC', 'ADDI', 'SUBI', 'INC', 'DEC', 'NEG',
+    'CMP', 'CMPI', 'INC16', 'DEC16', 'ADD16',
+    'AND', 'OR', 'XOR', 'NOT', 'ANDI', 'ORI', 'XORI',
+    'SHL', 'SHR', 'SAR', 'ROL', 'ROR', 'SWAP',
+    'JMP', 'JZ', 'JNZ', 'JC', 'JNC', 'JS', 'JNS', 'JO', 'JNO', 'CALL',
+    'JR', 'JRZ', 'JRNZ', 'JRC', 'JRNC', 'JP',
+    'RET', 'RETI',
+    'PUSH', 'POP', 'PUSH16', 'POP16', 'PUSHF', 'POPF',
+    'EI', 'DI', 'SCF', 'CCF', 'CMF', 'IN', 'OUT',
+  ],
+  micro16: MICRO16_INSTRUCTIONS,
+  // Placeholder: Micro32 ISA not yet defined (Epic 14) — uses micro16 baseline
+  micro32: MICRO16_INSTRUCTIONS,
+  micro32p: MICRO16_INSTRUCTIONS,
+  micro32s: MICRO16_INSTRUCTIONS,
+};
+
+/**
+ * Educational content for a CPU stage (Story 18.4).
+ * Provides historical and architectural context for constraint error messages,
+ * explaining WHY limitations exist and what advancing to the next stage unlocks.
+ */
+export interface StageEducationalContent {
+  /** Why the memory limit exists — architectural/historical reasoning */
+  readonly memoryContext: string;
+  /** Why the instruction set is limited — what's missing and why */
+  readonly instructionContext: string;
+  /** What advancing to the next stage unlocks — teaser for the learning journey */
+  readonly journeyTeaser: string;
+}
+
+/**
+ * Educational content keyed by CPU stage (Story 18.4).
+ * Content is historically grounded and pedagogically framed.
+ *
+ * Data sources:
+ * - docs/cpu_history_timeline.md
+ * - docs/micro4_minimal_architecture.md
+ * - docs/micro8_isa.md
+ */
+const STAGE_EDUCATIONAL_CONTENT: Record<LabStage, StageEducationalContent> = {
+  micro4: {
+    memoryContext: 'Micro4 uses a 4-bit data bus and 8-bit address bus, limiting memory to 256 bytes. This mirrors early 4-bit processors like the Intel 4004 (1971), where every byte of memory was precious and programmers had to carefully optimize their code to fit.',
+    instructionContext: 'Micro4 has only 16 instructions — one for each possible 4-bit opcode. This is the fundamental trade-off of a 4-bit instruction encoding: simplicity and small program size, but very limited capabilities. There are no registers beyond the accumulator, no stack, and no subroutine support.',
+    journeyTeaser: 'When you advance to Micro8, you\'ll gain 8 general-purpose registers, a hardware stack with PUSH/POP, subroutine support via CALL/RET, and 64 KB of memory — the capabilities that enabled real software development.',
+  },
+  micro8: {
+    memoryContext: 'Micro8 uses an 8-bit data bus and 16-bit address bus, providing 64 KB of memory. This is the same address space as classic 8-bit processors like the Zilog Z80 (1976) and Intel 8080 (1974), which powered the first generation of personal computers.',
+    instructionContext: 'Micro8 has 68 instructions across arithmetic, logic, data transfer, control flow, stack, subroutine, interrupt, and I/O categories. However, it lacks hardware multiply/divide, segmented memory, and string operations — all of which require wider data paths and more complex control logic.',
+    journeyTeaser: 'Micro16 introduces hardware multiply/divide, a segmented memory model reaching 1 MB, and string operations — the features that enabled the IBM PC revolution.',
+  },
+  micro16: {
+    memoryContext: 'Micro16 uses a 16-bit data bus and 20-bit address bus, providing 1 MB of memory through segment:offset addressing. This matches the Intel 8086 (1978) architecture, where the famous "640 KB ought to be enough" limit came from the segmented memory model.',
+    instructionContext: 'Micro16 has 99 instructions including hardware multiply/divide, string operations with REP prefix, and segmented memory access. It lacks protected mode, paging, and the flat 32-bit address space that would come with 32-bit processors.',
+    journeyTeaser: 'Micro32 introduces protected mode, virtual memory with paging, and a flat 4 GB address space — the architecture that powers modern computing.',
+  },
+  micro32: {
+    memoryContext: 'Micro32 provides a full 32-bit flat address space with 4 GB of memory, protected mode, and virtual memory with paging. This stage is a placeholder pending Epic 14 ISA definition.',
+    instructionContext: 'Micro32 instruction set is pending Epic 14 ISA definition. It will include protected mode instructions, paging control, and an expanded register set.',
+    journeyTeaser: 'Micro32-P adds a 5-stage pipeline, enabling instruction-level parallelism and significantly higher throughput.',
+  },
+  micro32p: {
+    memoryContext: 'Micro32-P shares the same 4 GB address space as Micro32. The pipeline microarchitecture does not change the memory model. This stage is a placeholder pending Epic 15 implementation.',
+    instructionContext: 'Micro32-P shares the same instruction set as Micro32. The pipeline is a microarchitectural feature, not an ISA change.',
+    journeyTeaser: 'Micro32-S adds superscalar execution with multiple execution units, out-of-order processing, and branch prediction — the frontier of CPU design.',
+  },
+  micro32s: {
+    memoryContext: 'Micro32-S shares the same 4 GB address space as Micro32. The superscalar microarchitecture does not change the memory model. This stage is a placeholder pending Epic 16 implementation.',
+    instructionContext: 'Micro32-S shares the same instruction set as Micro32. Superscalar execution is a microarchitectural feature, not an ISA change.',
+    journeyTeaser: 'You\'ve reached the most advanced stage in the Digital Archaeology journey. You now understand the full evolution from 4-bit simplicity to superscalar complexity.',
+  },
+};
+
+/**
+ * Get the educational content for a specific stage (Story 18.4).
+ * Returns historical context, instruction rationale, and journey teasers
+ * for use in constraint error messages.
+ */
+export function getStageEducationalContent(stage: LabStage): StageEducationalContent {
+  return STAGE_EDUCATIONAL_CONTENT[stage];
+}
+
+/** Cached instruction sets for O(1) lookup (Story 18.3) */
+const stageInstructionSets = new Map<LabStage, ReadonlySet<string>>();
+
+/**
+ * Get the set of instruction mnemonics available in a specific stage (Story 18.3).
+ * Returns a ReadonlySet of uppercase mnemonics for O(1) lookup.
+ */
+export function getStageInstructions(stage: LabStage): ReadonlySet<string> {
+  let set = stageInstructionSets.get(stage);
+  if (!set) {
+    set = new Set(STAGE_INSTRUCTIONS[stage]);
+    stageInstructionSets.set(stage, set);
+  }
+  return set;
+}
+
+/**
+ * Check if an instruction mnemonic is available in a specific stage (Story 18.3).
+ * Case-insensitive — C assemblers use strcasecmp() for matching.
+ */
+export function isInstructionAvailable(stage: LabStage, mnemonic: string): boolean {
+  return getStageInstructions(stage).has(mnemonic.toUpperCase());
+}
+
+/**
+ * Find the earliest (first) stage where an instruction becomes available (Story 18.3).
+ * Returns null if the instruction doesn't exist in any stage.
+ * Used to generate educational error messages about instruction availability.
+ */
+export function findEarliestStageForInstruction(mnemonic: string): LabStage | null {
+  const upper = mnemonic.toUpperCase();
+  for (const stage of LAB_STAGES) {
+    if (getStageInstructions(stage).has(upper)) {
+      return stage;
+    }
+  }
+  return null;
+}

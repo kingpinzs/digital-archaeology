@@ -265,8 +265,8 @@ development_status:
   epic-18: in-progress
   18-1-define-stage-constraints: done
   18-2-enforce-memory-limits: done
-  18-3-enforce-instruction-set-limits: backlog
-  18-4-create-educational-error-messages: backlog
+  18-3-enforce-instruction-set-limits: done
+  18-4-create-educational-error-messages: done  # Code review: 0H 2M 2L, all fixed, 4479 tests passing
   18-5-implement-experimentation-mode: backlog
   epic-18-retrospective: optional
 

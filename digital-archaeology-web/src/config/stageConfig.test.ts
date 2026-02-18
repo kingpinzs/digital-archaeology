@@ -12,7 +12,12 @@ import {
   getStageConstraints,
   getStageMemorySize,
   getNextStage,
+  getStageInstructions,
+  isInstructionAvailable,
+  findEarliestStageForInstruction,
+  getStageEducationalContent,
   type StageConstraints,
+  type StageEducationalContent,
   type InstructionCategory,
 } from './stageConfig';
 
@@ -425,6 +430,185 @@ describe('stageConfig', () => {
       expect(STAGE_METADATA).toBeDefined();
       expect(STAGE_METADATA.micro4).toBeDefined();
       expect(STAGE_METADATA.micro4.label).toBe('Micro4');
+    });
+  });
+
+  // Story 18.3: Instruction metadata registry
+  describe('getStageInstructions (Story 18.3)', () => {
+    it('should return exactly 16 instructions for micro4', () => {
+      const instructions = getStageInstructions('micro4');
+      expect(instructions.size).toBe(16);
+    });
+
+    it('should return exactly 68 instructions for micro8', () => {
+      const instructions = getStageInstructions('micro8');
+      expect(instructions.size).toBe(68);
+    });
+
+    it('should return exactly 99 instructions for micro16', () => {
+      const instructions = getStageInstructions('micro16');
+      expect(instructions.size).toBe(99);
+    });
+
+    it('should return more instructions for micro16 than micro8', () => {
+      const micro8Count = getStageInstructions('micro8').size;
+      const micro16Count = getStageInstructions('micro16').size;
+      expect(micro16Count).toBeGreaterThan(micro8Count);
+    });
+
+    it('should return a ReadonlySet of uppercase strings', () => {
+      const instructions = getStageInstructions('micro4');
+      expect(instructions).toBeInstanceOf(Set);
+      for (const instr of instructions) {
+        expect(instr).toBe(instr.toUpperCase());
+      }
+    });
+
+    it('should return same set on repeated calls (cached)', () => {
+      const first = getStageInstructions('micro4');
+      const second = getStageInstructions('micro4');
+      expect(first).toBe(second); // Same reference = cached
+    });
+  });
+
+  describe('isInstructionAvailable (Story 18.3)', () => {
+    it('should return true for LDA in micro4', () => {
+      expect(isInstructionAvailable('micro4', 'LDA')).toBe(true);
+    });
+
+    it('should return false for PUSH in micro4', () => {
+      expect(isInstructionAvailable('micro4', 'PUSH')).toBe(false);
+    });
+
+    it('should return true for PUSH in micro8', () => {
+      expect(isInstructionAvailable('micro8', 'PUSH')).toBe(true);
+    });
+
+    it('should return false for MUL in micro8', () => {
+      expect(isInstructionAvailable('micro8', 'MUL')).toBe(false);
+    });
+
+    it('should return true for MUL in micro16', () => {
+      expect(isInstructionAvailable('micro16', 'MUL')).toBe(true);
+    });
+
+    it('should be case-insensitive (lowercase)', () => {
+      expect(isInstructionAvailable('micro4', 'lda')).toBe(true);
+    });
+
+    it('should be case-insensitive (mixed case)', () => {
+      expect(isInstructionAvailable('micro8', 'Push')).toBe(true);
+    });
+
+    it('should return false for truly unknown instruction in any stage', () => {
+      for (const stage of LAB_STAGES) {
+        expect(isInstructionAvailable(stage, 'XYZZYSPOON')).toBe(false);
+      }
+    });
+  });
+
+  describe('findEarliestStageForInstruction (Story 18.3)', () => {
+    it('should return micro8 for PUSH', () => {
+      expect(findEarliestStageForInstruction('PUSH')).toBe('micro8');
+    });
+
+    it('should return micro16 for MUL', () => {
+      expect(findEarliestStageForInstruction('MUL')).toBe('micro16');
+    });
+
+    it('should return micro4 for LDA', () => {
+      expect(findEarliestStageForInstruction('LDA')).toBe('micro4');
+    });
+
+    it('should return null for truly unknown instruction', () => {
+      expect(findEarliestStageForInstruction('TOTALLYINVALID')).toBeNull();
+    });
+
+    it('should be case-insensitive', () => {
+      expect(findEarliestStageForInstruction('push')).toBe('micro8');
+    });
+
+    it('should handle instructions that exist in multiple stages', () => {
+      // HLT exists in micro4, micro8, AND micro16 — earliest should be micro4
+      expect(findEarliestStageForInstruction('HLT')).toBe('micro4');
+    });
+
+    it('should verify non-cumulative ISAs — LDA exists in micro4 but not micro8', () => {
+      expect(isInstructionAvailable('micro4', 'LDA')).toBe(true);
+      expect(isInstructionAvailable('micro8', 'LDA')).toBe(false);
+    });
+
+    it('should verify micro32/32p/32s share same instruction set as micro16 (placeholder)', () => {
+      const micro16Set = getStageInstructions('micro16');
+      const micro32Set = getStageInstructions('micro32');
+      const micro32pSet = getStageInstructions('micro32p');
+      const micro32sSet = getStageInstructions('micro32s');
+      // Verify identical content, not just size
+      for (const instr of micro16Set) {
+        expect(micro32Set.has(instr)).toBe(true);
+        expect(micro32pSet.has(instr)).toBe(true);
+        expect(micro32sSet.has(instr)).toBe(true);
+      }
+      expect(micro32Set.size).toBe(micro16Set.size);
+      expect(micro32pSet.size).toBe(micro16Set.size);
+      expect(micro32sSet.size).toBe(micro16Set.size);
+    });
+  });
+
+  // Story 18.4: Educational content
+  describe('getStageEducationalContent (Story 18.4)', () => {
+    it('should return non-empty memoryContext, instructionContext, journeyTeaser for micro4', () => {
+      const edu: StageEducationalContent = getStageEducationalContent('micro4');
+      expect(edu.memoryContext.length).toBeGreaterThan(0);
+      expect(edu.instructionContext.length).toBeGreaterThan(0);
+      expect(edu.journeyTeaser.length).toBeGreaterThan(0);
+    });
+
+    it('should return non-empty content for micro8', () => {
+      const edu = getStageEducationalContent('micro8');
+      expect(edu.memoryContext.length).toBeGreaterThan(0);
+      expect(edu.instructionContext.length).toBeGreaterThan(0);
+      expect(edu.journeyTeaser.length).toBeGreaterThan(0);
+    });
+
+    it('should return non-empty content for micro16', () => {
+      const edu = getStageEducationalContent('micro16');
+      expect(edu.memoryContext.length).toBeGreaterThan(0);
+      expect(edu.instructionContext.length).toBeGreaterThan(0);
+      expect(edu.journeyTeaser.length).toBeGreaterThan(0);
+    });
+
+    it('should return valid content for all stages', () => {
+      for (const stage of LAB_STAGES) {
+        const edu = getStageEducationalContent(stage);
+        expect(edu).toBeDefined();
+        expect(typeof edu.memoryContext).toBe('string');
+        expect(typeof edu.instructionContext).toBe('string');
+        expect(typeof edu.journeyTeaser).toBe('string');
+        expect(edu.memoryContext.length).toBeGreaterThan(0);
+        expect(edu.instructionContext.length).toBeGreaterThan(0);
+        expect(edu.journeyTeaser.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should reference Intel 4004 in micro4 memoryContext', () => {
+      const edu = getStageEducationalContent('micro4');
+      expect(edu.memoryContext).toContain('4004');
+    });
+
+    it('should reference Z80 or 8080 in micro8 memoryContext', () => {
+      const edu = getStageEducationalContent('micro8');
+      expect(edu.memoryContext).toMatch(/Z80|8080/);
+    });
+
+    it('should reference 8086 in micro16 memoryContext', () => {
+      const edu = getStageEducationalContent('micro16');
+      expect(edu.memoryContext).toContain('8086');
+    });
+
+    it('should have micro32s journeyTeaser acknowledge it is the most advanced stage', () => {
+      const edu = getStageEducationalContent('micro32s');
+      expect(edu.journeyTeaser).toContain('most advanced');
     });
   });
 });

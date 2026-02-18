@@ -214,6 +214,8 @@ export interface AssemblerError {
   codeSnippet?: CodeSnippet;
   /** Whether this error can be auto-fixed */
   fixable?: boolean;
+  /** Educational context explaining WHY this constraint exists (Story 18.4) */
+  educationalContext?: string;
 }
 
 /**

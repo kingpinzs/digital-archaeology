@@ -14,7 +14,7 @@ import type {
   CodeSnippet,
   InitAssemblerWasmCommand,
 } from './types';
-import { getStageConfig, getStageMemorySize, getNextStage } from '../config/stageConfig';
+import { getStageConfig, getStageMemorySize, getNextStage, getStageInstructions, findEarliestStageForInstruction, getStageEducationalContent, LAB_STAGES } from '../config/stageConfig';
 import type { LabStage } from '../config/stageConfig';
 
 /**
@@ -120,6 +120,17 @@ function isFixable(
 }
 
 /**
+ * Extract the unknown instruction mnemonic from a C assembler error message (Story 18.3).
+ * Handles both "Unknown instruction: MNEMONIC" and
+ * "Unknown instruction after REP/REPZ/REPNZ: MNEMONIC" variants from Micro16.
+ * Returns uppercase mnemonic or null if message doesn't match the pattern.
+ */
+export function extractUnknownInstruction(message: string): string | null {
+  const match = message.match(/Unknown instruction(?:\s+after\s+\w+)?:\s*(\S+)/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
+/**
  * Build a CONSTRAINT_ERROR result when binary exceeds stage memory limit (Story 18.2).
  * Returns a failed AssembleResult with descriptive message and next-stage suggestion.
  */
@@ -137,6 +148,9 @@ function buildMemoryConstraintError(
     suggestion += `, or advance to ${nextConfig.meta.label} (${nextConfig.meta.addressSpace} memory)`;
   }
 
+  const edu = getStageEducationalContent(stage);
+  const educationalContext = `${edu.memoryContext} ${edu.journeyTeaser}`;
+
   return {
     success: false,
     binary: null,
@@ -146,6 +160,47 @@ function buildMemoryConstraintError(
       type: 'CONSTRAINT_ERROR',
       suggestion,
       fixable: false,
+      educationalContext,
+    },
+  };
+}
+
+/**
+ * Build a CONSTRAINT_ERROR result when an instruction is not available in the current stage (Story 18.3).
+ * Returns a failed AssembleResult with educational message about which stage introduces the instruction.
+ *
+ * @param mnemonic - The uppercase instruction mnemonic that was rejected
+ * @param line - The source line number where the instruction was used
+ * @param stage - The current CPU stage
+ * @param source - The full source code (for code snippet generation)
+ */
+function buildInstructionSetError(
+  mnemonic: string,
+  line: number,
+  stage: LabStage,
+  source: string,
+  earliestStage: LabStage,
+): AssembleResult {
+  const config = getStageConfig(stage);
+  const earliestConfig = getStageConfig(earliestStage);
+  const mnemonicCount = getStageInstructions(stage).size;
+
+  const suggestion = `The ${mnemonic} instruction is not available in ${config.meta.label}. It becomes available in ${earliestConfig.meta.label}`;
+
+  const edu = getStageEducationalContent(stage);
+  const educationalContext = `${edu.instructionContext} The ${mnemonic} instruction requires capabilities introduced in ${earliestConfig.meta.label}. ${edu.journeyTeaser}`;
+
+  return {
+    success: false,
+    binary: null,
+    error: {
+      line,
+      message: `Instruction "${mnemonic}" does not exist in ${config.meta.label} (${mnemonicCount} instructions available)`,
+      type: 'CONSTRAINT_ERROR',
+      suggestion,
+      fixable: false,
+      codeSnippet: generateCodeSnippet(source, line),
+      educationalContext,
     },
   };
 }
@@ -327,6 +382,18 @@ export class AssemblerBridge {
           });
         } else if (data.type === 'ASSEMBLE_ERROR') {
           cleanup();
+
+          // Story 18.3: Check if "unknown instruction" is actually a stage constraint.
+          // If the instruction exists in a later stage, return CONSTRAINT_ERROR with
+          // educational guidance instead of a generic SYNTAX_ERROR.
+          const unknownMnemonic = extractUnknownInstruction(data.payload.message);
+          if (unknownMnemonic) {
+            const earliestStage = findEarliestStageForInstruction(unknownMnemonic);
+            if (earliestStage !== null && LAB_STAGES.indexOf(earliestStage) > LAB_STAGES.indexOf(this.stage)) {
+              resolve(buildInstructionSetError(unknownMnemonic, data.payload.line, this.stage, source, earliestStage));
+              return;
+            }
+          }
 
           // Detect error type from message patterns
           const errorType = detectErrorType(data.payload.message);

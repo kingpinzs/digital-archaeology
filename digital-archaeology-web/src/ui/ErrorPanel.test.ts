@@ -852,4 +852,111 @@ describe('ErrorPanel', () => {
       expect(fixBtns[1]?.getAttribute('data-error-index')).toBe('1');
     });
   });
+
+  // Story 18.4: Educational context rendering
+  describe('educational context (Story 18.4)', () => {
+    it('should render educational context element when present', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Program size exceeds memory limit',
+        type: 'CONSTRAINT_ERROR',
+        educationalContext: 'Micro4 uses a 4-bit data bus and 8-bit address bus.',
+      }]);
+
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl).not.toBeNull();
+      expect(eduEl?.textContent).toBe('Micro4 uses a 4-bit data bus and 8-bit address bus.');
+    });
+
+    it('should NOT render educational context element when absent', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Unknown instruction: LDAX',
+        type: 'SYNTAX_ERROR',
+      }]);
+
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl).toBeNull();
+    });
+
+    it('should have da-error-educational-context CSS class', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 0,
+        message: 'Memory limit',
+        type: 'CONSTRAINT_ERROR',
+        educationalContext: 'Some educational text.',
+      }]);
+
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl).not.toBeNull();
+      expect(eduEl?.classList.contains('da-error-educational-context')).toBe(true);
+    });
+
+    it('should safely render educational context text (not HTML-injected)', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 1,
+        message: 'Constraint error',
+        type: 'CONSTRAINT_ERROR',
+        educationalContext: '<script>alert("xss")</script>',
+      }]);
+
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl?.innerHTML).not.toContain('<script>');
+      expect(eduEl?.textContent).toBe('<script>alert("xss")</script>');
+    });
+
+    it('should not affect existing SYNTAX_ERROR rendering (no regressions)', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 3,
+        message: 'Unknown instruction: LDAX',
+        type: 'SYNTAX_ERROR',
+        suggestion: 'LDA',
+      }]);
+
+      // Badge renders
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge?.textContent).toBe('SYNTAX');
+
+      // Suggestion renders
+      const suggestion = container.querySelector('.da-error-suggestion');
+      expect(suggestion).not.toBeNull();
+
+      // No educational context
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl).toBeNull();
+    });
+
+    it('should not affect existing VALUE_ERROR rendering (no regressions)', () => {
+      errorPanel = new ErrorPanel();
+      errorPanel.mount(container);
+
+      errorPanel.setErrors([{
+        line: 5,
+        message: 'Invalid address',
+        type: 'VALUE_ERROR',
+      }]);
+
+      const badge = container.querySelector('.da-error-type-badge');
+      expect(badge?.textContent).toBe('VALUE');
+
+      const eduEl = container.querySelector('.da-error-educational-context');
+      expect(eduEl).toBeNull();
+    });
+  });
+
 });

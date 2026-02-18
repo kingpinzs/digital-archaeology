@@ -10,6 +10,12 @@ const MAX_STACK_ENTRIES = 16;
 /** Threshold for return address heuristic — values below this are likely code addresses */
 const RETURN_ADDR_THRESHOLD = 0x8000;
 
+/** SP delta for CALL instruction (pushes 2-byte return address) */
+const CALL_SP_DELTA = -2;
+
+/** SP delta for RET instruction (pops 2-byte return address) */
+const RET_SP_DELTA = 2;
+
 /**
  * State interface for StackView component.
  * Contains only the values that can be updated from outside.
@@ -34,6 +40,7 @@ export class StackView {
   private element: HTMLElement | null = null;
   private state: StackViewState = { sp: DEFAULT_STACK_BASE, memory: new Uint8Array(0) };
   private previousValues: Map<number, number> | null = null;
+  private previousSp: number | null = null;
   private isFirstRender: boolean = true;
 
   // Bound event handlers for cleanup
@@ -65,6 +72,7 @@ export class StackView {
     // Store previous values for change detection (after first render)
     if (!this.isFirstRender) {
       this.previousValues = this.captureCurrentValues();
+      this.previousSp = this.state.sp;
     }
 
     if (state.sp !== undefined) {
@@ -141,6 +149,30 @@ export class StackView {
   }
 
   /**
+   * Detect CALL/RET operation by comparing SP delta.
+   * CALL: SP decreased by exactly 2 (pushed 2-byte return address)
+   * RET: SP increased by exactly 2 (popped 2-byte return address)
+   *
+   * Note: Constants CALL_SP_DELTA/RET_SP_DELTA are intentionally duplicated from
+   * CallRetVisualizer.ts to keep modules decoupled (see CR L-1).
+   *
+   * Known limitation: During throttled RUN mode, multiple instructions execute
+   * between state snapshots. An SP delta of ±2 could result from two consecutive
+   * single-byte PUSH/POP operations rather than an actual CALL/RET (see CR M-1).
+   * @private
+   */
+  private detectOperation(): 'call' | 'ret' | null {
+    if (this.previousSp === null) return null;
+
+    const spDelta = this.state.sp - this.previousSp;
+
+    if (spDelta === CALL_SP_DELTA) return 'call';
+    if (spDelta === RET_SP_DELTA) return 'ret';
+
+    return null;
+  }
+
+  /**
    * Render the component using safe DOM methods.
    * XSS-SAFE: Uses textContent for all dynamic values.
    * @private
@@ -164,6 +196,20 @@ export class StackView {
     title.className = 'da-stack-view__title';
     title.textContent = 'Stack';
     this.element.appendChild(title);
+
+    // CALL/RET operation label (Story 12.6, Task 5)
+    const operation = this.detectOperation();
+    if (operation === 'call') {
+      const opLabel = document.createElement('span');
+      opLabel.className = 'da-stack-view__operation da-stack-view__operation--call';
+      opLabel.textContent = 'CALL pushed';
+      this.element.appendChild(opLabel);
+    } else if (operation === 'ret') {
+      const opLabel = document.createElement('span');
+      opLabel.className = 'da-stack-view__operation da-stack-view__operation--ret';
+      opLabel.textContent = 'RET popped';
+      this.element.appendChild(opLabel);
+    }
 
     if (isEmpty) {
       const emptyMsg = document.createElement('div');
@@ -275,6 +321,7 @@ export class StackView {
 
     this.container = null;
     this.previousValues = null;
+    this.previousSp = null;
     this.isFirstRender = true;
   }
 }

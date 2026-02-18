@@ -6,7 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AssemblerBridge } from './AssemblerBridge';
+import { AssemblerBridge, extractUnknownInstruction } from './AssemblerBridge';
+import type { LabStage } from '../config/stageConfig';
 import type {
   AssemblerEvent,
   WorkerReadyEvent,
@@ -88,6 +89,33 @@ describe('AssemblerBridge', () => {
   afterEach(() => {
     globalThis.Worker = OriginalWorker;
   });
+
+  /** Shared helper: init bridge with given stage and WORKER_READY */
+  async function initBridge(bridge: AssemblerBridge, stage: LabStage = 'micro4') {
+    const initPromise = bridge.init(stage);
+    mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
+    await initPromise;
+  }
+
+  /** Shared helper: simulate ASSEMBLE_SUCCESS with binary of given size */
+  function simulateSuccessWithSize(size: number) {
+    const binary = new Array(size).fill(0);
+    mockWorker.simulateMessage({
+      type: 'ASSEMBLE_SUCCESS',
+      payload: { binary, size },
+    } satisfies AssembleSuccessEvent);
+  }
+
+  /** Shared helper: simulate ASSEMBLE_ERROR with "Unknown instruction" message */
+  function simulateUnknownInstruction(mnemonic: string, line: number = 1) {
+    mockWorker.simulateMessage({
+      type: 'ASSEMBLE_ERROR',
+      payload: {
+        line,
+        message: `Unknown instruction: ${mnemonic}`,
+      },
+    } satisfies AssembleErrorEvent);
+  }
 
   describe('constructor and initialization', () => {
     it('isReady returns false before init', () => {
@@ -729,22 +757,6 @@ describe('AssemblerBridge', () => {
 
   // Story 18.2: Memory limit enforcement
   describe('memory limit enforcement (Story 18.2)', () => {
-    /** Helper: init bridge with given stage and WORKER_READY */
-    async function initBridge(bridge: AssemblerBridge, stage: 'micro4' | 'micro8' = 'micro4') {
-      const initPromise = bridge.init(stage);
-      mockWorker.simulateMessage({ type: 'WORKER_READY' } satisfies WorkerReadyEvent);
-      await initPromise;
-    }
-
-    /** Helper: simulate ASSEMBLE_SUCCESS with binary of given size */
-    function simulateSuccessWithSize(size: number) {
-      const binary = new Array(size).fill(0);
-      mockWorker.simulateMessage({
-        type: 'ASSEMBLE_SUCCESS',
-        payload: { binary },
-      } satisfies AssembleSuccessEvent);
-    }
-
     it('rejects binary that exceeds micro4 memory limit (256 bytes)', async () => {
       const bridge = new AssemblerBridge();
       await initBridge(bridge, 'micro4');
@@ -882,6 +894,226 @@ describe('AssemblerBridge', () => {
 
       expect(result.success).toBe(true);
       expect(result.binary!.length).toBe(0);
+    });
+  });
+
+  // Story 18.3: Instruction set enforcement
+  describe('extractUnknownInstruction (Story 18.3)', () => {
+    it('should extract mnemonic from standard "Unknown instruction: PUSH" format', () => {
+      expect(extractUnknownInstruction('Unknown instruction: PUSH')).toBe('PUSH');
+    });
+
+    it('should extract mnemonic from REP variant "Unknown instruction after REP: MOVSB"', () => {
+      expect(extractUnknownInstruction('Unknown instruction after REP: MOVSB')).toBe('MOVSB');
+    });
+
+    it('should return null for unrelated error messages', () => {
+      expect(extractUnknownInstruction('Undefined label: foo')).toBeNull();
+    });
+
+    it('should return null for empty string', () => {
+      expect(extractUnknownInstruction('')).toBeNull();
+    });
+
+    it('should normalize to uppercase', () => {
+      expect(extractUnknownInstruction('Unknown instruction: push')).toBe('PUSH');
+    });
+
+    it('should handle REPZ/REPNZ variants', () => {
+      expect(extractUnknownInstruction('Unknown instruction after REPZ: CMPSB')).toBe('CMPSB');
+      expect(extractUnknownInstruction('Unknown instruction after REPNZ: CMPSB')).toBe('CMPSB');
+    });
+  });
+
+  describe('instruction set enforcement (Story 18.3)', () => {
+    it('returns CONSTRAINT_ERROR when instruction exists in a later stage', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error!.type).toBe('CONSTRAINT_ERROR');
+    });
+
+    it('returns SYNTAX_ERROR when instruction does not exist in any stage', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('XYZZY 42');
+      simulateUnknownInstruction('XYZZY');
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error!.type).toBe('SYNTAX_ERROR');
+    });
+
+    it('returns SYNTAX_ERROR when instruction exists in an earlier stage (non-cumulative ISA)', async () => {
+      // LDA exists in micro4 but NOT in micro8 — should be SYNTAX_ERROR, not CONSTRAINT_ERROR
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro8');
+
+      const assemblePromise = bridge.assemble('LDA 0x05');
+      simulateUnknownInstruction('LDA');
+      const result = await assemblePromise;
+
+      expect(result.success).toBe(false);
+      expect(result.error!.type).toBe('SYNTAX_ERROR');
+    });
+
+    it('CONSTRAINT_ERROR message explains instruction not available in current stage', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.error!.message).toContain('PUSH');
+      expect(result.error!.message).toContain('Micro4');
+      expect(result.error!.message).toContain('does not exist');
+      // Verify mnemonic count (not opcodeCount) — fix from code review 2M
+      expect(result.error!.message).toContain('16 instructions available');
+    });
+
+    it('CONSTRAINT_ERROR suggestion mentions the stage where instruction becomes available', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.error!.suggestion).toContain('PUSH');
+      expect(result.error!.suggestion).toContain('Micro8');
+      expect(result.error!.suggestion).toContain('becomes available');
+    });
+
+    it('preserves line number from original C assembler error', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('HLT\nLDA 5\nPUSH R0\nHLT');
+      simulateUnknownInstruction('PUSH', 3);
+      const result = await assemblePromise;
+
+      expect(result.error!.line).toBe(3);
+    });
+
+    it('generates code snippet for the error line', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const source = 'LDA 0x05\nPUSH R0\nHLT';
+      const assemblePromise = bridge.assemble(source);
+      simulateUnknownInstruction('PUSH', 2);
+      const result = await assemblePromise;
+
+      expect(result.error!.codeSnippet).toBeDefined();
+      expect(result.error!.codeSnippet!.line).toBe('PUSH R0');
+      expect(result.error!.codeSnippet!.lineNumber).toBe(2);
+    });
+
+    it('error.fixable is false for instruction constraint errors', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.error!.fixable).toBe(false);
+    });
+
+    it('handles MUL instruction on micro8 (exists in micro16)', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro8');
+
+      const assemblePromise = bridge.assemble('MUL R0, R1');
+      simulateUnknownInstruction('MUL');
+      const result = await assemblePromise;
+
+      expect(result.error!.type).toBe('CONSTRAINT_ERROR');
+      expect(result.error!.suggestion).toContain('Micro16');
+    });
+  });
+
+  // Story 18.4: Educational context in constraint errors
+  describe('educational context in constraint errors (Story 18.4)', () => {
+    it('memory constraint error includes educationalContext field', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      expect(result.error!.educationalContext).toBeDefined();
+      expect(typeof result.error!.educationalContext).toBe('string');
+      expect(result.error!.educationalContext!.length).toBeGreaterThan(0);
+    });
+
+    it('memory constraint educationalContext contains stage memoryContext content', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      // Should contain reference to Intel 4004 (from micro4 memoryContext)
+      expect(result.error!.educationalContext).toContain('4004');
+    });
+
+    it('memory constraint educationalContext contains journeyTeaser content', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('NOP');
+      simulateSuccessWithSize(257);
+      const result = await assemblePromise;
+
+      // Should contain reference to Micro8 (from micro4 journeyTeaser)
+      expect(result.error!.educationalContext).toContain('Micro8');
+    });
+
+    it('instruction set constraint error includes educationalContext field', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      expect(result.error!.educationalContext).toBeDefined();
+      expect(typeof result.error!.educationalContext).toBe('string');
+      expect(result.error!.educationalContext!.length).toBeGreaterThan(0);
+    });
+
+    it('instruction set constraint educationalContext contains stage instructionContext content', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      // Should contain reference to 16 instructions (from micro4 instructionContext)
+      expect(result.error!.educationalContext).toContain('16 instructions');
+    });
+
+    it('instruction set constraint educationalContext mentions the specific mnemonic', async () => {
+      const bridge = new AssemblerBridge();
+      await initBridge(bridge, 'micro4');
+
+      const assemblePromise = bridge.assemble('PUSH R0');
+      simulateUnknownInstruction('PUSH');
+      const result = await assemblePromise;
+
+      // Should contain the specific instruction name (fix from code review 1M)
+      expect(result.error!.educationalContext).toContain('PUSH');
     });
   });
 });

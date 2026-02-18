@@ -10111,4 +10111,176 @@ describe('App', () => {
       });
     });
   });
+
+  // Story 12.6: CallRetVisualizer integration tests
+  describe('CallRetVisualizer integration (Story 12.6)', () => {
+    describe('getCallRetVisualizer accessor', () => {
+      it('should return CallRetVisualizer instance after mount', () => {
+        app.mount(container);
+        expect(app.getCallRetVisualizer()).not.toBeNull();
+      });
+
+      it('should return null before mount', () => {
+        expect(app.getCallRetVisualizer()).toBeNull();
+      });
+    });
+
+    describe('Micro8 CALL/RET state dispatch (Story 12.6)', () => {
+      it('should pass pc, sp, memory to CallRetVisualizer when state is Micro8', () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+        const memory = new Uint8Array(65536);
+        const micro8State = {
+          pc: 0x0100,
+          accumulator: 0,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: memory,
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0],
+          sp: 0xFFFF,
+          carryFlag: false,
+          signFlag: false,
+          overflowFlag: false,
+        };
+
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(micro8State);
+
+        // Should render CallRetVisualizer content (title visible for Micro8)
+        const title = container.querySelector('.da-callret__title');
+        expect(title).not.toBeNull();
+        expect(title?.textContent).toBe('CALL/RET Monitor');
+      });
+
+      it('should not update CallRetVisualizer when state is Micro4', () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+        const micro4State = {
+          pc: 10,
+          accumulator: 5,
+          zeroFlag: false,
+          halted: false,
+          error: false,
+          errorMessage: null,
+          memory: new Uint8Array(256),
+          ir: 0,
+          mar: 0,
+          mdr: 0,
+          cycles: 0,
+          instructions: 0,
+        };
+
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(micro4State);
+
+        // CallRetVisualizer should remain in initial state (no title for Micro4)
+        const title = container.querySelector('.da-callret__title');
+        expect(title).toBeNull();
+      });
+
+      it('should detect CALL when SP decreases by 2 between updates', () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+
+        const memory1 = new Uint8Array(65536);
+        const initialState = {
+          pc: 0x0100, accumulator: 0, zeroFlag: false, halted: false,
+          error: false, errorMessage: null, memory: memory1, ir: 0,
+          mar: 0, mdr: 0, cycles: 0, instructions: 0,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0], sp: 0xFFFF,
+          carryFlag: false, signFlag: false, overflowFlag: false,
+        };
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(initialState);
+
+        const memory2 = new Uint8Array(65536);
+        memory2[0xFFFE] = 0x03;
+        memory2[0xFFFF] = 0x01;
+        const afterCallState = {
+          pc: 0x0300, accumulator: 0, zeroFlag: false, halted: false,
+          error: false, errorMessage: null, memory: memory2, ir: 0xCF,
+          mar: 0, mdr: 0, cycles: 1, instructions: 1,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0], sp: 0xFFFD,
+          carryFlag: false, signFlag: false, overflowFlag: false,
+        };
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(afterCallState);
+
+        const badge = container.querySelector('.da-callret__badge--call');
+        expect(badge).not.toBeNull();
+        expect(badge?.textContent).toBe('CALL');
+      });
+
+      it('should detect RET when SP increases by 2 between updates', () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+
+        const memory = new Uint8Array(65536);
+        const inSubroutine = {
+          pc: 0x0300, accumulator: 0, zeroFlag: false, halted: false,
+          error: false, errorMessage: null, memory, ir: 0,
+          mar: 0, mdr: 0, cycles: 5, instructions: 5,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0], sp: 0xFFFD,
+          carryFlag: false, signFlag: false, overflowFlag: false,
+        };
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(inSubroutine);
+
+        const afterRetState = {
+          pc: 0x0103, accumulator: 0, zeroFlag: false, halted: false,
+          error: false, errorMessage: null, memory, ir: 0xD0,
+          mar: 0, mdr: 0, cycles: 6, instructions: 6,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0], sp: 0xFFFF,
+          carryFlag: false, signFlag: false, overflowFlag: false,
+        };
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(afterRetState);
+
+        const badge = container.querySelector('.da-callret__badge--ret');
+        expect(badge).not.toBeNull();
+        expect(badge?.textContent).toBe('RET');
+      });
+    });
+
+    describe('stage-aware reset (Story 12.6)', () => {
+      it('should reset CallRetVisualizer with empty memory when switching away from Micro8', () => {
+        app.mount(container);
+        const appAny = app as unknown as Record<string, unknown>;
+
+        // First, provide Micro8 state so the visualizer shows content
+        const memory = new Uint8Array(65536);
+        const micro8State = {
+          pc: 0x0100, accumulator: 0, zeroFlag: false, halted: false,
+          error: false, errorMessage: null, memory, ir: 0,
+          mar: 0, mdr: 0, cycles: 0, instructions: 0,
+          registers: [0, 0, 0, 0, 0, 0, 0, 0], sp: 0xFFFF,
+          carryFlag: false, signFlag: false, overflowFlag: false,
+        };
+        (appAny.updateCallRetVisualizer as (state: unknown) => void)(micro8State);
+        expect(container.querySelector('.da-callret__title')).not.toBeNull();
+
+        // Simulate non-Micro8 reset: clear with zero-length memory
+        const visualizer = app.getCallRetVisualizer();
+        visualizer?.updateState({ pc: 0, sp: 0xFFFF, memory: new Uint8Array(0) });
+        expect(container.querySelector('.da-callret__title')).toBeNull();
+      });
+    });
+
+    describe('cleanup on destroy', () => {
+      it('should remove CallRetVisualizer from DOM on destroy', () => {
+        app.mount(container);
+        expect(container.querySelector('.da-callret')).not.toBeNull();
+        app.destroy();
+        expect(container.querySelector('.da-callret')).toBeNull();
+      });
+
+      it('should set callRetVisualizer to null on destroy', () => {
+        app.mount(container);
+        expect(app.getCallRetVisualizer()).not.toBeNull();
+        app.destroy();
+        expect(app.getCallRetVisualizer()).toBeNull();
+      });
+    });
+  });
 });

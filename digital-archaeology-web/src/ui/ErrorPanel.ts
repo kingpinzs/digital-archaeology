@@ -324,6 +324,12 @@ export class ErrorPanel {
       item.appendChild(suggestion);
     }
 
+    // Educational context (if provided — Story 18.4)
+    if (error.educationalContext) {
+      const eduContext = this.createEducationalContext(error.educationalContext);
+      item.appendChild(eduContext);
+    }
+
     // Fix button (if fixable)
     if (error.fixable === true) {
       const fixBtn = this.createFixButton(error, index);
@@ -448,6 +454,18 @@ export class ErrorPanel {
     suggestionText.textContent = suggestion;
     el.appendChild(suggestionText);
 
+    return el;
+  }
+
+  /**
+   * Create an educational context element (Story 18.4).
+   * Renders historical/architectural context explaining WHY a constraint exists.
+   * @param text - The educational context text
+   */
+  private createEducationalContext(text: string): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'da-error-educational-context';
+    el.textContent = text; // textContent is inherently XSS-safe
     return el;
   }
 

@@ -7,11 +7,13 @@ import type { StoryProgress } from './StoryState';
 import type { RoleData, ChallengeContext } from './types';
 import type { StoryStateChangedEvent } from './StoryEngine';
 import type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';
+import type { StoryActSummary } from '../progress';
 import { StoryLoader } from './StoryLoader';
 import { StoryEngine } from './StoryEngine';
 import { StoryStorage } from './StoryStorage';
 import { SceneRenderer } from './SceneRenderer';
 import { DiscovererExperience } from './DiscovererExperience';
+import { ActCompletionStorage, ActCompletionDetector, ActCelebration } from '../progress';
 
 /**
  * Callbacks for story controller events.
@@ -49,6 +51,12 @@ export class StoryController {
 
   // Discoverer experience for first-time users
   private discovererExperience: DiscovererExperience | null = null;
+
+  // Act completion tracking (Story 19.2)
+  private actCompletionStorage = new ActCompletionStorage();
+  private actCompletionDetector = new ActCompletionDetector(this.actCompletionStorage);
+  private actCelebration = new ActCelebration();
+  private previousActNumber: number = -1;
 
   constructor() {
     this.loader = new StoryLoader();
@@ -96,6 +104,12 @@ export class StoryController {
       // Resume or start new game
       this.engine.resume();
 
+      // Initialize previous act number for act completion detection (Story 19.2)
+      const progress = this.engine.getProgress();
+      if (progress) {
+        this.previousActNumber = progress.position.actNumber;
+      }
+
       this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize story controller:', error);
@@ -108,6 +122,8 @@ export class StoryController {
    */
   setRenderContainer(container: HTMLElement): void {
     this.renderContainer = container;
+    // Mount act celebration overlay in the render container (Story 19.2)
+    this.actCelebration.mount(container);
     // Render current scene if we have one
     if (this.initialized && this.engine.getCurrentScene()) {
       this.renderCurrentScene();
@@ -148,6 +164,14 @@ export class StoryController {
    */
   getActs(): StoryAct[] {
     return [...this.acts];
+  }
+
+  /**
+   * Get sorted array of completed act numbers.
+   * Exposes completion data for external consumers like ProgressDisplay.
+   */
+  getCompletedActNumbers(): number[] {
+    return this.actCompletionStorage.getCompletedActNumbers();
   }
 
   /**
@@ -228,6 +252,7 @@ export class StoryController {
    * Start a new game, resetting progress.
    */
   startNewGame(): void {
+    this.previousActNumber = -1;
     this.engine.clearProgress();
     this.engine.startNewGame();
   }
@@ -340,6 +365,27 @@ export class StoryController {
       // Render the new scene
       this.renderCurrentScene();
 
+      // Detect act completion (Story 19.2)
+      if (progress) {
+        const currentActNumber = progress.position.actNumber;
+        if (this.previousActNumber >= 0 && currentActNumber !== this.previousActNumber) {
+          const actSummaries = this.getActSummaries();
+          const completions = this.actCompletionDetector.detect(
+            this.previousActNumber,
+            currentActNumber,
+            actSummaries,
+          );
+          for (const completion of completions) {
+            this.actCompletionStorage.addCompletion(completion);
+          }
+          // Show celebration for the most recent completed act
+          if (completions.length > 0) {
+            this.actCelebration.show(completions[completions.length - 1]);
+          }
+        }
+        this.previousActNumber = currentActNumber;
+      }
+
       // Notify callbacks
       if (progress && this.callbacks.onEraChange) {
         const era = this.getEraForAct(progress.position.actNumber);
@@ -355,6 +401,18 @@ export class StoryController {
     };
 
     window.addEventListener('story-state-changed', this.stateChangedListener);
+  }
+
+  /**
+   * Extract minimal act summaries for ActCompletionDetector.
+   * Decouples detector from full StoryAct type.
+   */
+  private getActSummaries(): StoryActSummary[] {
+    return this.acts.map(a => ({
+      number: a.number,
+      title: a.title,
+      era: a.era,
+    }));
   }
 
   /**
@@ -485,6 +543,9 @@ export class StoryController {
     // Clean up discoverer experience
     this.cleanupDiscovererExperience();
 
+    // Clean up act celebration (Story 19.2)
+    this.actCelebration.destroy();
+
     // Unsubscribe from state changes
     if (this.stateChangedListener) {
       window.removeEventListener('story-state-changed', this.stateChangedListener);
@@ -499,5 +560,6 @@ export class StoryController {
     this.acts = [];
     this.callbacks = {};
     this.initialized = false;
+    this.previousActNumber = -1;
   }
 }

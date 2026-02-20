@@ -28,21 +28,27 @@ export interface ProgressDisplayData {
 
 /**
  * Creates a ProgressDisplayData from current act number.
- * Assumes acts before currentActNumber are completed.
+ * When completedActNumbers is provided, uses actual completion data.
+ * Otherwise falls back to naive "everything before current is completed" assumption.
  * @param currentActNumber - Current act (0-based, acts are numbered 0-10)
  * @param totalActs - Total number of acts (default 11 for acts 0-10)
+ * @param completedActNumbers - Optional array of actually completed act numbers (Story 19.2)
  */
 export function createProgressDisplayData(
   currentActNumber: number,
-  totalActs: number = 11
+  totalActs: number = 11,
+  completedActNumbers?: number[],
 ): ProgressDisplayData {
   const acts: ActProgress[] = [];
 
   // Acts are numbered 0 to totalActs-1 (0-indexed)
   for (let i = 0; i < totalActs; i++) {
+    const isCompleted = completedActNumbers
+      ? completedActNumbers.includes(i)
+      : i < currentActNumber;
     acts.push({
       actNumber: i,
-      isCompleted: i < currentActNumber,
+      isCompleted,
       isCurrent: i === currentActNumber,
     });
   }

@@ -1,6 +1,7 @@
 // src/progress/types.test.ts
-// Tests for discovery data model, type guards, and metadata
+// Tests for discovery and act completion data model, type guards, and metadata
 // Story 19.1: Track First-Time Discoveries
+// Story 19.2: Track Act Completion
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -8,8 +9,19 @@ import {
   isValidDiscoveryProfile,
   DEFAULT_DISCOVERY_PROFILE,
   DISCOVERY_METADATA,
+  isValidActCompletion,
+  isValidActCompletionProfile,
+  DEFAULT_ACT_COMPLETION_PROFILE,
+  ACT_COMPLETION_METADATA,
 } from './types';
-import type { Discovery, DiscoveryType, DiscoveryProfile } from './types';
+import type {
+  Discovery,
+  DiscoveryType,
+  DiscoveryProfile,
+  ActCompletion,
+  ActCompletionType,
+  ActCompletionProfile,
+} from './types';
 
 /** Helper: create a valid discovery for testing */
 function createValidDiscovery(overrides: Partial<Discovery> = {}): Discovery {
@@ -201,6 +213,209 @@ describe('DISCOVERY_METADATA', () => {
       expect(entry.title.length).toBeGreaterThan(0);
       expect(typeof entry.description).toBe('string');
       expect(entry.description.length).toBeGreaterThan(0);
+      expect(typeof entry.icon).toBe('string');
+      expect(entry.icon.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+// =============================================================================
+// Act Completion Types (Story 19.2)
+// =============================================================================
+
+/** Helper: create a valid act completion for testing */
+function createValidActCompletion(overrides: Partial<ActCompletion> = {}): ActCompletion {
+  return {
+    actNumber: 0,
+    actId: 'act-0',
+    timestamp: 1700000000000,
+    actTitle: 'Pre-history',
+    era: '3000 BC - 1840s',
+    ...overrides,
+  };
+}
+
+describe('isValidActCompletion', () => {
+  it('accepts a valid act completion', () => {
+    expect(isValidActCompletion(createValidActCompletion())).toBe(true);
+  });
+
+  it('accepts all valid act completion types', () => {
+    const types: ActCompletionType[] = [
+      'act-0', 'act-1', 'act-2', 'act-3', 'act-4',
+      'act-5', 'act-6', 'act-7', 'act-8', 'act-9', 'act-10',
+    ];
+    for (let i = 0; i < types.length; i++) {
+      expect(isValidActCompletion(createValidActCompletion({
+        actNumber: i,
+        actId: types[i],
+      }))).toBe(true);
+    }
+  });
+
+  it('rejects null', () => {
+    expect(isValidActCompletion(null)).toBe(false);
+  });
+
+  it('rejects undefined', () => {
+    expect(isValidActCompletion(undefined)).toBe(false);
+  });
+
+  it('rejects non-object', () => {
+    expect(isValidActCompletion('string')).toBe(false);
+    expect(isValidActCompletion(42)).toBe(false);
+  });
+
+  it('rejects invalid actId', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actId: 'act-99' })).toBe(false);
+  });
+
+  it('rejects non-integer actNumber', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actNumber: 1.5 })).toBe(false);
+  });
+
+  it('rejects negative actNumber', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actNumber: -1 })).toBe(false);
+  });
+
+  it('rejects actNumber > 10', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actNumber: 11 })).toBe(false);
+  });
+
+  it('rejects non-number timestamp', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), timestamp: 'abc' })).toBe(false);
+  });
+
+  it('rejects negative timestamp', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), timestamp: -1 })).toBe(false);
+  });
+
+  it('rejects non-string actTitle', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actTitle: 42 })).toBe(false);
+  });
+
+  it('rejects non-string era', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), era: null })).toBe(false);
+  });
+
+  it('rejects missing fields', () => {
+    expect(isValidActCompletion({ actNumber: 0 })).toBe(false);
+    expect(isValidActCompletion({ actId: 'act-0' })).toBe(false);
+  });
+
+  it('rejects empty string actTitle', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), actTitle: '' })).toBe(false);
+  });
+
+  it('rejects empty string era', () => {
+    expect(isValidActCompletion({ ...createValidActCompletion(), era: '' })).toBe(false);
+  });
+
+  it('rejects mismatched actId vs actNumber', () => {
+    expect(isValidActCompletion({
+      ...createValidActCompletion(),
+      actNumber: 0,
+      actId: 'act-5',
+    })).toBe(false);
+  });
+});
+
+describe('isValidActCompletionProfile', () => {
+  it('accepts a valid empty profile', () => {
+    const profile: ActCompletionProfile = { completions: [], version: 1 };
+    expect(isValidActCompletionProfile(profile)).toBe(true);
+  });
+
+  it('accepts a profile with completions', () => {
+    const profile: ActCompletionProfile = {
+      completions: [createValidActCompletion()],
+      version: 1,
+    };
+    expect(isValidActCompletionProfile(profile)).toBe(true);
+  });
+
+  it('rejects null', () => {
+    expect(isValidActCompletionProfile(null)).toBe(false);
+  });
+
+  it('rejects non-object', () => {
+    expect(isValidActCompletionProfile('string')).toBe(false);
+  });
+
+  it('rejects missing completions field', () => {
+    expect(isValidActCompletionProfile({ version: 1 })).toBe(false);
+  });
+
+  it('rejects non-array completions', () => {
+    expect(isValidActCompletionProfile({ completions: 'not-array', version: 1 })).toBe(false);
+  });
+
+  it('rejects profile with invalid completion in array', () => {
+    expect(isValidActCompletionProfile({
+      completions: [{ actNumber: 99, actId: 'invalid', timestamp: 0, actTitle: '', era: '' }],
+      version: 1,
+    })).toBe(false);
+  });
+
+  it('rejects missing version', () => {
+    expect(isValidActCompletionProfile({ completions: [] })).toBe(false);
+  });
+
+  it('rejects non-number version', () => {
+    expect(isValidActCompletionProfile({ completions: [], version: '1' })).toBe(false);
+  });
+
+  it('rejects version 0', () => {
+    expect(isValidActCompletionProfile({ completions: [], version: 0 })).toBe(false);
+  });
+
+  it('rejects negative version', () => {
+    expect(isValidActCompletionProfile({ completions: [], version: -1 })).toBe(false);
+  });
+
+  it('rejects non-integer version', () => {
+    expect(isValidActCompletionProfile({ completions: [], version: 1.5 })).toBe(false);
+  });
+
+  it('rejects NaN version', () => {
+    expect(isValidActCompletionProfile({ completions: [], version: NaN })).toBe(false);
+  });
+});
+
+describe('DEFAULT_ACT_COMPLETION_PROFILE', () => {
+  it('has empty completions array', () => {
+    expect(DEFAULT_ACT_COMPLETION_PROFILE.completions).toEqual([]);
+  });
+
+  it('has version 1', () => {
+    expect(DEFAULT_ACT_COMPLETION_PROFILE.version).toBe(1);
+  });
+
+  it('passes validation', () => {
+    expect(isValidActCompletionProfile(DEFAULT_ACT_COMPLETION_PROFILE)).toBe(true);
+  });
+});
+
+describe('ACT_COMPLETION_METADATA', () => {
+  const allActTypes: ActCompletionType[] = [
+    'act-0', 'act-1', 'act-2', 'act-3', 'act-4',
+    'act-5', 'act-6', 'act-7', 'act-8', 'act-9', 'act-10',
+  ];
+
+  it('has entries for all 11 acts', () => {
+    expect(Object.keys(ACT_COMPLETION_METADATA)).toHaveLength(11);
+    for (const actType of allActTypes) {
+      expect(ACT_COMPLETION_METADATA[actType]).toBeDefined();
+    }
+  });
+
+  it('each entry has title, era, and icon', () => {
+    for (const actType of allActTypes) {
+      const entry = ACT_COMPLETION_METADATA[actType];
+      expect(typeof entry.title).toBe('string');
+      expect(entry.title.length).toBeGreaterThan(0);
+      expect(typeof entry.era).toBe('string');
+      expect(entry.era.length).toBeGreaterThan(0);
       expect(typeof entry.icon).toBe('string');
       expect(entry.icon.length).toBeGreaterThan(0);
     }

@@ -32,6 +32,8 @@ export interface StoryNavOptions {
   onJournalClick?: () => void;
   /** Callback when journey map button is clicked (Story 19.4) */
   onJourneyMapClick?: () => void;
+  /** Callback when statistics button is clicked (Story 19.6) */
+  onStatisticsClick?: () => void;
 }
 
 /**
@@ -59,6 +61,7 @@ export class StoryNav {
   private onProgressClick: (() => void) | undefined;
   private onJournalClick: (() => void) | undefined;
   private onJourneyMapClick: (() => void) | undefined;
+  private onStatisticsClick: (() => void) | undefined;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
@@ -69,6 +72,7 @@ export class StoryNav {
     this.onProgressClick = options.onProgressClick;
     this.onJournalClick = options.onJournalClick;
     this.onJourneyMapClick = options.onJourneyMapClick;
+    this.onStatisticsClick = options.onStatisticsClick;
   }
 
   /**
@@ -171,8 +175,19 @@ export class StoryNav {
     saveButton.setAttribute('aria-label', 'Save progress');
     saveButton.textContent = 'Save';
 
+    // Story 19.6: Statistics button
+    const statsButton = document.createElement('button');
+    statsButton.type = 'button';
+    statsButton.className = 'da-story-nav-action';
+    statsButton.setAttribute('aria-label', 'Open statistics dashboard');
+    statsButton.textContent = 'Stats';
+    statsButton.addEventListener('click', () => {
+      this.onStatisticsClick?.();
+    });
+
     right.appendChild(eraBadgeContainer);
     right.appendChild(journeyMapButton);
+    right.appendChild(statsButton);
     right.appendChild(journalButton);
     right.appendChild(saveButton);
 

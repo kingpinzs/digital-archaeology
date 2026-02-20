@@ -45,6 +45,9 @@ import {
   AchievementToast,
   StageUnlockManager,
   StageUnlockToast,
+  StatisticsStorage,
+  StatisticsCollector,
+  StatisticsDashboard,
 } from '../progress';
 
 /**
@@ -284,6 +287,14 @@ export class App {
   private stageUnlockManager: StageUnlockManager = new StageUnlockManager(this.stageUnlockActCompletionStorage);
   private stageUnlockToast: StageUnlockToast = new StageUnlockToast();
 
+  // Statistics tracking (Story 19.6)
+  private statisticsStorage: StatisticsStorage = new StatisticsStorage();
+  private statisticsDashboard: StatisticsDashboard = new StatisticsDashboard();
+  private sessionStartTimestamp: number = Date.now();
+  private stageChangeTimestamp: number = Date.now();
+  private previousStageForTiming: LabStage = 'micro4';
+  private runStartInstructions: number = 0;
+
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
   private isRouteUpdating: boolean = false;
@@ -314,10 +325,33 @@ export class App {
    * Browser shows generic "Changes may not be saved" dialog when dirty.
    */
   private handleBeforeUnload(e: BeforeUnloadEvent): void {
+    // Story 19.6: Persist timing statistics on page unload
+    this.persistTimingStatistics();
+
     if (this.hasUnsavedChanges()) {
       e.preventDefault();
       // Modern browsers ignore custom messages, but some require returnValue
       e.returnValue = '';
+    }
+  }
+
+  /**
+   * Persist timing statistics (session time and current stage time).
+   * Called on beforeunload and destroy (Story 19.6).
+   */
+  private persistTimingStatistics(): void {
+    const now = Date.now();
+    // Stage time since last stage change
+    const stageElapsed = now - this.stageChangeTimestamp;
+    if (stageElapsed > 0) {
+      this.statisticsStorage.addStageTime(this.previousStageForTiming, stageElapsed);
+      this.stageChangeTimestamp = now;
+    }
+    // Session time since mount
+    const sessionElapsed = now - this.sessionStartTimestamp;
+    if (sessionElapsed > 0) {
+      this.statisticsStorage.addSessionTime(sessionElapsed);
+      this.sessionStartTimestamp = now;
     }
   }
 
@@ -365,6 +399,7 @@ export class App {
     this.discoveryNotification.destroy();
     this.achievementToast.destroy();
     this.stageUnlockToast.destroy();
+    this.statisticsDashboard.destroy();
 
     this.container = container;
     this.isMounted = true;
@@ -407,6 +442,11 @@ export class App {
     this.achievementToast.mount(container);
     // Story 19.5: Mount stage unlock toast container
     this.stageUnlockToast.mount(container);
+    // Story 19.6: Mount statistics dashboard and reset timing
+    this.statisticsDashboard.mount(container);
+    this.sessionStartTimestamp = Date.now();
+    this.stageChangeTimestamp = Date.now();
+    this.previousStageForTiming = this.currentStage;
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
     this.initializeBreadcrumbNav();
@@ -744,6 +784,15 @@ export class App {
     // Same stage — no action needed
     if (stage === this.currentStage) return;
 
+    // Story 19.6: Track time spent on previous stage
+    const now = Date.now();
+    const elapsed = now - this.stageChangeTimestamp;
+    if (elapsed > 0) {
+      this.statisticsStorage.addStageTime(this.previousStageForTiming, elapsed);
+    }
+    this.stageChangeTimestamp = now;
+    this.previousStageForTiming = stage;
+
     // Set flag BEFORE async call to prevent race condition (CR H-2)
     this.isStageSwitching = true;
 
@@ -782,6 +831,22 @@ export class App {
       if (req) reqs.set(stage, req);
     }
     this.menuBar?.getStageSelector()?.setUnlockRequirements(reqs);
+  }
+
+  /**
+   * Handle statistics button click (Story 19.6).
+   * Collects data from all storage and opens the dashboard modal.
+   */
+  private handleStatisticsClick(): void {
+    const collector = new StatisticsCollector(
+      this.discoveryStorage,
+      this.stageUnlockActCompletionStorage,
+      this.achievementStorage,
+      this.statisticsStorage,
+      this.stageUnlockManager,
+    );
+    const data = collector.collect();
+    this.statisticsDashboard.show(data);
   }
 
   /**
@@ -1031,6 +1096,7 @@ export class App {
       currentMode: this.currentMode,
       onModeChange: (mode, challengeContext) => this.handleModeChange(mode, challengeContext),
       onStageUnlockCheck: () => this.handleStageUnlockCheck(),
+      onStatisticsClick: () => this.handleStatisticsClick(),
     });
     this.storyModeContainer.mount(storyMount as HTMLElement);
   }
@@ -2718,6 +2784,9 @@ export class App {
     // Set up event subscriptions before starting
     this.setupEmulatorSubscriptions();
 
+    // Story 19.6: Record instruction count at run start for delta tracking
+    this.runStartInstructions = this.cpuState?.instructions ?? 0;
+
     // Start execution - convert Hz to speed parameter
     // speed = instructions per ~16ms tick = Hz / 60
     const speed = Math.max(1, Math.round(this.executionSpeed / 60));
@@ -2769,6 +2838,12 @@ export class App {
         canPause: false,
         canStep: true,
       });
+
+      // Story 19.6: Track instructions executed during this run
+      const instructionsDelta = this.cpuState.instructions - this.runStartInstructions;
+      if (instructionsDelta > 0) {
+        this.statisticsStorage.addInstructionsExecuted(instructionsDelta);
+      }
 
       // Update status bar with final state
       this.statusBar?.updateState({
@@ -3284,6 +3359,14 @@ export class App {
    * @returns void
    */
   private handleExecutionHalted(): void {
+    // Story 19.6: Track instructions executed during this run
+    if (this.cpuState) {
+      const instructionsDelta = this.cpuState.instructions - this.runStartInstructions;
+      if (instructionsDelta > 0) {
+        this.statisticsStorage.addInstructionsExecuted(instructionsDelta);
+      }
+    }
+
     this.isRunning = false;
     this.cleanupEmulatorSubscriptions();
 
@@ -3352,6 +3435,9 @@ export class App {
       message: `Runtime error: ${error.message}`,
       type: 'RUNTIME_ERROR',
     }]);
+
+    // Story 19.6: Track runtime error
+    this.statisticsStorage.incrementErrors();
 
     // Display rich error in RuntimeErrorPanel (Story 5.10)
     if (error.context) {
@@ -3518,6 +3604,9 @@ export class App {
         // Mark assembly as valid (Story 3.7)
         this.hasValidAssembly = true;
 
+        // Story 19.6: Track successful assembly
+        this.statisticsStorage.incrementPrograms();
+
         // Story 19.1: Detect and announce first-time discoveries
         const discoveries = this.discoveryDetector.detect(
           source,
@@ -3584,6 +3673,8 @@ export class App {
       } else {
         // Mark assembly as invalid (Story 3.7)
         this.hasValidAssembly = false;
+        // Story 19.6: Track assembly error
+        this.statisticsStorage.incrementErrors();
         // Display error message in status bar
         const errorMsg = result.error?.message ?? 'Assembly failed';
         this.statusBar?.updateState({
@@ -4566,6 +4657,9 @@ export class App {
     this.achievementToast.destroy();
     // Destroy stage unlock toast (Story 19.5)
     this.stageUnlockToast.destroy();
+    // Story 19.6: Persist timing and destroy dashboard
+    this.persistTimingStatistics();
+    this.statisticsDashboard.destroy();
 
     // Destroy resizers
     this.destroyResizers();

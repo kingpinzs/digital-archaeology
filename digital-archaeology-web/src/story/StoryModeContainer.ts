@@ -26,6 +26,8 @@ export interface StoryModeContainerOptions {
   onModeChange: (mode: ThemeMode, challengeContext?: ChallengeContext) => void;
   /** Callback to trigger stage unlock check after act completion (Story 19.5) */
   onStageUnlockCheck?: () => void;
+  /** Callback when statistics button is clicked (Story 19.6) */
+  onStatisticsClick?: () => void;
 }
 
 /**
@@ -134,6 +136,9 @@ export class StoryModeContainer {
         },
         onJourneyMapClick: () => {
           this.openJourneyMap();
+        },
+        onStatisticsClick: () => {
+          this.options.onStatisticsClick?.();
         },
       });
       this.storyNav.mount(navMount as HTMLElement);

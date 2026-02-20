@@ -25,6 +25,8 @@ export type {
   JourneyNode,
   JourneyMapData,
   StageUnlockRule,
+  RuntimeStatistics,
+  DashboardData,
 } from './types';
 
 export {
@@ -41,6 +43,8 @@ export {
   isValidAchievement,
   isValidAchievementProfile,
   STAGE_UNLOCK_RULES,
+  DEFAULT_RUNTIME_STATISTICS,
+  isValidRuntimeStatistics,
 } from './types';
 
 export { DiscoveryStorage } from './DiscoveryStorage';
@@ -57,3 +61,6 @@ export { JourneyMapBuilder } from './JourneyMapBuilder';
 export { JourneyMap } from './JourneyMap';
 export { StageUnlockManager } from './StageUnlockManager';
 export { StageUnlockToast } from './StageUnlockToast';
+export { StatisticsStorage } from './StatisticsStorage';
+export { StatisticsCollector } from './StatisticsCollector';
+export { StatisticsDashboard } from './StatisticsDashboard';

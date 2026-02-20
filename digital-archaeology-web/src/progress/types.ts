@@ -599,3 +599,94 @@ export const STAGE_UNLOCK_RULES: readonly [StageUnlockRule, StageUnlockRule, Sta
   { stage: 'micro32p', requiredActNumber: 7, requiredActTitle: '32-bit Era' },
   { stage: 'micro32s', requiredActNumber: 8, requiredActTitle: 'Pipelined' },
 ];
+
+// =============================================================================
+// Statistics Dashboard (Story 19.6)
+// =============================================================================
+
+/**
+ * Runtime statistics persisted across sessions.
+ * Tracks assembly, execution, and timing counters.
+ */
+export interface RuntimeStatistics {
+  readonly programsAssembled: number;
+  readonly instructionsExecuted: number;
+  readonly errorsEncountered: number;
+  readonly timePerStage: Readonly<Record<LabStage, number>>;
+  readonly totalSessionTime: number;
+  readonly version: number;
+}
+
+/**
+ * Default runtime statistics for first-run and fallback.
+ */
+export const DEFAULT_RUNTIME_STATISTICS: RuntimeStatistics = {
+  programsAssembled: 0,
+  instructionsExecuted: 0,
+  errorsEncountered: 0,
+  timePerStage: {
+    micro4: 0,
+    micro8: 0,
+    micro16: 0,
+    micro32: 0,
+    micro32p: 0,
+    micro32s: 0,
+  },
+  totalSessionTime: 0,
+  version: 1,
+};
+
+/**
+ * Type guard for RuntimeStatistics.
+ * Validates structure and all field types.
+ */
+export function isValidRuntimeStatistics(value: unknown): value is RuntimeStatistics {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  if (
+    typeof obj.programsAssembled !== 'number' ||
+    !Number.isInteger(obj.programsAssembled) ||
+    obj.programsAssembled < 0 ||
+    typeof obj.instructionsExecuted !== 'number' ||
+    !Number.isInteger(obj.instructionsExecuted) ||
+    obj.instructionsExecuted < 0 ||
+    typeof obj.errorsEncountered !== 'number' ||
+    !Number.isInteger(obj.errorsEncountered) ||
+    obj.errorsEncountered < 0 ||
+    typeof obj.totalSessionTime !== 'number' ||
+    !Number.isFinite(obj.totalSessionTime) ||
+    obj.totalSessionTime < 0 ||
+    typeof obj.version !== 'number' ||
+    !Number.isInteger(obj.version) ||
+    obj.version < 1
+  ) {
+    return false;
+  }
+  if (!obj.timePerStage || typeof obj.timePerStage !== 'object') return false;
+  const tps = obj.timePerStage as Record<string, unknown>;
+  for (const stage of LAB_STAGES) {
+    if (typeof tps[stage] !== 'number' || !Number.isFinite(tps[stage] as number) || (tps[stage] as number) < 0) return false;
+  }
+  return true;
+}
+
+/**
+ * Aggregated data for rendering the statistics dashboard.
+ * Computed fresh each time the dashboard opens — never persisted.
+ */
+export interface DashboardData {
+  readonly programsAssembled: number;
+  readonly instructionsExecuted: number;
+  readonly errorsEncountered: number;
+  readonly discoveriesEarned: number;
+  readonly discoveriesTotal: 7;
+  readonly actsCompleted: number;
+  readonly actsTotal: 11;
+  readonly achievementsEarned: number;
+  readonly achievementsTotal: 16;
+  readonly achievementsByTier: Record<AchievementTier, { earned: number; total: number }>;
+  readonly stagesUnlocked: number;
+  readonly stagesTotal: 6;
+  readonly timePerStage: Record<LabStage, number>;
+  readonly totalSessionTime: number;
+}

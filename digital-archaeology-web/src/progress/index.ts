@@ -3,6 +3,7 @@
 // Story 19.1: Track First-Time Discoveries
 // Story 19.2: Track Act Completion
 // Story 19.3: Create Milestone Achievements
+// Story 19.4: Create Progress Visualization
 
 export type {
   DiscoveryType,
@@ -19,6 +20,9 @@ export type {
   Achievement,
   AchievementProfile,
   AchievementMetadataEntry,
+  JourneyNodeStatus,
+  JourneyNode,
+  JourneyMapData,
 } from './types';
 
 export {
@@ -46,3 +50,5 @@ export { AchievementStorage } from './AchievementStorage';
 export { AchievementDetector } from './AchievementDetector';
 export { AchievementToast } from './AchievementToast';
 export { AchievementGallery } from './AchievementGallery';
+export { JourneyMapBuilder } from './JourneyMapBuilder';
+export { JourneyMap } from './JourneyMap';

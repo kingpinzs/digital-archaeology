@@ -9194,3 +9194,284 @@ body.da-resizing * {
   border-color: #ffd700;
   box-shadow: 0 0 14px rgba(255, 215, 0, 0.5);
 }
+
+/* ==========================================================================
+   Journey Map Modal (Story 19.4)
+   ========================================================================== */
+
+.da-journey-map {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.da-journey-map--entering {
+  opacity: 0;
+}
+
+.da-journey-map--exiting {
+  opacity: 0;
+}
+
+.da-journey-map__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.da-journey-map__content {
+  position: relative;
+  z-index: 1;
+  background: var(--da-bg-secondary, #1a1a2e);
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.da-journey-map__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.da-journey-map__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--da-text-primary, #e0e0e0);
+  margin: 0;
+  flex: 1;
+}
+
+.da-journey-map__counter {
+  font-size: 0.85rem;
+  color: var(--da-text-secondary, #a0a0a0);
+}
+
+.da-journey-map__close {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary, #a0a0a0);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.da-journey-map__close:hover {
+  color: var(--da-text-primary, #e0e0e0);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.da-journey-map__timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 8px;
+  min-width: max-content;
+}
+
+/* --- Node Base --- */
+
+.da-journey-map__node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.da-journey-map__node-icon {
+  position: relative;
+  font-size: 1.75rem;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.da-journey-map__node-check {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 0.75rem;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4caf50;
+  color: #fff;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.da-journey-map__node-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--da-text-primary, #e0e0e0);
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+.da-journey-map__node-era {
+  font-size: 0.65rem;
+  color: var(--da-text-secondary, #a0a0a0);
+  white-space: nowrap;
+}
+
+/* --- Node: Completed --- */
+
+.da-journey-map__node--completed {
+  cursor: pointer;
+}
+
+.da-journey-map__node--completed .da-journey-map__node-icon {
+  border-color: #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.da-journey-map__node--completed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* --- Node: Current --- */
+
+.da-journey-map__node--current {
+  cursor: pointer;
+}
+
+.da-journey-map__node--current .da-journey-map__node-icon {
+  border-color: #2196f3;
+  box-shadow: 0 0 12px rgba(33, 150, 243, 0.5);
+  background: rgba(33, 150, 243, 0.15);
+  animation: da-anim-pulse 2s ease-in-out infinite;
+}
+
+.da-journey-map__node--current:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+@keyframes da-anim-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(33, 150, 243, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(33, 150, 243, 0.8); }
+}
+
+/* --- Node: Upcoming --- */
+
+.da-journey-map__node--upcoming {
+  cursor: default;
+}
+
+.da-journey-map__node--upcoming .da-journey-map__node-icon {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.da-journey-map__node--upcoming .da-journey-map__node-title,
+.da-journey-map__node--upcoming .da-journey-map__node-era {
+  opacity: 0.6;
+}
+
+/* --- Node: Locked --- */
+
+.da-journey-map__node--locked {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.da-journey-map__node--locked .da-journey-map__node-icon {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* --- Connectors --- */
+
+.da-journey-map__connector {
+  width: 24px;
+  height: 2px;
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: -24px;
+}
+
+.da-journey-map__connector--solid {
+  background: #4caf50;
+}
+
+.da-journey-map__connector--dashed {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.3) 0px,
+    rgba(255, 255, 255, 0.3) 6px,
+    transparent 6px,
+    transparent 10px
+  );
+}
+
+.da-journey-map__connector--dotted {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.15) 0px,
+    rgba(255, 255, 255, 0.15) 3px,
+    transparent 3px,
+    transparent 7px
+  );
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 768px) {
+  .da-journey-map__content {
+    max-width: 95vw;
+    padding: 16px;
+  }
+
+  .da-journey-map__node {
+    min-width: 64px;
+    padding: 8px 4px;
+  }
+
+  .da-journey-map__node-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .da-journey-map__node-title {
+    font-size: 0.65rem;
+  }
+
+  .da-journey-map__node-era {
+    font-size: 0.55rem;
+  }
+
+  .da-journey-map__connector {
+    width: 16px;
+  }
+}

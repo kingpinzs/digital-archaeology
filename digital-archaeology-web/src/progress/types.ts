@@ -525,3 +525,45 @@ export const ACHIEVEMENT_METADATA: Record<AchievementType, AchievementMetadataEn
     tier: 'epic',
   },
 };
+
+// =============================================================================
+// Journey Map Visualization (Story 19.4)
+// =============================================================================
+
+/**
+ * Status of a journey map node (act) in the visualization.
+ */
+export type JourneyNodeStatus = 'completed' | 'current' | 'upcoming' | 'locked';
+
+/**
+ * A single node in the journey map, representing one act.
+ * All fields are readonly to enforce immutability.
+ */
+export interface JourneyNode {
+  /** Act number (0-10) */
+  readonly actNumber: number;
+  /** Display title for the act */
+  readonly title: string;
+  /** Historical era string */
+  readonly era: string;
+  /** Emoji icon for the act */
+  readonly icon: string;
+  /** CPU stage name (e.g., 'mechanical', 'micro4') */
+  readonly cpuStage: string;
+  /** Visual status of this node */
+  readonly status: JourneyNodeStatus;
+}
+
+/**
+ * Complete data for rendering the journey map visualization.
+ */
+export interface JourneyMapData {
+  /** All 11 act nodes in order */
+  readonly nodes: readonly JourneyNode[];
+  /** Total number of acts */
+  readonly totalActs: number;
+  /** Number of completed acts */
+  readonly completedCount: number;
+  /** Current act number (0-10) */
+  readonly currentActNumber: number;
+}

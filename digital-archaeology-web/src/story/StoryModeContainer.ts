@@ -10,6 +10,9 @@ import { StoryContent } from './StoryContent';
 import { StoryController } from './StoryController';
 import { StoryBrowser } from './StoryBrowser';
 import { StoryJournal } from './StoryJournal';
+import { JourneyMap } from '../progress/JourneyMap';
+import { JourneyMapBuilder } from '../progress/JourneyMapBuilder';
+import { ActCompletionStorage } from '../progress/ActCompletionStorage';
 import type { ThemeMode } from '@ui/theme';
 import type { RoleData, ChallengeContext } from './types';
 
@@ -51,6 +54,10 @@ export class StoryModeContainer {
   // Story integration
   private storyController: StoryController | null = null;
   private initializationPromise: Promise<void> | null = null;
+
+  // Story 19.4: Journey Map
+  private journeyMap: JourneyMap | null = null;
+  private journeyMapBuilder: JourneyMapBuilder | null = null;
 
   constructor(options: StoryModeContainerOptions) {
     this.options = options;
@@ -123,6 +130,9 @@ export class StoryModeContainer {
         onJournalClick: () => {
           this.openStoryJournal();
         },
+        onJourneyMapClick: () => {
+          this.openJourneyMap();
+        },
       });
       this.storyNav.mount(navMount as HTMLElement);
     }
@@ -182,6 +192,13 @@ export class StoryModeContainer {
     const sceneMount = this.storyContent?.getSceneMount();
     if (sceneMount) {
       this.storyController.setRenderContainer(sceneMount);
+    }
+
+    // Story 19.4: Initialize journey map components
+    this.journeyMapBuilder = new JourneyMapBuilder(new ActCompletionStorage());
+    this.journeyMap = new JourneyMap();
+    if (this.element) {
+      this.journeyMap.mount(this.element);
     }
 
     // Initialize asynchronously
@@ -296,6 +313,42 @@ export class StoryModeContainer {
       engine.goToScene(sceneId);
     } catch (error) {
       console.warn('Failed to navigate to scene:', sceneId, error);
+    }
+  }
+
+  /**
+   * Open the journey map modal (Story 19.4).
+   */
+  private openJourneyMap(): void {
+    if (!this.storyController || !this.journeyMap || !this.journeyMapBuilder) return;
+
+    const currentActNumber = this.storyController.getProgress()?.position.actNumber ?? 0;
+    const data = this.journeyMapBuilder.build(currentActNumber);
+
+    this.journeyMap.show(data, (actNumber: number) => {
+      this.navigateToAct(actNumber);
+    });
+  }
+
+  /**
+   * Navigate to the first scene of a specific act (Story 19.4).
+   */
+  private navigateToAct(actNumber: number): void {
+    if (!this.storyController) return;
+
+    const acts = this.storyController.getActs();
+    const targetAct = acts.find(act => act.number === actNumber);
+    if (!targetAct || targetAct.chapters.length === 0 || targetAct.chapters[0].scenes.length === 0) {
+      console.warn('Cannot navigate to act:', actNumber);
+      return;
+    }
+
+    const firstSceneId = targetAct.chapters[0].scenes[0].id;
+    const engine = this.storyController.getEngine();
+    try {
+      engine.goToScene(firstSceneId);
+    } catch (error) {
+      console.warn('Failed to navigate to act scene:', firstSceneId, error);
     }
   }
 
@@ -446,6 +499,11 @@ export class StoryModeContainer {
 
     this.storyJournal?.destroy();
     this.storyJournal = null;
+
+    // Story 19.4: Destroy journey map
+    this.journeyMap?.destroy();
+    this.journeyMap = null;
+    this.journeyMapBuilder = null;
 
     // Remove element from DOM
     if (this.element) {

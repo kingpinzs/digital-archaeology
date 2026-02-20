@@ -8921,3 +8921,276 @@ body.da-resizing * {
   outline: 2px solid var(--da-accent);
   outline-offset: 2px;
 }
+
+/* =============================================================================
+   Achievement Toast Notification (Story 19.3)
+   ============================================================================= */
+
+.da-achievement-toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: var(--da-z-toast, 900);
+  pointer-events: none;
+}
+
+.da-achievement-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-left: 4px solid #9e9e9e;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  max-width: 340px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.da-achievement-toast--entering {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.da-achievement-toast--exiting {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.da-achievement-toast__icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.da-achievement-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.da-achievement-toast__title {
+  color: var(--da-text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.da-achievement-toast__description {
+  color: var(--da-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.da-achievement-toast__tier {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.da-achievement-toast__view {
+  background: none;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  color: var(--da-accent);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  pointer-events: auto;
+  flex-shrink: 0;
+  align-self: center;
+  transition: background 150ms ease;
+}
+
+.da-achievement-toast__view:hover {
+  background: var(--da-bg-hover);
+}
+
+/* =============================================================================
+   Achievement Gallery Modal (Story 19.3)
+   ============================================================================= */
+
+.da-achievement-gallery {
+  position: fixed;
+  inset: 0;
+  z-index: var(--da-z-modal-backdrop, 1000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+
+.da-achievement-gallery--entering {
+  opacity: 0;
+}
+
+.da-achievement-gallery--exiting {
+  opacity: 0;
+}
+
+.da-achievement-gallery__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.da-achievement-gallery__content {
+  position: relative;
+  z-index: var(--da-z-modal, 1001);
+  background: var(--da-bg-primary);
+  border: 1px solid var(--da-border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 800px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.da-achievement-gallery__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.da-achievement-gallery__title {
+  color: var(--da-text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+}
+
+.da-achievement-gallery__counter {
+  color: var(--da-text-secondary);
+  font-size: 0.9rem;
+}
+
+.da-achievement-gallery__close {
+  background: none;
+  border: 1px solid var(--da-border);
+  border-radius: 6px;
+  color: var(--da-text-secondary);
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.da-achievement-gallery__close:hover {
+  background: var(--da-bg-hover);
+  color: var(--da-text-primary);
+}
+
+.da-achievement-gallery__close:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+.da-achievement-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .da-achievement-gallery__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .da-achievement-gallery__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Achievement Card */
+
+.da-achievement-card {
+  padding: 16px;
+  background: var(--da-bg-secondary);
+  border: 2px solid var(--da-border);
+  border-radius: 8px;
+  text-align: center;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.da-achievement-card--locked {
+  opacity: 0.5;
+}
+
+.da-achievement-card--locked .da-achievement-card__icon {
+  filter: grayscale(1);
+}
+
+.da-achievement-card__icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.da-achievement-card__title {
+  color: var(--da-text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.da-achievement-card__description {
+  color: var(--da-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.da-achievement-card__tier {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.da-achievement-card__status {
+  color: var(--da-text-secondary);
+  font-size: 0.7rem;
+  margin-top: 6px;
+}
+
+/* Tier-specific earned card glow (Story 19.3 Task 6.7) */
+
+.da-achievement-card--common {
+  border-color: #9e9e9e;
+  box-shadow: 0 0 8px rgba(158, 158, 158, 0.3);
+}
+
+.da-achievement-card--uncommon {
+  border-color: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.35);
+}
+
+.da-achievement-card--rare {
+  border-color: #2196f3;
+  box-shadow: 0 0 10px rgba(33, 150, 243, 0.4);
+}
+
+.da-achievement-card--epic {
+  border-color: #9c27b0;
+  box-shadow: 0 0 12px rgba(156, 39, 176, 0.45);
+}
+
+.da-achievement-card--legendary {
+  border-color: #ffd700;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.5);
+}

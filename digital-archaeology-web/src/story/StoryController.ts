@@ -7,13 +7,22 @@ import type { StoryProgress } from './StoryState';
 import type { RoleData, ChallengeContext } from './types';
 import type { StoryStateChangedEvent } from './StoryEngine';
 import type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';
-import type { StoryActSummary } from '../progress';
+import type { StoryActSummary, AchievementType } from '../progress';
 import { StoryLoader } from './StoryLoader';
 import { StoryEngine } from './StoryEngine';
 import { StoryStorage } from './StoryStorage';
 import { SceneRenderer } from './SceneRenderer';
 import { DiscovererExperience } from './DiscovererExperience';
-import { ActCompletionStorage, ActCompletionDetector, ActCelebration } from '../progress';
+import {
+  ActCompletionStorage,
+  ActCompletionDetector,
+  ActCelebration,
+  AchievementStorage,
+  AchievementDetector,
+  AchievementToast,
+  AchievementGallery,
+  DiscoveryStorage,
+} from '../progress';
 
 /**
  * Callbacks for story controller events.
@@ -58,11 +67,31 @@ export class StoryController {
   private actCelebration = new ActCelebration();
   private previousActNumber: number = -1;
 
+  // Achievement tracking (Story 19.3)
+  private discoveryStorage: DiscoveryStorage;
+  private achievementStorage = new AchievementStorage();
+  private achievementDetector: AchievementDetector;
+  private achievementToast = new AchievementToast();
+  private achievementGallery = new AchievementGallery();
+
   constructor() {
     this.loader = new StoryLoader();
     this.storage = new StoryStorage();
     this.engine = new StoryEngine(this.storage);
     this.renderer = new SceneRenderer();
+
+    // Story 19.3: Own DiscoveryStorage instance (reads same localStorage key as App.ts)
+    this.discoveryStorage = new DiscoveryStorage();
+    this.achievementDetector = new AchievementDetector(
+      this.achievementStorage,
+      this.discoveryStorage,
+      this.actCompletionStorage,
+    );
+
+    // Wire achievement toast gallery callback
+    this.achievementToast.onGalleryOpen = () => {
+      this.showAchievementGallery();
+    };
 
     // Wire renderer callbacks
     this.renderer.setCallbacks(this.createRendererCallbacks());
@@ -124,6 +153,9 @@ export class StoryController {
     this.renderContainer = container;
     // Mount act celebration overlay in the render container (Story 19.2)
     this.actCelebration.mount(container);
+    // Mount achievement toast and gallery (Story 19.3)
+    this.achievementToast.mount(container);
+    this.achievementGallery.mount(container);
     // Render current scene if we have one
     if (this.initialized && this.engine.getCurrentScene()) {
       this.renderCurrentScene();
@@ -172,6 +204,25 @@ export class StoryController {
    */
   getCompletedActNumbers(): number[] {
     return this.actCompletionStorage.getCompletedActNumbers();
+  }
+
+  /**
+   * Get earned achievement types (Story 19.3).
+   */
+  getEarnedAchievements(): AchievementType[] {
+    return this.achievementStorage.getEarnedAchievementTypes();
+  }
+
+  /**
+   * Show the achievement gallery modal (Story 19.3).
+   */
+  showAchievementGallery(): void {
+    const profile = this.achievementStorage.getProfileOrDefault();
+    const earnedTypes = profile.completions.map(a => a.type);
+    const timestamps = new Map(
+      profile.completions.map(a => [a.type, a.timestamp] as const),
+    );
+    this.achievementGallery.show(earnedTypes, timestamps);
   }
 
   /**
@@ -384,6 +435,9 @@ export class StoryController {
           }
         }
         this.previousActNumber = currentActNumber;
+
+        // Story 19.3: Evaluate achievements after state change
+        this.evaluateAchievements();
       }
 
       // Notify callbacks
@@ -401,6 +455,20 @@ export class StoryController {
     };
 
     window.addEventListener('story-state-changed', this.stateChangedListener);
+  }
+
+  /**
+   * Evaluate achievements and show toast for any newly earned (Story 19.3).
+   */
+  private evaluateAchievements(): void {
+    const newAchievements = this.achievementDetector.evaluate();
+    for (const achievement of newAchievements) {
+      this.achievementStorage.addAchievement(achievement);
+    }
+    // Show toast for each new achievement (toast handles queuing)
+    for (const achievement of newAchievements) {
+      this.achievementToast.show(achievement);
+    }
   }
 
   /**
@@ -545,6 +613,10 @@ export class StoryController {
 
     // Clean up act celebration (Story 19.2)
     this.actCelebration.destroy();
+
+    // Clean up achievement UI (Story 19.3)
+    this.achievementToast.destroy();
+    this.achievementGallery.destroy();
 
     // Unsubscribe from state changes
     if (this.stateChangedListener) {

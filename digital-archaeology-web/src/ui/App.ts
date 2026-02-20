@@ -34,7 +34,15 @@ import { SettingsStorage, ProjectStorage, AutoSaveManager, downloadTextFile, dow
 import type { AppSettings, ProjectData, Breakpoint as PersistBreakpoint, ProjectCursorPosition } from '../state';
 import { HashRouter, parseHash } from '../router';
 import type { RouteState } from '../router';
-import { DiscoveryStorage, DiscoveryDetector, DiscoveryNotification } from '../progress';
+import {
+  DiscoveryStorage,
+  DiscoveryDetector,
+  DiscoveryNotification,
+  ActCompletionStorage,
+  AchievementStorage,
+  AchievementDetector,
+  AchievementToast,
+} from '../progress';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -259,6 +267,15 @@ export class App {
   private discoveryDetector: DiscoveryDetector = new DiscoveryDetector(this.discoveryStorage);
   private discoveryNotification: DiscoveryNotification = new DiscoveryNotification();
 
+  // Achievement tracking (Story 19.3) — each storage reads same localStorage key
+  private achievementStorage: AchievementStorage = new AchievementStorage();
+  private achievementDetector: AchievementDetector = new AchievementDetector(
+    this.achievementStorage,
+    this.discoveryStorage,
+    new ActCompletionStorage(),
+  );
+  private achievementToast: AchievementToast = new AchievementToast();
+
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
   private isRouteUpdating: boolean = false;
@@ -338,6 +355,7 @@ export class App {
     this.destroyBreadcrumbNav();
     this.destroyHdlViewerPanel();
     this.discoveryNotification.destroy();
+    this.achievementToast.destroy();
 
     this.container = container;
     this.isMounted = true;
@@ -376,6 +394,8 @@ export class App {
     this.initializeRuntimeErrorPanel();
     // Story 19.1: Mount discovery notification toast container
     this.discoveryNotification.mount(container);
+    // Story 19.3: Mount achievement toast container
+    this.achievementToast.mount(container);
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
     this.initializeBreadcrumbNav();
@@ -3464,6 +3484,18 @@ export class App {
           this.discoveryNotification.show(discovery);
         }
 
+        // Story 19.3: Evaluate achievements after discovery detection
+        if (discoveries.length > 0) {
+          const newAchievements = this.achievementDetector.evaluate();
+          for (const achievement of newAchievements) {
+            this.achievementStorage.addAchievement(achievement);
+          }
+          // Show toast for each new achievement (toast handles queuing)
+          for (const achievement of newAchievements) {
+            this.achievementToast.show(achievement);
+          }
+        }
+
         // Build source map for PC-to-line correlation (Story 5.1)
         this.sourceMap = this.buildSourceMap(source);
 
@@ -4484,6 +4516,8 @@ export class App {
 
     // Destroy discovery notification (Story 19.1)
     this.discoveryNotification.destroy();
+    // Destroy achievement toast (Story 19.3)
+    this.achievementToast.destroy();
 
     // Destroy resizers
     this.destroyResizers();

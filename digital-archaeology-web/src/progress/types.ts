@@ -2,6 +2,7 @@
 // Progress tracking data model, type guards, and metadata for Epic 19
 // Story 19.1: Track First-Time Discoveries
 // Story 19.2: Track Act Completion
+// Story 19.3: Create Milestone Achievements
 
 import type { LabStage } from '../config/stageConfig';
 import { LAB_STAGES } from '../config/stageConfig';
@@ -291,3 +292,236 @@ export interface StoryActSummary {
   readonly title: string;
   readonly era: string;
 }
+
+// =============================================================================
+// Achievement Tracking (Story 19.3)
+// =============================================================================
+
+/**
+ * Achievement type identifiers — 16 milestone achievements across 5 tiers.
+ */
+export type AchievementType =
+  | 'first-discovery'
+  | 'discovery-collector'
+  | 'discovery-master'
+  | 'first-act-complete'
+  | 'acts-explorer'
+  | 'halfway-there'
+  | 'story-completionist'
+  | 'micro4-graduate'
+  | 'micro8-graduate'
+  | 'micro16-graduate'
+  | 'code-pioneer'
+  | 'subroutine-architect'
+  | 'interrupt-expert'
+  | 'stack-wizard'
+  | 'multi-stage-explorer'
+  | 'all-stages-master';
+
+/** All valid achievement type values for type guard validation */
+const VALID_ACHIEVEMENT_TYPES: readonly string[] = [
+  'first-discovery',
+  'discovery-collector',
+  'discovery-master',
+  'first-act-complete',
+  'acts-explorer',
+  'halfway-there',
+  'story-completionist',
+  'micro4-graduate',
+  'micro8-graduate',
+  'micro16-graduate',
+  'code-pioneer',
+  'subroutine-architect',
+  'interrupt-expert',
+  'stack-wizard',
+  'multi-stage-explorer',
+  'all-stages-master',
+];
+
+/**
+ * Achievement tier — determines display color and rarity.
+ */
+export type AchievementTier = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
+/** All valid achievement tiers for type guard validation */
+const VALID_ACHIEVEMENT_TIERS: readonly string[] = [
+  'common', 'uncommon', 'rare', 'epic', 'legendary',
+];
+
+/**
+ * A single achievement earned by the user.
+ * All fields are readonly to enforce immutability.
+ */
+export interface Achievement {
+  /** The type of achievement earned */
+  readonly type: AchievementType;
+  /** Timestamp when the achievement was earned (ms since epoch) */
+  readonly timestamp: number;
+  /** The tier of the achievement */
+  readonly tier: AchievementTier;
+}
+
+/**
+ * User's complete achievement profile.
+ * Contains all achievements earned across sessions.
+ */
+export interface AchievementProfile {
+  /** All achievements earned by the user */
+  readonly completions: readonly Achievement[];
+  /** Schema version for future migrations */
+  readonly version: number;
+}
+
+/**
+ * Default achievement profile for first-run and fallback.
+ */
+export const DEFAULT_ACHIEVEMENT_PROFILE: AchievementProfile = {
+  completions: [],
+  version: 1,
+};
+
+/**
+ * Type guard for Achievement.
+ * Validates structure and all field types.
+ */
+export function isValidAchievement(value: unknown): value is Achievement {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.type === 'string' &&
+    VALID_ACHIEVEMENT_TYPES.includes(obj.type) &&
+    typeof obj.timestamp === 'number' &&
+    obj.timestamp >= 0 &&
+    typeof obj.tier === 'string' &&
+    VALID_ACHIEVEMENT_TIERS.includes(obj.tier)
+  );
+}
+
+/**
+ * Type guard for AchievementProfile.
+ * Validates complete profile structure and all nested achievements.
+ */
+export function isValidAchievementProfile(value: unknown): value is AchievementProfile {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    Array.isArray(obj.completions) &&
+    obj.completions.every(isValidAchievement) &&
+    typeof obj.version === 'number' &&
+    Number.isInteger(obj.version) &&
+    obj.version >= 1
+  );
+}
+
+/**
+ * Display metadata for each achievement type.
+ * Used by AchievementToast and AchievementGallery to show human-readable information.
+ */
+export interface AchievementMetadataEntry {
+  readonly title: string;
+  readonly description: string;
+  readonly icon: string;
+  readonly tier: AchievementTier;
+}
+
+/**
+ * Human-readable display data for all 16 achievements.
+ */
+export const ACHIEVEMENT_METADATA: Record<AchievementType, AchievementMetadataEntry> = {
+  'first-discovery': {
+    title: 'First Discovery',
+    description: 'Earned your first discovery.',
+    icon: '\u{1F50D}',
+    tier: 'common',
+  },
+  'discovery-collector': {
+    title: 'Discovery Collector',
+    description: 'Earned 3 discoveries.',
+    icon: '\u{1F4E6}',
+    tier: 'uncommon',
+  },
+  'discovery-master': {
+    title: 'Discovery Master',
+    description: 'Earned all 7 discovery types.',
+    icon: '\u{1F451}',
+    tier: 'rare',
+  },
+  'first-act-complete': {
+    title: 'Chapter One',
+    description: 'Completed your first act.',
+    icon: '\u{1F4D6}',
+    tier: 'common',
+  },
+  'acts-explorer': {
+    title: 'Acts Explorer',
+    description: 'Completed 3 acts.',
+    icon: '\u{1F5FA}',
+    tier: 'uncommon',
+  },
+  'halfway-there': {
+    title: 'Halfway There',
+    description: 'Completed 5 acts.',
+    icon: '\u{23F3}',
+    tier: 'rare',
+  },
+  'story-completionist': {
+    title: 'Story Completionist',
+    description: 'Completed all 11 acts.',
+    icon: '\u{1F3C6}',
+    tier: 'legendary',
+  },
+  'micro4-graduate': {
+    title: 'Micro4 Graduate',
+    description: 'Completed the Micro4 era (Act 4).',
+    icon: '\u{1F393}',
+    tier: 'uncommon',
+  },
+  'micro8-graduate': {
+    title: 'Micro8 Graduate',
+    description: 'Completed the Micro8 era (Act 5).',
+    icon: '\u{1F393}',
+    tier: 'uncommon',
+  },
+  'micro16-graduate': {
+    title: 'Micro16 Graduate',
+    description: 'Completed the Micro16 era (Act 6).',
+    icon: '\u{1F393}',
+    tier: 'rare',
+  },
+  'code-pioneer': {
+    title: 'Code Pioneer',
+    description: 'Assembled your first program.',
+    icon: '\u{1F4DD}',
+    tier: 'common',
+  },
+  'subroutine-architect': {
+    title: 'Subroutine Architect',
+    description: 'Used subroutines for the first time.',
+    icon: '\u{1F3D7}',
+    tier: 'uncommon',
+  },
+  'interrupt-expert': {
+    title: 'Interrupt Expert',
+    description: 'Wrote your first interrupt handler.',
+    icon: '\u{26A1}',
+    tier: 'rare',
+  },
+  'stack-wizard': {
+    title: 'Stack Wizard',
+    description: 'Used stack operations.',
+    icon: '\u{1FA84}',
+    tier: 'uncommon',
+  },
+  'multi-stage-explorer': {
+    title: 'Multi-Stage Explorer',
+    description: 'Assembled in 2+ CPU stages.',
+    icon: '\u{1F30D}',
+    tier: 'rare',
+  },
+  'all-stages-master': {
+    title: 'All Stages Master',
+    description: 'Assembled in all 3 CPU stages.',
+    icon: '\u{2728}',
+    tier: 'epic',
+  },
+};

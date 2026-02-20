@@ -1,7 +1,8 @@
 // src/progress/types.test.ts
-// Tests for discovery and act completion data model, type guards, and metadata
+// Tests for discovery, act completion, and achievement data model, type guards, and metadata
 // Story 19.1: Track First-Time Discoveries
 // Story 19.2: Track Act Completion
+// Story 19.3: Create Milestone Achievements
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -13,6 +14,10 @@ import {
   isValidActCompletionProfile,
   DEFAULT_ACT_COMPLETION_PROFILE,
   ACT_COMPLETION_METADATA,
+  isValidAchievement,
+  isValidAchievementProfile,
+  DEFAULT_ACHIEVEMENT_PROFILE,
+  ACHIEVEMENT_METADATA,
 } from './types';
 import type {
   Discovery,
@@ -21,6 +26,10 @@ import type {
   ActCompletion,
   ActCompletionType,
   ActCompletionProfile,
+  Achievement,
+  AchievementType,
+  AchievementTier,
+  AchievementProfile,
 } from './types';
 
 /** Helper: create a valid discovery for testing */
@@ -419,5 +428,233 @@ describe('ACT_COMPLETION_METADATA', () => {
       expect(typeof entry.icon).toBe('string');
       expect(entry.icon.length).toBeGreaterThan(0);
     }
+  });
+});
+
+// =============================================================================
+// Achievement Types (Story 19.3)
+// =============================================================================
+
+/** Helper: create a valid achievement for testing */
+function createValidAchievement(overrides: Partial<Achievement> = {}): Achievement {
+  return {
+    type: 'first-discovery',
+    timestamp: 1700000000000,
+    tier: 'common',
+    ...overrides,
+  };
+}
+
+describe('isValidAchievement', () => {
+  it('accepts a valid achievement', () => {
+    expect(isValidAchievement(createValidAchievement())).toBe(true);
+  });
+
+  it('accepts all valid achievement types', () => {
+    const types: AchievementType[] = [
+      'first-discovery',
+      'discovery-collector',
+      'discovery-master',
+      'first-act-complete',
+      'acts-explorer',
+      'halfway-there',
+      'story-completionist',
+      'micro4-graduate',
+      'micro8-graduate',
+      'micro16-graduate',
+      'code-pioneer',
+      'subroutine-architect',
+      'interrupt-expert',
+      'stack-wizard',
+      'multi-stage-explorer',
+      'all-stages-master',
+    ];
+    for (const type of types) {
+      const tier = ACHIEVEMENT_METADATA[type].tier;
+      expect(isValidAchievement(createValidAchievement({ type, tier }))).toBe(true);
+    }
+  });
+
+  it('accepts all valid tiers', () => {
+    const tiers: AchievementTier[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    for (const tier of tiers) {
+      expect(isValidAchievement(createValidAchievement({ tier }))).toBe(true);
+    }
+  });
+
+  it('rejects null', () => {
+    expect(isValidAchievement(null)).toBe(false);
+  });
+
+  it('rejects undefined', () => {
+    expect(isValidAchievement(undefined)).toBe(false);
+  });
+
+  it('rejects non-object', () => {
+    expect(isValidAchievement('string')).toBe(false);
+    expect(isValidAchievement(42)).toBe(false);
+  });
+
+  it('rejects invalid achievement type', () => {
+    expect(isValidAchievement({ ...createValidAchievement(), type: 'invalid-type' })).toBe(false);
+  });
+
+  it('rejects missing type field', () => {
+    const { type: _type, ...rest } = createValidAchievement();
+    expect(isValidAchievement(rest)).toBe(false);
+  });
+
+  it('rejects non-number timestamp', () => {
+    expect(isValidAchievement({ ...createValidAchievement(), timestamp: 'not-a-number' })).toBe(false);
+  });
+
+  it('rejects negative timestamp', () => {
+    expect(isValidAchievement({ ...createValidAchievement(), timestamp: -1 })).toBe(false);
+  });
+
+  it('rejects invalid tier', () => {
+    expect(isValidAchievement({ ...createValidAchievement(), tier: 'mythic' })).toBe(false);
+  });
+
+  it('rejects missing tier', () => {
+    const { tier: _tier, ...rest } = createValidAchievement();
+    expect(isValidAchievement(rest)).toBe(false);
+  });
+});
+
+describe('isValidAchievementProfile', () => {
+  it('accepts a valid empty profile', () => {
+    const profile: AchievementProfile = { completions: [], version: 1 };
+    expect(isValidAchievementProfile(profile)).toBe(true);
+  });
+
+  it('accepts a profile with achievements', () => {
+    const profile: AchievementProfile = {
+      completions: [createValidAchievement()],
+      version: 1,
+    };
+    expect(isValidAchievementProfile(profile)).toBe(true);
+  });
+
+  it('accepts a profile with multiple achievements', () => {
+    const profile: AchievementProfile = {
+      completions: [
+        createValidAchievement({ type: 'first-discovery', tier: 'common' }),
+        createValidAchievement({ type: 'code-pioneer', tier: 'common' }),
+      ],
+      version: 1,
+    };
+    expect(isValidAchievementProfile(profile)).toBe(true);
+  });
+
+  it('rejects null', () => {
+    expect(isValidAchievementProfile(null)).toBe(false);
+  });
+
+  it('rejects non-object', () => {
+    expect(isValidAchievementProfile('string')).toBe(false);
+  });
+
+  it('rejects missing completions field', () => {
+    expect(isValidAchievementProfile({ version: 1 })).toBe(false);
+  });
+
+  it('rejects non-array completions', () => {
+    expect(isValidAchievementProfile({ completions: 'not-array', version: 1 })).toBe(false);
+  });
+
+  it('rejects profile with invalid achievement in array', () => {
+    expect(isValidAchievementProfile({
+      completions: [{ type: 'invalid', timestamp: 0, tier: 'common' }],
+      version: 1,
+    })).toBe(false);
+  });
+
+  it('rejects missing version', () => {
+    expect(isValidAchievementProfile({ completions: [] })).toBe(false);
+  });
+
+  it('rejects non-number version', () => {
+    expect(isValidAchievementProfile({ completions: [], version: '1' })).toBe(false);
+  });
+
+  it('rejects version 0', () => {
+    expect(isValidAchievementProfile({ completions: [], version: 0 })).toBe(false);
+  });
+
+  it('rejects negative version', () => {
+    expect(isValidAchievementProfile({ completions: [], version: -1 })).toBe(false);
+  });
+
+  it('rejects non-integer version', () => {
+    expect(isValidAchievementProfile({ completions: [], version: 1.5 })).toBe(false);
+  });
+
+  it('rejects NaN version', () => {
+    expect(isValidAchievementProfile({ completions: [], version: NaN })).toBe(false);
+  });
+});
+
+describe('DEFAULT_ACHIEVEMENT_PROFILE', () => {
+  it('has empty completions array', () => {
+    expect(DEFAULT_ACHIEVEMENT_PROFILE.completions).toEqual([]);
+  });
+
+  it('has version 1', () => {
+    expect(DEFAULT_ACHIEVEMENT_PROFILE.version).toBe(1);
+  });
+
+  it('passes validation', () => {
+    expect(isValidAchievementProfile(DEFAULT_ACHIEVEMENT_PROFILE)).toBe(true);
+  });
+});
+
+describe('ACHIEVEMENT_METADATA', () => {
+  const allAchievementTypes: AchievementType[] = [
+    'first-discovery',
+    'discovery-collector',
+    'discovery-master',
+    'first-act-complete',
+    'acts-explorer',
+    'halfway-there',
+    'story-completionist',
+    'micro4-graduate',
+    'micro8-graduate',
+    'micro16-graduate',
+    'code-pioneer',
+    'subroutine-architect',
+    'interrupt-expert',
+    'stack-wizard',
+    'multi-stage-explorer',
+    'all-stages-master',
+  ];
+
+  it('has entries for all 16 achievements', () => {
+    expect(Object.keys(ACHIEVEMENT_METADATA)).toHaveLength(16);
+    for (const type of allAchievementTypes) {
+      expect(ACHIEVEMENT_METADATA[type]).toBeDefined();
+    }
+  });
+
+  it('each entry has title, description, icon, and tier', () => {
+    for (const type of allAchievementTypes) {
+      const entry = ACHIEVEMENT_METADATA[type];
+      expect(typeof entry.title).toBe('string');
+      expect(entry.title.length).toBeGreaterThan(0);
+      expect(typeof entry.description).toBe('string');
+      expect(entry.description.length).toBeGreaterThan(0);
+      expect(typeof entry.icon).toBe('string');
+      expect(entry.icon.length).toBeGreaterThan(0);
+      expect(['common', 'uncommon', 'rare', 'epic', 'legendary']).toContain(entry.tier);
+    }
+  });
+
+  it('has correct tier distribution (3 common, 6 uncommon, 5 rare, 1 epic, 1 legendary)', () => {
+    const tiers = Object.values(ACHIEVEMENT_METADATA).map(e => e.tier);
+    expect(tiers.filter(t => t === 'common')).toHaveLength(3);
+    expect(tiers.filter(t => t === 'uncommon')).toHaveLength(6);
+    expect(tiers.filter(t => t === 'rare')).toHaveLength(5);
+    expect(tiers.filter(t => t === 'epic')).toHaveLength(1);
+    expect(tiers.filter(t => t === 'legendary')).toHaveLength(1);
   });
 });

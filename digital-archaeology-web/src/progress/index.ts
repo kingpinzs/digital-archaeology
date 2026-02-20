@@ -2,6 +2,7 @@
 // Barrel exports for the progress module (Epic 19 foundation)
 // Story 19.1: Track First-Time Discoveries
 // Story 19.2: Track Act Completion
+// Story 19.3: Create Milestone Achievements
 
 export type {
   DiscoveryType,
@@ -13,6 +14,11 @@ export type {
   ActCompletionProfile,
   ActCompletionMetadataEntry,
   StoryActSummary,
+  AchievementType,
+  AchievementTier,
+  Achievement,
+  AchievementProfile,
+  AchievementMetadataEntry,
 } from './types';
 
 export {
@@ -24,6 +30,10 @@ export {
   ACT_COMPLETION_METADATA,
   isValidActCompletion,
   isValidActCompletionProfile,
+  DEFAULT_ACHIEVEMENT_PROFILE,
+  ACHIEVEMENT_METADATA,
+  isValidAchievement,
+  isValidAchievementProfile,
 } from './types';
 
 export { DiscoveryStorage } from './DiscoveryStorage';
@@ -32,3 +42,7 @@ export { DiscoveryNotification } from './DiscoveryNotification';
 export { ActCompletionStorage } from './ActCompletionStorage';
 export { ActCompletionDetector } from './ActCompletionDetector';
 export { ActCelebration } from './ActCelebration';
+export { AchievementStorage } from './AchievementStorage';
+export { AchievementDetector } from './AchievementDetector';
+export { AchievementToast } from './AchievementToast';
+export { AchievementGallery } from './AchievementGallery';

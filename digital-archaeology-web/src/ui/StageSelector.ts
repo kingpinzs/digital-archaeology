@@ -42,6 +42,8 @@ export interface StageSelectorOptions {
   unlockedStages: LabStage[];
   /** Callback when stage changes */
   onStageChange: (stage: LabStage) => void;
+  /** Optional unlock requirement text per locked stage (Story 19.5) */
+  unlockRequirements?: Map<LabStage, string>;
 }
 
 /**
@@ -54,6 +56,7 @@ export class StageSelector {
   private currentStage: LabStage;
   private unlockedStages: Set<LabStage>;
   private onStageChange: (stage: LabStage) => void;
+  private unlockRequirements: Map<LabStage, string> = new Map();
   private isOpen: boolean = false;
 
   // Cached DOM references
@@ -73,6 +76,9 @@ export class StageSelector {
     this.currentStage = options.currentStage;
     this.unlockedStages = new Set(options.unlockedStages);
     this.onStageChange = options.onStageChange;
+    if (options.unlockRequirements) {
+      this.unlockRequirements = new Map(options.unlockRequirements);
+    }
 
     // Bind handlers in constructor for proper add/remove pairing
     this.boundTriggerClick = this.toggleDropdown.bind(this);
@@ -113,6 +119,14 @@ export class StageSelector {
    */
   setUnlockedStages(stages: LabStage[]): void {
     this.unlockedStages = new Set(stages);
+    this.updateLockedState();
+  }
+
+  /**
+   * Update unlock requirement text for locked stages (Story 19.5).
+   */
+  setUnlockRequirements(reqs: Map<LabStage, string>): void {
+    this.unlockRequirements = new Map(reqs);
     this.updateLockedState();
   }
 
@@ -223,6 +237,14 @@ export class StageSelector {
         lock.className = 'da-stage-selector-item-lock';
         lock.textContent = '\uD83D\uDD12'; // 🔒
         item.appendChild(lock);
+
+        const reqText = this.unlockRequirements.get(stage);
+        if (reqText) {
+          const req = document.createElement('span');
+          req.className = 'da-stage-selector-item-requirement';
+          req.textContent = reqText;
+          item.appendChild(req);
+        }
       }
 
       dropdown.appendChild(item);
@@ -446,13 +468,32 @@ export class StageSelector {
       item.setAttribute('aria-disabled', String(isLocked));
 
       const existingLock = item.querySelector('.da-stage-selector-item-lock');
-      if (isLocked && !existingLock) {
-        const lock = document.createElement('span');
-        lock.className = 'da-stage-selector-item-lock';
-        lock.textContent = '\uD83D\uDD12'; // 🔒
-        item.appendChild(lock);
-      } else if (!isLocked && existingLock) {
-        existingLock.remove();
+      const existingReq = item.querySelector('.da-stage-selector-item-requirement');
+
+      if (isLocked) {
+        if (!existingLock) {
+          const lock = document.createElement('span');
+          lock.className = 'da-stage-selector-item-lock';
+          lock.textContent = '\uD83D\uDD12'; // 🔒
+          item.appendChild(lock);
+        }
+
+        const reqText = this.unlockRequirements.get(stage);
+        if (reqText) {
+          if (existingReq) {
+            existingReq.textContent = reqText;
+          } else {
+            const req = document.createElement('span');
+            req.className = 'da-stage-selector-item-requirement';
+            req.textContent = reqText;
+            item.appendChild(req);
+          }
+        } else if (existingReq) {
+          existingReq.remove();
+        }
+      } else {
+        if (existingLock) existingLock.remove();
+        if (existingReq) existingReq.remove();
       }
     });
   }

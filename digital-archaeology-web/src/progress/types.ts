@@ -567,3 +567,35 @@ export interface JourneyMapData {
   /** Current act number (0-10) */
   readonly currentActNumber: number;
 }
+
+// =============================================================================
+// Stage Unlock System (Story 19.5)
+// =============================================================================
+
+/**
+ * Defines the act completion required to unlock a specific lab stage.
+ * Each rule is independent — completing the required act unlocks the stage
+ * regardless of whether other acts are completed.
+ */
+export interface StageUnlockRule {
+  /** The lab stage that gets unlocked */
+  readonly stage: LabStage;
+  /** The act number that must be completed to unlock this stage */
+  readonly requiredActNumber: number;
+  /** Human-readable title of the required act (for display in requirements) */
+  readonly requiredActTitle: string;
+}
+
+/**
+ * Ordered list of stage unlock rules.
+ * micro4 is always unlocked (not in this list).
+ * Each entry maps a completed act to the lab stage it unlocks.
+ * Tuple type enforces exactly 5 entries at compile time.
+ */
+export const STAGE_UNLOCK_RULES: readonly [StageUnlockRule, StageUnlockRule, StageUnlockRule, StageUnlockRule, StageUnlockRule] = [
+  { stage: 'micro8', requiredActNumber: 4, requiredActTitle: 'First Microprocessor' },
+  { stage: 'micro16', requiredActNumber: 5, requiredActTitle: '8-bit Era' },
+  { stage: 'micro32', requiredActNumber: 6, requiredActTitle: '16-bit Era' },
+  { stage: 'micro32p', requiredActNumber: 7, requiredActTitle: '32-bit Era' },
+  { stage: 'micro32s', requiredActNumber: 8, requiredActTitle: 'Pipelined' },
+];

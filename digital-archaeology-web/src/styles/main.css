@@ -1131,6 +1131,15 @@ body.da-resizing * {
   margin-left: 4px;
 }
 
+.da-stage-selector-item-requirement {
+  display: block;
+  font-size: 9px;
+  color: var(--da-text-secondary);
+  opacity: 0.7;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
 /* ==============================
    Mode Transition Animations
    ============================== */
@@ -9474,4 +9483,65 @@ body.da-resizing * {
   .da-journey-map__connector {
     width: 16px;
   }
+}
+
+/* =============================================================================
+   Stage Unlock Toast Notifications (Story 19.5)
+   ============================================================================= */
+
+.da-stage-unlock-toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: var(--da-z-toast, 900);
+  pointer-events: none;
+}
+
+.da-stage-unlock-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-left: 3px solid #4caf50;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 12px rgba(76, 175, 80, 0.2);
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  min-width: 220px;
+}
+
+.da-stage-unlock-toast--entering {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.da-stage-unlock-toast--exiting {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.da-stage-unlock-toast__icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.da-stage-unlock-toast__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.da-stage-unlock-toast__label {
+  font-weight: 600;
+  color: var(--da-text-primary);
+  font-size: 14px;
+}
+
+.da-stage-unlock-toast__message {
+  color: #4caf50;
+  font-size: 12px;
+  font-weight: 500;
 }

@@ -4,6 +4,7 @@
 // Story 19.2: Track Act Completion
 // Story 19.3: Create Milestone Achievements
 // Story 19.4: Create Progress Visualization
+// Story 19.5: Implement Stage Unlock System
 
 export type {
   DiscoveryType,
@@ -23,6 +24,7 @@ export type {
   JourneyNodeStatus,
   JourneyNode,
   JourneyMapData,
+  StageUnlockRule,
 } from './types';
 
 export {
@@ -38,6 +40,7 @@ export {
   ACHIEVEMENT_METADATA,
   isValidAchievement,
   isValidAchievementProfile,
+  STAGE_UNLOCK_RULES,
 } from './types';
 
 export { DiscoveryStorage } from './DiscoveryStorage';
@@ -52,3 +55,5 @@ export { AchievementToast } from './AchievementToast';
 export { AchievementGallery } from './AchievementGallery';
 export { JourneyMapBuilder } from './JourneyMapBuilder';
 export { JourneyMap } from './JourneyMap';
+export { StageUnlockManager } from './StageUnlockManager';
+export { StageUnlockToast } from './StageUnlockToast';

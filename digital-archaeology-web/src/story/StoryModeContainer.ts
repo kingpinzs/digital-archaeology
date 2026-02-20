@@ -24,6 +24,8 @@ export interface StoryModeContainerOptions {
   currentMode: ThemeMode;
   /** Callback when mode changes, optionally with challenge context */
   onModeChange: (mode: ThemeMode, challengeContext?: ChallengeContext) => void;
+  /** Callback to trigger stage unlock check after act completion (Story 19.5) */
+  onStageUnlockCheck?: () => void;
 }
 
 /**
@@ -185,6 +187,9 @@ export class StoryModeContainer {
       },
       onRoleUpdate: (roleData: RoleData) => {
         this.yourRolePanel?.setRoleData(roleData);
+      },
+      onStageUnlock: () => {
+        this.options.onStageUnlockCheck?.();
       },
     });
 

@@ -7,6 +7,7 @@ import type { ToolbarCallbacks } from './Toolbar';
 import { MenuBar } from './MenuBar';
 import type { MenuBarCallbacks } from './MenuBar';
 import type { LabStage } from './StageSelector';
+import { LAB_STAGES } from './StageSelector';
 import { getStageConfig, isStageReady, getStageMemorySize, getStageConstraints } from '../config/stageConfig';
 import { StatusBar } from './StatusBar';
 import { PanelHeader } from './PanelHeader';
@@ -42,6 +43,8 @@ import {
   AchievementStorage,
   AchievementDetector,
   AchievementToast,
+  StageUnlockManager,
+  StageUnlockToast,
 } from '../progress';
 
 /**
@@ -276,6 +279,11 @@ export class App {
   );
   private achievementToast: AchievementToast = new AchievementToast();
 
+  // Stage unlock tracking (Story 19.5)
+  private stageUnlockActCompletionStorage: ActCompletionStorage = new ActCompletionStorage();
+  private stageUnlockManager: StageUnlockManager = new StageUnlockManager(this.stageUnlockActCompletionStorage);
+  private stageUnlockToast: StageUnlockToast = new StageUnlockToast();
+
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
   private isRouteUpdating: boolean = false;
@@ -356,6 +364,7 @@ export class App {
     this.destroyHdlViewerPanel();
     this.discoveryNotification.destroy();
     this.achievementToast.destroy();
+    this.stageUnlockToast.destroy();
 
     this.container = container;
     this.isMounted = true;
@@ -396,6 +405,8 @@ export class App {
     this.discoveryNotification.mount(container);
     // Story 19.3: Mount achievement toast container
     this.achievementToast.mount(container);
+    // Story 19.5: Mount stage unlock toast container
+    this.stageUnlockToast.mount(container);
     this.initializeCircuitRenderer();
     this.initializeSignalValuesPanel();
     this.initializeBreadcrumbNav();
@@ -658,6 +669,9 @@ export class App {
       unlockedStages: this.unlockedStages,
     });
     this.menuBar.mount(menuBarContainer);
+
+    // Story 19.5: Provide initial unlock requirements to StageSelector
+    this.updateStageSelectorRequirements();
   }
 
   /**
@@ -738,6 +752,36 @@ export class App {
       console.error('Stage switch failed:', error);
       this.isStageSwitching = false;
     });
+  }
+
+  /**
+   * Check for newly unlocked stages after act completion (Story 19.5).
+   * Evaluates new unlocks, shows toasts, updates selector, persists settings.
+   */
+  private handleStageUnlockCheck(): void {
+    const newUnlocks = this.stageUnlockManager.evaluateNewUnlocks(this.unlockedStages);
+    for (const stage of newUnlocks) {
+      this.stageUnlockToast.show(stage);
+    }
+
+    if (newUnlocks.length > 0) {
+      this.unlockedStages = this.stageUnlockManager.computeUnlockedStages();
+      this.menuBar?.getStageSelector()?.setUnlockedStages(this.unlockedStages);
+      this.updateStageSelectorRequirements();
+      this.saveSettings();
+    }
+  }
+
+  /**
+   * Update StageSelector unlock requirement text from StageUnlockManager (Story 19.5).
+   */
+  private updateStageSelectorRequirements(): void {
+    const reqs = new Map<LabStage, string>();
+    for (const stage of LAB_STAGES) {
+      const req = this.stageUnlockManager.getRequirementForStage(stage);
+      if (req) reqs.set(stage, req);
+    }
+    this.menuBar?.getStageSelector()?.setUnlockRequirements(reqs);
   }
 
   /**
@@ -986,6 +1030,7 @@ export class App {
     this.storyModeContainer = new StoryModeContainer({
       currentMode: this.currentMode,
       onModeChange: (mode, challengeContext) => this.handleModeChange(mode, challengeContext),
+      onStageUnlockCheck: () => this.handleStageUnlockCheck(),
     });
     this.storyModeContainer.mount(storyMount as HTMLElement);
   }
@@ -4071,7 +4116,8 @@ export class App {
 
     // Story 11.1: Apply persisted stage selection
     this.currentStage = settings.currentStage;
-    this.unlockedStages = settings.unlockedStages;
+    // Story 19.5: Derive unlocked stages from act completion state (not stale persisted values)
+    this.unlockedStages = this.stageUnlockManager.computeUnlockedStages();
 
     // Story 18.5: Apply persisted experimentation mode
     this.isExperimentationMode = settings.experimentationMode;
@@ -4518,6 +4564,8 @@ export class App {
     this.discoveryNotification.destroy();
     // Destroy achievement toast (Story 19.3)
     this.achievementToast.destroy();
+    // Destroy stage unlock toast (Story 19.5)
+    this.stageUnlockToast.destroy();
 
     // Destroy resizers
     this.destroyResizers();

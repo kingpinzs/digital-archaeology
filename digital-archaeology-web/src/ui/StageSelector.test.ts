@@ -691,4 +691,144 @@ describe('StageSelector', () => {
       expect(mockOnStageChange).not.toHaveBeenCalled();
     });
   });
+
+  // Story 19.5: Unlock Requirement Display
+  describe('Task 10: Unlock Requirement Display', () => {
+    it('should display requirement text on locked items via constructor option', () => {
+      const reqs = new Map<LabStage, string>([
+        ['micro8', 'Complete Act 4: First Microprocessor'],
+      ]);
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        onStageChange: mockOnStageChange,
+        unlockRequirements: reqs,
+      });
+      selector.mount(container);
+
+      const micro8Item = container.querySelector('[data-stage="micro8"]');
+      const reqEl = micro8Item?.querySelector('.da-stage-selector-item-requirement');
+      expect(reqEl).not.toBeNull();
+      expect(reqEl?.textContent).toBe('Complete Act 4: First Microprocessor');
+    });
+
+    it('should add requirement text when setUnlockRequirements is called', () => {
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        onStageChange: mockOnStageChange,
+      });
+      selector.mount(container);
+
+      // Initially no requirement text
+      let micro8Item = container.querySelector('[data-stage="micro8"]');
+      expect(micro8Item?.querySelector('.da-stage-selector-item-requirement')).toBeNull();
+
+      // Set requirements
+      selector.setUnlockRequirements(new Map<LabStage, string>([
+        ['micro8', 'Complete Act 4: First Microprocessor'],
+        ['micro16', 'Complete Act 5: 8-bit Era'],
+      ]));
+
+      micro8Item = container.querySelector('[data-stage="micro8"]');
+      const reqEl = micro8Item?.querySelector('.da-stage-selector-item-requirement');
+      expect(reqEl?.textContent).toBe('Complete Act 4: First Microprocessor');
+
+      const micro16Item = container.querySelector('[data-stage="micro16"]');
+      const reqEl16 = micro16Item?.querySelector('.da-stage-selector-item-requirement');
+      expect(reqEl16?.textContent).toBe('Complete Act 5: 8-bit Era');
+    });
+
+    it('should NOT show requirement text for unlocked items', () => {
+      const reqs = new Map<LabStage, string>([
+        ['micro4', 'This should not appear'],
+        ['micro8', 'Complete Act 4: First Microprocessor'],
+      ]);
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4', 'micro8'],
+        onStageChange: mockOnStageChange,
+        unlockRequirements: reqs,
+      });
+      selector.mount(container);
+
+      // micro4 is unlocked — no requirement
+      const micro4Item = container.querySelector('[data-stage="micro4"]');
+      expect(micro4Item?.querySelector('.da-stage-selector-item-requirement')).toBeNull();
+
+      // micro8 is unlocked — no requirement
+      const micro8Item = container.querySelector('[data-stage="micro8"]');
+      expect(micro8Item?.querySelector('.da-stage-selector-item-requirement')).toBeNull();
+    });
+
+    it('should use textContent (XSS-safe), not innerHTML', () => {
+      const reqs = new Map<LabStage, string>([
+        ['micro8', '<script>alert("xss")</script>'],
+      ]);
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        onStageChange: mockOnStageChange,
+        unlockRequirements: reqs,
+      });
+      selector.mount(container);
+
+      const micro8Item = container.querySelector('[data-stage="micro8"]');
+      const reqEl = micro8Item?.querySelector('.da-stage-selector-item-requirement');
+      // textContent should contain the raw text, not executed script
+      expect(reqEl?.textContent).toBe('<script>alert("xss")</script>');
+      expect(reqEl?.querySelector('script')).toBeNull();
+    });
+
+    it('should remove requirement text when stage becomes unlocked', () => {
+      const reqs = new Map<LabStage, string>([
+        ['micro8', 'Complete Act 4: First Microprocessor'],
+      ]);
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        onStageChange: mockOnStageChange,
+        unlockRequirements: reqs,
+      });
+      selector.mount(container);
+
+      // Requirement visible initially
+      let micro8Item = container.querySelector('[data-stage="micro8"]');
+      expect(micro8Item?.querySelector('.da-stage-selector-item-requirement')).not.toBeNull();
+
+      // Unlock micro8
+      selector.setUnlockedStages(['micro4', 'micro8']);
+
+      micro8Item = container.querySelector('[data-stage="micro8"]');
+      expect(micro8Item?.querySelector('.da-stage-selector-item-requirement')).toBeNull();
+      expect(micro8Item?.querySelector('.da-stage-selector-item-lock')).toBeNull();
+    });
+
+    it('should update requirement text when setUnlockRequirements and setUnlockedStages are called together', () => {
+      selector = new StageSelector({
+        currentStage: 'micro4',
+        unlockedStages: ['micro4'],
+        onStageChange: mockOnStageChange,
+      });
+      selector.mount(container);
+
+      // Set requirements for all locked stages
+      selector.setUnlockRequirements(new Map<LabStage, string>([
+        ['micro8', 'Complete Act 4: First Microprocessor'],
+        ['micro16', 'Complete Act 5: 8-bit Era'],
+      ]));
+
+      // Unlock micro8
+      selector.setUnlockedStages(['micro4', 'micro8']);
+
+      // micro8 requirement should be gone
+      const micro8Item = container.querySelector('[data-stage="micro8"]');
+      expect(micro8Item?.querySelector('.da-stage-selector-item-requirement')).toBeNull();
+
+      // micro16 requirement should still show
+      const micro16Item = container.querySelector('[data-stage="micro16"]');
+      expect(micro16Item?.querySelector('.da-stage-selector-item-requirement')?.textContent)
+        .toBe('Complete Act 5: 8-bit Era');
+    });
+  });
 });

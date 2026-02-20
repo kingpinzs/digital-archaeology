@@ -34,6 +34,8 @@ export interface StoryControllerCallbacks {
   onEraChange?: (era: string) => void;
   /** Called when role data updates */
   onRoleUpdate?: (roleData: RoleData) => void;
+  /** Called after act completion to trigger stage unlock check (Story 19.5) */
+  onStageUnlock?: () => void;
 }
 
 /**
@@ -432,6 +434,11 @@ export class StoryController {
           // Show celebration for the most recent completed act
           if (completions.length > 0) {
             this.actCelebration.show(completions[completions.length - 1]);
+          }
+
+          // Story 19.5: Trigger stage unlock check after act completion
+          if (completions.length > 0 && this.callbacks.onStageUnlock) {
+            this.callbacks.onStageUnlock();
           }
         }
         this.previousActNumber = currentActNumber;

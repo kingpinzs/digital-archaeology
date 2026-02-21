@@ -4,6 +4,8 @@
 
 export { LiteratureBrowser } from './LiteratureBrowser';
 export { ReadingProgressStorage } from './ReadingProgressStorage';
+export { HintProgressStorage } from './HintProgressStorage';
+export { getHintsForArticle, getHintCount, ARTICLES_WITH_HINTS } from './hintData';
 export {
   LITERATURE_ARTICLES,
   CATEGORY_METADATA,

@@ -286,7 +286,7 @@ development_status:
   20-2-implement-article-categories: done  # 150 literature tests, 5066 total passing — 5 self-review + 9 adversarial review fixes applied
   20-3-create-contextual-help-links: done  # 37 new tests (20 helpContextMap + 11 browser + 6 PanelHeader), 5103 total passing — 6 review fixes applied
   20-4-implement-reading-progress: done  # 36 new tests (22 storage + 12 browser + 2 review), 5139 total passing — 4 review fixes applied
-  20-5-create-progressive-hint-system: backlog
+  20-5-create-progressive-hint-system: done  # 46 new tests (17 storage + 11 data + 12 browser + 6 review), 5185 total — 3 review fixes
   20-6-create-technical-deep-dives: backlog
   20-7-curated-documentaries-films: backlog
   20-8-curated-tv-shows-series: backlog

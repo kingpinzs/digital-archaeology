@@ -1630,4 +1630,153 @@ describe('LiteratureBrowser', () => {
       expect(badge?.getAttribute('aria-hidden')).toBe('true');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Hint system (Story 20.5)
+  // ---------------------------------------------------------------------------
+
+  describe('hint system', () => {
+    it('should show hint button on cards that have hints', () => {
+      browser.open(mockData, callbacks);
+
+      const hintBtns = document.querySelectorAll('.da-literature-card__hint-btn');
+      expect(hintBtns.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should NOT show hint button on cards without hints', () => {
+      browser.open(mockData, callbacks);
+
+      const cards = document.querySelectorAll('.da-literature-card');
+      const hintBtns = document.querySelectorAll('.da-literature-card__hint-btn');
+      // Not every card should have a hint button
+      expect(hintBtns.length).toBeLessThan(cards.length);
+    });
+
+    it('should open hint panel when hint button is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+
+      const panel = document.querySelector('.da-hint-panel');
+      expect(panel).not.toBeNull();
+
+      // Should show at least one hint
+      const hints = panel!.querySelectorAll('.da-hint-panel__hint');
+      expect(hints.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should show progress indicator in hint panel', () => {
+      browser.open(mockData, callbacks);
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+
+      const progress = document.querySelector('.da-hint-panel__progress');
+      expect(progress).not.toBeNull();
+      expect(progress!.textContent).toMatch(/Hint \d+ of \d+/);
+    });
+
+    it('should reveal next hint when "Next hint" is clicked', () => {
+      const onHintReveal = vi.fn();
+      browser.open(mockData, { ...callbacks, onHintReveal });
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+
+      const hintsBeforeNext = document.querySelectorAll('.da-hint-panel__hint').length;
+
+      const nextBtn = document.querySelector('.da-hint-panel__next-btn') as HTMLButtonElement;
+      if (nextBtn) {
+        nextBtn.click();
+        const hintsAfterNext = document.querySelectorAll('.da-hint-panel__hint').length;
+        expect(hintsAfterNext).toBe(hintsBeforeNext + 1);
+      }
+    });
+
+    it('should fire onHintReveal callback', () => {
+      const onHintReveal = vi.fn();
+      browser.open(mockData, { ...callbacks, onHintReveal });
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+
+      // First hint auto-reveals
+      expect(onHintReveal).toHaveBeenCalledOnce();
+    });
+
+    it('should close hint panel and return to grid on back click', () => {
+      browser.open(mockData, callbacks);
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+      expect(document.querySelector('.da-hint-panel')).not.toBeNull();
+
+      const backBtn = document.querySelector('.da-hint-panel__back') as HTMLButtonElement;
+      backBtn.click();
+      expect(document.querySelector('.da-hint-panel')).toBeNull();
+
+      // Grid should be visible again
+      const grid = document.querySelector('.da-literature-browser__grid') as HTMLElement;
+      expect(grid).not.toBeNull();
+      expect(grid.style.display).not.toBe('none');
+    });
+
+    it('should not trigger article select when hint button is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      const hintBtn = document.querySelector('.da-literature-card__hint-btn') as HTMLButtonElement;
+      hintBtn.click();
+
+      expect(callbacks.onArticleSelect).not.toHaveBeenCalled();
+    });
+
+    it('should show hint count on button when hints are pre-revealed', () => {
+      // lit-01 has hints
+      browser.open(
+        { articles: LITERATURE_ARTICLES, hintProgress: { 'lit-01': 2 } },
+        callbacks,
+      );
+
+      const hintBtns = document.querySelectorAll('.da-literature-card__hint-btn');
+      const btnTexts = Array.from(hintBtns).map(b => b.textContent);
+      expect(btnTexts.some(t => t === 'Hints (2)')).toBe(true);
+    });
+
+    it('should show reset hints button when hint progress exists', () => {
+      browser.open(
+        { articles: LITERATURE_ARTICLES, hintProgress: { 'lit-01': 2 } },
+        callbacks,
+      );
+
+      const resetBtn = document.querySelector('.da-literature-browser__reset-hints-btn');
+      expect(resetBtn).not.toBeNull();
+      expect(resetBtn!.textContent).toBe('Reset hints');
+    });
+
+    it('should NOT show reset hints button when no hint progress', () => {
+      browser.open(mockData, callbacks);
+
+      const resetBtn = document.querySelector('.da-literature-browser__reset-hints-btn');
+      expect(resetBtn).toBeNull();
+    });
+
+    it('should fire onResetHints and clear progress when reset is clicked', () => {
+      const onResetHints = vi.fn();
+      browser.open(
+        { articles: LITERATURE_ARTICLES, hintProgress: { 'lit-01': 2 } },
+        { ...callbacks, onResetHints },
+      );
+
+      const resetBtn = document.querySelector('.da-literature-browser__reset-hints-btn') as HTMLButtonElement;
+      resetBtn.click();
+
+      expect(onResetHints).toHaveBeenCalledOnce();
+
+      // Hint buttons should no longer show counts
+      const hintBtns = document.querySelectorAll('.da-literature-card__hint-btn');
+      const btnTexts = Array.from(hintBtns).map(b => b.textContent);
+      expect(btnTexts.every(t => t === 'Hints')).toBe(true);
+    });
+  });
 });

@@ -49,7 +49,7 @@ import {
   StatisticsCollector,
   StatisticsDashboard,
 } from '../progress';
-import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage } from '@literature/index';
+import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
 import type { HelpContext } from '@literature/index';
 
 /**
@@ -297,9 +297,10 @@ export class App {
   private previousStageForTiming: LabStage = 'micro4';
   private runStartInstructions: number = 0;
 
-  // Literature Browser (Story 20.1) + Reading Progress (Story 20.4)
+  // Literature Browser (Story 20.1) + Reading Progress (Story 20.4) + Hints (Story 20.5)
   private literatureBrowser: LiteratureBrowser = new LiteratureBrowser();
   private readingProgressStorage: ReadingProgressStorage = new ReadingProgressStorage();
+  private hintProgressStorage: HintProgressStorage = new HintProgressStorage();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -852,6 +853,7 @@ export class App {
       {
         articles: LITERATURE_ARTICLES,
         readArticleIds: this.readingProgressStorage.load(),
+        hintProgress: this.hintProgressStorage.load(),
       },
       {
         onArticleSelect: (article) => {
@@ -863,6 +865,12 @@ export class App {
         },
         onClearProgress: () => {
           this.readingProgressStorage.clearAll();
+        },
+        onHintReveal: (articleId, _hintIndex) => {
+          this.hintProgressStorage.revealNext(articleId, getHintCount(articleId));
+        },
+        onResetHints: () => {
+          this.hintProgressStorage.clearAll();
         },
       },
     );
@@ -878,6 +886,7 @@ export class App {
       {
         articles: LITERATURE_ARTICLES,
         readArticleIds: this.readingProgressStorage.load(),
+        hintProgress: this.hintProgressStorage.load(),
         contextFilter,
       },
       {
@@ -890,6 +899,12 @@ export class App {
         },
         onClearProgress: () => {
           this.readingProgressStorage.clearAll();
+        },
+        onHintReveal: (articleId, _hintIndex) => {
+          this.hintProgressStorage.revealNext(articleId, getHintCount(articleId));
+        },
+        onResetHints: () => {
+          this.hintProgressStorage.clearAll();
         },
       },
     );

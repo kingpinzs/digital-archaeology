@@ -12,6 +12,7 @@ import type {
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
 import { CATEGORY_METADATA, getCategoryArticleCount, getCategoryTotalReadTime } from './literatureMetadata';
 import { matchesTags } from './helpContextMap';
+import { getHintsForArticle, ARTICLES_WITH_HINTS } from './hintData';
 
 const EXIT_DURATION_MS = 300;
 
@@ -45,6 +46,10 @@ export class LiteratureBrowser {
   private searchQuery: string = '';
   private contextFilter: ContextFilter | null = null;
 
+  // Hint system state (Story 20.5)
+  private hintProgress: Record<string, number> = {};
+  private activeHintArticleId: string | null = null;
+
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
   private readonly boundHandleBackdropClick: (e: MouseEvent) => void;
@@ -77,6 +82,8 @@ export class LiteratureBrowser {
     this.activeCategory = null;
     this.searchQuery = '';
     this.contextFilter = data.contextFilter ?? null;
+    this.hintProgress = { ...(data.hintProgress ?? {}) };
+    this.activeHintArticleId = null;
 
     // Save focus for restoration
     this.previouslyFocusedElement = document.activeElement;
@@ -209,6 +216,23 @@ export class LiteratureBrowser {
     // Clear progress button (Story 20.4 — AC 5)
     if (this.readArticleIds.size > 0) {
       header.appendChild(this.buildClearProgressButton());
+    }
+
+    // Reset hints button (Story 20.5 — AC 6)
+    const hasHintProgress = Object.keys(this.hintProgress).length > 0 &&
+      Object.values(this.hintProgress).some(v => v > 0);
+    if (hasHintProgress) {
+      const resetHintsBtn = document.createElement('button');
+      resetHintsBtn.type = 'button';
+      resetHintsBtn.className = 'da-literature-browser__reset-hints-btn';
+      resetHintsBtn.textContent = 'Reset hints';
+      resetHintsBtn.setAttribute('aria-label', 'Reset all hint progress');
+      resetHintsBtn.addEventListener('click', () => {
+        this.callbacks?.onResetHints?.();
+        this.hintProgress = {};
+        this.updateGrid();
+      });
+      header.appendChild(resetHintsBtn);
     }
 
     const closeButton = document.createElement('button');
@@ -357,6 +381,21 @@ export class LiteratureBrowser {
     time.className = 'da-literature-card__time';
     time.textContent = `${article.estimatedReadTime} min`;
     meta.appendChild(time);
+
+    // Hint button (Story 20.5 — AC 1)
+    if (ARTICLES_WITH_HINTS.has(article.id)) {
+      const hintBtn = document.createElement('button');
+      hintBtn.type = 'button';
+      hintBtn.className = 'da-literature-card__hint-btn';
+      const revealedCount = this.hintProgress[article.id] ?? 0;
+      hintBtn.textContent = revealedCount > 0 ? `Hints (${revealedCount})` : 'Hints';
+      hintBtn.setAttribute('aria-label', `Show hints for ${article.title}`);
+      hintBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don't trigger card click
+        this.showHintPanel(article.id);
+      });
+      meta.appendChild(hintBtn);
+    }
 
     card.appendChild(meta);
 
@@ -545,6 +584,147 @@ export class LiteratureBrowser {
     if (!this.overlay) return;
     const banner = this.overlay.querySelector('.da-literature-browser__context-banner');
     if (banner) banner.remove();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — hint panel (Story 20.5)
+  // ---------------------------------------------------------------------------
+
+  private showHintPanel(articleId: string): void {
+    this.activeHintArticleId = articleId;
+    // Reveal at least the first hint if none revealed yet
+    const hintData = getHintsForArticle(articleId);
+    if (!hintData) return;
+    if ((this.hintProgress[articleId] ?? 0) === 0) {
+      this.hintProgress[articleId] = 1;
+      this.callbacks?.onHintReveal?.(articleId, 0);
+    }
+    this.updateHintPanel();
+  }
+
+  private updateHintPanel(): void {
+    if (!this.overlay || !this.activeHintArticleId) return;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    // Remove existing hint panel
+    const existing = content.querySelector('.da-hint-panel');
+    if (existing) existing.remove();
+
+    // Hide grid and filters while showing hints
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    if (grid) grid.style.display = 'none';
+    if (filters) filters.style.display = 'none';
+    if (banner) banner.style.display = 'none';
+
+    const panel = this.renderHintPanel();
+    content.appendChild(panel);
+
+    // Focus the back button for keyboard navigation continuity
+    const backBtn = panel.querySelector('.da-hint-panel__back') as HTMLButtonElement | null;
+    if (backBtn) backBtn.focus();
+  }
+
+  private closeHintPanel(): void {
+    if (!this.overlay) return;
+    this.activeHintArticleId = null;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    const panel = content.querySelector('.da-hint-panel');
+    if (panel) panel.remove();
+
+    // Restore grid and filters
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    if (grid) grid.style.display = '';
+    if (filters) filters.style.display = '';
+    if (banner) banner.style.display = '';
+
+    // Re-render grid to update hint button labels
+    this.updateGrid();
+  }
+
+  private renderHintPanel(): HTMLElement {
+    const articleId = this.activeHintArticleId!;
+    const hintData = getHintsForArticle(articleId)!;
+    const article = this.articles.find(a => a.id === articleId);
+    const revealedCount = this.hintProgress[articleId] ?? 0;
+    const totalHints = hintData.hints.length;
+
+    const panel = document.createElement('div');
+    panel.className = 'da-hint-panel';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'da-hint-panel__header';
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'da-hint-panel__back';
+    backBtn.textContent = '\u2190 Back';
+    backBtn.setAttribute('aria-label', 'Back to articles');
+    backBtn.addEventListener('click', () => this.closeHintPanel());
+    header.appendChild(backBtn);
+
+    const title = document.createElement('h3');
+    title.className = 'da-hint-panel__title';
+    title.textContent = article?.title ?? 'Hints';
+    header.appendChild(title);
+
+    const progress = document.createElement('span');
+    progress.className = 'da-hint-panel__progress';
+    progress.textContent = `Hint ${revealedCount} of ${totalHints}`;
+    header.appendChild(progress);
+
+    panel.appendChild(header);
+
+    // Hints list
+    const hintsList = document.createElement('div');
+    hintsList.className = 'da-hint-panel__hints';
+
+    for (let i = 0; i < revealedCount; i++) {
+      const hint = document.createElement('div');
+      hint.className = 'da-hint-panel__hint';
+
+      const hintNumber = document.createElement('span');
+      hintNumber.className = 'da-hint-panel__hint-number';
+      hintNumber.textContent = `${i + 1}`;
+      hint.appendChild(hintNumber);
+
+      const hintText = document.createElement('p');
+      hintText.className = 'da-hint-panel__hint-text';
+      hintText.textContent = hintData.hints[i];
+      hint.appendChild(hintText);
+
+      hintsList.appendChild(hint);
+    }
+
+    panel.appendChild(hintsList);
+
+    // Next hint button (if more hints available)
+    if (revealedCount < totalHints) {
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'da-hint-panel__next-btn';
+      nextBtn.textContent = `Show next hint (${revealedCount + 1} of ${totalHints})`;
+      nextBtn.addEventListener('click', () => {
+        this.hintProgress[articleId] = (this.hintProgress[articleId] ?? 0) + 1;
+        this.callbacks?.onHintReveal?.(articleId, this.hintProgress[articleId] - 1);
+        this.updateHintPanel();
+      });
+      panel.appendChild(nextBtn);
+    } else {
+      const complete = document.createElement('p');
+      complete.className = 'da-hint-panel__complete';
+      complete.textContent = 'All hints revealed!';
+      panel.appendChild(complete);
+    }
+
+    return panel;
   }
 
   // ---------------------------------------------------------------------------

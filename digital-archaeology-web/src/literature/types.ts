@@ -62,6 +62,8 @@ export interface LiteratureBrowserCallbacks {
   readonly onArticleSelect: (article: LiteratureArticle) => void;
   readonly onClose: () => void;
   readonly onClearProgress?: () => void;
+  readonly onHintReveal?: (articleId: string, hintIndex: number) => void;
+  readonly onResetHints?: () => void;
 }
 
 /** Data passed to the browser when opening */
@@ -69,4 +71,6 @@ export interface LiteratureBrowserData {
   readonly articles: readonly LiteratureArticle[];
   readonly readArticleIds?: ReadonlySet<string>;
   readonly contextFilter?: ContextFilter;
+  /** Maps article ID to number of hints already revealed (Story 20.5) */
+  readonly hintProgress?: Readonly<Record<string, number>>;
 }

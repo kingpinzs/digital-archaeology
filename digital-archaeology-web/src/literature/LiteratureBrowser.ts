@@ -23,6 +23,13 @@ import {
   getResourceCount,
 } from './curatedResources';
 import type { CuratedResource, CuratedResourceType } from './curatedResources';
+import {
+  getDepthLayersForArticle,
+  ARTICLES_WITH_DEPTH_LAYERS,
+  DEPTH_LAYER_LABELS,
+  DEPTH_LAYER_ORDER,
+} from './depthLayerData';
+import type { DepthLayerName } from './depthLayerData';
 
 const EXIT_DURATION_MS = 300;
 
@@ -67,6 +74,10 @@ export class LiteratureBrowser {
   private showResources: boolean = false;
   private activeResourceType: CuratedResourceType | null = null;
 
+  // Article detail / depth layers state (Story 20.13)
+  private activeDetailArticleId: string | null = null;
+  private expandedDepthLayers: Set<DepthLayerName> = new Set();
+
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
   private readonly boundHandleBackdropClick: (e: MouseEvent) => void;
@@ -104,6 +115,8 @@ export class LiteratureBrowser {
     this.activeDeepDiveArticleId = null;
     this.showResources = false;
     this.activeResourceType = null;
+    this.activeDetailArticleId = null;
+    this.expandedDepthLayers = new Set((data.depthPreferences ?? []) as DepthLayerName[]);
 
     // Save focus for restoration
     this.previouslyFocusedElement = document.activeElement;
@@ -463,8 +476,21 @@ export class LiteratureBrowser {
 
     card.appendChild(meta);
 
+    // Depth layers indicator (Story 20.13)
+    if (ARTICLES_WITH_DEPTH_LAYERS.has(article.id)) {
+      const depthIndicator = document.createElement('span');
+      depthIndicator.className = 'da-literature-card__depth-indicator';
+      depthIndicator.textContent = 'Layers';
+      depthIndicator.setAttribute('aria-hidden', 'true');
+      meta.appendChild(depthIndicator);
+    }
+
     card.addEventListener('click', () => {
-      this.callbacks?.onArticleSelect(article);
+      if (ARTICLES_WITH_DEPTH_LAYERS.has(article.id)) {
+        this.showArticleDetail(article.id);
+      } else {
+        this.callbacks?.onArticleSelect(article);
+      }
     });
 
     return card;
@@ -1044,6 +1070,255 @@ export class LiteratureBrowser {
     card.appendChild(meta);
 
     return card;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — article detail / depth layers (Story 20.13)
+  // ---------------------------------------------------------------------------
+
+  private showArticleDetail(articleId: string): void {
+    this.activeDetailArticleId = articleId;
+    // Also mark the article as read
+    this.callbacks?.onArticleSelect(this.articles.find(a => a.id === articleId)!);
+    this.updateArticleDetail();
+  }
+
+  private updateArticleDetail(): void {
+    if (!this.overlay || !this.activeDetailArticleId) return;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    // Remove existing detail panel
+    const existing = content.querySelector('.da-depth-detail');
+    if (existing) existing.remove();
+
+    // Hide grid, filters, resource filters, context banner
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    const resourceFilters = content.querySelector('.da-resource-type-filters') as HTMLElement | null;
+    if (grid) grid.style.display = 'none';
+    if (filters) filters.style.display = 'none';
+    if (banner) banner.style.display = 'none';
+    if (resourceFilters) resourceFilters.style.display = 'none';
+
+    const panel = this.renderArticleDetail();
+    content.appendChild(panel);
+
+    const backBtn = panel.querySelector('.da-depth-detail__back') as HTMLButtonElement | null;
+    if (backBtn) backBtn.focus();
+  }
+
+  private closeArticleDetail(): void {
+    if (!this.overlay) return;
+    this.activeDetailArticleId = null;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    const panel = content.querySelector('.da-depth-detail');
+    if (panel) panel.remove();
+
+    // Restore grid and filters
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    const resourceFilters = content.querySelector('.da-resource-type-filters') as HTMLElement | null;
+    if (grid) grid.style.display = '';
+    if (filters) filters.style.display = '';
+    if (banner) banner.style.display = '';
+    if (resourceFilters) resourceFilters.style.display = '';
+
+    this.updateGrid();
+  }
+
+  private renderArticleDetail(): HTMLElement {
+    const articleId = this.activeDetailArticleId!;
+    const article = this.articles.find(a => a.id === articleId);
+    const depthLayers = getDepthLayersForArticle(articleId);
+    const deepDive = getDeepDiveForArticle(articleId);
+
+    const panel = document.createElement('div');
+    panel.className = 'da-depth-detail';
+
+    // Header with back button
+    const header = document.createElement('div');
+    header.className = 'da-depth-detail__header';
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'da-depth-detail__back';
+    backBtn.textContent = '\u2190 Back';
+    backBtn.setAttribute('aria-label', 'Back to articles');
+    backBtn.addEventListener('click', () => this.closeArticleDetail());
+    header.appendChild(backBtn);
+
+    const title = document.createElement('h3');
+    title.className = 'da-depth-detail__title';
+    title.textContent = article?.title ?? 'Article';
+    header.appendChild(title);
+
+    panel.appendChild(header);
+
+    // Quick Summary — always visible (AC 2)
+    const summarySection = document.createElement('div');
+    summarySection.className = 'da-depth-detail__summary';
+    const summaryLabel = document.createElement('h4');
+    summaryLabel.className = 'da-depth-detail__summary-label';
+    summaryLabel.textContent = 'Quick Summary';
+    summarySection.appendChild(summaryLabel);
+    const summaryText = document.createElement('p');
+    summaryText.className = 'da-depth-detail__summary-text';
+    summaryText.textContent = article?.description ?? '';
+    summarySection.appendChild(summaryText);
+    panel.appendChild(summarySection);
+
+    // Expandable depth layers (AC 3, 4)
+    if (depthLayers) {
+      for (const layerName of DEPTH_LAYER_ORDER) {
+        const layerEl = this.buildLayerElement(layerName, depthLayers, deepDive);
+        if (!layerEl) continue;
+        panel.appendChild(layerEl);
+      }
+
+      // "Want to go deeper?" suggestion (AC 5)
+      const unexpandedCount = DEPTH_LAYER_ORDER.filter(l => {
+        return this.hasLayerContent(l, depthLayers, deepDive) && !this.expandedDepthLayers.has(l);
+      }).length;
+
+      if (unexpandedCount > 0) {
+        const suggestion = document.createElement('p');
+        suggestion.className = 'da-depth-detail__suggestion';
+        suggestion.textContent = `Want to go deeper? ${unexpandedCount} more ${unexpandedCount === 1 ? 'layer' : 'layers'} available below.`;
+        panel.appendChild(suggestion);
+      }
+    }
+
+    return panel;
+  }
+
+  /** Check if a depth layer has content */
+  private hasLayerContent(
+    layerName: DepthLayerName,
+    depthLayers: import('./depthLayerData').DepthLayers,
+    deepDive: import('./deepDiveData').DeepDive | null,
+  ): boolean {
+    switch (layerName) {
+      case 'coreConcept': return depthLayers.coreConcept.length > 0;
+      case 'deepDive': return deepDive !== null;
+      case 'academic': return depthLayers.academic.length > 0;
+      case 'media': return depthLayers.media.length > 0;
+      case 'interactive': return depthLayers.interactive.length > 0;
+      default: return false;
+    }
+  }
+
+  /** Build a collapsible <details> element for a depth layer using safe DOM methods */
+  private buildLayerElement(
+    layerName: DepthLayerName,
+    depthLayers: import('./depthLayerData').DepthLayers,
+    deepDive: import('./deepDiveData').DeepDive | null,
+  ): HTMLElement | null {
+    if (!this.hasLayerContent(layerName, depthLayers, deepDive)) return null;
+
+    const details = document.createElement('details');
+    details.className = `da-depth-detail__layer da-depth-detail__layer--${layerName}`;
+    details.dataset.layer = layerName;
+
+    // Auto-expand if user has this preference (AC 4)
+    if (this.expandedDepthLayers.has(layerName)) {
+      details.open = true;
+    }
+
+    // Track expansions for preference learning
+    details.addEventListener('toggle', () => {
+      if (details.open && !this.expandedDepthLayers.has(layerName)) {
+        this.expandedDepthLayers.add(layerName);
+        this.callbacks?.onDepthLayerExpand?.(layerName);
+      }
+    });
+
+    const summary = document.createElement('summary');
+    summary.className = 'da-depth-detail__layer-summary';
+    summary.textContent = DEPTH_LAYER_LABELS[layerName];
+    details.appendChild(summary);
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'da-depth-detail__layer-content';
+    this.populateLayerContent(contentEl, layerName, depthLayers, deepDive);
+    details.appendChild(contentEl);
+
+    return details;
+  }
+
+  /** Populate layer content using safe DOM methods (no innerHTML) */
+  private populateLayerContent(
+    container: HTMLElement,
+    layerName: DepthLayerName,
+    depthLayers: import('./depthLayerData').DepthLayers,
+    deepDive: import('./deepDiveData').DeepDive | null,
+  ): void {
+    switch (layerName) {
+      case 'coreConcept': {
+        const paragraphs = depthLayers.coreConcept.split('\n\n');
+        for (const text of paragraphs) {
+          const p = document.createElement('p');
+          p.textContent = text;
+          container.appendChild(p);
+        }
+        break;
+      }
+      case 'deepDive': {
+        if (!deepDive) break;
+        const sections: Array<{ label: string; text: string }> = [
+          { label: 'Technical Explanation', text: deepDive.explanation },
+          { label: 'Historical Context', text: deepDive.historicalContext },
+          { label: 'Trade-Offs', text: deepDive.tradeOffs },
+          { label: 'Real-World Examples', text: deepDive.realWorldExamples },
+        ];
+        for (const section of sections) {
+          const p = document.createElement('p');
+          const strong = document.createElement('strong');
+          strong.textContent = `${section.label}: `;
+          p.appendChild(strong);
+          p.appendChild(document.createTextNode(section.text));
+          container.appendChild(p);
+        }
+        break;
+      }
+      case 'academic': {
+        const ul = document.createElement('ul');
+        for (const ref of depthLayers.academic) {
+          const li = document.createElement('li');
+          const em = document.createElement('em');
+          em.textContent = ref.title;
+          li.appendChild(em);
+          li.appendChild(document.createTextNode(` \u2014 ${ref.source}${ref.year ? ` (${ref.year})` : ''}`));
+          ul.appendChild(li);
+        }
+        container.appendChild(ul);
+        break;
+      }
+      case 'media': {
+        const ul = document.createElement('ul');
+        for (const link of depthLayers.media) {
+          const li = document.createElement('li');
+          li.textContent = link.label;
+          ul.appendChild(li);
+        }
+        container.appendChild(ul);
+        break;
+      }
+      case 'interactive': {
+        const ul = document.createElement('ul');
+        for (const link of depthLayers.interactive) {
+          const li = document.createElement('li');
+          li.textContent = link.label;
+          ul.appendChild(li);
+        }
+        container.appendChild(ul);
+        break;
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------

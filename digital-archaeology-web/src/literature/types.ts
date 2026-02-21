@@ -64,6 +64,7 @@ export interface LiteratureBrowserCallbacks {
   readonly onClearProgress?: () => void;
   readonly onHintReveal?: (articleId: string, hintIndex: number) => void;
   readonly onResetHints?: () => void;
+  readonly onDepthLayerExpand?: (layer: string) => void;
 }
 
 /** Data passed to the browser when opening */
@@ -73,4 +74,6 @@ export interface LiteratureBrowserData {
   readonly contextFilter?: ContextFilter;
   /** Maps article ID to number of hints already revealed (Story 20.5) */
   readonly hintProgress?: Readonly<Record<string, number>>;
+  /** Depth layers the user prefers auto-expanded (Story 20.13) */
+  readonly depthPreferences?: readonly string[];
 }

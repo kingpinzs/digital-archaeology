@@ -50,6 +50,7 @@ import {
   StatisticsDashboard,
 } from '../progress';
 import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
+import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
 
 /**
@@ -301,6 +302,7 @@ export class App {
   private literatureBrowser: LiteratureBrowser = new LiteratureBrowser();
   private readingProgressStorage: ReadingProgressStorage = new ReadingProgressStorage();
   private hintProgressStorage: HintProgressStorage = new HintProgressStorage();
+  private depthPreferenceStorage: DepthPreferenceStorage = new DepthPreferenceStorage();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -854,6 +856,7 @@ export class App {
         articles: LITERATURE_ARTICLES,
         readArticleIds: this.readingProgressStorage.load(),
         hintProgress: this.hintProgressStorage.load(),
+        depthPreferences: Array.from(this.depthPreferenceStorage.getExpandedLayers()),
       },
       {
         onArticleSelect: (article) => {
@@ -871,6 +874,9 @@ export class App {
         },
         onResetHints: () => {
           this.hintProgressStorage.clearAll();
+        },
+        onDepthLayerExpand: (layer) => {
+          this.depthPreferenceStorage.markExpanded(layer as import('@literature/depthLayerData').DepthLayerName);
         },
       },
     );
@@ -888,6 +894,7 @@ export class App {
         readArticleIds: this.readingProgressStorage.load(),
         hintProgress: this.hintProgressStorage.load(),
         contextFilter,
+        depthPreferences: Array.from(this.depthPreferenceStorage.getExpandedLayers()),
       },
       {
         onArticleSelect: (article) => {
@@ -905,6 +912,9 @@ export class App {
         },
         onResetHints: () => {
           this.hintProgressStorage.clearAll();
+        },
+        onDepthLayerExpand: (layer) => {
+          this.depthPreferenceStorage.markExpanded(layer as import('@literature/depthLayerData').DepthLayerName);
         },
       },
     );

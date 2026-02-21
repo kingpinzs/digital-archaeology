@@ -2009,4 +2009,158 @@ describe('LiteratureBrowser', () => {
       expect(divider).not.toBeNull();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Article Detail / Depth Layers (Story 20.13)
+  // ---------------------------------------------------------------------------
+
+  describe('article detail / depth layers', () => {
+    it('should show depth indicator on cards with depth layers', () => {
+      browser.open(mockData, callbacks);
+      const indicators = document.querySelectorAll('.da-literature-card__depth-indicator');
+      expect(indicators.length).toBeGreaterThan(0);
+    });
+
+    it('should open article detail view when clicking a card with depth layers', () => {
+      browser.open(mockData, callbacks);
+
+      // Find and click the card for lit-02 (has depth layers)
+      const cards = document.querySelectorAll('.da-literature-card');
+      const cardWithDepth = Array.from(cards).find(c =>
+        c.querySelector('.da-literature-card__depth-indicator')
+      ) as HTMLButtonElement;
+      expect(cardWithDepth).toBeDefined();
+      cardWithDepth.click();
+
+      // Detail panel should appear
+      const detail = document.querySelector('.da-depth-detail');
+      expect(detail).not.toBeNull();
+    });
+
+    it('should show Quick Summary always visible (AC 2)', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      const summary = document.querySelector('.da-depth-detail__summary');
+      expect(summary).not.toBeNull();
+      const summaryText = document.querySelector('.da-depth-detail__summary-text');
+      expect(summaryText).not.toBeNull();
+      expect(summaryText!.textContent!.length).toBeGreaterThan(0);
+    });
+
+    it('should render collapsible depth layers (AC 3)', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      const layers = document.querySelectorAll('.da-depth-detail__layer');
+      expect(layers.length).toBeGreaterThanOrEqual(3); // coreConcept, deepDive, academic at minimum
+    });
+
+    it('should use <details> elements for collapsible layers', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      const details = document.querySelectorAll('details.da-depth-detail__layer');
+      expect(details.length).toBeGreaterThan(0);
+    });
+
+    it('should show "Want to go deeper?" suggestion (AC 5)', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      const suggestion = document.querySelector('.da-depth-detail__suggestion');
+      expect(suggestion).not.toBeNull();
+      expect(suggestion!.textContent).toContain('Want to go deeper?');
+    });
+
+    it('should return to grid on back button click (AC 6)', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      expect(document.querySelector('.da-depth-detail')).not.toBeNull();
+
+      const backBtn = document.querySelector('.da-depth-detail__back') as HTMLButtonElement;
+      backBtn.click();
+
+      // Detail should be gone, grid should be back
+      expect(document.querySelector('.da-depth-detail')).toBeNull();
+      const grid = document.querySelector('.da-literature-browser__grid') as HTMLElement;
+      expect(grid).not.toBeNull();
+      expect(grid.style.display).not.toBe('none');
+    });
+
+    it('should call onArticleSelect when opening detail (marks as read)', () => {
+      browser.open(mockData, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      expect(callbacks.onArticleSelect).toHaveBeenCalled();
+    });
+
+    it('should auto-expand layers when depth preferences are provided (AC 4)', () => {
+      browser.open({ ...mockData, depthPreferences: ['coreConcept'] }, callbacks);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      const coreConceptLayer = document.querySelector('[data-layer="coreConcept"]') as HTMLDetailsElement;
+      expect(coreConceptLayer).not.toBeNull();
+      expect(coreConceptLayer.open).toBe(true);
+    });
+
+    it('should NOT open detail view for articles without depth layers', () => {
+      browser.open(mockData, callbacks);
+
+      // Find a card WITHOUT depth indicator (lit-01 has no depth layers)
+      const cards = document.querySelectorAll('.da-literature-card');
+      const cardWithoutDepth = Array.from(cards).find(c =>
+        !c.querySelector('.da-literature-card__depth-indicator')
+      ) as HTMLButtonElement;
+      expect(cardWithoutDepth).toBeDefined();
+      cardWithoutDepth.click();
+
+      // Should NOT show detail panel
+      expect(document.querySelector('.da-depth-detail')).toBeNull();
+      // Should just call onArticleSelect directly
+      expect(callbacks.onArticleSelect).toHaveBeenCalled();
+    });
+
+    it('should call onDepthLayerExpand when a layer is expanded', () => {
+      const callbacksWithDepth = {
+        ...callbacks,
+        onDepthLayerExpand: vi.fn(),
+      };
+      browser.open(mockData, callbacksWithDepth);
+
+      const cardWithDepth = Array.from(document.querySelectorAll('.da-literature-card'))
+        .find(c => c.querySelector('.da-literature-card__depth-indicator')) as HTMLButtonElement;
+      cardWithDepth.click();
+
+      // Open a layer
+      const layer = document.querySelector('details.da-depth-detail__layer') as HTMLDetailsElement;
+      expect(layer).not.toBeNull();
+      layer.open = true;
+      layer.dispatchEvent(new Event('toggle'));
+
+      expect(callbacksWithDepth.onDepthLayerExpand).toHaveBeenCalled();
+    });
+  });
 });

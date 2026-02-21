@@ -281,7 +281,7 @@ development_status:
   epic-19-retrospective: done
 
   # Epic 20: Educational Content System
-  epic-20: in-progress
+  epic-20: done
   20-1-create-literature-browser: done  # 96 tests (24 metadata + 72 component), 5012 total passing — 5 review fixes applied
   20-2-implement-article-categories: done  # 150 literature tests, 5066 total passing — 5 self-review + 9 adversarial review fixes applied
   20-3-create-contextual-help-links: done  # 37 new tests (20 helpContextMap + 11 browser + 6 PanelHeader), 5103 total passing — 6 review fixes applied
@@ -294,7 +294,7 @@ development_status:
   20-10-curated-books-reading-list: done  # 7 books
   20-11-museums-physical-sites: done  # 6 museums
   20-12-online-simulators-resources: done  # 6 simulators — 25 new tests (14 data + 11 browser), 5225 total
-  20-13-depth-when-you-want-it: backlog
+  20-13-depth-when-you-want-it: done  # 35 new tests (13 data + 11 storage + 11 browser), 5260 total — layered depth with preferences
   epic-20-retrospective: optional
 
   # Epic 21: Homework & Exercises System

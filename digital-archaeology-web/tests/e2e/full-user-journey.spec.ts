@@ -32,11 +32,11 @@ test.describe('Full User Journey', () => {
     // - Halts
     await page.keyboard.type('LDI 5\nLDI 3\nSTA 10\nHLT');
 
-    // Verify code appears in editor
-    const editorContent = await page.locator('.view-lines').textContent();
-    expect(editorContent).toContain('LDI');
-    expect(editorContent).toContain('STA');
-    expect(editorContent).toContain('HLT');
+    // Verify code appears in editor (use auto-retrying assertions for Monaco async rendering)
+    const viewLines = page.locator('.view-lines');
+    await expect(viewLines).toContainText('LDI');
+    await expect(viewLines).toContainText('STA');
+    await expect(viewLines).toContainText('HLT');
 
     // 3. ASSEMBLE THE CODE
     await page.click('[data-action="assemble"]');
@@ -156,9 +156,8 @@ test.describe('Full User Journey', () => {
     expect(backInLabMode).toBe(true);
 
     // 5. VERIFY EDITOR STATE PRESERVED
-    const editorContent = await page.locator('.view-lines').textContent();
-    expect(editorContent).toContain('LDI');
-    expect(editorContent).toContain('12');
+    await expect(page.locator('.view-lines')).toContainText('LDI');
+    await expect(page.locator('.view-lines')).toContainText('12');
 
     // 6. RUN THE PRESERVED PROGRAM
     await page.click('[data-action="run"]');

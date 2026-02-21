@@ -196,6 +196,7 @@ test.describe('Epic 11: Stage Switching', () => {
       // GIVEN: App loads in Lab Mode with Micro4 (default)
       // WHEN: User opens File > Examples
       await page.locator('[data-menu="file"]').click();
+      await expect(page.locator('[data-action="examples"]')).toBeVisible();
       await page.locator('[data-action="examples"]').click();
 
       // THEN: Example browser should be visible with program items
@@ -214,8 +215,12 @@ test.describe('Epic 11: Stage Switching', () => {
     test('[11.6] should close example browser on Escape', async ({ page }) => {
       // GIVEN: Example browser is open
       await page.locator('[data-menu="file"]').click();
+      await expect(page.locator('[data-action="examples"]')).toBeVisible();
       await page.locator('[data-action="examples"]').click();
       await expect(page.locator('.da-example-browser')).toBeVisible();
+
+      // Ensure focus is on the example browser before pressing Escape
+      await page.locator('.da-example-browser').click();
 
       // WHEN: User presses Escape
       await page.keyboard.press('Escape');

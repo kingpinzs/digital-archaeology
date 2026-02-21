@@ -31,9 +31,8 @@ test.describe('Epic 2: Assembly Code Editor', () => {
       await editor.click();
       await page.keyboard.type('LDI 5');
 
-      // THEN: Text appears in editor
-      const editorContent = await page.locator('.view-lines').textContent();
-      expect(editorContent).toContain('LDI');
+      // THEN: Text appears in editor (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('LDI');
     });
 
     test('[2.1] should support text selection', async ({ page }) => {
@@ -113,9 +112,8 @@ test.describe('Epic 2: Assembly Code Editor', () => {
       await page.keyboard.press('Control+z');
       await page.waitForTimeout(100);
 
-      // THEN: Text is undone
-      const content = await page.locator('.view-lines').textContent();
-      expect(content).not.toContain('LDI 5');
+      // THEN: Text is undone (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).not.toContainText('LDI 5');
     });
 
     test('[2.4] should support redo with Ctrl+Y', async ({ page }) => {
@@ -131,9 +129,8 @@ test.describe('Epic 2: Assembly Code Editor', () => {
       await page.keyboard.press('Control+y');
       await page.waitForTimeout(100);
 
-      // THEN: Text is restored
-      const content = await page.locator('.view-lines').textContent();
-      expect(content).toContain('ADD');
+      // THEN: Text is restored (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('ADD');
     });
 
     test('[2.4] should support undo from Edit menu', async ({ page }) => {
@@ -148,9 +145,8 @@ test.describe('Epic 2: Assembly Code Editor', () => {
       await page.click('[data-action="undo"]');
       await page.waitForTimeout(100);
 
-      // THEN: Text is undone
-      const content = await page.locator('.view-lines').textContent();
-      expect(content).not.toContain('SUB 3');
+      // THEN: Text is undone (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).not.toContainText('SUB 3');
     });
   });
 

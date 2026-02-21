@@ -324,9 +324,8 @@ test.describe('Epic 10: Story Mode Experience', () => {
       });
       await page.waitForTimeout(500);
 
-      // THEN: Code is preserved
-      const editorContent = await page.locator('.view-lines').textContent();
-      expect(editorContent).toContain('LDI');
+      // THEN: Code is preserved (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('LDI');
     });
 
     test('[10.17] should handle rapid mode switching without crash', async ({ page }) => {

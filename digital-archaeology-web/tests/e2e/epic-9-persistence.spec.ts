@@ -58,12 +58,9 @@ test.describe('Epic 9: Work Persistence', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForSelector('.monaco-editor', { timeout: 10000 });
 
-      // THEN: Code should be restored
-      // Wait for session restore indicator
-      await page.waitForTimeout(1000);
-      const editorContent = await page.locator('.view-lines').textContent();
-      expect(editorContent).toContain('LDI');
-      expect(editorContent).toContain('HLT');
+      // THEN: Code should be restored (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('LDI');
+      await expect(page.locator('.view-lines')).toContainText('HLT');
     });
 
     test('[9.3] should show session restored indicator after reload', async ({ page }) => {
@@ -118,11 +115,9 @@ test.describe('Epic 9: Work Persistence', () => {
         buffer: Buffer.from(fileContent),
       });
 
-      // THEN: Editor should contain the imported code
-      await page.waitForTimeout(500);
-      const editorContent = await page.locator('.view-lines').textContent();
-      expect(editorContent).toContain('LDI');
-      expect(editorContent).toContain('SUB');
+      // THEN: Editor should contain the imported code (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('LDI');
+      await expect(page.locator('.view-lines')).toContainText('SUB');
     });
   });
 
@@ -238,9 +233,8 @@ test.describe('Epic 9: Work Persistence', () => {
       await page.keyboard.press('ControlOrMeta+o');
       await page.waitForTimeout(1000);
 
-      // THEN: Saved code should be restored from IndexedDB
-      const editorContent = await page.locator('.view-lines').textContent();
-      expect(editorContent).toContain('LDI');
+      // THEN: Saved code should be restored from IndexedDB (auto-retry for Monaco async rendering)
+      await expect(page.locator('.view-lines')).toContainText('LDI');
     });
   });
 });

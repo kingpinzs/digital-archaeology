@@ -14,7 +14,7 @@ export default defineConfig({
   },
 
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.BASE_URL || 'http://localhost:4173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -39,10 +39,11 @@ export default defineConfig({
     },
   ],
 
-  // Run local dev server before tests
+  // Uses vite preview (static build) instead of dev server to avoid
+  // ENOSPC inotify watcher limits. Run `npm run build` before e2e tests.
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
+    command: 'npx vite preview --port 4173',
+    url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

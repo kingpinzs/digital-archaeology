@@ -100,8 +100,9 @@ test.describe('Epic 11: Stage Switching', () => {
       // GIVEN: Dropdown is open
       await page.locator('.da-stage-selector-trigger').click();
 
-      // WHEN: User clicks Micro8 (locked)
-      await page.locator('[data-stage="micro8"]').click();
+      // WHEN: User clicks Micro8 (locked) — force: true bypasses Playwright's
+      // actionability checks since the element has aria-disabled="true"
+      await page.locator('[data-stage="micro8"]').click({ force: true });
 
       // THEN: Label should still show Micro4
       await expect(page.locator('.da-stage-selector-trigger-label')).toHaveText(/Micro4/i);
@@ -123,7 +124,7 @@ test.describe('Epic 11: Stage Switching', () => {
       await page.locator('[data-stage="micro4"]').click();
 
       await page.locator('.da-stage-selector-trigger').click();
-      await page.locator('[data-stage="micro8"]').click(); // locked, no-op
+      await page.locator('[data-stage="micro8"]').click({ force: true }); // locked, no-op
 
       await page.locator('.da-stage-selector-trigger').click();
       await page.locator('.da-code-panel').click(); // close via outside click
@@ -138,7 +139,7 @@ test.describe('Epic 11: Stage Switching', () => {
     test('[11.3] should maintain app functionality after stage selector interaction', async ({ page }) => {
       // GIVEN: User has interacted with stage selector
       await page.locator('.da-stage-selector-trigger').click();
-      await page.locator('[data-stage="micro8"]').click(); // locked, no-op
+      await page.locator('[data-stage="micro8"]').click({ force: true }); // locked, no-op
       await page.locator('.da-stage-selector-trigger').click();
       await page.locator('.da-code-panel').click(); // close
 

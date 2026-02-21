@@ -1,16 +1,42 @@
 // src/progress/JourneyMap.ts
 // Journey map modal UI component
 // Story 19.4: Create Progress Visualization
+// Extended: Tabbed interface with Timeline, World Map, and Artifacts tabs
 
 import type { JourneyMapData, JourneyNode } from './types';
+import type { CollectibleProfile } from './collectible-types';
+import { DEFAULT_COLLECTIBLE_PROFILE } from './collectible-types';
+import { WorldMapView } from './WorldMapView';
+import { ArtifactGallery } from './ArtifactGallery';
 
 /** Exit animation duration in milliseconds */
 const EXIT_DURATION_MS = 300;
 
+/** Tab identifiers */
+export type JourneyMapTab = 'timeline' | 'world-map' | 'artifacts';
+
+/**
+ * Options for the extended show() method.
+ */
+export interface JourneyMapShowOptions {
+  journeyData: JourneyMapData;
+  collectibleProfile: CollectibleProfile;
+  currentActNumber: number;
+  onNavigate: (actNumber: number) => void;
+  onPinLocation: (locationId: string) => void;
+  onUnpinLocation: (locationId: string) => void;
+  onCollectArtifact: (artifactId: string) => void;
+  initialTab?: JourneyMapTab;
+  highlightedLocationId?: string;
+  highlightedArtifactId?: string;
+}
+
 /**
  * Journey map modal component.
- * Displays a full-screen modal with a horizontal timeline of all 11 acts,
- * highlighting completed, current, upcoming, and locked stages.
+ * Displays a full-screen modal with tabs: Timeline, World Map, and Artifacts.
+ * The Timeline tab shows a horizontal timeline of all 11 acts.
+ * The World Map tab shows an interactive SVG world map with location pins.
+ * The Artifacts tab shows a collectible card gallery.
  */
 export class JourneyMap {
   private container: HTMLElement | null = null;
@@ -18,6 +44,15 @@ export class JourneyMap {
   private exitTimeout: ReturnType<typeof setTimeout> | null = null;
   private previouslyFocusedElement: Element | null = null;
   private onNavigate: ((actNumber: number) => void) | null = null;
+
+  // Tab state
+  private activeTab: JourneyMapTab = 'timeline';
+  private tabPanels: Map<JourneyMapTab, HTMLElement> = new Map();
+  private tabButtons: Map<JourneyMapTab, HTMLElement> = new Map();
+
+  // Child components
+  private worldMapView: WorldMapView | null = null;
+  private artifactGallery: ArtifactGallery | null = null;
 
   // Bound handlers for cleanup
   private boundHandleKeydown: (e: KeyboardEvent) => void;
@@ -38,16 +73,35 @@ export class JourneyMap {
   }
 
   /**
-   * Show the journey map modal with current data.
-   * @param data - JourneyMapData with all 11 act nodes
-   * @param onNavigate - Callback invoked when user clicks a navigable node
+   * Show the journey map modal — extended version with tabs.
+   * Accepts an options object with collectible data and callbacks.
    */
-  show(data: JourneyMapData, onNavigate: (actNumber: number) => void): void {
+  show(dataOrOptions: JourneyMapData | JourneyMapShowOptions, onNavigate?: (actNumber: number) => void): void {
+    // Backward compatibility: detect old 2-arg signature
+    if (onNavigate !== undefined || !('journeyData' in dataOrOptions)) {
+      const data = dataOrOptions as JourneyMapData;
+      this.showWithOptions({
+        journeyData: data,
+        collectibleProfile: DEFAULT_COLLECTIBLE_PROFILE,
+        currentActNumber: data.currentActNumber,
+        onNavigate: onNavigate ?? (() => {}),
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+      });
+      return;
+    }
+
+    this.showWithOptions(dataOrOptions as JourneyMapShowOptions);
+  }
+
+  private showWithOptions(options: JourneyMapShowOptions): void {
     if (!this.container) return;
 
     // Save currently focused element for restoration after close
     this.previouslyFocusedElement = document.activeElement;
-    this.onNavigate = onNavigate;
+    this.onNavigate = options.onNavigate;
+    this.activeTab = options.initialTab ?? 'timeline';
 
     // Clean up any existing overlay
     this.removeOverlay();
@@ -80,7 +134,7 @@ export class JourneyMap {
 
     const counterEl = document.createElement('span');
     counterEl.className = 'da-journey-map__counter';
-    counterEl.textContent = `${data.completedCount} / ${data.totalActs} Complete`;
+    counterEl.textContent = `${options.journeyData.completedCount} / ${options.journeyData.totalActs} Complete`;
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'da-journey-map__close';
@@ -95,26 +149,34 @@ export class JourneyMap {
     header.appendChild(counterEl);
     header.appendChild(closeBtn);
 
-    // Timeline
-    const timeline = document.createElement('div');
-    timeline.className = 'da-journey-map__timeline';
+    // Tab bar
+    const tabBar = this.createTabBar();
 
-    for (let i = 0; i < data.nodes.length; i++) {
-      const node = data.nodes[i];
+    // Tab panels
+    const panelsContainer = document.createElement('div');
+    panelsContainer.className = 'da-journey-map__panels';
 
-      // Add connector before each node except the first
-      if (i > 0) {
-        const prevNode = data.nodes[i - 1];
-        const connector = this.createConnector(prevNode, node);
-        timeline.appendChild(connector);
-      }
+    // Timeline panel
+    const timelinePanel = this.renderTimelinePanel(options.journeyData);
+    this.tabPanels.set('timeline', timelinePanel);
+    panelsContainer.appendChild(timelinePanel);
 
-      const nodeEl = this.createNode(node);
-      timeline.appendChild(nodeEl);
-    }
+    // World Map panel
+    const worldMapPanel = this.renderWorldMapPanel(options);
+    this.tabPanels.set('world-map', worldMapPanel);
+    panelsContainer.appendChild(worldMapPanel);
+
+    // Artifacts panel
+    const artifactsPanel = this.renderArtifactsPanel(options);
+    this.tabPanels.set('artifacts', artifactsPanel);
+    panelsContainer.appendChild(artifactsPanel);
+
+    // Set initial tab visibility
+    this.updateTabVisibility();
 
     content.appendChild(header);
-    content.appendChild(timeline);
+    content.appendChild(tabBar);
+    content.appendChild(panelsContainer);
 
     this.overlay.appendChild(backdrop);
     this.overlay.appendChild(content);
@@ -138,13 +200,15 @@ export class JourneyMap {
       });
     });
 
-    // Scroll timeline to show current node (scrollIntoView not available in jsdom)
-    requestAnimationFrame(() => {
-      const currentNode = timeline.querySelector('.da-journey-map__node--current');
-      if (currentNode && typeof (currentNode as HTMLElement).scrollIntoView === 'function') {
-        (currentNode as HTMLElement).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-      }
-    });
+    // Scroll timeline to show current node (if on timeline tab)
+    if (this.activeTab === 'timeline') {
+      requestAnimationFrame(() => {
+        const currentNode = timelinePanel.querySelector('.da-journey-map__node--current');
+        if (currentNode && typeof (currentNode as HTMLElement).scrollIntoView === 'function') {
+          (currentNode as HTMLElement).scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      });
+    }
   }
 
   /**
@@ -172,11 +236,160 @@ export class JourneyMap {
       clearTimeout(this.exitTimeout);
       this.exitTimeout = null;
     }
+    this.destroyChildComponents();
     this.removeOverlay();
     document.removeEventListener('keydown', this.boundHandleKeydown);
     this.container = null;
     this.onNavigate = null;
   }
+
+  // =========================================================================
+  // Tab bar
+  // =========================================================================
+
+  private createTabBar(): HTMLElement {
+    const tabBar = document.createElement('div');
+    tabBar.className = 'da-journey-map__tabs';
+    tabBar.setAttribute('role', 'tablist');
+
+    const tabs: { id: JourneyMapTab; label: string; icon: string }[] = [
+      { id: 'timeline', label: 'Timeline', icon: '\u{1F4C5}' },
+      { id: 'world-map', label: 'World Map', icon: '\u{1F5FA}' },
+      { id: 'artifacts', label: 'Artifacts', icon: '\u{1F3C6}' },
+    ];
+
+    for (const tab of tabs) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'da-journey-map__tab';
+      if (tab.id === this.activeTab) {
+        btn.classList.add('da-journey-map__tab--active');
+      }
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', String(tab.id === this.activeTab));
+      btn.setAttribute('aria-controls', `da-journey-map-panel-${tab.id}`);
+      btn.dataset.tab = tab.id;
+      btn.textContent = `${tab.icon} ${tab.label}`;
+      btn.addEventListener('click', () => {
+        this.switchTab(tab.id);
+      });
+      this.tabButtons.set(tab.id, btn);
+      tabBar.appendChild(btn);
+    }
+
+    return tabBar;
+  }
+
+  private switchTab(tab: JourneyMapTab): void {
+    if (tab === this.activeTab) return;
+    this.activeTab = tab;
+    this.updateTabVisibility();
+  }
+
+  private updateTabVisibility(): void {
+    for (const [tabId, panel] of this.tabPanels) {
+      if (tabId === this.activeTab) {
+        panel.classList.remove('da-journey-map__panel--hidden');
+        panel.setAttribute('aria-hidden', 'false');
+      } else {
+        panel.classList.add('da-journey-map__panel--hidden');
+        panel.setAttribute('aria-hidden', 'true');
+      }
+    }
+    for (const [tabId, btn] of this.tabButtons) {
+      if (tabId === this.activeTab) {
+        btn.classList.add('da-journey-map__tab--active');
+        btn.setAttribute('aria-selected', 'true');
+      } else {
+        btn.classList.remove('da-journey-map__tab--active');
+        btn.setAttribute('aria-selected', 'false');
+      }
+    }
+  }
+
+  // =========================================================================
+  // Timeline panel (extracted from original show())
+  // =========================================================================
+
+  private renderTimelinePanel(data: JourneyMapData): HTMLElement {
+    const panel = document.createElement('div');
+    panel.className = 'da-journey-map__panel';
+    panel.id = 'da-journey-map-panel-timeline';
+    panel.setAttribute('role', 'tabpanel');
+
+    const timeline = document.createElement('div');
+    timeline.className = 'da-journey-map__timeline';
+
+    for (let i = 0; i < data.nodes.length; i++) {
+      const node = data.nodes[i];
+
+      // Add connector before each node except the first
+      if (i > 0) {
+        const prevNode = data.nodes[i - 1];
+        const connector = this.createConnector(prevNode, node);
+        timeline.appendChild(connector);
+      }
+
+      const nodeEl = this.createNode(node);
+      timeline.appendChild(nodeEl);
+    }
+
+    panel.appendChild(timeline);
+    return panel;
+  }
+
+  // =========================================================================
+  // World Map panel
+  // =========================================================================
+
+  private renderWorldMapPanel(options: JourneyMapShowOptions): HTMLElement {
+    const panel = document.createElement('div');
+    panel.className = 'da-journey-map__panel';
+    panel.id = 'da-journey-map-panel-world-map';
+    panel.setAttribute('role', 'tabpanel');
+
+    this.worldMapView = new WorldMapView();
+    this.worldMapView.mount(panel);
+    this.worldMapView.setCallbacks({
+      onPinLocation: (locationId) => options.onPinLocation(locationId),
+      onUnpinLocation: (locationId) => options.onUnpinLocation(locationId),
+    });
+    this.worldMapView.update(
+      options.currentActNumber,
+      options.collectibleProfile,
+      options.highlightedLocationId,
+    );
+
+    return panel;
+  }
+
+  // =========================================================================
+  // Artifacts panel
+  // =========================================================================
+
+  private renderArtifactsPanel(options: JourneyMapShowOptions): HTMLElement {
+    const panel = document.createElement('div');
+    panel.className = 'da-journey-map__panel';
+    panel.id = 'da-journey-map-panel-artifacts';
+    panel.setAttribute('role', 'tabpanel');
+
+    this.artifactGallery = new ArtifactGallery();
+    this.artifactGallery.mount(panel);
+    this.artifactGallery.setCallbacks({
+      onCollectArtifact: (artifactId) => options.onCollectArtifact(artifactId),
+    });
+    this.artifactGallery.update(
+      options.currentActNumber,
+      options.collectibleProfile,
+      options.highlightedArtifactId,
+    );
+
+    return panel;
+  }
+
+  // =========================================================================
+  // Node/connector helpers (unchanged from original)
+  // =========================================================================
 
   private createNode(node: JourneyNode): HTMLElement {
     const el = document.createElement('div');
@@ -250,6 +463,10 @@ export class JourneyMap {
     return connector;
   }
 
+  // =========================================================================
+  // Focus management and cleanup
+  // =========================================================================
+
   private restoreFocus(): void {
     if (
       this.previouslyFocusedElement &&
@@ -266,9 +483,23 @@ export class JourneyMap {
       clearTimeout(this.exitTimeout);
       this.exitTimeout = null;
     }
+    this.destroyChildComponents();
     if (this.overlay) {
       this.overlay.remove();
       this.overlay = null;
+    }
+    this.tabPanels.clear();
+    this.tabButtons.clear();
+  }
+
+  private destroyChildComponents(): void {
+    if (this.worldMapView) {
+      this.worldMapView.destroy();
+      this.worldMapView = null;
+    }
+    if (this.artifactGallery) {
+      this.artifactGallery.destroy();
+      this.artifactGallery = null;
     }
   }
 

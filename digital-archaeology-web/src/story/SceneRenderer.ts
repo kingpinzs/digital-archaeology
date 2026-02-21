@@ -41,6 +41,8 @@ export interface SceneRendererCallbacks {
   onDecisionMade?: (decisionId: string, optionId: string) => void;
   /** Called when builder challenge is complete (Story 10.22) */
   onBuilderComplete?: () => void;
+  /** Called when a clickable collectible stat value is clicked */
+  onCollectibleClick?: (id: string, type: 'location' | 'artifact') => void;
 }
 
 /**
@@ -283,6 +285,12 @@ export class SceneRenderer {
       charactersContainer.appendChild(mount);
       card.mount(mount);
       card.setCharacterData(character);
+      // Wire collectible stat click callback
+      if (this.callbacks.onCollectibleClick) {
+        card.setOnStatClick((id, type) => {
+          this.callbacks.onCollectibleClick?.(id, type);
+        });
+      }
       this.activeComponents.push(card);
     }
 

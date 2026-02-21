@@ -36,6 +36,8 @@ export interface StoryControllerCallbacks {
   onRoleUpdate?: (roleData: RoleData) => void;
   /** Called after act completion to trigger stage unlock check (Story 19.5) */
   onStageUnlock?: () => void;
+  /** Called when a clickable collectible stat value is clicked */
+  onCollectibleClick?: (id: string, type: 'location' | 'artifact') => void;
 }
 
 /**
@@ -561,6 +563,9 @@ export class StoryController {
         if (this.callbacks.onEnterLab) {
           this.callbacks.onEnterLab(context);
         }
+      },
+      onCollectibleClick: (id: string, type: 'location' | 'artifact') => {
+        this.callbacks.onCollectibleClick?.(id, type);
       },
     };
   }

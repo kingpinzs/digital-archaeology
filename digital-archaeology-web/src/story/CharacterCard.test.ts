@@ -2,7 +2,7 @@
 // Tests for CharacterCard component
 // Story 10.7: Create Character Card Component
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CharacterCard } from './CharacterCard';
 import type { CharacterData, CharacterStat } from './types';
 
@@ -410,6 +410,137 @@ describe('CharacterCard', () => {
       characterCard.show();
       const element = characterCard.getElement();
       expect(element?.classList.contains('da-character-card--hidden')).toBe(false);
+    });
+  });
+
+  describe('Clickable stat values (Collectible Locations & Artifacts)', () => {
+    it('should make matching location stat values clickable', () => {
+      characterCard.mount(container);
+      characterCard.setOnStatClick(vi.fn());
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Location', value: 'Lebombo Mountains, Swaziland' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable');
+      expect(value).not.toBeNull();
+      expect(value?.getAttribute('role')).toBe('button');
+      expect(value?.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('should make matching artifact stat values clickable', () => {
+      characterCard.mount(container);
+      characterCard.setOnStatClick(vi.fn());
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Legacy', value: 'Oldest mathematical artifact' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable');
+      expect(value).not.toBeNull();
+    });
+
+    it('should NOT make non-matching stat values clickable', () => {
+      characterCard.mount(container);
+      characterCard.setOnStatClick(vi.fn());
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Era', value: '~35,000 BC' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable');
+      expect(value).toBeNull();
+    });
+
+    it('should fire onStatClick with location type when location value is clicked', () => {
+      const onStatClick = vi.fn();
+      characterCard.mount(container);
+      characterCard.setOnStatClick(onStatClick);
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Location', value: 'Lebombo Mountains, Swaziland' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable') as HTMLElement;
+      value?.click();
+
+      expect(onStatClick).toHaveBeenCalledWith('lebombo', 'location');
+    });
+
+    it('should fire onStatClick with artifact type when artifact value is clicked', () => {
+      const onStatClick = vi.fn();
+      characterCard.mount(container);
+      characterCard.setOnStatClick(onStatClick);
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Legacy', value: 'Oldest mathematical artifact' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable') as HTMLElement;
+      value?.click();
+
+      expect(onStatClick).toHaveBeenCalledWith('lebombo-bone', 'artifact');
+    });
+
+    it('should respond to Enter key on clickable stat value', () => {
+      const onStatClick = vi.fn();
+      characterCard.mount(container);
+      characterCard.setOnStatClick(onStatClick);
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Location', value: 'Baghdad' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable') as HTMLElement;
+      value?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+      expect(onStatClick).toHaveBeenCalledWith('baghdad', 'location');
+    });
+
+    it('should not add clickable class when no onStatClick callback is set', () => {
+      characterCard.mount(container);
+      characterCard.setCharacterData({
+        avatar: '\u{1F319}',
+        name: 'Unknown',
+        title: 'The First Counter',
+        bio: 'Bio text',
+        stats: [
+          { label: 'Location', value: 'Lebombo Mountains, Swaziland' },
+        ],
+      });
+
+      const value = container.querySelector('.da-character-card-stat-value--clickable');
+      expect(value).toBeNull();
     });
   });
 });

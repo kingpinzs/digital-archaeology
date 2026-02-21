@@ -392,4 +392,181 @@ describe('JourneyMap', () => {
     const counter = container.querySelector('.da-journey-map__counter');
     expect(counter?.textContent).toBe('5 / 11 Complete');
   });
+
+  // =========================================================================
+  // Tabbed interface tests (Collectible Locations & Artifacts)
+  // =========================================================================
+
+  it('should render tab bar with three tabs', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const tabs = container.querySelectorAll('.da-journey-map__tab');
+    expect(tabs).toHaveLength(3);
+  });
+
+  it('should default to timeline tab as active', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const activeTab = container.querySelector('.da-journey-map__tab--active');
+    expect(activeTab?.textContent).toContain('Timeline');
+  });
+
+  it('should render three tab panels', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const panels = container.querySelectorAll('.da-journey-map__panel');
+    expect(panels).toHaveLength(3);
+  });
+
+  it('should show timeline panel and hide others by default', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const timelinePanel = container.querySelector('#da-journey-map-panel-timeline');
+    const worldMapPanel = container.querySelector('#da-journey-map-panel-world-map');
+    const artifactsPanel = container.querySelector('#da-journey-map-panel-artifacts');
+
+    expect(timelinePanel?.classList.contains('da-journey-map__panel--hidden')).toBe(false);
+    expect(worldMapPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(true);
+    expect(artifactsPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(true);
+  });
+
+  it('should switch to world map tab when clicked', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const worldMapTab = Array.from(container.querySelectorAll('.da-journey-map__tab'))
+      .find(t => t.textContent?.includes('World Map')) as HTMLElement;
+    worldMapTab?.click();
+
+    const worldMapPanel = container.querySelector('#da-journey-map-panel-world-map');
+    expect(worldMapPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(false);
+
+    const timelinePanel = container.querySelector('#da-journey-map-panel-timeline');
+    expect(timelinePanel?.classList.contains('da-journey-map__panel--hidden')).toBe(true);
+  });
+
+  it('should switch to artifacts tab when clicked', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const artifactsTab = Array.from(container.querySelectorAll('.da-journey-map__tab'))
+      .find(t => t.textContent?.includes('Artifacts')) as HTMLElement;
+    artifactsTab?.click();
+
+    const artifactsPanel = container.querySelector('#da-journey-map-panel-artifacts');
+    expect(artifactsPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(false);
+  });
+
+  it('should update aria-selected on tab switch', () => {
+    const data = makeData(0, 0);
+    journeyMap.show(data, onNavigate);
+
+    const worldMapTab = Array.from(container.querySelectorAll('.da-journey-map__tab'))
+      .find(t => t.textContent?.includes('World Map')) as HTMLElement;
+    worldMapTab?.click();
+
+    expect(worldMapTab?.getAttribute('aria-selected')).toBe('true');
+
+    const timelineTab = Array.from(container.querySelectorAll('.da-journey-map__tab'))
+      .find(t => t.textContent?.includes('Timeline')) as HTMLElement;
+    expect(timelineTab?.getAttribute('aria-selected')).toBe('false');
+  });
+
+  it('should support extended show() with options object', () => {
+    journeyMap.show({
+      journeyData: makeData(0, 0),
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 0,
+      onNavigate: onNavigate,
+      onPinLocation: vi.fn(),
+      onUnpinLocation: vi.fn(),
+      onCollectArtifact: vi.fn(),
+      initialTab: 'world-map',
+    });
+
+    const worldMapPanel = container.querySelector('#da-journey-map-panel-world-map');
+    expect(worldMapPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(false);
+  });
+
+  it('should open to specified initial tab', () => {
+    journeyMap.show({
+      journeyData: makeData(0, 0),
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 0,
+      onNavigate: onNavigate,
+      onPinLocation: vi.fn(),
+      onUnpinLocation: vi.fn(),
+      onCollectArtifact: vi.fn(),
+      initialTab: 'artifacts',
+    });
+
+    const artifactsPanel = container.querySelector('#da-journey-map-panel-artifacts');
+    expect(artifactsPanel?.classList.contains('da-journey-map__panel--hidden')).toBe(false);
+  });
+
+  it('should render world map SVG in world map panel', () => {
+    journeyMap.show({
+      journeyData: makeData(0, 0),
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 0,
+      onNavigate: onNavigate,
+      onPinLocation: vi.fn(),
+      onUnpinLocation: vi.fn(),
+      onCollectArtifact: vi.fn(),
+      initialTab: 'world-map',
+    });
+
+    const worldMapPanel = container.querySelector('#da-journey-map-panel-world-map');
+    expect(worldMapPanel?.querySelector('.da-world-map')).not.toBeNull();
+  });
+
+  it('should render artifact gallery in artifacts panel', () => {
+    journeyMap.show({
+      journeyData: makeData(0, 0),
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 0,
+      onNavigate: onNavigate,
+      onPinLocation: vi.fn(),
+      onUnpinLocation: vi.fn(),
+      onCollectArtifact: vi.fn(),
+      initialTab: 'artifacts',
+    });
+
+    const artifactsPanel = container.querySelector('#da-journey-map-panel-artifacts');
+    expect(artifactsPanel?.querySelector('.da-artifact-gallery')).not.toBeNull();
+  });
+
+  it('should clean up child components on destroy', () => {
+    journeyMap.show({
+      journeyData: makeData(0, 0),
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 0,
+      onNavigate: onNavigate,
+      onPinLocation: vi.fn(),
+      onUnpinLocation: vi.fn(),
+      onCollectArtifact: vi.fn(),
+    });
+
+    journeyMap.destroy();
+
+    expect(container.querySelector('.da-world-map')).toBeNull();
+    expect(container.querySelector('.da-artifact-gallery')).toBeNull();
+  });
+
+  it('backward compatibility: old 2-arg show() still works', () => {
+    const data = makeData(3, 3);
+    journeyMap.show(data, onNavigate);
+
+    // Should still create tabs
+    const tabs = container.querySelectorAll('.da-journey-map__tab');
+    expect(tabs).toHaveLength(3);
+
+    // Should still render 11 nodes in timeline
+    const nodes = container.querySelectorAll('.da-journey-map__node');
+    expect(nodes).toHaveLength(11);
+  });
 });

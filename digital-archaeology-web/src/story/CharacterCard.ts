@@ -3,6 +3,7 @@
 // Story 10.7: Create Character Card Component
 
 import type { CharacterData } from './types';
+import { STAT_VALUE_TO_LOCATION, STAT_VALUE_TO_ARTIFACT } from '../progress/CollectibleRegistry';
 
 /**
  * CharacterCard displays NPC information in Story Mode.
@@ -19,6 +20,7 @@ export class CharacterCard {
   private element: HTMLElement | null = null;
   private container: HTMLElement | null = null;
   private characterData: CharacterData | null = null;
+  private onStatClick: ((id: string, type: 'location' | 'artifact') => void) | null = null;
 
   // Element references for dynamic updates
   private avatarElement: HTMLElement | null = null;
@@ -49,6 +51,18 @@ export class CharacterCard {
   setCharacterData(data: CharacterData): void {
     this.characterData = data;
     this.updateDisplay();
+  }
+
+  /**
+   * Set callback for when a clickable stat value is clicked.
+   * Stat values are clickable when they match a known location or artifact.
+   */
+  setOnStatClick(callback: (id: string, type: 'location' | 'artifact') => void): void {
+    this.onStatClick = callback;
+    // Re-render stats if already displayed so click handlers get attached
+    if (this.statsContainer && this.characterData) {
+      this.renderStats();
+    }
   }
 
   /**
@@ -102,6 +116,32 @@ export class CharacterCard {
       const value = document.createElement('span');
       value.className = 'da-character-card-stat-value';
       value.textContent = stat.value;
+
+      // Check if this stat value is a clickable location or artifact
+      const locationId = STAT_VALUE_TO_LOCATION.get(stat.value);
+      const artifactId = STAT_VALUE_TO_ARTIFACT.get(stat.value);
+
+      if ((locationId || artifactId) && this.onStatClick) {
+        value.classList.add('da-character-card-stat-value--clickable');
+        value.setAttribute('role', 'button');
+        value.setAttribute('tabindex', '0');
+
+        const handleClick = () => {
+          if (locationId) {
+            this.onStatClick?.(locationId, 'location');
+          } else if (artifactId) {
+            this.onStatClick?.(artifactId, 'artifact');
+          }
+        };
+
+        value.addEventListener('click', handleClick);
+        value.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        });
+      }
 
       statItem.appendChild(label);
       statItem.appendChild(value);
@@ -216,6 +256,7 @@ export class CharacterCard {
     }
     this.container = null;
     this.characterData = null;
+    this.onStatClick = null;
     this.avatarElement = null;
     this.nameElement = null;
     this.titleElement = null;

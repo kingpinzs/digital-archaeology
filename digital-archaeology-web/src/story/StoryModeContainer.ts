@@ -11,8 +11,10 @@ import { StoryController } from './StoryController';
 import { StoryBrowser } from './StoryBrowser';
 import { StoryJournal } from './StoryJournal';
 import { JourneyMap } from '../progress/JourneyMap';
+import type { JourneyMapTab } from '../progress/JourneyMap';
 import { JourneyMapBuilder } from '../progress/JourneyMapBuilder';
 import { ActCompletionStorage } from '../progress/ActCompletionStorage';
+import { CollectibleStorage } from '../progress/CollectibleStorage';
 import type { ThemeMode } from '@ui/theme';
 import type { RoleData, ChallengeContext } from './types';
 
@@ -64,6 +66,9 @@ export class StoryModeContainer {
   // Story 19.4: Journey Map
   private journeyMap: JourneyMap | null = null;
   private journeyMapBuilder: JourneyMapBuilder | null = null;
+
+  // Collectible locations & artifacts
+  private collectibleStorage: CollectibleStorage | null = null;
 
   constructor(options: StoryModeContainerOptions) {
     this.options = options;
@@ -201,6 +206,9 @@ export class StoryModeContainer {
       onStageUnlock: () => {
         this.options.onStageUnlockCheck?.();
       },
+      onCollectibleClick: (id: string, type: 'location' | 'artifact') => {
+        this.openJourneyMapToCollectible(id, type);
+      },
     });
 
     // Set the render container
@@ -215,6 +223,9 @@ export class StoryModeContainer {
     if (this.element) {
       this.journeyMap.mount(this.element);
     }
+
+    // Initialize collectible storage
+    this.collectibleStorage = new CollectibleStorage();
 
     // Initialize asynchronously
     this.initializationPromise = this.storyController.initialize()
@@ -334,15 +345,45 @@ export class StoryModeContainer {
   /**
    * Open the journey map modal (Story 19.4).
    */
-  private openJourneyMap(): void {
-    if (!this.storyController || !this.journeyMap || !this.journeyMapBuilder) return;
+  private openJourneyMap(initialTab?: JourneyMapTab, highlightedLocationId?: string, highlightedArtifactId?: string): void {
+    if (!this.storyController || !this.journeyMap || !this.journeyMapBuilder || !this.collectibleStorage) return;
 
     const currentActNumber = this.storyController.getProgress()?.position.actNumber ?? 0;
-    const data = this.journeyMapBuilder.build(currentActNumber);
+    const journeyData = this.journeyMapBuilder.build(currentActNumber);
+    const collectibleProfile = this.collectibleStorage.getProfileOrDefault();
 
-    this.journeyMap.show(data, (actNumber: number) => {
-      this.navigateToAct(actNumber);
+    this.journeyMap.show({
+      journeyData,
+      collectibleProfile,
+      currentActNumber,
+      onNavigate: (actNumber: number) => {
+        this.navigateToAct(actNumber);
+      },
+      onPinLocation: (locationId: string) => {
+        this.collectibleStorage?.pinLocation(locationId);
+      },
+      onUnpinLocation: (locationId: string) => {
+        this.collectibleStorage?.unpinLocation(locationId);
+      },
+      onCollectArtifact: (artifactId: string) => {
+        this.collectibleStorage?.collectArtifact(artifactId);
+      },
+      initialTab,
+      highlightedLocationId,
+      highlightedArtifactId,
     });
+  }
+
+  /**
+   * Open the journey map to a specific collectible (location or artifact).
+   * Called when a clickable stat value in a CharacterCard is clicked.
+   */
+  private openJourneyMapToCollectible(id: string, type: 'location' | 'artifact'): void {
+    if (type === 'location') {
+      this.openJourneyMap('world-map', id);
+    } else {
+      this.openJourneyMap('artifacts', undefined, id);
+    }
   }
 
   /**
@@ -519,6 +560,7 @@ export class StoryModeContainer {
     this.journeyMap?.destroy();
     this.journeyMap = null;
     this.journeyMapBuilder = null;
+    this.collectibleStorage = null;
 
     // Remove element from DOM
     if (this.element) {

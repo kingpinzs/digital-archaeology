@@ -356,6 +356,61 @@ describe('SceneRenderer', () => {
     });
   });
 
+  describe('Collectible stat click callback', () => {
+    it('should wire onCollectibleClick to character card stats', () => {
+      const onCollectibleClick = vi.fn();
+      renderer.setCallbacks({ onCollectibleClick });
+
+      const context = createContext({
+        scene: createMockScene({
+          characters: [
+            {
+              avatar: '🦴',
+              name: 'The Bone Counter',
+              title: 'First Mathematician',
+              bio: 'A prehistoric tally keeper.',
+              stats: [
+                { label: 'Location', value: 'Lebombo Mountains, Swaziland' },
+              ],
+            },
+          ],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      // The stat value that matches STAT_VALUE_TO_LOCATION should be clickable
+      const clickableStat = container.querySelector('.da-character-card-stat-value--clickable') as HTMLElement;
+      expect(clickableStat).not.toBeNull();
+
+      clickableStat?.click();
+      expect(onCollectibleClick).toHaveBeenCalledWith('lebombo', 'location');
+    });
+
+    it('should not make stats clickable when no onCollectibleClick callback', () => {
+      renderer.setCallbacks({});
+
+      const context = createContext({
+        scene: createMockScene({
+          characters: [
+            {
+              avatar: '🦴',
+              name: 'The Bone Counter',
+              title: 'First Mathematician',
+              bio: 'A prehistoric tally keeper.',
+              stats: [
+                { label: 'Location', value: 'Lebombo Mountains, Swaziland' },
+              ],
+            },
+          ],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const clickableStat = container.querySelector('.da-character-card-stat-value--clickable');
+      expect(clickableStat).toBeNull();
+    });
+  });
+
   describe('Component Cleanup', () => {
     it('should clear container on destroy', () => {
       const context = createContext();

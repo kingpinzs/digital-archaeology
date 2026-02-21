@@ -14,6 +14,15 @@ import { CATEGORY_METADATA, getCategoryArticleCount, getCategoryTotalReadTime } 
 import { matchesTags } from './helpContextMap';
 import { getHintsForArticle, ARTICLES_WITH_HINTS } from './hintData';
 import { getDeepDiveForArticle, ARTICLES_WITH_DEEP_DIVES } from './deepDiveData';
+import {
+  CURATED_RESOURCES,
+  RESOURCE_TYPE_LABELS,
+  RESOURCE_TYPE_ICONS,
+  RESOURCE_TYPE_ORDER,
+  getResourcesByType,
+  getResourceCount,
+} from './curatedResources';
+import type { CuratedResource, CuratedResourceType } from './curatedResources';
 
 const EXIT_DURATION_MS = 300;
 
@@ -54,6 +63,10 @@ export class LiteratureBrowser {
   // Deep-dive state (Story 20.6)
   private activeDeepDiveArticleId: string | null = null;
 
+  // Curated resources view state (Stories 20.7-20.12)
+  private showResources: boolean = false;
+  private activeResourceType: CuratedResourceType | null = null;
+
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
   private readonly boundHandleBackdropClick: (e: MouseEvent) => void;
@@ -89,6 +102,8 @@ export class LiteratureBrowser {
     this.hintProgress = { ...(data.hintProgress ?? {}) };
     this.activeHintArticleId = null;
     this.activeDeepDiveArticleId = null;
+    this.showResources = false;
+    this.activeResourceType = null;
 
     // Save focus for restoration
     this.previouslyFocusedElement = document.activeElement;
@@ -267,12 +282,14 @@ export class LiteratureBrowser {
     allChip.type = 'button';
     allChip.className = 'da-literature-filter';
     allChip.dataset.category = 'all';
-    if (this.activeCategory === null) {
+    if (this.activeCategory === null && !this.showResources) {
       allChip.classList.add('da-literature-filter--active');
     }
     allChip.textContent = `All (${baseArticles.length})`;
     allChip.addEventListener('click', () => {
       this.activeCategory = null;
+      this.showResources = false;
+      this.activeResourceType = null;
       this.updateFilters();
       this.updateGrid();
     });
@@ -284,11 +301,13 @@ export class LiteratureBrowser {
       chip.type = 'button';
       chip.className = 'da-literature-filter';
       chip.dataset.category = category;
-      if (this.activeCategory === category) {
+      if (!this.showResources && this.activeCategory === category) {
         chip.classList.add('da-literature-filter--active');
       }
       chip.textContent = `${CATEGORY_LABELS[category]} (${baseArticles.filter(a => a.category === category).length})`;
       chip.addEventListener('click', () => {
+        this.showResources = false;
+        this.activeResourceType = null;
         if (this.activeCategory === category) {
           this.activeCategory = null;
         } else {
@@ -299,6 +318,32 @@ export class LiteratureBrowser {
       });
       filters.appendChild(chip);
     }
+
+    // Divider
+    const divider = document.createElement('span');
+    divider.className = 'da-literature-filter__divider';
+    divider.setAttribute('aria-hidden', 'true');
+    filters.appendChild(divider);
+
+    // Resources chip (Stories 20.7-20.12)
+    const resourcesChip = document.createElement('button');
+    resourcesChip.type = 'button';
+    resourcesChip.className = 'da-literature-filter';
+    resourcesChip.dataset.category = 'resources';
+    if (this.showResources) {
+      resourcesChip.classList.add('da-literature-filter--active');
+    }
+    resourcesChip.textContent = `Resources (${CURATED_RESOURCES.length})`;
+    resourcesChip.addEventListener('click', () => {
+      this.showResources = !this.showResources;
+      if (this.showResources) {
+        this.activeCategory = null;
+        this.activeResourceType = null;
+      }
+      this.updateFilters();
+      this.updateGrid();
+    });
+    filters.appendChild(resourcesChip);
 
     return filters;
   }
@@ -852,6 +897,156 @@ export class LiteratureBrowser {
   }
 
   // ---------------------------------------------------------------------------
+  // Private — curated resources (Stories 20.7-20.12)
+  // ---------------------------------------------------------------------------
+
+  private renderResourceTypeFilters(): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'da-resource-type-filters';
+    container.setAttribute('role', 'toolbar');
+    container.setAttribute('aria-label', 'Filter by resource type');
+
+    // "All Resources" chip
+    const allChip = document.createElement('button');
+    allChip.type = 'button';
+    allChip.className = 'da-resource-type-filter';
+    allChip.dataset.resourceType = 'all';
+    if (this.activeResourceType === null) {
+      allChip.classList.add('da-resource-type-filter--active');
+    }
+    allChip.textContent = `All (${CURATED_RESOURCES.length})`;
+    allChip.addEventListener('click', () => {
+      this.activeResourceType = null;
+      this.updateGrid();
+    });
+    container.appendChild(allChip);
+
+    for (const type of RESOURCE_TYPE_ORDER) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'da-resource-type-filter';
+      chip.dataset.resourceType = type;
+      if (this.activeResourceType === type) {
+        chip.classList.add('da-resource-type-filter--active');
+      }
+      chip.textContent = `${RESOURCE_TYPE_ICONS[type]} ${RESOURCE_TYPE_LABELS[type]} (${getResourceCount(type)})`;
+      chip.addEventListener('click', () => {
+        this.activeResourceType = this.activeResourceType === type ? null : type;
+        this.updateGrid();
+      });
+      container.appendChild(chip);
+    }
+
+    return container;
+  }
+
+  private renderResourceGrid(): HTMLElement {
+    const grid = document.createElement('div');
+
+    const resources = this.activeResourceType
+      ? getResourcesByType(this.activeResourceType)
+      : CURATED_RESOURCES;
+
+    if (this.activeResourceType !== null) {
+      // Single type: render cards directly
+      const cardGrid = document.createElement('div');
+      cardGrid.className = 'da-literature-browser__card-grid';
+      for (const resource of resources) {
+        cardGrid.appendChild(this.renderResourceCard(resource));
+      }
+      grid.appendChild(cardGrid);
+    } else {
+      // All types: group by type with section headers
+      for (const type of RESOURCE_TYPE_ORDER) {
+        const typeResources = getResourcesByType(type);
+        if (typeResources.length === 0) continue;
+
+        const section = document.createElement('div');
+        section.className = 'da-literature-browser__section';
+
+        const header = document.createElement('div');
+        header.className = 'da-literature-browser__section-header';
+
+        const topRow = document.createElement('div');
+        topRow.className = 'da-literature-browser__section-header-row';
+
+        const icon = document.createElement('span');
+        icon.className = 'da-literature-browser__section-icon';
+        icon.textContent = RESOURCE_TYPE_ICONS[type];
+        topRow.appendChild(icon);
+
+        const label = document.createElement('h3');
+        label.className = 'da-literature-browser__section-label';
+        label.textContent = RESOURCE_TYPE_LABELS[type];
+        topRow.appendChild(label);
+
+        const metaSpan = document.createElement('span');
+        metaSpan.className = 'da-literature-browser__section-meta';
+        const resourceWord = typeResources.length === 1 ? 'resource' : 'resources';
+        metaSpan.textContent = `${typeResources.length} ${resourceWord}`;
+        topRow.appendChild(metaSpan);
+
+        header.appendChild(topRow);
+        section.appendChild(header);
+
+        const cardGrid = document.createElement('div');
+        cardGrid.className = 'da-literature-browser__card-grid';
+        for (const resource of typeResources) {
+          cardGrid.appendChild(this.renderResourceCard(resource));
+        }
+        section.appendChild(cardGrid);
+        grid.appendChild(section);
+      }
+    }
+
+    return grid;
+  }
+
+  private renderResourceCard(resource: CuratedResource): HTMLElement {
+    const card = document.createElement('div');
+    card.className = `da-resource-card da-resource-card--${resource.type}`;
+    card.setAttribute('role', 'article');
+    card.setAttribute('aria-label', `${resource.title} — ${resource.era}`);
+
+    const title = document.createElement('span');
+    title.className = 'da-resource-card__title';
+    title.textContent = resource.title;
+    card.appendChild(title);
+
+    if (resource.creator || resource.year) {
+      const byline = document.createElement('span');
+      byline.className = 'da-resource-card__byline';
+      const parts: string[] = [];
+      if (resource.creator) parts.push(resource.creator);
+      if (resource.year) parts.push(String(resource.year));
+      byline.textContent = parts.join(' \u00B7 ');
+      card.appendChild(byline);
+    }
+
+    const description = document.createElement('span');
+    description.className = 'da-resource-card__description';
+    description.textContent = resource.description;
+    card.appendChild(description);
+
+    const meta = document.createElement('span');
+    meta.className = 'da-resource-card__meta';
+
+    const eraBadge = document.createElement('span');
+    eraBadge.className = 'da-resource-card__era';
+    eraBadge.textContent = resource.era;
+    meta.appendChild(eraBadge);
+
+    const access = document.createElement('span');
+    access.className = 'da-resource-card__access';
+    access.textContent = resource.whereToAccess;
+    meta.appendChild(access);
+
+    card.appendChild(meta);
+
+    return card;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private — filtering
   // ---------------------------------------------------------------------------
 
@@ -926,16 +1121,24 @@ export class LiteratureBrowser {
     const content = this.overlay.querySelector('.da-literature-browser__content');
     if (!content) return;
 
-    // Remove old grid
+    // Remove old grid and resource type filters
     const oldGrid = content.querySelector('.da-literature-browser__grid');
-    if (oldGrid) {
-      oldGrid.remove();
-    }
+    if (oldGrid) oldGrid.remove();
+    const oldResourceFilters = content.querySelector('.da-resource-type-filters');
+    if (oldResourceFilters) oldResourceFilters.remove();
 
-    // Render new grid
-    const grid = this.renderGrid(this.getFilteredArticles());
-    grid.className = 'da-literature-browser__grid';
-    content.appendChild(grid);
+    if (this.showResources) {
+      // Insert resource type sub-filters before grid
+      const resourceFilters = this.renderResourceTypeFilters();
+      content.appendChild(resourceFilters);
+      const grid = this.renderResourceGrid();
+      grid.className = 'da-literature-browser__grid';
+      content.appendChild(grid);
+    } else {
+      const grid = this.renderGrid(this.getFilteredArticles());
+      grid.className = 'da-literature-browser__grid';
+      content.appendChild(grid);
+    }
   }
 
   private updateFilters(): void {
@@ -949,15 +1152,17 @@ export class LiteratureBrowser {
       const el = chip as HTMLElement;
       const cat = el.dataset.category;
       if (cat === 'all') {
-        el.classList.toggle('da-literature-filter--active', this.activeCategory === null);
+        el.classList.toggle('da-literature-filter--active', this.activeCategory === null && !this.showResources);
         if (hasSearch && filteredArticles) {
           el.textContent = `All (${filteredArticles.length}/${baseArticles.length})`;
         } else {
           el.textContent = `All (${baseArticles.length})`;
         }
+      } else if (cat === 'resources') {
+        el.classList.toggle('da-literature-filter--active', this.showResources);
       } else if (cat && cat in CATEGORY_LABELS) {
         const category = cat as LiteratureCategory;
-        el.classList.toggle('da-literature-filter--active', this.activeCategory === category);
+        el.classList.toggle('da-literature-filter--active', !this.showResources && this.activeCategory === category);
         const totalCount = baseArticles.filter(a => a.category === category).length;
         if (hasSearch && filteredArticles) {
           const filteredCount = filteredArticles.filter(a => a.category === category).length;

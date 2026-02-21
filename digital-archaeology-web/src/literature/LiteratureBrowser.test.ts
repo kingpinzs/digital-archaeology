@@ -451,7 +451,7 @@ describe('LiteratureBrowser', () => {
       browser.open(mockData, callbacks);
 
       const chips = document.querySelectorAll<HTMLElement>('.da-literature-filter');
-      expect(chips.length).toBe(4);
+      expect(chips.length).toBe(5);
 
       // Focus "All" chip (index 0)
       chips[0].focus();
@@ -485,9 +485,9 @@ describe('LiteratureBrowser', () => {
 
       const chips = document.querySelectorAll<HTMLElement>('.da-literature-filter');
 
-      // Focus last chip (index 3 — Advanced)
-      chips[3].focus();
-      expect(document.activeElement).toBe(chips[3]);
+      // Focus last chip (index 4 — Resources)
+      chips[4].focus();
+      expect(document.activeElement).toBe(chips[4]);
 
       // Press ArrowRight → should wrap to index 0 (All)
       const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
@@ -505,11 +505,11 @@ describe('LiteratureBrowser', () => {
       chips[0].focus();
       expect(document.activeElement).toBe(chips[0]);
 
-      // Press ArrowLeft → should wrap to index 3 (Advanced)
+      // Press ArrowLeft → should wrap to index 4 (Resources)
       const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
       document.dispatchEvent(event);
 
-      expect(document.activeElement).toBe(chips[3]);
+      expect(document.activeElement).toBe(chips[4]);
     });
 
     it('should not move focus when arrow key is pressed outside toolbar', () => {
@@ -770,7 +770,7 @@ describe('LiteratureBrowser', () => {
       browser.open(mockData, callbacks);
 
       const filters = document.querySelectorAll('.da-literature-filter');
-      expect(filters.length).toBe(4); // All, Basic, Intermediate, Advanced
+      expect(filters.length).toBe(5); // All, Basic, Intermediate, Advanced, Resources
     });
 
     it('should have "All" chip active by default', () => {
@@ -1862,6 +1862,151 @@ describe('LiteratureBrowser', () => {
       const title = document.querySelector('.da-deep-dive-panel__title');
       expect(title).not.toBeNull();
       expect(title!.textContent!.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Curated Resources (Stories 20.7–20.12)
+  // ---------------------------------------------------------------------------
+
+  describe('curated resources tab', () => {
+    it('should render a Resources filter chip', () => {
+      browser.open(mockData, callbacks);
+
+      const chips = document.querySelectorAll('.da-literature-filter');
+      const resourcesChip = Array.from(chips).find(c => (c as HTMLElement).dataset.category === 'resources');
+      expect(resourcesChip).toBeDefined();
+      expect(resourcesChip!.textContent).toContain('Resources');
+    });
+
+    it('should show resource grid when Resources chip is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      const chips = document.querySelectorAll('.da-literature-filter');
+      const resourcesChip = Array.from(chips).find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      // Resource type sub-filters should appear
+      const typeFilters = document.querySelector('.da-resource-type-filters');
+      expect(typeFilters).not.toBeNull();
+
+      // Resource cards should be rendered
+      const resourceCards = document.querySelectorAll('.da-resource-card');
+      expect(resourceCards.length).toBeGreaterThan(0);
+    });
+
+    it('should show resource type sub-filter chips when in resources mode', () => {
+      browser.open(mockData, callbacks);
+
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      const typeChips = document.querySelectorAll('.da-resource-type-filter');
+      // "All" + 6 types = 7 chips
+      expect(typeChips.length).toBe(7);
+    });
+
+    it('should filter resources by type when a type chip is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      // Click Resources
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      const allCardsCount = document.querySelectorAll('.da-resource-card').length;
+
+      // Click a type filter (e.g., documentary)
+      const docChip = Array.from(document.querySelectorAll('.da-resource-type-filter'))
+        .find(c => (c as HTMLElement).dataset.resourceType === 'documentary') as HTMLButtonElement;
+      docChip.click();
+
+      const filteredCards = document.querySelectorAll('.da-resource-card');
+      expect(filteredCards.length).toBeGreaterThan(0);
+      expect(filteredCards.length).toBeLessThan(allCardsCount);
+    });
+
+    it('should return to article grid when All chip is clicked from resources view', () => {
+      browser.open(mockData, callbacks);
+
+      // Click Resources
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      expect(document.querySelectorAll('.da-resource-card').length).toBeGreaterThan(0);
+
+      // Click All
+      const allChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'all') as HTMLButtonElement;
+      allChip.click();
+
+      // Resource cards should be gone, article cards should be back
+      expect(document.querySelectorAll('.da-resource-card').length).toBe(0);
+      expect(document.querySelectorAll('.da-literature-card').length).toBeGreaterThan(0);
+    });
+
+    it('should render resource card with title, description, era, and access info', () => {
+      browser.open(mockData, callbacks);
+
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      const card = document.querySelector('.da-resource-card');
+      expect(card).not.toBeNull();
+      expect(card!.querySelector('.da-resource-card__title')).not.toBeNull();
+      expect(card!.querySelector('.da-resource-card__description')).not.toBeNull();
+      expect(card!.querySelector('.da-resource-card__era')).not.toBeNull();
+      expect(card!.querySelector('.da-resource-card__access')).not.toBeNull();
+    });
+
+    it('should render section headers for each type in all-resources view', () => {
+      browser.open(mockData, callbacks);
+
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+
+      const sections = document.querySelectorAll('.da-literature-browser__section');
+      expect(sections.length).toBe(6); // One per resource type
+    });
+
+    it('should toggle resources chip active state', () => {
+      browser.open(mockData, callbacks);
+
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+
+      expect(resourcesChip.classList.contains('da-literature-filter--active')).toBe(false);
+      resourcesChip.click();
+      // After update, the chip is re-rendered; re-query
+      const updatedChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      expect(updatedChip.classList.contains('da-literature-filter--active')).toBe(true);
+    });
+
+    it('should remove resource type filters when switching back to articles', () => {
+      browser.open(mockData, callbacks);
+
+      // Switch to resources
+      const resourcesChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'resources') as HTMLButtonElement;
+      resourcesChip.click();
+      expect(document.querySelector('.da-resource-type-filters')).not.toBeNull();
+
+      // Switch back to articles
+      const allChip = Array.from(document.querySelectorAll('.da-literature-filter'))
+        .find(c => (c as HTMLElement).dataset.category === 'all') as HTMLButtonElement;
+      allChip.click();
+      expect(document.querySelector('.da-resource-type-filters')).toBeNull();
+    });
+
+    it('should have a divider before the Resources chip', () => {
+      browser.open(mockData, callbacks);
+      const divider = document.querySelector('.da-literature-filter__divider');
+      expect(divider).not.toBeNull();
     });
   });
 });

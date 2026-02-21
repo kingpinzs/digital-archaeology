@@ -8,6 +8,16 @@ export { HintProgressStorage } from './HintProgressStorage';
 export { getHintsForArticle, getHintCount, ARTICLES_WITH_HINTS } from './hintData';
 export { getDeepDiveForArticle, ARTICLES_WITH_DEEP_DIVES } from './deepDiveData';
 export {
+  CURATED_RESOURCES,
+  RESOURCE_TYPE_LABELS,
+  RESOURCE_TYPE_ICONS,
+  RESOURCE_TYPE_ORDER,
+  getResourcesByType,
+  getResourceCount,
+  getAllEras,
+} from './curatedResources';
+export type { CuratedResource, CuratedResourceType } from './curatedResources';
+export {
   LITERATURE_ARTICLES,
   CATEGORY_METADATA,
   getArticlesByCategory,

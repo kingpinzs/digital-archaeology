@@ -68,6 +68,7 @@ export interface SceneData {
   nextScene?: string;
   choices?: ChoiceData[];
   persona?: { id: string };
+  transition?: { actTransition?: boolean };
 }
 
 export interface ChoiceData {
@@ -130,15 +131,33 @@ export function validateSceneReferences(
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  // Collect all scene IDs across all acts for cross-act reference validation
+  const globalSceneIds = new Set<string>();
+  for (const act of actFiles.values()) {
+    for (const id of collectAllSceneIds(act)) {
+      globalSceneIds.add(id);
+    }
+  }
+
   for (const [fileName, act] of actFiles) {
     const allSceneIds = collectAllSceneIds(act);
 
     for (const chapter of act.chapters) {
       for (const scene of chapter.scenes) {
         if (scene.nextScene && !allSceneIds.has(scene.nextScene)) {
-          errors.push(
-            `BROKEN_REF: ${fileName} > scene "${scene.id}" references nextScene "${scene.nextScene}" which does not exist in this act`,
-          );
+          // Act transition scenes legitimately reference scenes in the next act
+          const isActTransition = scene.type === 'transition' && scene.transition?.actTransition;
+          if (isActTransition) {
+            if (!globalSceneIds.has(scene.nextScene)) {
+              errors.push(
+                `BROKEN_REF: ${fileName} > act-transition scene "${scene.id}" references nextScene "${scene.nextScene}" which does not exist in any act`,
+              );
+            }
+          } else {
+            errors.push(
+              `BROKEN_REF: ${fileName} > scene "${scene.id}" references nextScene "${scene.nextScene}" which does not exist in this act`,
+            );
+          }
         }
 
         if (scene.choices) {

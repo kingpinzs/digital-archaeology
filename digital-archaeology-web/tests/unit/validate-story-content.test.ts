@@ -120,6 +120,56 @@ describe('validateSceneReferences', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  it('should allow act transition scenes to reference scenes in another act', () => {
+    const act0 = createAct({
+      chapters: [{
+        id: 'chapter-0-1', number: 1, title: 'Test', year: '1971',
+        scenes: [
+          { id: 'scene-0-1-1', type: 'narrative', nextScene: 'scene-0-act-transition' },
+          {
+            id: 'scene-0-act-transition',
+            type: 'transition',
+            transition: { actTransition: true },
+            nextScene: 'scene-1-1-1', // Points to next act
+          },
+        ],
+      }],
+    });
+    const act1 = createAct({
+      id: 'act-1',
+      chapters: [{
+        id: 'chapter-1-1', number: 1, title: 'Act 1 Ch1', year: '1890',
+        scenes: [
+          { id: 'scene-1-1-1', type: 'narrative' },
+        ],
+      }],
+    });
+    const actFiles = createActMap([['act-0.json', act0], ['act-1.json', act1]]);
+    const result = validateSceneReferences(actFiles);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('should error when act transition references a scene that does not exist in any act', () => {
+    const act = createAct({
+      chapters: [{
+        id: 'chapter-0-1', number: 1, title: 'Test', year: '1971',
+        scenes: [
+          {
+            id: 'scene-0-act-transition',
+            type: 'transition',
+            transition: { actTransition: true },
+            nextScene: 'scene-nonexistent-act',
+          },
+        ],
+      }],
+    });
+    const actFiles = createActMap([['act-0.json', act]]);
+    const result = validateSceneReferences(actFiles);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toContain('BROKEN_REF');
+    expect(result.errors[0]).toContain('does not exist in any act');
+  });
+
   it('should allow scenes without nextScene', () => {
     const act = createAct({
       chapters: [{

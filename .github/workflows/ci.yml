@@ -162,7 +162,7 @@ jobs:
   # Build production bundle
   build:
     runs-on: ubuntu-latest
-    needs: [build-wasm, test, test-e2e]
+    needs: [build-wasm, test]
     defaults:
       run:
         working-directory: digital-archaeology-web

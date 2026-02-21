@@ -5,6 +5,9 @@
 export { ExerciseBrowser } from './ExerciseBrowser';
 export { ExerciseDetailPanel } from './ExerciseDetailPanel';
 export { ExerciseProgressStorage } from './ExerciseProgressStorage';
+export { ExerciseValidator } from './ExerciseValidator';
+export { ExerciseResultsPanel } from './ExerciseResultsPanel';
+export type { ExerciseResultsPanelCallbacks } from './ExerciseResultsPanel';
 export {
   EXERCISES,
   EXERCISE_IDS,
@@ -19,6 +22,9 @@ export type {
   ExerciseDifficulty,
   ExerciseCategory,
   ExerciseMetadata,
+  ExerciseTestCase,
+  ExerciseTestResult,
+  ExerciseValidationResult,
   ExerciseBrowserData,
   ExerciseBrowserCallbacks,
 } from './types';

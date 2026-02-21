@@ -219,4 +219,71 @@ describe('exerciseMetadata', () => {
       }
     });
   });
+
+  describe('testCases (Story 21.4)', () => {
+    it('every exercise should have at least 1 test case', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.testCases.length).toBeGreaterThanOrEqual(1);
+      }
+    });
+
+    it('each test case should have a non-empty label', () => {
+      for (const ex of EXERCISES) {
+        for (const tc of ex.testCases) {
+          expect(tc.label.length).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    it('each test case should have a non-negative address', () => {
+      for (const ex of EXERCISES) {
+        for (const tc of ex.testCases) {
+          expect(tc.address).toBeGreaterThanOrEqual(0);
+        }
+      }
+    });
+
+    it('each test case should have a non-negative expected value', () => {
+      for (const ex of EXERCISES) {
+        for (const tc of ex.testCases) {
+          expect(tc.expected).toBeGreaterThanOrEqual(0);
+        }
+      }
+    });
+
+    it('micro4 exercises should use addresses in 0xF0-0xFF range', () => {
+      const micro4 = EXERCISES.filter(e => e.stage === 'micro4');
+      for (const ex of micro4) {
+        for (const tc of ex.testCases) {
+          expect(tc.address).toBeGreaterThanOrEqual(0xF0);
+          expect(tc.address).toBeLessThan(0x100);
+        }
+      }
+    });
+
+    it('micro8 exercises should use addresses in 0x100+ range', () => {
+      const micro8 = EXERCISES.filter(e => e.stage === 'micro8');
+      for (const ex of micro8) {
+        for (const tc of ex.testCases) {
+          expect(tc.address).toBeGreaterThanOrEqual(0x100);
+        }
+      }
+    });
+
+    it('micro16 exercises should use addresses in 0x200+ range', () => {
+      const micro16 = EXERCISES.filter(e => e.stage === 'micro16');
+      for (const ex of micro16) {
+        for (const tc of ex.testCases) {
+          expect(tc.address).toBeGreaterThanOrEqual(0x200);
+        }
+      }
+    });
+
+    it('starterCode should contain ORG directive for data placement', () => {
+      for (const ex of EXERCISES) {
+        const hasOrg = ex.starterCode.includes('ORG') || ex.starterCode.includes('.org');
+        expect(hasOrg).toBe(true);
+      }
+    });
+  });
 });

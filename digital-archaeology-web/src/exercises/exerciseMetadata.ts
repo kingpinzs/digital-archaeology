@@ -8,6 +8,11 @@ import type { LabStage } from '@ui/StageSelector';
 /**
  * All exercise definitions. Ordered by stage, then difficulty.
  * Capstone exercises (Stories 21-8 through 21-14) will be appended in later stories.
+ *
+ * Data sections use ORG directives to pin addresses, enabling test case validation.
+ * - Micro4: ORG 0xF0 (address 240)
+ * - Micro8: .org 0x100 (address 256)
+ * - Micro16: .org 0x200 (address 512)
  */
 export const EXERCISES: readonly ExerciseMetadata[] = [
   // ── Micro4 Exercises ──────────────────────────────────────
@@ -32,9 +37,13 @@ export const EXERCISES: readonly ExerciseMetadata[] = [
 
 HLT
 
+  ORG 0xF0
 VALUE: DB 7
 RESULT: DB 0
 `,
+    testCases: [
+      { label: 'RESULT', address: 0xF1, expected: 7 },
+    ],
   },
   {
     id: 'ex-m4-simple-addition',
@@ -59,10 +68,14 @@ RESULT: DB 0
 
 HLT
 
+  ORG 0xF0
 NUM1: DB 3
 NUM2: DB 5
 RESULT: DB 0
 `,
+    testCases: [
+      { label: 'RESULT (3+5)', address: 0xF2, expected: 8 },
+    ],
   },
   {
     id: 'ex-m4-countdown-loop',
@@ -74,7 +87,7 @@ RESULT: DB 0
     estimatedMinutes: 15,
     prerequisites: ['ex-m4-simple-addition'],
     starterCode: `; Exercise: Countdown Loop
-; Goal: Count down from START to 0, storing each value at RESULT
+; Goal: Count down from START to 0, storing final value at RESULT
 ;
 ; Hint: SUB subtracts, JZ jumps if zero flag is set
 ; The zero flag is set automatically when the result equals 0.
@@ -94,10 +107,14 @@ DONE:
   STA RESULT
   HLT
 
+  ORG 0xF0
 COUNT: DB 5
 ONE: DB 1
 RESULT: DB 0
 `,
+    testCases: [
+      { label: 'RESULT (countdown to 0)', address: 0xF2, expected: 0 },
+    ],
   },
   {
     id: 'ex-m4-max-of-two',
@@ -131,10 +148,14 @@ IS_NUM2:
 DONE:
   HLT
 
+  ORG 0xF0
 NUM1: DB 9
 NUM2: DB 6
 RESULT: DB 0
 `,
+    testCases: [
+      { label: 'RESULT (max of 9,6)', address: 0xF2, expected: 9 },
+    ],
   },
   {
     id: 'ex-m4-bit-shift-multiply',
@@ -160,10 +181,14 @@ RESULT: DB 0
 
 HLT
 
+  ORG 0xF0
 ; Try different values (keep result under 15!)
 VALUE: DB 3
 RESULT: DB 0
 `,
+    testCases: [
+      { label: 'RESULT (3*2)', address: 0xF1, expected: 6 },
+    ],
   },
 
   // ── Micro8 Exercises ──────────────────────────────────────
@@ -196,9 +221,14 @@ ST R0, [SWAP_A]
 ST R1, [SWAP_B]
 HLT
 
+  .org 0x100
 SWAP_A: .db 0
 SWAP_B: .db 0
 `,
+    testCases: [
+      { label: 'SWAP_A (was R1=0xAB)', address: 0x100, expected: 0xAB },
+      { label: 'SWAP_B (was R0=0x42)', address: 0x101, expected: 0x42 },
+    ],
   },
   {
     id: 'ex-m8-array-sum',
@@ -233,9 +263,13 @@ LOOP:
 ST R0, [RESULT]
 HLT
 
+  .org 0x100
 ARRAY: .db 10, 20, 30, 40, 50
 RESULT: .db 0
 `,
+    testCases: [
+      { label: 'RESULT (10+20+30+40+50)', address: 0x105, expected: 150 },
+    ],
   },
   {
     id: 'ex-m8-string-length',
@@ -270,9 +304,13 @@ DONE:
   ST R0, [RESULT]
   HLT
 
+  .org 0x100
 STRING: .db 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
 RESULT: .db 0
 `,
+    testCases: [
+      { label: 'RESULT (length of "Hello")', address: 0x106, expected: 5 },
+    ],
   },
   {
     id: 'ex-m8-bubble-sort',
@@ -317,8 +355,16 @@ OUTER:
 
 HLT
 
+  .org 0x100
 ARRAY: .db 64, 25, 12, 22, 11
 `,
+    testCases: [
+      { label: 'ARRAY[0] (smallest)', address: 0x100, expected: 11 },
+      { label: 'ARRAY[1]', address: 0x101, expected: 12 },
+      { label: 'ARRAY[2]', address: 0x102, expected: 22 },
+      { label: 'ARRAY[3]', address: 0x103, expected: 25 },
+      { label: 'ARRAY[4] (largest)', address: 0x104, expected: 64 },
+    ],
   },
   {
     id: 'ex-m8-fibonacci',
@@ -368,8 +414,19 @@ NEXT_FIB:
 
   RET
 
+  .org 0x100
 FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
 `,
+    testCases: [
+      { label: 'FIB[0]', address: 0x100, expected: 0 },
+      { label: 'FIB[1]', address: 0x101, expected: 1 },
+      { label: 'FIB[2]', address: 0x102, expected: 1 },
+      { label: 'FIB[3]', address: 0x103, expected: 2 },
+      { label: 'FIB[4]', address: 0x104, expected: 3 },
+      { label: 'FIB[5]', address: 0x105, expected: 5 },
+      { label: 'FIB[6]', address: 0x106, expected: 8 },
+      { label: 'FIB[7]', address: 0x107, expected: 13 },
+    ],
   },
 
   // ── Micro16 Exercises ──────────────────────────────────────
@@ -400,9 +457,12 @@ FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
 
 HLT
 
-.org 0x100
+  .org 0x200
 RESULT: .dw 0
 `,
+    testCases: [
+      { label: 'RESULT (0xBEEF)', address: 0x200, expected: 0xBEEF },
+    ],
   },
   {
     id: 'ex-m16-hardware-multiply',
@@ -433,8 +493,12 @@ RESULT: .dw 0
 
 HLT
 
+  .org 0x200
 PRODUCT: .dw 0
 `,
+    testCases: [
+      { label: 'PRODUCT (25*13)', address: 0x200, expected: 325 },
+    ],
   },
   {
     id: 'ex-m16-memory-block-copy',
@@ -470,9 +534,18 @@ COPY_LOOP:
 
 HLT
 
+  .org 0x200
 SOURCE: .dw 0x1111, 0x2222, 0x3333, 0x4444, 0x5555
+  .org 0x220
 DEST:   .dw 0, 0, 0, 0, 0
 `,
+    testCases: [
+      { label: 'DEST[0]', address: 0x220, expected: 0x1111 },
+      { label: 'DEST[1]', address: 0x222, expected: 0x2222 },
+      { label: 'DEST[2]', address: 0x224, expected: 0x3333 },
+      { label: 'DEST[3]', address: 0x226, expected: 0x4444 },
+      { label: 'DEST[4]', address: 0x228, expected: 0x5555 },
+    ],
   },
   {
     id: 'ex-m16-string-reverse',
@@ -495,7 +568,7 @@ MOV DI, #STRING    ; back pointer — advance to end first
 ; First, find the end of the string
 ; TODO: Walk DI forward until [DI] == 0 (null terminator)
 
-; TODO: Decrement DI once (point to last real character)
+; TODO: Decrement DI by 2 (point to last real character, word-sized)
 
 REVERSE_LOOP:
   ; TODO: If SI >= DI, we're done — jump to DONE
@@ -504,15 +577,23 @@ REVERSE_LOOP:
 
   ; TODO: Store BX at [SI], store AX at [DI] (swap)
 
-  ; TODO: Increment SI, decrement DI
+  ; TODO: Increment SI by 2, decrement DI by 2
 
   ; TODO: Jump to REVERSE_LOOP
 
 DONE:
   HLT
 
+  .org 0x200
 STRING: .dw 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
 `,
+    testCases: [
+      { label: 'STRING[0] (was o)', address: 0x200, expected: 0x6F },
+      { label: 'STRING[1] (was l)', address: 0x202, expected: 0x6C },
+      { label: 'STRING[2] (unchanged l)', address: 0x204, expected: 0x6C },
+      { label: 'STRING[3] (was e)', address: 0x206, expected: 0x65 },
+      { label: 'STRING[4] (was H)', address: 0x208, expected: 0x48 },
+    ],
   },
   {
     id: 'ex-m16-linked-list',
@@ -530,7 +611,7 @@ STRING: .dw 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
 ; A next pointer of 0x0000 means end of list.
 ; SI = current node pointer, CX = count
 
-MOV SI, #LIST_HEAD   ; point to first node
+MOV SI, #NODE1       ; point to first node
 MOV CX, #0           ; node count = 0
 
 WALK:
@@ -547,20 +628,23 @@ DONE:
   ST CX, [RESULT]
   HLT
 
+  .org 0x200
 ; Linked list: 3 nodes
 ; Node 1: value=10, next=NODE2
-; Node 2: value=20, next=NODE3
-; Node 3: value=30, next=0 (end)
-LIST_HEAD:
 NODE1: .dw 10
        .dw NODE2
+; Node 2: value=20, next=NODE3
 NODE2: .dw 20
        .dw NODE3
+; Node 3: value=30, next=0 (end)
 NODE3: .dw 30
        .dw 0
 
 RESULT: .dw 0
 `,
+    testCases: [
+      { label: 'RESULT (3 nodes)', address: 0x218, expected: 3 },
+    ],
   },
 ] as const;
 

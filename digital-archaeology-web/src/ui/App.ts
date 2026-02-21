@@ -52,7 +52,7 @@ import {
 import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
 import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
-import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage } from '../exercises';
+import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage, ExerciseValidator, ExerciseResultsPanel } from '../exercises';
 import type { ExerciseMetadata } from '../exercises';
 
 /**
@@ -308,6 +308,9 @@ export class App {
   // Story 21.1: Exercise Browser
   private exerciseBrowser: ExerciseBrowser = new ExerciseBrowser();
   private exerciseProgressStorage: ExerciseProgressStorage = new ExerciseProgressStorage();
+  // Story 21.4: Output Validation
+  private currentExercise: ExerciseMetadata | null = null;
+  private exerciseResultsPanel: ExerciseResultsPanel = new ExerciseResultsPanel();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -923,10 +926,16 @@ export class App {
 
     this.exerciseBrowser.close();
 
+    // Story 21.4: Dismiss any previous results panel and clear exercise
+    this.exerciseResultsPanel.dismiss();
+
     // Switch to the exercise's stage if needed
     if (exercise.stage !== this.currentStage) {
       this.handleStageChange(exercise.stage);
     }
+
+    // Story 21.4: Track the active exercise for validation on HLT
+    this.currentExercise = exercise;
 
     if (this.editor) {
       this.editor.setValue(exercise.starterCode);
@@ -3549,6 +3558,49 @@ export class App {
         memory: this.cpuState.memory,
         pc: this.cpuState.pc,
       });
+
+      // Story 21.4: Validate exercise output on HLT
+      if (this.currentExercise) {
+        this.validateExercise(this.currentExercise, this.cpuState.memory);
+      }
+    }
+  }
+
+  /**
+   * Validate exercise solution against test cases (Story 21.4).
+   * Shows results panel in the code panel area.
+   */
+  private validateExercise(exercise: ExerciseMetadata, memory: Uint8Array): void {
+    // Guard: skip validation if stage switch is still in flight
+    if (exercise.stage !== this.currentStage) {
+      return;
+    }
+
+    const result = ExerciseValidator.validate(exercise, memory);
+
+    // Find the code panel to host the results
+    const codePanel = this.container?.querySelector('.da-code-panel');
+    if (!codePanel) return;
+
+    this.exerciseResultsPanel.show(result, {
+      onDismiss: () => {
+        // No additional cleanup needed
+      },
+      onMarkCompleted: (exerciseId: string) => {
+        this.exerciseProgressStorage.markCompleted(exerciseId);
+        this.exerciseBrowser.markExerciseCompleted(exerciseId);
+        this.statusBar?.updateState({ loadStatus: `Exercise complete: ${exercise.title}` });
+      },
+    }, codePanel as HTMLElement);
+
+    // Update status bar to reflect validation outcome
+    if (result.passed) {
+      this.statusBar?.updateState({ loadStatus: `Exercise passed: ${exercise.title}` });
+    } else {
+      const passCount = result.results.filter((r) => r.passed).length;
+      this.statusBar?.updateState({
+        loadStatus: `Exercise: ${passCount}/${result.results.length} tests passed`,
+      });
     }
   }
 
@@ -3966,6 +4018,10 @@ export class App {
       return;
     }
 
+    // Story 21.4: Clear active exercise
+    this.currentExercise = null;
+    this.exerciseResultsPanel.dismiss();
+
     // Clear editor content
     if (this.editor) {
       this.editor.setValue('');
@@ -4030,6 +4086,10 @@ export class App {
     if (!this.confirmUnsavedChanges('Opening a project')) {
       return;
     }
+
+    // Story 21.4: Clear active exercise — opening a project is not an exercise
+    this.currentExercise = null;
+    this.exerciseResultsPanel.dismiss();
 
     try {
       // Load from IndexedDB
@@ -4103,6 +4163,10 @@ export class App {
       return;
     }
 
+    // Story 21.4: Clear active exercise — importing a file is not an exercise
+    this.currentExercise = null;
+    this.exerciseResultsPanel.dismiss();
+
     try {
       const result = await readTextFile('.asm,.txt');
       if (!result) {
@@ -4172,6 +4236,10 @@ export class App {
     if (!this.confirmUnsavedChanges(`Loading "${program.name}"`)) {
       return;
     }
+
+    // Story 21.4: Clear active exercise — loading an example is not an exercise
+    this.currentExercise = null;
+    this.exerciseResultsPanel.dismiss();
 
     try {
       // Story 11.2: Load from config-derived programs path
@@ -4806,6 +4874,9 @@ export class App {
     this.persistTimingStatistics();
     this.statisticsDashboard.destroy();
     this.literatureBrowser.destroy();
+    // Story 21.4: Destroy exercise results panel
+    this.exerciseResultsPanel.destroy();
+    this.currentExercise = null;
 
     // Destroy resizers
     this.destroyResizers();

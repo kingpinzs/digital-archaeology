@@ -11159,3 +11159,127 @@ body.da-resizing * {
 .da-exercise-detail__start:hover {
   filter: brightness(1.1);
 }
+
+/* =============================================================================
+   Exercise Results Panel — Story 21.4
+   Shows pass/fail results for exercise validation
+   ============================================================================= */
+
+.da-exercise-results {
+  border-top: 2px solid var(--da-border);
+  background: var(--da-bg-secondary);
+  font-size: 0.85rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.da-exercise-results__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.da-exercise-results__header--pass {
+  background: color-mix(in srgb, var(--da-exercise-beginner) 15%, transparent);
+  color: var(--da-exercise-beginner);
+}
+
+.da-exercise-results__header--fail {
+  background: color-mix(in srgb, var(--da-exercise-advanced) 15%, transparent);
+  color: var(--da-exercise-advanced);
+}
+
+.da-exercise-results__icon {
+  font-size: 1.1rem;
+}
+
+.da-exercise-results__title {
+  flex: 1;
+}
+
+.da-exercise-results__dismiss {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.da-exercise-results__dismiss:hover {
+  color: var(--da-text-primary);
+}
+
+.da-exercise-results__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.da-exercise-results__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-top: 1px solid var(--da-border);
+}
+
+.da-exercise-results__item--pass {
+  color: var(--da-exercise-beginner);
+}
+
+.da-exercise-results__item--fail {
+  color: var(--da-exercise-advanced);
+}
+
+.da-exercise-results__item-icon {
+  font-size: 0.9rem;
+  width: 16px;
+  text-align: center;
+}
+
+.da-exercise-results__item-label {
+  flex: 1;
+  color: var(--da-text-primary);
+}
+
+.da-exercise-results__item-detail {
+  font-size: 0.8rem;
+  color: var(--da-exercise-advanced);
+  font-family: monospace;
+}
+
+.da-exercise-results__item-address {
+  font-size: 0.75rem;
+  color: var(--da-text-muted);
+  font-family: monospace;
+}
+
+.da-exercise-results__error {
+  padding: 8px 12px;
+  color: var(--da-exercise-advanced);
+  border-top: 1px solid var(--da-border);
+  font-style: italic;
+}
+
+.da-exercise-results__complete {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 8px 12px;
+  padding: 8px 16px;
+  background: var(--da-exercise-beginner);
+  color: var(--da-bg-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.da-exercise-results__complete:hover {
+  filter: brightness(1.1);
+}

@@ -39,6 +39,30 @@ export type ExerciseCategory =
   | 'string-handling'
   | 'hardware';
 
+/** A single test case: check a memory address for an expected value */
+export interface ExerciseTestCase {
+  readonly label: string;
+  readonly address: number;
+  readonly expected: number;
+}
+
+/** Result of running a single test case */
+export interface ExerciseTestResult {
+  readonly label: string;
+  readonly address: number;
+  readonly expected: number;
+  readonly actual: number;
+  readonly passed: boolean;
+}
+
+/** Full validation result for an exercise */
+export interface ExerciseValidationResult {
+  readonly exerciseId: string;
+  readonly passed: boolean;
+  readonly results: readonly ExerciseTestResult[];
+  readonly error?: string;
+}
+
 /** A single exercise entry with metadata */
 export interface ExerciseMetadata {
   readonly id: string;
@@ -50,6 +74,7 @@ export interface ExerciseMetadata {
   readonly estimatedMinutes: number;
   readonly prerequisites: readonly string[];
   readonly starterCode: string;
+  readonly testCases: readonly ExerciseTestCase[];
 }
 
 /** Data passed to the browser when opening */

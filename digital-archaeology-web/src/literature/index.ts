@@ -3,6 +3,7 @@
 // Story 20.1: Create Literature Browser
 
 export { LiteratureBrowser } from './LiteratureBrowser';
+export { ReadingProgressStorage } from './ReadingProgressStorage';
 export {
   LITERATURE_ARTICLES,
   CATEGORY_METADATA,

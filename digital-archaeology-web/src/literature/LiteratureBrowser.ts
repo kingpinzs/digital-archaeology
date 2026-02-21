@@ -191,6 +191,9 @@ export class LiteratureBrowser {
     title.textContent = 'Literature Library';
     header.appendChild(title);
 
+    // Reading stats (Story 20.4 — AC 3)
+    header.appendChild(this.renderReadingStats());
+
     const searchInput = document.createElement('input');
     searchInput.type = 'search';
     searchInput.className = 'da-literature-browser__search';
@@ -202,6 +205,11 @@ export class LiteratureBrowser {
       this.updateGrid();
     });
     header.appendChild(searchInput);
+
+    // Clear progress button (Story 20.4 — AC 5)
+    if (this.readArticleIds.size > 0) {
+      header.appendChild(this.buildClearProgressButton());
+    }
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
@@ -313,10 +321,18 @@ export class LiteratureBrowser {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = `da-literature-card da-literature-card--${article.category}`;
-    card.setAttribute('aria-label', `${article.title} — ${CATEGORY_LABELS[article.category]}, ${article.estimatedReadTime} min read`);
+    const isRead = this.readArticleIds.has(article.id);
+    const readSuffix = isRead ? ', read' : '';
+    card.setAttribute('aria-label', `${article.title} — ${CATEGORY_LABELS[article.category]}, ${article.estimatedReadTime} min read${readSuffix}`);
 
-    if (this.readArticleIds.has(article.id)) {
+    if (isRead) {
       card.classList.add('da-literature-card--read');
+      // Checkmark badge (Story 20.4 — AC 2)
+      const readBadge = document.createElement('span');
+      readBadge.className = 'da-literature-card__read-badge';
+      readBadge.textContent = '\u2713'; // ✓
+      readBadge.setAttribute('aria-hidden', 'true');
+      card.appendChild(readBadge);
     }
 
     const title = document.createElement('span');
@@ -374,7 +390,13 @@ export class LiteratureBrowser {
 
     const metaSpan = document.createElement('span');
     metaSpan.className = 'da-literature-browser__section-meta';
-    metaSpan.textContent = `${articleCount} ${articleWord} \u00B7 ~${displayTime} min`;
+    // Per-category read count (Story 20.4 — AC 4)
+    const catReadCount = this.articles
+      .filter(a => a.category === category)
+      .filter(a => this.readArticleIds.has(a.id)).length;
+    const totalCatCount = this.articles.filter(a => a.category === category).length;
+    const readSuffix = catReadCount > 0 ? ` \u00B7 ${catReadCount}/${totalCatCount} read` : '';
+    metaSpan.textContent = `${articleCount} ${articleWord} \u00B7 ~${displayTime} min${readSuffix}`;
     topRow.appendChild(metaSpan);
 
     header.appendChild(topRow);
@@ -459,6 +481,64 @@ export class LiteratureBrowser {
     banner.appendChild(showAllBtn);
 
     return banner;
+  }
+
+  private renderReadingStats(): HTMLElement {
+    const stats = document.createElement('span');
+    stats.className = 'da-literature-browser__reading-stats';
+    const readCount = this.articles.filter(a => this.readArticleIds.has(a.id)).length;
+    const totalCount = this.articles.length;
+    stats.textContent = readCount > 0 ? `${readCount} of ${totalCount} read` : '';
+    return stats;
+  }
+
+  private buildClearProgressButton(): HTMLElement {
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'da-literature-browser__clear-progress-btn';
+    clearBtn.textContent = 'Clear progress';
+    clearBtn.setAttribute('aria-label', 'Clear all reading progress');
+    clearBtn.addEventListener('click', () => {
+      this.readArticleIds = new Set();
+      this.callbacks?.onClearProgress?.();
+      this.updateReadingStats();
+      this.updateGrid();
+    });
+    return clearBtn;
+  }
+
+  private updateReadingStats(): void {
+    if (!this.overlay) return;
+    const stats = this.overlay.querySelector('.da-literature-browser__reading-stats');
+    if (!stats) return;
+    const readCount = this.articles.filter(a => this.readArticleIds.has(a.id)).length;
+    const totalCount = this.articles.length;
+    stats.textContent = readCount > 0 ? `${readCount} of ${totalCount} read` : '';
+
+    const existingClearBtn = this.overlay.querySelector('.da-literature-browser__clear-progress-btn');
+    if (readCount === 0 && existingClearBtn) {
+      existingClearBtn.remove();
+    } else if (readCount > 0 && !existingClearBtn) {
+      // Re-add the button (it was previously removed when count hit zero)
+      const header = this.overlay.querySelector('.da-literature-browser__header');
+      const closeBtn = header?.querySelector('.da-literature-browser__close');
+      if (header && closeBtn) {
+        header.insertBefore(this.buildClearProgressButton(), closeBtn);
+      }
+    }
+  }
+
+  /**
+   * Mark an article as read and update the display in-place.
+   * Called by App.ts when an article is selected.
+   */
+  markArticleRead(articleId: string): void {
+    if (this.readArticleIds.has(articleId)) return;
+    const updated = new Set(this.readArticleIds);
+    updated.add(articleId);
+    this.readArticleIds = updated;
+    this.updateReadingStats();
+    this.updateGrid();
   }
 
   private removeContextBanner(): void {

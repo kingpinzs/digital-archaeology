@@ -49,7 +49,7 @@ import {
   StatisticsCollector,
   StatisticsDashboard,
 } from '../progress';
-import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter } from '@literature/index';
+import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage } from '@literature/index';
 import type { HelpContext } from '@literature/index';
 
 /**
@@ -297,8 +297,9 @@ export class App {
   private previousStageForTiming: LabStage = 'micro4';
   private runStartInstructions: number = 0;
 
-  // Literature Browser (Story 20.1)
+  // Literature Browser (Story 20.1) + Reading Progress (Story 20.4)
   private literatureBrowser: LiteratureBrowser = new LiteratureBrowser();
+  private readingProgressStorage: ReadingProgressStorage = new ReadingProgressStorage();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -848,13 +849,20 @@ export class App {
    */
   private handleLiteratureClick(): void {
     this.literatureBrowser.open(
-      { articles: LITERATURE_ARTICLES },
       {
-        onArticleSelect: () => {
-          // Article content rendering is a future story concern
+        articles: LITERATURE_ARTICLES,
+        readArticleIds: this.readingProgressStorage.load(),
+      },
+      {
+        onArticleSelect: (article) => {
+          this.readingProgressStorage.markRead(article.id);
+          this.literatureBrowser.markArticleRead(article.id);
         },
         onClose: () => {
           // No-op: browser handles its own close
+        },
+        onClearProgress: () => {
+          this.readingProgressStorage.clearAll();
         },
       },
     );
@@ -867,13 +875,21 @@ export class App {
   private handleContextualHelp(context: HelpContext): void {
     const contextFilter = getContextFilter(context, this.currentStage);
     this.literatureBrowser.open(
-      { articles: LITERATURE_ARTICLES, contextFilter },
       {
-        onArticleSelect: () => {
-          // Article content rendering is a future story concern
+        articles: LITERATURE_ARTICLES,
+        readArticleIds: this.readingProgressStorage.load(),
+        contextFilter,
+      },
+      {
+        onArticleSelect: (article) => {
+          this.readingProgressStorage.markRead(article.id);
+          this.literatureBrowser.markArticleRead(article.id);
         },
         onClose: () => {
           // No-op: browser handles its own close
+        },
+        onClearProgress: () => {
+          this.readingProgressStorage.clearAll();
         },
       },
     );

@@ -9906,6 +9906,35 @@ body.da-resizing * {
   white-space: nowrap;
 }
 
+/* Reading stats (Story 20.4) */
+.da-literature-browser__reading-stats {
+  font-size: 12px;
+  color: var(--da-text-secondary);
+  white-space: nowrap;
+}
+
+/* Clear progress button (Story 20.4) */
+.da-literature-browser__clear-progress-btn {
+  background: transparent;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  color: var(--da-text-secondary);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1;
+}
+.da-literature-browser__clear-progress-btn:hover {
+  color: var(--da-accent);
+  border-color: var(--da-accent);
+}
+.da-literature-browser__clear-progress-btn:focus-visible {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 1px;
+}
+
 .da-literature-browser__search {
   flex: 1;
   padding: 6px 12px;
@@ -10115,6 +10144,7 @@ body.da-resizing * {
 
 /* Article cards */
 .da-literature-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -10140,6 +10170,25 @@ body.da-resizing * {
 
 .da-literature-card--read {
   opacity: 0.7;
+}
+
+/* Read badge — checkmark indicator (Story 20.4) */
+.da-literature-card__read-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .da-literature-card__title {

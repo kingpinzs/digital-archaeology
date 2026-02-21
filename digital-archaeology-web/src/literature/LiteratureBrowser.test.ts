@@ -1472,4 +1472,162 @@ describe('LiteratureBrowser', () => {
       expect(contextCards).toBeLessThan(LITERATURE_ARTICLES.length);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Reading progress (Story 20.4)
+  // ---------------------------------------------------------------------------
+
+  describe('reading progress', () => {
+    const readIds = new Set([LITERATURE_ARTICLES[0].id, LITERATURE_ARTICLES[1].id]);
+
+    it('should show reading stats in header when articles have been read', () => {
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readIds },
+        callbacks,
+      );
+
+      const stats = document.querySelector('.da-literature-browser__reading-stats');
+      expect(stats).not.toBeNull();
+      expect(stats!.textContent).toBe(`2 of ${LITERATURE_ARTICLES.length} read`);
+    });
+
+    it('should show empty reading stats when no articles read', () => {
+      browser.open(mockData, callbacks);
+
+      const stats = document.querySelector('.da-literature-browser__reading-stats');
+      expect(stats).not.toBeNull();
+      expect(stats!.textContent).toBe('');
+    });
+
+    it('should apply read class and badge to read article cards', () => {
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readIds },
+        callbacks,
+      );
+
+      const readCards = document.querySelectorAll('.da-literature-card--read');
+      expect(readCards.length).toBe(2);
+
+      const badges = document.querySelectorAll('.da-literature-card__read-badge');
+      expect(badges.length).toBe(2);
+      expect(badges[0].textContent).toBe('\u2713');
+    });
+
+    it('should show per-category read counts in section headers', () => {
+      const firstArticle = LITERATURE_ARTICLES[0];
+      const sameCategory = LITERATURE_ARTICLES.filter(a => a.category === firstArticle.category);
+      const readSet = new Set([firstArticle.id]);
+
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readSet },
+        callbacks,
+      );
+
+      const sectionMetas = document.querySelectorAll('.da-literature-browser__section-meta');
+      // Find the section meta that contains a read count
+      const withReadCount = Array.from(sectionMetas).filter(el =>
+        el.textContent?.includes('read'),
+      );
+      expect(withReadCount.length).toBeGreaterThanOrEqual(1);
+      expect(withReadCount[0].textContent).toContain(`1/${sameCategory.length} read`);
+    });
+
+    it('should show clear progress button when articles are read', () => {
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readIds },
+        callbacks,
+      );
+
+      const clearBtn = document.querySelector('.da-literature-browser__clear-progress-btn');
+      expect(clearBtn).not.toBeNull();
+      expect(clearBtn!.textContent).toBe('Clear progress');
+    });
+
+    it('should NOT show clear progress button when no articles read', () => {
+      browser.open(mockData, callbacks);
+
+      const clearBtn = document.querySelector('.da-literature-browser__clear-progress-btn');
+      expect(clearBtn).toBeNull();
+    });
+
+    it('should clear progress when clear button is clicked', () => {
+      const onClearProgress = vi.fn();
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readIds },
+        { ...callbacks, onClearProgress },
+      );
+
+      const clearBtn = document.querySelector('.da-literature-browser__clear-progress-btn') as HTMLButtonElement;
+      clearBtn.click();
+
+      expect(onClearProgress).toHaveBeenCalledOnce();
+
+      // Stats should be cleared
+      const stats = document.querySelector('.da-literature-browser__reading-stats');
+      expect(stats!.textContent).toBe('');
+
+      // Read badges should be gone
+      const badges = document.querySelectorAll('.da-literature-card__read-badge');
+      expect(badges.length).toBe(0);
+    });
+
+    it('should update display when markArticleRead is called', () => {
+      browser.open(mockData, callbacks);
+
+      // Initially no read cards
+      expect(document.querySelectorAll('.da-literature-card--read').length).toBe(0);
+
+      // Mark one article read
+      browser.markArticleRead(LITERATURE_ARTICLES[0].id);
+
+      const readCards = document.querySelectorAll('.da-literature-card--read');
+      expect(readCards.length).toBe(1);
+
+      const stats = document.querySelector('.da-literature-browser__reading-stats');
+      expect(stats!.textContent).toBe(`1 of ${LITERATURE_ARTICLES.length} read`);
+    });
+
+    it('should be idempotent — marking same article twice does not duplicate', () => {
+      browser.open(mockData, callbacks);
+
+      browser.markArticleRead(LITERATURE_ARTICLES[0].id);
+      browser.markArticleRead(LITERATURE_ARTICLES[0].id);
+
+      const readCards = document.querySelectorAll('.da-literature-card--read');
+      expect(readCards.length).toBe(1);
+    });
+
+    it('should re-add clear button after clearing then reading another article (F2 fix)', () => {
+      const onClearProgress = vi.fn();
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: readIds },
+        { ...callbacks, onClearProgress },
+      );
+
+      // Clear progress — button should be removed
+      const clearBtn = document.querySelector('.da-literature-browser__clear-progress-btn') as HTMLButtonElement;
+      clearBtn.click();
+      expect(document.querySelector('.da-literature-browser__clear-progress-btn')).toBeNull();
+
+      // Read a new article — button should re-appear
+      browser.markArticleRead(LITERATURE_ARTICLES[2].id);
+      const reAddedBtn = document.querySelector('.da-literature-browser__clear-progress-btn');
+      expect(reAddedBtn).not.toBeNull();
+      expect(reAddedBtn!.textContent).toBe('Clear progress');
+    });
+
+    it('should include read status in card aria-label for accessibility (F4 fix)', () => {
+      browser.open(
+        { articles: LITERATURE_ARTICLES, readArticleIds: new Set([LITERATURE_ARTICLES[0].id]) },
+        callbacks,
+      );
+
+      const readCard = document.querySelector('.da-literature-card--read') as HTMLElement;
+      expect(readCard.getAttribute('aria-label')).toContain(', read');
+
+      // Badge should be aria-hidden
+      const badge = readCard.querySelector('.da-literature-card__read-badge');
+      expect(badge?.getAttribute('aria-hidden')).toBe('true');
+    });
+  });
 });

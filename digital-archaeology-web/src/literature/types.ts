@@ -61,6 +61,7 @@ export interface ContextFilter {
 export interface LiteratureBrowserCallbacks {
   readonly onArticleSelect: (article: LiteratureArticle) => void;
   readonly onClose: () => void;
+  readonly onClearProgress?: () => void;
 }
 
 /** Data passed to the browser when opening */

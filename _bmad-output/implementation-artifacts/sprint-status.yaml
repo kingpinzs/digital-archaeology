@@ -298,7 +298,7 @@ development_status:
   epic-20-retrospective: done
 
   # Epic 21: Homework & Exercises System
-  epic-21: in-progress
+  epic-21: done
   21-1-create-exercise-browser: done  # 77 new tests (23 metadata + 12 storage + 42 browser), 6 review fixes
   21-2-implement-exercise-metadata: done  # 23 new tests (detail panel), 6 review fixes
   21-3-create-starter-code-templates: done  # 5 new tests, 15 starter templates, 5 review fixes
@@ -307,12 +307,12 @@ development_status:
   21-6-implement-solution-reveal: done  # ExerciseSolutionPanel + SolutionViewStorage, 36 new tests, 3 review fixes, 5489 total passing
   21-7-track-exercise-completion: done  # ExerciseProgressPanel + attempt tracking, 46 new tests, 5 review fixes, 5535 total passing
   21-8-micro4-capstone-bcd-calculator: done  # BCD Calculator capstone exercise, 6 review fixes, 5535 total passing
-  21-9-micro4-capstone-led-pattern-controller: backlog
-  21-10-micro8-capstone-number-guessing-game: backlog
-  21-11-micro8-capstone-text-adventure: backlog
-  21-12-micro8-capstone-device-controller: backlog
-  21-13-micro16-capstone-terminal-repl: backlog
-  21-14-micro16-capstone-simple-graphics: backlog
+  21-9-micro4-capstone-led-pattern-controller: done  # LED pattern capstone, 5535 total passing
+  21-10-micro8-capstone-number-guessing-game: done  # Guessing game capstone, 5535 total passing
+  21-11-micro8-capstone-text-adventure: done  # Text adventure engine capstone, 3 review fixes, 5535 total passing
+  21-12-micro8-capstone-device-controller: done  # Device controller capstone, 3 review fixes, 5535 total passing
+  21-13-micro16-capstone-terminal-repl: done  # Terminal command parser capstone, 5535 total passing
+  21-14-micro16-capstone-simple-graphics: done  # Simple graphics capstone, 3 review fixes, 5535 total passing
   epic-21-retrospective: optional
 
   # Epic 22: FPGA Export Pipeline

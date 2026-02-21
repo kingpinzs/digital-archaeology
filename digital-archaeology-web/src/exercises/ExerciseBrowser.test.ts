@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ExerciseBrowser } from './ExerciseBrowser';
-import { EXERCISES, STAGES_WITH_EXERCISES } from './exerciseMetadata';
+import { EXERCISES, STAGES_WITH_EXERCISES, getExerciseCountByStage } from './exerciseMetadata';
 import type { ExerciseBrowserCallbacks } from './types';
 import { DIFFICULTY_ORDER } from './types';
 
@@ -127,8 +127,8 @@ describe('ExerciseBrowser', () => {
       const m8Chip = container.querySelector('[data-stage="micro8"]');
       (m8Chip as HTMLElement).click();
       const cards = container.querySelectorAll('.da-exercise-card');
-      // Should show only micro8 exercises (5)
-      expect(cards.length).toBe(5);
+      // Should show only micro8 exercises
+      expect(cards.length).toBe(getExerciseCountByStage('micro8'));
     });
 
     it('clicking All chip shows all exercises', () => {

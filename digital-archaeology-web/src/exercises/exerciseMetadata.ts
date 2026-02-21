@@ -390,6 +390,90 @@ TEN:     DB 10
     solutionExplanation: 'LDA DIGIT_A loads 5, ADD DIGIT_B adds 7 giving 12 in the accumulator. Since 12 > 9 it is not a valid BCD digit, so SUB TEN corrects it to 2. STA RESULT stores the ones digit. LDI 1 and STA CARRY record that the addition overflowed. This BCD correction — subtract 10 when the sum exceeds 9 — is the fundamental operation of every calculator chip, and the very application that launched Intel\'s microprocessor revolution. The 4004, completed in 1971, had a dedicated DAA instruction to handle general BCD correction that this simple approach cannot.',
   },
 
+  {
+    id: 'ex-m4-led-pattern',
+    title: 'LED Pattern Controller (Capstone)',
+    stage: 'micro4',
+    difficulty: 'capstone',
+    description: 'Build an LED pattern controller that generates a sequence of 7-segment display codes. Store four display patterns (digits 0, 1, 2, 3) in a lookup table, then copy them to the output buffer. Experience hardware control with extreme 4-bit memory constraints.',
+    concepts: ['lookup-table', 'memory-layout', 'pattern-generation', 'hardware-interface'],
+    estimatedMinutes: 25,
+    prerequisites: ['ex-m4-bit-shift-multiply'],
+    starterCode: `; LED Pattern Controller (Capstone)
+; Goal: Copy 4 display patterns from a lookup table to the output buffer
+;
+; 7-segment display encoding (simplified for 4-bit):
+;   Digit 0 = 0xE (segments a,b,c = 1110)
+;   Digit 1 = 0x2 (segment b only = 0010)
+;   Digit 2 = 0xD (segments a,b,d = 1101)
+;   Digit 3 = 0x7 (segments a,c,d = 0111)
+;
+; Copy PAT0-PAT3 into OUT0-OUT3 using LDA/STA pairs.
+; This simulates driving a 7-segment display with pre-defined patterns.
+
+; TODO: Load PAT0 into accumulator, store at OUT0
+
+; TODO: Load PAT1 into accumulator, store at OUT1
+
+; TODO: Load PAT2 into accumulator, store at OUT2
+
+; TODO: Load PAT3 into accumulator, store at OUT3
+
+HLT
+
+  ORG 0xF0
+; Pattern lookup table (7-segment codes)
+PAT0: DB 14
+PAT1: DB 2
+PAT2: DB 13
+PAT3: DB 7
+; Output buffer
+OUT0: DB 0
+OUT1: DB 0
+OUT2: DB 0
+OUT3: DB 0
+`,
+    testCases: [
+      { label: 'OUT0 (digit 0)', address: 0xF4, expected: 14 },
+      { label: 'OUT1 (digit 1)', address: 0xF5, expected: 2 },
+      { label: 'OUT2 (digit 2)', address: 0xF6, expected: 13 },
+      { label: 'OUT3 (digit 3)', address: 0xF7, expected: 7 },
+    ],
+    hints: [
+      'Each pattern needs an LDA/STA pair: LDA PATn loads the pattern, STA OUTn writes it.',
+      'The accumulator can only hold one value at a time, so you must store before loading the next.',
+      'LDA PAT0 then STA OUT0 copies the first pattern. Repeat for PAT1→OUT1, etc.',
+      'This is a lookup table pattern: pre-computed values stored in memory and copied to output.',
+      'In real hardware, the output buffer would be memory-mapped I/O connected to LED pins.',
+    ],
+    solution: `; LED Pattern Controller (Capstone)
+; Copy 4 display patterns from lookup table to output buffer
+
+LDA PAT0
+STA OUT0
+LDA PAT1
+STA OUT1
+LDA PAT2
+STA OUT2
+LDA PAT3
+STA OUT3
+HLT
+
+  ORG 0xF0
+; Pattern lookup table (7-segment codes)
+PAT0: DB 14
+PAT1: DB 2
+PAT2: DB 13
+PAT3: DB 7
+; Output buffer
+OUT0: DB 0
+OUT1: DB 0
+OUT2: DB 0
+OUT3: DB 0
+`,
+    solutionExplanation: 'Each LDA/STA pair copies one display pattern from the lookup table to the output buffer. In real embedded systems, the output buffer would be a memory-mapped I/O register connected to the 7-segment LED display hardware. With only 256 nibbles of memory, every byte matters — this is why early microcontrollers needed efficient lookup tables.',
+  },
+
   // ── Micro8 Exercises ──────────────────────────────────────
   {
     id: 'ex-m8-register-swap',
@@ -801,6 +885,270 @@ FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
     solutionExplanation: 'CALL NEXT_FIB pushes the return address and jumps to the subroutine. Inside, MOV R2, R0 then ADD R2, R1 computes the next number. RET pops the return address. After the call, we shift the window (R0=R1, R1=R2) for the next iteration. This is iterative Fibonacci using subroutines.',
   },
 
+  // ── Micro8 Capstone Exercises ─────────────────────────────
+  {
+    id: 'ex-m8-guessing-game',
+    title: 'Number Guessing Game (Capstone)',
+    stage: 'micro8',
+    difficulty: 'capstone',
+    description: 'Build the logic for a number guessing game — one of the first programs many people wrote on early home computers. Given a secret number and a guess, determine if the guess is correct, too high, or too low, and store the result code. Experience the luxury of 8 registers and subroutines.',
+    concepts: ['comparison', 'branching', 'subroutines', 'registers', 'game-logic'],
+    estimatedMinutes: 30,
+    prerequisites: ['ex-m8-fibonacci'],
+    starterCode: `; Number Guessing Game (Capstone)
+; Goal: Compare GUESS to SECRET, store result code at RESULT
+;
+; Result codes:
+;   0 = correct (GUESS == SECRET)
+;   1 = too low  (GUESS < SECRET)
+;   2 = too high (GUESS > SECRET)
+;
+; This is the core logic of every number guessing game.
+; On early home computers (Apple II, TRS-80), this was often
+; the first program people wrote to learn programming.
+
+LDI R0, 0       ; R0 = result (default: 0 = correct)
+
+; TODO: Load SECRET into R1
+
+; TODO: Load GUESS into R2
+
+; TODO: Compare R2 to R1 (CALL the CHECK subroutine)
+
+; TODO: Store R0 at RESULT
+
+HLT
+
+; Subroutine: Compare R2 to R1, set R0 to result code
+; Input: R1 = secret, R2 = guess
+; Output: R0 = 0 (equal), 1 (low), 2 (high)
+CHECK:
+  ; TODO: CMP R2, R1 — compare guess to secret
+
+  ; TODO: JZ EQUAL — if equal, R0 is already 0
+
+  ; TODO: JC TOO_LOW — if carry set, guess < secret
+
+  ; TODO: Otherwise, guess > secret → R0 = 2
+
+  ; TODO: JMP CHECK_DONE
+
+TOO_LOW:
+  LDI R0, 1
+  JMP CHECK_DONE
+EQUAL:
+CHECK_DONE:
+  RET
+
+  .org 0x100
+SECRET: .db 42
+GUESS:  .db 57
+RESULT: .db 0xFF
+`,
+    testCases: [
+      { label: 'RESULT (57 vs 42 = too high)', address: 0x102, expected: 2 },
+    ],
+    hints: [
+      'LD R1, [SECRET] loads the secret number. LD R2, [GUESS] loads the guess.',
+      'CALL CHECK jumps to the subroutine. R0 will hold the result code when it returns.',
+      'Inside CHECK: CMP R2, R1 sets flags. JZ EQUAL handles the match case.',
+      'After CMP, the carry flag indicates R2 < R1 (too low). Use JC TOO_LOW.',
+      'If neither equal nor too low, the guess is too high: LDI R0, 2 then JMP CHECK_DONE.',
+    ],
+    solution: `; Number Guessing Game (Capstone)
+; Compare GUESS to SECRET, store result code
+
+LDI R0, 0             ; default result = correct
+
+LD R1, [SECRET]        ; R1 = secret number
+LD R2, [GUESS]         ; R2 = guess
+CALL CHECK             ; compare and set R0
+ST R0, [RESULT]        ; store result code
+HLT
+
+CHECK:
+  CMP R2, R1
+  JZ EQUAL             ; guess == secret → R0 stays 0
+  JC TOO_LOW           ; guess < secret → R0 = 1
+  LDI R0, 2            ; guess > secret → R0 = 2
+  JMP CHECK_DONE
+TOO_LOW:
+  LDI R0, 1
+  JMP CHECK_DONE
+EQUAL:
+CHECK_DONE:
+  RET
+
+  .org 0x100
+SECRET: .db 42
+GUESS:  .db 57
+RESULT: .db 0xFF
+`,
+    solutionExplanation: 'LD loads the secret and guess into registers. CALL CHECK invokes the comparison subroutine. CMP R2, R1 sets the zero flag (equal) or carry flag (less than). The branching logic maps these flags to result codes: 0=correct, 1=too low, 2=too high. With 8 registers and subroutines, this is clean and modular — a huge contrast to Micro4\'s accumulator-only architecture.',
+  },
+  {
+    id: 'ex-m8-text-adventure',
+    title: 'Text Adventure Engine (Capstone)',
+    stage: 'micro8',
+    difficulty: 'capstone',
+    description: 'Build the navigation engine for a text adventure game. Given a current room and a direction command, compute the next room number using a room connection table. This is the core of games like Colossal Cave and Zork — rooms connected by directional links.',
+    concepts: ['lookup-table', 'indirect-addressing', 'game-state', 'memory-layout'],
+    estimatedMinutes: 30,
+    prerequisites: ['ex-m8-fibonacci'],
+    starterCode: `; Text Adventure Engine (Capstone)
+; Goal: Navigate from CURRENT_ROOM using DIRECTION to compute NEXT_ROOM
+;
+; Room connection table (4 bytes per room: N, S, E, W exits):
+;   Room 0: N=1, S=0, E=2, W=0   (0 = no exit)
+;   Room 1: N=0, S=0, E=3, W=0
+;   Room 2: N=3, S=0, E=0, W=0
+;   Room 3: N=0, S=2, E=0, W=1
+;
+; Direction codes: 0=North, 1=South, 2=East, 3=West
+;
+; Algorithm:
+;   offset = CURRENT_ROOM * 4 + DIRECTION
+;   NEXT_ROOM = ROOM_TABLE[offset]
+
+; TODO: Load CURRENT_ROOM into R0
+
+; TODO: Multiply R0 by 4 (shift left twice: ADD R0, R0 twice)
+
+; TODO: Load DIRECTION into R1
+
+; TODO: Add R1 to R0 (R0 = offset into table)
+
+; TODO: Load base address of ROOM_TABLE into HL
+
+; TODO: Add offset (R0) to HL
+
+; TODO: Load room number from [HL] into R2
+
+; TODO: Store R2 at NEXT_ROOM
+
+HLT
+
+  .org 0x100
+CURRENT_ROOM: .db 0
+DIRECTION:    .db 2
+NEXT_ROOM:    .db 0xFF
+; Room connection table (N, S, E, W for each room)
+ROOM_TABLE:
+  .db 1, 0, 2, 0
+  .db 0, 0, 3, 0
+  .db 3, 0, 0, 0
+  .db 0, 2, 0, 1
+`,
+    testCases: [
+      { label: 'NEXT_ROOM (room 0, East)', address: 0x102, expected: 2 },
+    ],
+    hints: [
+      'Each room has 4 bytes in the table (N, S, E, W). To find the right entry: offset = room * 4 + direction.',
+      'Multiply by 4 using two left shifts: ADD R0, R0 doubles it once, ADD R0, R0 doubles it again (x4).',
+      'ADD R1 to R0 adds the direction offset. Now R0 is the index into ROOM_TABLE.',
+      'LDI16 HL, ROOM_TABLE loads the table base address. Then add R0 to get the target address.',
+      'LD R2, [HL] reads the exit room number. ST R2, [NEXT_ROOM] stores the answer.',
+    ],
+    solution: `; Text Adventure Engine (Capstone)
+; Navigate rooms using direction lookup
+
+LD R0, [CURRENT_ROOM]  ; R0 = current room (0)
+ADD R0, R0             ; R0 = room * 2
+ADD R0, R0             ; R0 = room * 4
+LD R1, [DIRECTION]     ; R1 = direction (2 = East)
+ADD R0, R1             ; R0 = room*4 + direction = offset
+LDI16 HL, ROOM_TABLE   ; HL = base of table
+ADD L, R0              ; HL += offset (8-bit add to L; works because table fits in one page)
+LD R2, [HL]            ; R2 = exit room number
+ST R2, [NEXT_ROOM]     ; store result
+HLT
+
+  .org 0x100
+CURRENT_ROOM: .db 0
+DIRECTION:    .db 2
+NEXT_ROOM:    .db 0xFF
+; Room connection table (N, S, E, W for each room)
+ROOM_TABLE:
+  .db 1, 0, 2, 0
+  .db 0, 0, 3, 0
+  .db 3, 0, 0, 0
+  .db 0, 2, 0, 1
+`,
+    solutionExplanation: 'This is a lookup table with computed indexing. Multiply the room number by 4 (two left-shift-by-addition), add the direction to get the offset into the table. Load the base address, add the offset, and read the exit room number. This table-driven approach is exactly how real text adventure engines like Zork managed room connections — a map encoded as data, not code.',
+  },
+  {
+    id: 'ex-m8-device-controller',
+    title: 'Device Controller (Capstone)',
+    stage: 'micro8',
+    difficulty: 'capstone',
+    description: 'Build a simulated keypad-to-display controller. Read a keypad input code, look up the corresponding 7-segment display pattern, and write it to the display output register. This is how early microcontrollers interfaced with hardware — polling input and driving output.',
+    concepts: ['memory-mapped-io', 'lookup-table', 'input-output', 'hardware-interface'],
+    estimatedMinutes: 25,
+    prerequisites: ['ex-m8-fibonacci'],
+    starterCode: `; Device Controller (Capstone)
+; Goal: Read KEYPAD input, look up 7-segment pattern, write to DISPLAY
+;
+; Keypad codes 0-9 map to 7-segment patterns:
+;   0=0x3F, 1=0x06, 2=0x5B, 3=0x4F, 4=0x66
+;   5=0x6D, 6=0x7D, 7=0x07, 8=0x7F, 9=0x6F
+;
+; Algorithm:
+;   1. Read the key code from KEYPAD
+;   2. Use it as an index into SEG_TABLE
+;   3. Load the corresponding pattern
+;   4. Store it at DISPLAY
+
+; TODO: Load KEYPAD value into R0 (this is the key pressed)
+
+; TODO: Load base address of SEG_TABLE into HL
+
+; TODO: Add R0 to HL to index into the table
+
+; TODO: Load the 7-segment pattern from [HL] into R1
+
+; TODO: Store R1 at DISPLAY
+
+HLT
+
+  .org 0x100
+KEYPAD:  .db 5
+DISPLAY: .db 0
+; 7-segment lookup table (key 0 through 9)
+SEG_TABLE:
+  .db 0x3F, 0x06, 0x5B, 0x4F, 0x66
+  .db 0x6D, 0x7D, 0x07, 0x7F, 0x6F
+`,
+    testCases: [
+      { label: 'DISPLAY (key 5 pattern)', address: 0x101, expected: 0x6D },
+    ],
+    hints: [
+      'LD R0, [KEYPAD] reads the pressed key (5). This becomes the index into SEG_TABLE.',
+      'LDI16 HL, SEG_TABLE loads the base address of the pattern table.',
+      'ADD L, R0 offsets HL by the key code to point at the correct pattern.',
+      'LD R1, [HL] reads the 7-segment pattern. ST R1, [DISPLAY] writes it to output.',
+      'In real embedded systems, KEYPAD and DISPLAY would be memory-mapped I/O addresses connected to physical hardware.',
+    ],
+    solution: `; Device Controller (Capstone)
+; Read keypad, look up 7-segment pattern, write to display
+
+LD R0, [KEYPAD]         ; R0 = key pressed (5)
+LDI16 HL, SEG_TABLE     ; HL = base of pattern table
+ADD L, R0               ; HL += key code (8-bit add; works because table fits in one page)
+LD R1, [HL]             ; R1 = 7-segment pattern
+ST R1, [DISPLAY]        ; write to display register
+HLT
+
+  .org 0x100
+KEYPAD:  .db 5
+DISPLAY: .db 0
+; 7-segment lookup table (key 0 through 9)
+SEG_TABLE:
+  .db 0x3F, 0x06, 0x5B, 0x4F, 0x66
+  .db 0x6D, 0x7D, 0x07, 0x7F, 0x6F
+`,
+    solutionExplanation: 'Read the keypad input, use it as an index into the 7-segment lookup table, and write the pattern to the display output. This poll-lookup-output cycle is the fundamental pattern of all embedded device controllers. Early microcontrollers like the 8048 and 8051 used exactly this approach to drive LED displays, keypads, and other peripherals.',
+  },
+
   // ── Micro16 Exercises ──────────────────────────────────────
   {
     id: 'ex-m16-segment-basics',
@@ -1165,6 +1513,196 @@ NODE3: .dw 30
 RESULT: .dw 0
 `,
     solutionExplanation: 'Check if SI is null (0) to detect end of list. Increment the counter, then read the next-pointer field at offset +2 from the current node. LD SI, [SI + 2] follows the link. This is pointer chasing — the fundamental operation of all dynamic data structures.',
+  },
+
+  // ── Micro16 Capstone Exercises ──────────────────────────────
+  {
+    id: 'ex-m16-terminal-repl',
+    title: 'Terminal Command Parser (Capstone)',
+    stage: 'micro16',
+    difficulty: 'capstone',
+    description: 'Build a command parser for an interactive terminal. Given a command buffer containing a string, compute a command ID by hashing the first character and store it. This is the core of CP/M and early DOS — parsing user input to determine which command to execute. Experience why 16-bit address space enabled interactive computing.',
+    concepts: ['string-parsing', 'command-dispatch', 'hashing', 'memory-segments'],
+    estimatedMinutes: 30,
+    prerequisites: ['ex-m16-linked-list'],
+    starterCode: `; Terminal Command Parser (Capstone)
+; Goal: Parse a command string, compute command ID, store at CMD_ID
+;
+; Command dispatch via first-character hash:
+;   'H' (0x48) → CMD_ID = 1 (HELP)
+;   'E' (0x45) → CMD_ID = 2 (ECHO)
+;   'M' (0x4D) → CMD_ID = 3 (MEM)
+;   Other      → CMD_ID = 0 (UNKNOWN)
+;
+; The command string "MEM" is at CMD_BUF.
+; Read the first character and compare against known commands.
+
+; TODO: Load the first character of CMD_BUF into AX
+
+; TODO: Compare AX to 'H' (0x48) — if match, CMD_ID = 1
+
+; TODO: Compare AX to 'E' (0x45) — if match, CMD_ID = 2
+
+; TODO: Compare AX to 'M' (0x4D) — if match, CMD_ID = 3
+
+; TODO: If no match, CMD_ID = 0
+
+; TODO: Store CMD_ID at the result address
+
+HLT
+
+  .org 0x200
+CMD_BUF: .db 0x4D, 0x45, 0x4D, 0x00  ; "MEM" null-terminated
+CMD_ID:  .dw 0xFFFF
+`,
+    testCases: [
+      { label: 'CMD_ID (MEM=3)', address: 0x204, expected: 3 },
+    ],
+    hints: [
+      'LD AX, [CMD_BUF] reads the first byte. Use AND AX, #0xFF to isolate just the low byte.',
+      'CMP AX, #0x48 checks for \'H\'. If equal (JZ), set the ID and jump to the store step.',
+      'Chain the comparisons: check H, then E, then M. Fall through to unknown if none match.',
+      'MOV BX, #3 (or whichever ID) then ST BX, [CMD_ID] stores the result.',
+      'In CP/M and early DOS, this exact pattern dispatched HELP, DIR, TYPE, COPY and other commands.',
+    ],
+    solution: `; Terminal Command Parser (Capstone)
+; Parse command string, determine command ID
+
+MOV SI, #CMD_BUF
+LD AX, [SI]            ; load first byte
+AND AX, #0xFF          ; isolate character
+
+CMP AX, #0x48          ; 'H' = HELP?
+JZ IS_HELP
+CMP AX, #0x45          ; 'E' = ECHO?
+JZ IS_ECHO
+CMP AX, #0x4D          ; 'M' = MEM?
+JZ IS_MEM
+
+MOV BX, #0             ; unknown command
+JMP STORE_ID
+
+IS_HELP:
+  MOV BX, #1
+  JMP STORE_ID
+IS_ECHO:
+  MOV BX, #2
+  JMP STORE_ID
+IS_MEM:
+  MOV BX, #3
+
+STORE_ID:
+  ST BX, [CMD_ID]
+  HLT
+
+  .org 0x200
+CMD_BUF: .db 0x4D, 0x45, 0x4D, 0x00  ; "MEM" null-terminated
+CMD_ID:  .dw 0xFFFF
+`,
+    solutionExplanation: 'Load the first character from the command buffer, mask to isolate the byte, then compare against known command characters in sequence. Each match jumps to a label that sets the appropriate ID. This if-else-if chain is how CP/M and early DOS dispatched commands — the jump from 8-bit to 16-bit address space made interactive terminals possible by allowing enough memory for command tables, string buffers, and the OS itself.',
+  },
+  {
+    id: 'ex-m16-simple-graphics',
+    title: 'Simple Graphics (Capstone)',
+    stage: 'micro16',
+    difficulty: 'capstone',
+    description: 'Draw a horizontal line on a simulated framebuffer by filling consecutive memory addresses with a pixel value. Compute start and end addresses from X, Y coordinates and line length, then fill the pixel data. This is the foundation of all computer graphics — understanding why more address space enabled visual computing.',
+    concepts: ['framebuffer', 'coordinate-math', 'memory-fill', 'graphics-primitives'],
+    estimatedMinutes: 30,
+    prerequisites: ['ex-m16-linked-list'],
+    starterCode: `; Simple Graphics (Capstone)
+; Goal: Draw a horizontal line on a simulated framebuffer
+;
+; Framebuffer: 16 pixels wide, starts at FB_BASE
+; Each pixel = 1 byte (word), pixel value in PIXEL_VAL
+;
+; Line specification:
+;   START_X = 2 (column)
+;   START_Y = 1 (row)
+;   LENGTH  = 4 (pixels)
+;
+; Pixel address = FB_BASE + (START_Y * 32) + (START_X * 2)
+; (16 pixels/row * 2 bytes/word = 32 bytes/row; X also needs *2)
+; Fill LENGTH consecutive word addresses with PIXEL_VAL
+;
+; Expected: addresses 0x22C-0x232 (even) should contain 0xFF
+
+; TODO: Compute start address: FB_BASE + (Y * 16) + X
+;       Load START_Y, multiply by 16 (shift left 4 times)
+;       Add START_X
+;       Add FB_BASE offset
+
+; TODO: Set up loop counter from LENGTH
+
+; TODO: Fill loop: write PIXEL_VAL to current address, increment, decrement counter
+
+HLT
+
+  .org 0x200
+START_X:   .dw 2
+START_Y:   .dw 1
+LENGTH:    .dw 4
+PIXEL_VAL: .dw 0xFF
+; Framebuffer: 2 rows of 16 pixels (32 bytes)
+FB_BASE:
+  .dw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+  .dw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+`,
+    testCases: [
+      { label: 'pixel at (2,1)', address: 0x22C, expected: 0xFF },
+      { label: 'pixel at (3,1)', address: 0x22E, expected: 0xFF },
+      { label: 'pixel at (4,1)', address: 0x230, expected: 0xFF },
+      { label: 'pixel at (5,1)', address: 0x232, expected: 0xFF },
+    ],
+    hints: [
+      'The framebuffer offset is Y * 32 + X * 2. Each row is 16 pixels wide and each pixel is a 16-bit word (2 bytes), so one row = 32 bytes. Each column offset must also be multiplied by 2.',
+      'To multiply by 32: shift left 5 times. Or multiply by 16 then by 2. ADD AX, AX repeated 5 times.',
+      'ADD the START_X * 2 (since each pixel is a word) and FB_BASE to get the starting address.',
+      'Use a loop: load PIXEL_VAL, store at [SI], add 2 to SI (word-aligned), decrement counter, JNZ.',
+      'MOV SI with the computed address, MOV CX with LENGTH, then loop: ST, ADD SI, #2, SUB CX, #1, JNZ.',
+    ],
+    solution: `; Simple Graphics (Capstone)
+; Draw a horizontal line on a simulated framebuffer
+
+; Compute pixel address: FB_BASE + Y*32 + X*2
+LD AX, [START_Y]       ; AX = Y (1)
+; Multiply by 32 (16 pixels * 2 bytes per pixel)
+ADD AX, AX             ; *2
+ADD AX, AX             ; *4
+ADD AX, AX             ; *8
+ADD AX, AX             ; *16
+ADD AX, AX             ; *32 → AX = 32
+
+LD BX, [START_X]       ; BX = X (2)
+ADD BX, BX             ; BX = X*2 (word offset) = 4
+
+ADD AX, BX             ; AX = Y*32 + X*2 = 36
+
+MOV SI, #FB_BASE       ; SI = framebuffer base
+ADD SI, AX             ; SI = pixel address
+
+LD DX, [PIXEL_VAL]     ; DX = pixel value (0xFF)
+LD CX, [LENGTH]        ; CX = line length (4)
+
+DRAW_LOOP:
+  ST DX, [SI]          ; write pixel
+  ADD SI, #2           ; next pixel (word-aligned)
+  SUB CX, #1           ; decrement counter
+  JNZ DRAW_LOOP
+
+HLT
+
+  .org 0x200
+START_X:   .dw 2
+START_Y:   .dw 1
+LENGTH:    .dw 4
+PIXEL_VAL: .dw 0xFF
+; Framebuffer: 2 rows of 16 pixels (32 bytes)
+FB_BASE:
+  .dw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+  .dw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+`,
+    solutionExplanation: 'Compute the pixel address using coordinate math: Y*32 + X*2 + FB_BASE. The factor of 32 comes from 16 pixels per row times 2 bytes per pixel. Then loop: write the pixel value, advance the pointer by 2 (word-aligned), and decrement the counter. This address calculation and memory-fill loop is the foundation of all raster graphics — the same pattern used in VGA drivers, framebuffer consoles, and early game engines.',
   },
 ] as const;
 

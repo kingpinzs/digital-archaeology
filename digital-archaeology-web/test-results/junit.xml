@@ -1,21 +1,18 @@
-<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="14.541983">
-<testsuite name="app.spec.ts" timestamp="2026-02-21T04:10:41.914Z" hostname="chromium" tests="2" failures="1" skipped="0" time="10.957" errors="0">
-<testcase name="Digital Archaeology App › [P0] should load the application" classname="app.spec.ts" time="3.13">
+<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="14.441841">
+<testsuite name="app.spec.ts" timestamp="2026-02-21T04:13:56.029Z" hostname="chromium" tests="2" failures="1" skipped="0" time="10.839" errors="0">
+<testcase name="Digital Archaeology App › [P0] should load the application" classname="app.spec.ts" time="3.165">
 </testcase>
-<testcase name="Digital Archaeology App › [P1] should display without JavaScript errors" classname="app.spec.ts" time="7.827">
+<testcase name="Digital Archaeology App › [P1] should display without JavaScript errors" classname="app.spec.ts" time="7.674">
 <failure message="app.spec.ts:13:3 [P1] should display without JavaScript errors" type="FAILURE">
 <![CDATA[  [chromium] › app.spec.ts:13:3 › Digital Archaeology App › [P1] should display without JavaScript errors 
 
     Error: expect(received).toHaveLength(expected)
 
     Expected length: 0
-    Received length: 5
+    Received length: 3
     Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
         at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
-        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
-        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
-        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
-        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)"]
 
       27 |
       28 |     // THEN: No JavaScript errors should occur
@@ -49,13 +46,10 @@
     Error: expect(received).toHaveLength(expected)
 
     Expected length: 0
-    Received length: 5
+    Received length: 3
     Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
         at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
-        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
-        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
-        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
-        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)"]
 
       27 |
       28 |     // THEN: No JavaScript errors should occur
@@ -89,13 +83,10 @@
     Error: expect(received).toHaveLength(expected)
 
     Expected length: 0
-    Received length: 5
+    Received length: 3
     Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
         at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
-        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
-        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
-        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
-        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)"]
 
       27 |
       28 |     // THEN: No JavaScript errors should occur

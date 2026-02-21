@@ -20,6 +20,14 @@ export const DIFFICULTY_ORDER: readonly ExerciseDifficulty[] = [
   'beginner', 'intermediate', 'advanced', 'capstone',
 ] as const;
 
+/** CSS color variable for each difficulty */
+export const DIFFICULTY_COLOR_VARS: Record<ExerciseDifficulty, string> = {
+  beginner: 'var(--da-exercise-beginner)',
+  intermediate: 'var(--da-exercise-intermediate)',
+  advanced: 'var(--da-exercise-advanced)',
+  capstone: 'var(--da-exercise-capstone)',
+};
+
 /** Exercise concept categories */
 export type ExerciseCategory =
   | 'arithmetic'

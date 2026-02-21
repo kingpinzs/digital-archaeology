@@ -3,6 +3,7 @@
 // Story 21.1: Create Exercise Browser
 
 export { ExerciseBrowser } from './ExerciseBrowser';
+export { ExerciseDetailPanel } from './ExerciseDetailPanel';
 export { ExerciseProgressStorage } from './ExerciseProgressStorage';
 export {
   EXERCISES,
@@ -21,4 +22,4 @@ export type {
   ExerciseBrowserData,
   ExerciseBrowserCallbacks,
 } from './types';
-export { DIFFICULTY_LABELS, DIFFICULTY_ORDER } from './types';
+export { DIFFICULTY_LABELS, DIFFICULTY_ORDER, DIFFICULTY_COLOR_VARS } from './types';

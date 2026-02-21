@@ -8,23 +8,17 @@ import type {
   ExerciseBrowserData,
   ExerciseBrowserCallbacks,
 } from './types';
-import { DIFFICULTY_LABELS, DIFFICULTY_ORDER } from './types';
+import { DIFFICULTY_LABELS, DIFFICULTY_ORDER, DIFFICULTY_COLOR_VARS } from './types';
 import {
   STAGES_WITH_EXERCISES,
   STAGE_EXERCISE_LABELS,
   getExerciseCountByStage,
+  findExerciseById,
 } from './exerciseMetadata';
+import { ExerciseDetailPanel } from './ExerciseDetailPanel';
 import type { LabStage } from '@ui/StageSelector';
 
 const EXIT_DURATION_MS = 300;
-
-/** CSS color variable for each difficulty */
-const DIFFICULTY_COLOR_VARS: Record<ExerciseDifficulty, string> = {
-  beginner: 'var(--da-exercise-beginner)',
-  intermediate: 'var(--da-exercise-intermediate)',
-  advanced: 'var(--da-exercise-advanced)',
-  capstone: 'var(--da-exercise-capstone)',
-};
 
 /**
  * Modal browser for browsing and filtering exercises by stage and difficulty.
@@ -49,6 +43,7 @@ export class ExerciseBrowser {
   private activeDifficulty: ExerciseDifficulty | null = null;
   private activeStageFilter: LabStage | null = null;
   private searchQuery: string = '';
+  private readonly detailPanel: ExerciseDetailPanel = new ExerciseDetailPanel();
 
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
@@ -131,6 +126,7 @@ export class ExerciseBrowser {
       clearTimeout(this.exitTimeout);
       this.exitTimeout = null;
     }
+    this.detailPanel.destroy();
     document.removeEventListener('keydown', this.boundHandleKeydown);
     this.overlay?.remove();
     this.overlay = null;
@@ -419,13 +415,35 @@ export class ExerciseBrowser {
     if (exercise.concepts.length > 0) {
       const concepts = document.createElement('span');
       concepts.className = 'da-exercise-card__concepts';
-      concepts.textContent = exercise.concepts.slice(0, 3).join(', ');
+      concepts.textContent = exercise.concepts.join(', ');
       meta.appendChild(concepts);
     }
 
     card.appendChild(meta);
 
-    // Click handler
+    // Prerequisites row
+    if (exercise.prerequisites.length > 0) {
+      const prereqRow = document.createElement('div');
+      prereqRow.className = 'da-exercise-card__prereqs';
+      const prereqTitles = exercise.prerequisites
+        .map(id => findExerciseById(id)?.title ?? id)
+        .join(', ');
+      prereqRow.textContent = `Requires: ${prereqTitles}`;
+      card.appendChild(prereqRow);
+    }
+
+    // Detail view button (info icon)
+    const detailBtn = document.createElement('button');
+    detailBtn.className = 'da-exercise-card__detail-btn';
+    detailBtn.textContent = '\u2139';
+    detailBtn.setAttribute('aria-label', `View details for ${exercise.title}`);
+    detailBtn.addEventListener('click', (e: MouseEvent) => {
+      e.stopPropagation();
+      this.showDetail(exercise);
+    });
+    card.appendChild(detailBtn);
+
+    // Click handler — start exercise
     card.addEventListener('click', () => {
       this.callbacks?.onExerciseSelect(exercise);
     });
@@ -481,16 +499,30 @@ export class ExerciseBrowser {
     el.textContent = `${completedInView} of ${filtered.length} completed`;
   }
 
+  private showDetail(exercise: ExerciseMetadata): void {
+    const content = this.overlay?.querySelector('.da-exercise-browser__content');
+    if (!content) return;
+    this.detailPanel.show(exercise, this.completedIds, this.callbacks, content as HTMLElement);
+  }
+
   private handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
       e.preventDefault();
+      if (this.detailPanel.isVisible()) {
+        this.detailPanel.dismiss();
+        return;
+      }
       this.close();
       return;
     }
 
     // Focus trap: Tab/Shift+Tab stays within overlay
     if (e.key === 'Tab') {
-      const focusable = this.overlay?.querySelectorAll<HTMLElement>(
+      // When detail panel is open, restrict focus trap to the panel
+      const focusRoot = this.detailPanel.isVisible()
+        ? this.overlay?.querySelector<HTMLElement>('.da-exercise-detail')
+        : this.overlay;
+      const focusable = focusRoot?.querySelectorAll<HTMLElement>(
         'button, [href], input, [tabindex]:not([tabindex="-1"])',
       );
       if (!focusable || focusable.length === 0) return;

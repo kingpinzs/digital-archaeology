@@ -49,6 +49,7 @@ import {
   StatisticsCollector,
   StatisticsDashboard,
 } from '../progress';
+import { LiteratureBrowser, LITERATURE_ARTICLES } from '@literature/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -295,6 +296,9 @@ export class App {
   private previousStageForTiming: LabStage = 'micro4';
   private runStartInstructions: number = 0;
 
+  // Literature Browser (Story 20.1)
+  private literatureBrowser: LiteratureBrowser = new LiteratureBrowser();
+
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
   private isRouteUpdating: boolean = false;
@@ -400,6 +404,7 @@ export class App {
     this.achievementToast.destroy();
     this.stageUnlockToast.destroy();
     this.statisticsDashboard.destroy();
+    this.literatureBrowser.destroy();
 
     this.container = container;
     this.isMounted = true;
@@ -444,6 +449,8 @@ export class App {
     this.stageUnlockToast.mount(container);
     // Story 19.6: Mount statistics dashboard and reset timing
     this.statisticsDashboard.mount(container);
+    // Story 20.1: Mount literature browser
+    this.literatureBrowser.mount(container);
     this.sessionStartTimestamp = Date.now();
     this.stageChangeTimestamp = Date.now();
     this.previousStageForTiming = this.currentStage;
@@ -688,6 +695,7 @@ export class App {
       onViewCircuitPanel: () => this.togglePanel('circuit'),
       onViewStatePanel: () => this.togglePanel('state'),
       onViewHdlViewer: () => this.toggleHdlViewer(),
+      onViewLiterature: () => this.handleLiteratureClick(),
       onViewResetLayout: () => this.resetLayout(),
       // Debug menu
       onDebugAssemble: () => this.handleAssemble(),
@@ -831,6 +839,24 @@ export class App {
       if (req) reqs.set(stage, req);
     }
     this.menuBar?.getStageSelector()?.setUnlockRequirements(reqs);
+  }
+
+  /**
+   * Handle literature button click (Story 20.1).
+   * Opens the literature browser modal with all article metadata.
+   */
+  private handleLiteratureClick(): void {
+    this.literatureBrowser.open(
+      { articles: LITERATURE_ARTICLES },
+      {
+        onArticleSelect: () => {
+          // Article content rendering is a future story concern
+        },
+        onClose: () => {
+          // No-op: browser handles its own close
+        },
+      },
+    );
   }
 
   /**
@@ -1097,6 +1123,7 @@ export class App {
       onModeChange: (mode, challengeContext) => this.handleModeChange(mode, challengeContext),
       onStageUnlockCheck: () => this.handleStageUnlockCheck(),
       onStatisticsClick: () => this.handleStatisticsClick(),
+      onLiteratureClick: () => this.handleLiteratureClick(),
     });
     this.storyModeContainer.mount(storyMount as HTMLElement);
   }
@@ -4660,6 +4687,7 @@ export class App {
     // Story 19.6: Persist timing and destroy dashboard
     this.persistTimingStatistics();
     this.statisticsDashboard.destroy();
+    this.literatureBrowser.destroy();
 
     // Destroy resizers
     this.destroyResizers();

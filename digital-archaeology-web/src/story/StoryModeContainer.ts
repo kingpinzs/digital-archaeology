@@ -28,6 +28,8 @@ export interface StoryModeContainerOptions {
   onStageUnlockCheck?: () => void;
   /** Callback when statistics button is clicked (Story 19.6) */
   onStatisticsClick?: () => void;
+  /** Callback when literature button is clicked (Story 20.1) */
+  onLiteratureClick?: () => void;
 }
 
 /**
@@ -139,6 +141,9 @@ export class StoryModeContainer {
         },
         onStatisticsClick: () => {
           this.options.onStatisticsClick?.();
+        },
+        onLiteratureClick: () => {
+          this.options.onLiteratureClick?.();
         },
       });
       this.storyNav.mount(navMount as HTMLElement);

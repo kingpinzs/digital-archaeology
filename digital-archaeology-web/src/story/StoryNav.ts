@@ -34,6 +34,8 @@ export interface StoryNavOptions {
   onJourneyMapClick?: () => void;
   /** Callback when statistics button is clicked (Story 19.6) */
   onStatisticsClick?: () => void;
+  /** Callback when literature button is clicked (Story 20.1) */
+  onLiteratureClick?: () => void;
 }
 
 /**
@@ -62,6 +64,7 @@ export class StoryNav {
   private onJournalClick: (() => void) | undefined;
   private onJourneyMapClick: (() => void) | undefined;
   private onStatisticsClick: (() => void) | undefined;
+  private onLiteratureClick: (() => void) | undefined;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
@@ -73,6 +76,7 @@ export class StoryNav {
     this.onJournalClick = options.onJournalClick;
     this.onJourneyMapClick = options.onJourneyMapClick;
     this.onStatisticsClick = options.onStatisticsClick;
+    this.onLiteratureClick = options.onLiteratureClick;
   }
 
   /**
@@ -185,9 +189,20 @@ export class StoryNav {
       this.onStatisticsClick?.();
     });
 
+    // Story 20.1: Literature button
+    const literatureButton = document.createElement('button');
+    literatureButton.type = 'button';
+    literatureButton.className = 'da-story-nav-action';
+    literatureButton.setAttribute('aria-label', 'Open literature library');
+    literatureButton.textContent = 'Literature';
+    literatureButton.addEventListener('click', () => {
+      this.onLiteratureClick?.();
+    });
+
     right.appendChild(eraBadgeContainer);
     right.appendChild(journeyMapButton);
     right.appendChild(statsButton);
+    right.appendChild(literatureButton);
     right.appendChild(journalButton);
     right.appendChild(saveButton);
 

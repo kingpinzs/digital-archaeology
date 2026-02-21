@@ -30,7 +30,8 @@
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],
       "@test-utils/*": ["src/test-utils/*"],
-      "@simulators/*": ["src/simulators/*"]
+      "@simulators/*": ["src/simulators/*"],
+      "@literature/*": ["src/literature/*"]
     },
 
     /* Linting */

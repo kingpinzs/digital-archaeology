@@ -53,6 +53,7 @@ import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgre
 import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
 import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage } from '../exercises';
+import type { ExerciseMetadata } from '../exercises';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -901,14 +902,38 @@ export class App {
         currentStage: this.currentStage,
       },
       {
-        onExerciseSelect: (_exercise) => {
-          // Exercise selection will be wired in Story 21.3 (starter code)
+        onExerciseSelect: (exercise) => {
+          this.handleExerciseSelect(exercise);
         },
         onClose: () => {
           // No-op: browser handles its own close
         },
       },
     );
+  }
+
+  /**
+   * Handle exercise selection (Story 21.3).
+   * Loads starter code into the editor with unsaved work confirmation.
+   */
+  private handleExerciseSelect(exercise: ExerciseMetadata): void {
+    if (!this.confirmUnsavedChanges(`Loading exercise "${exercise.title}"`)) {
+      return;
+    }
+
+    this.exerciseBrowser.close();
+
+    // Switch to the exercise's stage if needed
+    if (exercise.stage !== this.currentStage) {
+      this.handleStageChange(exercise.stage);
+    }
+
+    if (this.editor) {
+      this.editor.setValue(exercise.starterCode);
+      this.autoSaveManager.cancel();
+      this.statusBar?.updateState({ loadStatus: `Exercise: ${exercise.title}` });
+      this.originalContent = exercise.starterCode;
+    }
   }
 
   /**

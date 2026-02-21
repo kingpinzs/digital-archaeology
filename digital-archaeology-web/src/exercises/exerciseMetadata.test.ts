@@ -76,6 +76,37 @@ describe('exerciseMetadata', () => {
         expect(ex.prerequisites).not.toContain(ex.id);
       }
     });
+
+    it('should have non-empty starterCode (30+ chars)', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.starterCode.length).toBeGreaterThanOrEqual(30);
+      }
+    });
+
+    it('starterCode should contain at least one TODO comment', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.starterCode).toContain('TODO');
+      }
+    });
+
+    it('starterCode should contain HLT instruction (non-capstone)', () => {
+      const nonCapstone = EXERCISES.filter(e => e.difficulty !== 'capstone');
+      for (const ex of nonCapstone) {
+        expect(ex.starterCode).toContain('HLT');
+      }
+    });
+
+    it('starterCode should use semicolon comments', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.starterCode).toMatch(/^;/m);
+      }
+    });
+
+    it('starterCode should include exercise title in header comment', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.starterCode).toContain(ex.title);
+      }
+    });
   });
 
   describe('EXERCISE_IDS', () => {

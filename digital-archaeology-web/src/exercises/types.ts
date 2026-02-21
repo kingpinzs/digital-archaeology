@@ -49,6 +49,7 @@ export interface ExerciseMetadata {
   readonly concepts: readonly string[];
   readonly estimatedMinutes: number;
   readonly prerequisites: readonly string[];
+  readonly starterCode: string;
 }
 
 /** Data passed to the browser when opening */

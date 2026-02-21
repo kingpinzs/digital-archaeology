@@ -52,6 +52,7 @@ import {
 import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
 import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
+import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage } from '../exercises';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -303,6 +304,9 @@ export class App {
   private readingProgressStorage: ReadingProgressStorage = new ReadingProgressStorage();
   private hintProgressStorage: HintProgressStorage = new HintProgressStorage();
   private depthPreferenceStorage: DepthPreferenceStorage = new DepthPreferenceStorage();
+  // Story 21.1: Exercise Browser
+  private exerciseBrowser: ExerciseBrowser = new ExerciseBrowser();
+  private exerciseProgressStorage: ExerciseProgressStorage = new ExerciseProgressStorage();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -456,6 +460,8 @@ export class App {
     this.statisticsDashboard.mount(container);
     // Story 20.1: Mount literature browser
     this.literatureBrowser.mount(container);
+    // Story 21.1: Mount exercise browser
+    this.exerciseBrowser.mount(container);
     this.sessionStartTimestamp = Date.now();
     this.stageChangeTimestamp = Date.now();
     this.previousStageForTiming = this.currentStage;
@@ -701,6 +707,7 @@ export class App {
       onViewStatePanel: () => this.togglePanel('state'),
       onViewHdlViewer: () => this.toggleHdlViewer(),
       onViewLiterature: () => this.handleLiteratureClick(),
+      onViewExercises: () => this.handleExercisesClick(),
       onViewResetLayout: () => this.resetLayout(),
       // Debug menu
       onDebugAssemble: () => this.handleAssemble(),
@@ -877,6 +884,28 @@ export class App {
         },
         onDepthLayerExpand: (layer) => {
           this.depthPreferenceStorage.markExpanded(layer as import('@literature/depthLayerData').DepthLayerName);
+        },
+      },
+    );
+  }
+
+  /**
+   * Handle exercises button click (Story 21.1).
+   * Opens the exercise browser modal with exercise metadata and progress.
+   */
+  private handleExercisesClick(): void {
+    this.exerciseBrowser.open(
+      {
+        exercises: EXERCISES,
+        completedIds: this.exerciseProgressStorage.load(),
+        currentStage: this.currentStage,
+      },
+      {
+        onExerciseSelect: (_exercise) => {
+          // Exercise selection will be wired in Story 21.3 (starter code)
+        },
+        onClose: () => {
+          // No-op: browser handles its own close
         },
       },
     );

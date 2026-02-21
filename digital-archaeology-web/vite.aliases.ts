@@ -26,5 +26,6 @@ export function createAliases(dirname: string): Record<string, string> {
     '@test-utils': resolve(dirname, './src/test-utils'),
     '@simulators': resolve(dirname, './src/simulators'),
     '@literature': resolve(dirname, './src/literature'),
+    '@exercises': resolve(dirname, './src/exercises'),
   };
 }

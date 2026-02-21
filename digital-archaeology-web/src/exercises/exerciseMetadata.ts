@@ -44,6 +44,11 @@ RESULT: DB 0
     testCases: [
       { label: 'RESULT', address: 0xF1, expected: 7 },
     ],
+    hints: [
+      'The Micro4 has two key instructions: LDA (load) and STA (store).',
+      'LDA loads a value FROM a memory label INTO the accumulator.',
+      'After loading VALUE with LDA, use STA RESULT to store it.',
+    ],
   },
   {
     id: 'ex-m4-simple-addition',
@@ -75,6 +80,12 @@ RESULT: DB 0
 `,
     testCases: [
       { label: 'RESULT (3+5)', address: 0xF2, expected: 8 },
+    ],
+    hints: [
+      'You need three instructions: LDA, ADD, and STA.',
+      'First LDA NUM1 to load 3 into the accumulator.',
+      'Then ADD NUM2 — the ALU adds memory to the accumulator.',
+      'Finally STA RESULT to write the sum to memory.',
     ],
   },
   {
@@ -114,6 +125,13 @@ RESULT: DB 0
 `,
     testCases: [
       { label: 'RESULT (countdown to 0)', address: 0xF2, expected: 0 },
+    ],
+    hints: [
+      'Inside the loop, you need to store, subtract, check, and jump.',
+      'STA RESULT saves the current value. SUB ONE decreases by 1.',
+      'JZ DONE jumps to the done label when the accumulator reaches zero.',
+      'JMP LOOP goes back unconditionally to repeat the loop body.',
+      'The loop exits naturally when SUB makes the accumulator zero and JZ fires.',
     ],
   },
   {
@@ -156,6 +174,12 @@ RESULT: DB 0
     testCases: [
       { label: 'RESULT (max of 9,6)', address: 0xF2, expected: 9 },
     ],
+    hints: [
+      'Without CMP, you compare by subtracting and checking the carry flag.',
+      'LDA NUM1, then SUB NUM2. If carry is set, NUM1 was smaller.',
+      'JC IS_NUM2 jumps to the branch where NUM2 is larger.',
+      'In the IS_NUM2 block: LDA NUM2 then STA RESULT then JMP DONE.',
+    ],
   },
   {
     id: 'ex-m4-bit-shift-multiply',
@@ -188,6 +212,12 @@ RESULT: DB 0
 `,
     testCases: [
       { label: 'RESULT (3*2)', address: 0xF1, expected: 6 },
+    ],
+    hints: [
+      'Left shift by 1 is the same as multiplying by 2.',
+      'Adding a number to itself doubles it: A + A = 2A.',
+      'LDA VALUE loads the value, then ADD VALUE adds it again.',
+      'STA RESULT writes the doubled value to memory.',
     ],
   },
 
@@ -228,6 +258,11 @@ SWAP_B: .db 0
     testCases: [
       { label: 'SWAP_A (was R1=0xAB)', address: 0x100, expected: 0xAB },
       { label: 'SWAP_B (was R0=0x42)', address: 0x101, expected: 0x42 },
+    ],
+    hints: [
+      'To swap two values, you need a temporary "holding area" — use R2.',
+      'MOV R2, R0 saves R0 before you overwrite it.',
+      'MOV R0, R1 puts R1\'s value into R0. Now MOV R1, R2 completes the swap.',
     ],
   },
   {
@@ -270,6 +305,12 @@ RESULT: .db 0
     testCases: [
       { label: 'RESULT (10+20+30+40+50)', address: 0x105, expected: 150 },
     ],
+    hints: [
+      'Use LD R2, [HL] to load the byte that HL points to into R2.',
+      'ADD R0, R2 adds the loaded element to your running sum in R0.',
+      'INC HL moves the pointer to the next array element.',
+      'DEC R1 decreases the counter. JNZ LOOP repeats if counter is not zero.',
+    ],
   },
   {
     id: 'ex-m8-string-length',
@@ -310,6 +351,12 @@ RESULT: .db 0
 `,
     testCases: [
       { label: 'RESULT (length of "Hello")', address: 0x106, expected: 5 },
+    ],
+    hints: [
+      'Load the byte at [HL] into R1, then test if it is zero.',
+      'LD R1, [HL] reads the current character. CMP R1, 0 or OR R1, R1 tests for null.',
+      'JZ DONE exits the loop when R1 is zero (null terminator found).',
+      'INC R0 counts the character, INC HL advances to the next byte, JMP LOOP repeats.',
     ],
   },
   {
@@ -364,6 +411,13 @@ ARRAY: .db 64, 25, 12, 22, 11
       { label: 'ARRAY[2]', address: 0x102, expected: 22 },
       { label: 'ARRAY[3]', address: 0x103, expected: 25 },
       { label: 'ARRAY[4] (largest)', address: 0x104, expected: 64 },
+    ],
+    hints: [
+      'Bubble sort compares adjacent pairs and swaps if out of order.',
+      'Load [HL] into R0, increment HL, load [HL] into R1 to get adjacent pair.',
+      'Compare R0 > R1: use CMP R0, R1 or subtract and check flags. Skip swap if already in order.',
+      'To swap: store R0 at current [HL], decrement HL, store R1 at [HL], then increment HL back.',
+      'Set R3=1 after each swap. After inner loop, if R3==1 repeat outer. If R3==0, array is sorted.',
     ],
   },
   {
@@ -427,6 +481,13 @@ FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
       { label: 'FIB[6]', address: 0x106, expected: 8 },
       { label: 'FIB[7]', address: 0x107, expected: 13 },
     ],
+    hints: [
+      'CALL NEXT_FIB pushes the return address onto the stack and jumps to the subroutine.',
+      'In NEXT_FIB, MOV R2, R0 then ADD R2, R1 computes R2 = F(n-2) + F(n-1).',
+      'After CALL returns, ST R2, [HL] saves the result, INC HL advances the pointer.',
+      'Update for next iteration: MOV R0, R1 then MOV R1, R2 shifts the window forward.',
+      'DEC R6 then JNZ LOOP repeats until all 6 remaining numbers are generated.',
+    ],
   },
 
   // ── Micro16 Exercises ──────────────────────────────────────
@@ -463,6 +524,11 @@ RESULT: .dw 0
     testCases: [
       { label: 'RESULT (0xBEEF)', address: 0x200, expected: 0xBEEF },
     ],
+    hints: [
+      'Micro16 uses segment registers. DS (Data Segment) determines where data reads/writes go.',
+      'MOV AX, #0x1000 loads the segment address. MOV DS, AX sets the data segment.',
+      'After setting DS, load your value: MOV AX, #0xBEEF then ST AX, [RESULT].',
+    ],
   },
   {
     id: 'ex-m16-hardware-multiply',
@@ -498,6 +564,12 @@ PRODUCT: .dw 0
 `,
     testCases: [
       { label: 'PRODUCT (25*13)', address: 0x200, expected: 325 },
+    ],
+    hints: [
+      'This is much simpler than Micro4 multiplication — just use the MUL instruction!',
+      'MOV AX, #25 loads the first operand. MOV BX, #13 loads the second.',
+      'MUL AX, BX multiplies in hardware. The result lands in AX.',
+      'ST AX, [PRODUCT] writes the 16-bit result to memory.',
     ],
   },
   {
@@ -546,6 +618,12 @@ DEST:   .dw 0, 0, 0, 0, 0
       { label: 'DEST[3]', address: 0x226, expected: 0x4444 },
       { label: 'DEST[4]', address: 0x228, expected: 0x5555 },
     ],
+    hints: [
+      'The loop body loads from source, stores to dest, advances both pointers, and decrements the counter.',
+      'LD AX, [SI] reads a word from the source pointer. ST AX, [DI] writes it to the destination.',
+      'ADD SI, #2 and ADD DI, #2 advance both pointers by one word (2 bytes per 16-bit word).',
+      'DEC CX decreases the word count. JNZ COPY_LOOP repeats until CX reaches zero.',
+    ],
   },
   {
     id: 'ex-m16-string-reverse',
@@ -593,6 +671,13 @@ STRING: .dw 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
       { label: 'STRING[2] (unchanged l)', address: 0x204, expected: 0x6C },
       { label: 'STRING[3] (was e)', address: 0x206, expected: 0x65 },
       { label: 'STRING[4] (was H)', address: 0x208, expected: 0x48 },
+    ],
+    hints: [
+      'First find the end: loop DI forward while [DI] != 0. Then DI points past the null terminator.',
+      'SUB DI, #2 moves DI back to the last real character (each char is 2 bytes in Micro16).',
+      'The stop condition is SI >= DI — use CMP SI, DI and JGE DONE.',
+      'Swap: LD AX, [SI] and LD BX, [DI], then ST BX, [SI] and ST AX, [DI].',
+      'After swapping, ADD SI, #2 and SUB DI, #2 move the pointers inward. JMP REVERSE_LOOP.',
     ],
   },
   {
@@ -644,6 +729,13 @@ RESULT: .dw 0
 `,
     testCases: [
       { label: 'RESULT (3 nodes)', address: 0x218, expected: 3 },
+    ],
+    hints: [
+      'A linked list node has two fields: value at offset 0 and next-pointer at offset +2.',
+      'Check if SI == 0 to detect end of list. CMP SI, #0 then JZ DONE.',
+      'INC CX counts each node you visit.',
+      'To follow the next pointer: LD SI, [SI + 2] reads the next-pointer field into SI.',
+      'JMP WALK repeats the traversal with the new SI pointing to the next node.',
     ],
   },
 ] as const;

@@ -17,6 +17,7 @@ function makeExercise(
     estimatedMinutes: 5,
     prerequisites: [],
     starterCode: '; TODO: test\nHLT\n',
+    hints: [],
     ...overrides,
   };
 }

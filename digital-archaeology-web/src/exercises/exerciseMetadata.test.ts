@@ -286,4 +286,42 @@ describe('exerciseMetadata', () => {
       }
     });
   });
+
+  describe('hints (Story 21.5)', () => {
+    it('every exercise should have at least 3 hints', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.hints.length).toBeGreaterThanOrEqual(3);
+      }
+    });
+
+    it('each hint should be a non-empty string', () => {
+      for (const ex of EXERCISES) {
+        for (const hint of ex.hints) {
+          expect(typeof hint).toBe('string');
+          expect(hint.length).toBeGreaterThan(0);
+        }
+      }
+    });
+
+    it('each hint should be at least 20 characters (meaningful content)', () => {
+      for (const ex of EXERCISES) {
+        for (const hint of ex.hints) {
+          expect(hint.length).toBeGreaterThanOrEqual(20);
+        }
+      }
+    });
+
+    it('hints should be unique within each exercise', () => {
+      for (const ex of EXERCISES) {
+        const unique = new Set(ex.hints);
+        expect(unique.size).toBe(ex.hints.length);
+      }
+    });
+
+    it('no exercise should have more than 7 hints', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.hints.length).toBeLessThanOrEqual(7);
+      }
+    });
+  });
 });

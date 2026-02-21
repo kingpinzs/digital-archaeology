@@ -302,8 +302,8 @@ development_status:
   21-1-create-exercise-browser: done  # 77 new tests (23 metadata + 12 storage + 42 browser), 6 review fixes
   21-2-implement-exercise-metadata: done  # 23 new tests (detail panel), 6 review fixes
   21-3-create-starter-code-templates: done  # 5 new tests, 15 starter templates, 5 review fixes
-  21-4-implement-output-validation: backlog
-  21-5-implement-progressive-hints: backlog
+  21-4-implement-output-validation: done  # ExerciseValidator + ExerciseResultsPanel, 52 new tests, 5 review fixes, 5415 total passing
+  21-5-implement-progressive-hints: done  # ExerciseHintsPanel + ExerciseHintStorage, 38 new tests, 5 review fixes, 5453 total passing
   21-6-implement-solution-reveal: backlog
   21-7-track-exercise-completion: backlog
   21-8-micro4-capstone-bcd-calculator: backlog

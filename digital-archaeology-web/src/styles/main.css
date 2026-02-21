@@ -11283,3 +11283,96 @@ body.da-resizing * {
 .da-exercise-results__complete:hover {
   filter: brightness(1.1);
 }
+
+/* =============================================================================
+   Exercise Hints Panel — Story 21.5
+   Progressive hints revealed one at a time
+   ============================================================================= */
+
+.da-exercise-hints {
+  border-top: 2px solid var(--da-border);
+  background: var(--da-bg-secondary);
+  font-size: 0.85rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.da-exercise-hints__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--da-accent) 10%, transparent);
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-exercise-hints__title {
+  font-weight: 600;
+  color: var(--da-accent);
+  flex: 1;
+}
+
+.da-exercise-hints__counter {
+  font-size: 0.8rem;
+  color: var(--da-text-secondary);
+}
+
+.da-exercise-hints__dismiss {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.da-exercise-hints__dismiss:hover {
+  color: var(--da-text-primary);
+}
+
+.da-exercise-hints__list {
+  margin: 0;
+  padding: 0 12px 0 28px;
+}
+
+.da-exercise-hints__item {
+  padding: 4px 0;
+  line-height: 1.4;
+}
+
+.da-exercise-hints__item--revealed {
+  color: var(--da-text-primary);
+}
+
+.da-exercise-hints__item--hidden {
+  color: var(--da-text-muted);
+  font-style: italic;
+}
+
+.da-exercise-hints__reveal {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 8px 12px;
+  padding: 6px 16px;
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.da-exercise-hints__reveal:hover {
+  filter: brightness(1.1);
+}
+
+.da-exercise-hints__all-revealed {
+  padding: 6px 12px;
+  color: var(--da-text-muted);
+  font-style: italic;
+  font-size: 0.8rem;
+  text-align: center;
+}

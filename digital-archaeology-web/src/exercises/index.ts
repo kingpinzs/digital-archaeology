@@ -8,6 +8,7 @@ export { ExerciseProgressStorage } from './ExerciseProgressStorage';
 export { ExerciseValidator } from './ExerciseValidator';
 export { ExerciseResultsPanel } from './ExerciseResultsPanel';
 export type { ExerciseResultsPanelCallbacks } from './ExerciseResultsPanel';
+export { ExerciseHintsPanel, ExerciseHintStorage } from './ExerciseHintsPanel';
 export {
   EXERCISES,
   EXERCISE_IDS,

@@ -182,6 +182,19 @@ test.describe('Epic 11: Stage Switching', () => {
   });
 
   test.describe('Story 11.6: Stage-Specific Examples', () => {
+    // Helper: Open File > Examples reliably.
+    // MenuBar has mouseenter hover-to-switch behavior — when a menu is open and
+    // the cursor crosses another trigger during mouse movement, that menu opens
+    // instead. Wrapping in toPass() retries the sequence if the dropdown switches.
+    async function openExampleBrowser(page: import('@playwright/test').Page) {
+      await expect(async () => {
+        await page.locator('[data-menu="file"]').click();
+        await expect(page.locator('[data-action="examples"]')).toBeVisible({ timeout: 1000 });
+        await page.locator('[data-action="examples"]').click();
+        await expect(page.locator('.da-example-browser')).toBeVisible({ timeout: 1000 });
+      }).toPass({ timeout: 5000 });
+    }
+
     test('[11.6] should show File menu with Examples menu item', async ({ page }) => {
       // GIVEN: App loads in Lab Mode
       // WHEN: User opens File menu
@@ -195,9 +208,7 @@ test.describe('Epic 11: Stage Switching', () => {
     test('[11.6] should open example browser with programs on Micro4 initial load', async ({ page }) => {
       // GIVEN: App loads in Lab Mode with Micro4 (default)
       // WHEN: User opens File > Examples
-      await page.locator('[data-menu="file"]').click();
-      await expect(page.locator('[data-action="examples"]')).toBeVisible();
-      await page.locator('[data-action="examples"]').click();
+      await openExampleBrowser(page);
 
       // THEN: Example browser should be visible with program items
       const browserContainer = page.locator('.da-example-browser');
@@ -214,15 +225,13 @@ test.describe('Epic 11: Stage Switching', () => {
 
     test('[11.6] should close example browser on Escape', async ({ page }) => {
       // GIVEN: Example browser is open
-      await page.locator('[data-menu="file"]').click();
-      await expect(page.locator('[data-action="examples"]')).toBeVisible();
-      await page.locator('[data-action="examples"]').click();
-      await expect(page.locator('.da-example-browser')).toBeVisible();
+      await openExampleBrowser(page);
 
-      // Ensure focus is on the example browser before pressing Escape
-      await page.locator('.da-example-browser').click();
+      // Wait for ExampleBrowser's document-level keydown listener to attach
+      // (attachEventListeners uses setTimeout(…, 0) for the click handler)
+      await page.waitForTimeout(100);
 
-      // WHEN: User presses Escape
+      // WHEN: User presses Escape (ExampleBrowser listens on document, no focus needed)
       await page.keyboard.press('Escape');
 
       // THEN: Browser should be closed

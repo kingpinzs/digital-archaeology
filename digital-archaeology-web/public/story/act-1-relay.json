@@ -447,7 +447,30 @@
                 "Hollerith's company would eventually become IBM. The punch card would dominate data processing for eighty years. And the principle—encoding information as patterns that machines can read—would become the foundation of all digital computing.",
                 "But electromechanical counters had limits. They could count, but they couldn't truly calculate. They couldn't make decisions. They couldn't be programmed.",
                 "For that, the world would need a different kind of machine—and a different kind of war."
-              ]
+              ],
+              "nextScene": "scene-1-1-transition"
+            },
+            {
+              "id": "scene-1-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Washington D.C., 1890",
+                "incomingEra": "Berlin, Germany, 1936",
+                "yearsElapsed": 46,
+                "narrative": [
+                  "Hollerith's tabulators conquered the census, then conquered the business world. Punched cards became the language of bureaucracy and commerce.",
+                  "Forty-six years pass. In a cramped Berlin apartment, a young civil engineer grows frustrated with tedious calculations — and begins to build something extraordinary."
+                ],
+                "summary": {
+                  "chapterTitle": "The Census Crisis",
+                  "concepts": [
+                    "Electromechanical tabulation",
+                    "Punched card data",
+                    "Automated counting"
+                  ]
+                }
+              },
+              "nextScene": "scene-1-2-1"
             }
           ]
         },
@@ -761,6 +784,28 @@
                   "codeSnippet": "// First remote computing session (1940)\n// \n// Location: Dartmouth College, NH\n// Computer: Bell Labs NYC (250 miles away)\n// Connection: Telephone line + teletype\n// \n// Problem sent: (2 + 3i) × (4 - 2i)\n// Answer received: 14 + 8i\n// Time: A few seconds\n// \n// Witnesses included:\n// - John von Neumann\n// - Norbert Wiener\n// - Many other mathematicians"
                 }
               ],
+              "nextScene": "scene-1-2-transition"
+            },
+            {
+              "id": "scene-1-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Berlin, Germany, 1936",
+                "incomingEra": "Bletchley Park, England, 1943",
+                "yearsElapsed": 7,
+                "narrative": [
+                  "Zuse's Z3 proved that relays could compute. Binary arithmetic, stored programs, floating point — built in a living room, largely ignored by the world.",
+                  "Seven years later, across the English Channel, the stakes couldn't be higher. The outcome of a world war depends on breaking an unbreakable code."
+                ],
+                "summary": {
+                  "chapterTitle": "The Berlin Apartment",
+                  "concepts": [
+                    "Binary arithmetic",
+                    "Relay-based logic",
+                    "Programmable computation"
+                  ]
+                }
+              },
               "nextScene": "scene-1-3-1"
             }
           ]
@@ -1138,7 +1183,24 @@
                 "The relay era reaches its pinnacle with the Mark I. But its clicking mechanisms are already obsolete. Across Philadelphia, ENIAC's vacuum tubes are being wired together—18,000 of them.",
                 "The electromechanical age built by Hollerith, Zuse, Stibitz, and Aiken is ending. The electronic age of Flowers, Turing, and Mauchly is about to begin.",
                 "Continue to Act 2: The Electronic Giants."
-              ]
+              ],
+              "nextScene": "scene-1-act-transition"
+            },
+            {
+              "id": "scene-1-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Relay Era, 1890-1945",
+                "incomingEra": "Vacuum Tube Era, 1945",
+                "yearsElapsed": 5,
+                "narrative": [
+                  "The code breakers won their secret war. Colossus, the Bombe, and a thousand relay machines had proven that computation could change the course of history.",
+                  "But relays were too slow. Each switch took milliseconds to flip — an eternity when millions of calculations were needed.",
+                  "A new technology beckoned: the vacuum tube. A thousand times faster than any relay, but fragile, hot, and power-hungry."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-2-0-persona"
             }
           ]
         }

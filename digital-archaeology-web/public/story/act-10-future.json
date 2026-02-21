@@ -251,7 +251,30 @@
                   "content": "Chiplet design requires balancing many factors: die size affects yield, interconnect bandwidth affects performance, process mixing affects cost. The optimal design depends on the target market—servers favor more cores, clients favor integrated graphics.",
                   "codeSnippet": "// Yield calculation example\n// \n// Defect density: 0.1 defects/cm²\n// \n// Monolithic 400mm² die:\n//   Yield = e^(-0.1 × 4) = 67%\n// \n// 4 × 100mm² chiplets:\n//   Per-chiplet yield = e^(-0.1 × 1) = 90%\n//   System yield = 0.9^4 = 66% (similar!)\n//   BUT: working chiplets can be mixed/matched\n//   Effective yield: ~85%"
                 }
-              ]
+              ],
+              "nextScene": "scene-10-1-transition"
+            },
+            {
+              "id": "scene-10-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Chiplet Era, 2015-2025",
+                "incomingEra": "Quantum / Neuromorphic, 2019-2030+",
+                "yearsElapsed": 4,
+                "narrative": [
+                  "Moore's Law finally reached its physical limits. But chiplets, 3D stacking, and advanced packaging proved that innovation doesn't require smaller transistors.",
+                  "Meanwhile, entirely new paradigms of computation are emerging from research labs around the world."
+                ],
+                "summary": {
+                  "chapterTitle": "The Limits of Silicon",
+                  "concepts": [
+                    "Chiplet architecture",
+                    "3D stacking",
+                    "Advanced packaging"
+                  ]
+                }
+              },
+              "nextScene": "scene-10-2-1"
             }
           ]
         },
@@ -510,7 +533,30 @@
                   "content": "Quantum excels at: simulation, optimization, cryptography. Neuromorphic excels at: pattern recognition, sensory processing, edge AI. Photonic excels at: matrix multiplication, neural network inference. Classical still wins for: general-purpose computing, precise numerical work, complex branching logic.",
                   "codeSnippet": "// Computing Paradigm Selection Guide\n// \n// Classical: branching logic, precise math\n// Quantum: exponential search spaces, simulation\n// Neuromorphic: sparse patterns, low power\n// Photonic: dense linear algebra, speed\n// \n// Future systems will combine all four:\n// Classical orchestrates\n// Quantum solves hard subproblems\n// Neuromorphic handles perception\n// Photonic accelerates inference"
                 }
-              ]
+              ],
+              "nextScene": "scene-10-2-transition"
+            },
+            {
+              "id": "scene-10-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Quantum / Neuromorphic, 2019-2030+",
+                "incomingEra": "TPUs / RISC-V / Specialized, 2016-2030+",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "Quantum computing promises exponential speedups for certain problems. Neuromorphic chips mimic the brain's architecture. Photonic processors compute at the speed of light.",
+                  "But the most immediate revolution might be the simplest: building processors that do one thing extraordinarily well."
+                ],
+                "summary": {
+                  "chapterTitle": "Beyond Classical",
+                  "concepts": [
+                    "Quantum qubits",
+                    "Neuromorphic computing",
+                    "Photonic processors"
+                  ]
+                }
+              },
+              "nextScene": "scene-10-3-1"
             }
           ]
         },

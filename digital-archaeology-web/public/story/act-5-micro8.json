@@ -296,7 +296,30 @@
               "narrative": [
                 "The subroutine completes. The stack pointer moves up and down as functions call and return. For the first time, you can write code that feels like modern programming.",
                 "But there's more to explore. The 8-bit era isn't just about registers and stacks—it's about an explosion of systems that put computing into ordinary hands."
-              ]
+              ],
+              "nextScene": "scene-5-1-transition"
+            },
+            {
+              "id": "scene-5-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel, Santa Clara, 1974",
+                "incomingEra": "MITS, Albuquerque, 1975",
+                "yearsElapsed": 1,
+                "narrative": [
+                  "The Intel 8080 was a proper 8-bit CPU — 64KB of addressable memory, a real stack, and enough instructions to write serious software.",
+                  "One year later, in the New Mexico desert, a small electronics company puts an 8080 in a box with some switches and LEDs. The personal computer is about to be born."
+                ],
+                "summary": {
+                  "chapterTitle": "More Bits, More Power",
+                  "concepts": [
+                    "8-bit data paths",
+                    "64KB address space",
+                    "Stack-based programming"
+                  ]
+                }
+              },
+              "nextScene": "scene-5-2-1"
             }
           ]
         },
@@ -613,7 +636,30 @@
               "narrative": [
                 "The Homebrew era established principles that persist: the joy of personal computing, the value of community, the tension between open and proprietary.",
                 "But home-built machines from kits couldn't scale. The next step required something polished: complete systems that ordinary people could use."
-              ]
+              ],
+              "nextScene": "scene-5-2-transition"
+            },
+            {
+              "id": "scene-5-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Albuquerque, 1975",
+                "incomingEra": "Consumer Electronics Show, 1977",
+                "yearsElapsed": 2,
+                "narrative": [
+                  "The Altair 8800 was a sensation. Hobbyists lined up to buy kits. A young Bill Gates wrote BASIC for it from a dorm room. The homebrew computer revolution had begun.",
+                  "Two years later, three companies arrive at the same trade show, each believing they've built the future of personal computing."
+                ],
+                "summary": {
+                  "chapterTitle": "The Altair Moment",
+                  "concepts": [
+                    "Kit computers",
+                    "Homebrew culture",
+                    "Software for microprocessors"
+                  ]
+                }
+              },
+              "nextScene": "scene-5-3-1"
             }
           ]
         },
@@ -943,6 +989,28 @@
                 "The Apple II, Commodore PET, TRS-80: the trinity of 1977. Each powered by an 8-bit processor, each costing less than a few thousand dollars. The personal computer revolution had begun.",
                 "But there's another story to tell: the Z80 that powers the TRS-80 and countless other machines, and the operating system that made business computing possible."
               ],
+              "nextScene": "scene-5-3-transition"
+            },
+            {
+              "id": "scene-5-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Consumer Electronics Show, 1977",
+                "incomingEra": "Pacific Grove, California, 1974-1980",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The Apple II, TRS-80, and Commodore PET — the 'Trinity' — brought computers into homes and schools. But hardware without software was just an expensive paperweight.",
+                  "Behind the scenes, an unsung pioneer was writing the operating system that would make all these machines useful."
+                ],
+                "summary": {
+                  "chapterTitle": "The Trinity",
+                  "concepts": [
+                    "Consumer computing",
+                    "Color graphics",
+                    "Floppy disk storage"
+                  ]
+                }
+              },
               "nextScene": "scene-5-4-1"
             }
           ]
@@ -1118,7 +1186,24 @@
                 "Gary Kildall never recovered from losing the IBM deal. He died in 1994, largely forgotten by an industry he helped create. But without CP/M, there would have been no DOS. Without the Z80, no affordable business computers.",
                 "The 8-bit era proved that personal computing could be serious. But 64KB wasn't enough for serious work. The 16-bit era beckoned—with promises of megabytes of memory and IBM's blessing.",
                 "Continue to Act 6: The 16-bit Era."
-              ]
+              ],
+              "nextScene": "scene-5-act-transition"
+            },
+            {
+              "id": "scene-5-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "8-bit Era, 1974-1978",
+                "incomingEra": "16-bit Era, 1978",
+                "yearsElapsed": 4,
+                "narrative": [
+                  "CP/M gave 8-bit computers a common operating system. Software could run on any machine. The industry was growing faster than anyone predicted.",
+                  "But 64KB of memory wasn't enough. Spreadsheets, word processors, and databases demanded more. The 8-bit era had reached its ceiling.",
+                  "Intel's answer was the 8086: double the data width, a megabyte of memory, and backward compatibility that would shape computing for decades."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-6-1-1"
             }
           ]
         }

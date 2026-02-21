@@ -32,6 +32,31 @@ export interface StoryMetadata {
 export type SceneType = 'narrative' | 'dialogue' | 'choice' | 'challenge' | 'persona' | 'transition' | 'decision' | 'builder';
 
 /**
+ * Data for a chapter or act transition scene.
+ * Chapter transitions are lighter (brief narrative + summary).
+ * Act transitions are epic (PersonaTransitionPanel with persona swap).
+ */
+export interface SceneTransitionData {
+  /** Outgoing era label (e.g., "Mesopotamia, 3000 BC") */
+  outgoingEra: string;
+  /** Incoming era label (e.g., "Egypt, 1500 BC") */
+  incomingEra: string;
+  /** Number of years between eras */
+  yearsElapsed: number;
+  /** Narrative paragraphs for the time-travel bridge */
+  narrative: string[];
+  /** Summary of the chapter being left */
+  summary?: {
+    /** Title of the chapter just completed */
+    chapterTitle: string;
+    /** Key concepts learned in that chapter */
+    concepts: string[];
+  };
+  /** True = epic act transition using PersonaTransitionPanel */
+  actTransition?: boolean;
+}
+
+/**
  * Represents a scene within a chapter.
  * Scenes are the atomic units of story content.
  */
@@ -60,6 +85,8 @@ export interface StoryScene {
   builderChallenge?: BuilderChallengeData;
   /** Persona data for persona introduction scenes (Story 10.18) */
   persona?: PersonaData;
+  /** Transition data for transition scenes (chapter/act bridges) */
+  transition?: SceneTransitionData;
   /** ID of the next scene (for linear progression) */
   nextScene?: string;
 }

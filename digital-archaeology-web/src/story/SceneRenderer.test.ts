@@ -917,4 +917,193 @@ describe('SceneRenderer', () => {
       expect(continueBtn?.disabled).toBe(true);
     });
   });
+
+  describe('transition scene rendering', () => {
+    it('should render ChapterTransitionPanel for chapter transition scenes', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Mesopotamia, 3000 BC',
+            incomingEra: 'Egypt, 1500 BC',
+            yearsElapsed: 1500,
+            narrative: ['Time passes...'],
+            summary: {
+              chapterTitle: 'Before Numbers Had Names',
+              concepts: ['Tally marks'],
+            },
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-chapter-transition-panel')).not.toBeNull();
+    });
+
+    it('should NOT render normal scene container for transition scenes', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Test A',
+            incomingEra: 'Test B',
+            yearsElapsed: 100,
+            narrative: ['Passage of time.'],
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-container')).toBeNull();
+    });
+
+    it('should NOT render footer for transition scenes', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Test A',
+            incomingEra: 'Test B',
+            yearsElapsed: 100,
+            narrative: ['Passage of time.'],
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-story-actions-footer')).toBeNull();
+    });
+
+    it('should display era labels in chapter transition', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Mesopotamia, 3000 BC',
+            incomingEra: 'Egypt, 1500 BC',
+            yearsElapsed: 1500,
+            narrative: ['Time passes...'],
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const outgoing = container.querySelector('.da-chapter-transition-era-outgoing');
+      const incoming = container.querySelector('.da-chapter-transition-era-incoming');
+      expect(outgoing?.textContent).toContain('Mesopotamia');
+      expect(incoming?.textContent).toContain('Egypt');
+    });
+
+    it('should call onContinue callback when chapter transition continue is clicked', () => {
+      const onContinue = vi.fn();
+      renderer.setCallbacks({ onContinue });
+
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Test A',
+            incomingEra: 'Test B',
+            yearsElapsed: 100,
+            narrative: ['Passage of time.'],
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const btn = container.querySelector('.da-chapter-transition-continue') as HTMLElement;
+      btn?.click();
+
+      expect(onContinue).toHaveBeenCalled();
+    });
+
+    it('should render PersonaTransitionPanel for act transition scenes', () => {
+      const context = createContext({
+        act: createMockAct({
+          persona: {
+            id: 'test-persona',
+            name: 'Test Persona',
+            years: '1900-1950',
+            era: 'Test Era',
+            avatar: '\u{1F468}\u200D\u{1F52C}',
+            quote: 'Test quote',
+            background: 'Test bg',
+            motivation: 'Test motivation',
+            constraints: [],
+            problem: 'Test problem',
+          },
+        }),
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Mechanical',
+            incomingEra: 'Relay',
+            yearsElapsed: 104,
+            narrative: ['The world moved on...'],
+            actTransition: true,
+          },
+          nextScene: 'scene-next-act',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-persona-transition-panel')).not.toBeNull();
+    });
+
+    it('should call onContinue callback when act transition continue is clicked', () => {
+      const onContinue = vi.fn();
+      renderer.setCallbacks({ onContinue });
+
+      const context = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Mechanical',
+            incomingEra: 'Relay',
+            yearsElapsed: 104,
+            narrative: ['The world moved on...'],
+            actTransition: true,
+          },
+          nextScene: 'scene-next-act',
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const btn = container.querySelector('.da-transition-continue') as HTMLElement;
+      btn?.click();
+
+      expect(onContinue).toHaveBeenCalled();
+    });
+
+    it('should clean up transition panels between renders', () => {
+      // First render a transition
+      const context1 = createContext({
+        scene: createMockScene({
+          type: 'transition',
+          transition: {
+            outgoingEra: 'Test A',
+            incomingEra: 'Test B',
+            yearsElapsed: 100,
+            narrative: ['Time.'],
+          },
+          nextScene: 'scene-next',
+        }),
+      });
+      renderer.renderScene(context1, container);
+      expect(container.querySelector('.da-chapter-transition-panel')).not.toBeNull();
+
+      // Then render a normal scene
+      const context2 = createContext({
+        scene: createMockScene({ narrative: ['Normal scene'] }),
+      });
+      renderer.renderScene(context2, container);
+      expect(container.querySelector('.da-chapter-transition-panel')).toBeNull();
+      expect(container.querySelector('.da-scene-container')).not.toBeNull();
+    });
+  });
 });

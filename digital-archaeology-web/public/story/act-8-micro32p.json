@@ -420,7 +420,30 @@
                 "The i486 proved pipelining could work for complex x86 instructions. But the RISC advocates argued that simpler instruction sets made pipelining easier, faster, and more efficient.",
                 "A philosophical war was brewing: CISC vs RISC. Complex instructions favored by Intel versus simple instructions favored by academia and workstation vendors.",
                 "Continue to Chapter 2: The RISC Revolution."
-              ]
+              ],
+              "nextScene": "scene-8-1-transition"
+            },
+            {
+              "id": "scene-8-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel i486 Lab, 1989",
+                "incomingEra": "Stanford / Berkeley, 1981-1991",
+                "yearsElapsed": 2,
+                "narrative": [
+                  "The i486 proved that pipelining worked for x86. Five stages, one instruction per clock under ideal conditions. Performance doubled without increasing clock speed.",
+                  "But Intel wasn't the only one thinking about pipelines. Two university research projects were about to challenge the very foundation of processor design."
+                ],
+                "summary": {
+                  "chapterTitle": "The Assembly Line",
+                  "concepts": [
+                    "5-stage pipeline",
+                    "Instruction overlap",
+                    "Pipeline hazards"
+                  ]
+                }
+              },
+              "nextScene": "scene-8-2-1"
             }
           ]
         },
@@ -744,7 +767,30 @@
                 "The RISC revolution's greatest triumph was also its integration. Intel's Pentium Pro would execute x86 code by translating it to RISC-like micro-operations internally.",
                 "RISC didn't win by replacing CISC. It won by infiltrating it. Every modern x86 processor is a RISC core in disguise, translating complex instructions to simple operations.",
                 "Continue to Chapter 3: The Pentium Wars."
-              ]
+              ],
+              "nextScene": "scene-8-2-transition"
+            },
+            {
+              "id": "scene-8-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Stanford / Berkeley, 1991",
+                "incomingEra": "Intel / AMD / Cyrix, 1993-1997",
+                "yearsElapsed": 2,
+                "narrative": [
+                  "RISC versus CISC: the great debate. Could simpler instructions with deeper pipelines beat complex instructions? MIPS, SPARC, and ARM said yes.",
+                  "Two years later, the CPU wars erupted. Intel, AMD, and Cyrix fought for every benchmark, every percentage point of performance."
+                ],
+                "summary": {
+                  "chapterTitle": "The RISC Revolution",
+                  "concepts": [
+                    "RISC vs CISC",
+                    "Load-store architecture",
+                    "Deep pipelines"
+                  ]
+                }
+              },
+              "nextScene": "scene-8-3-1"
             }
           ]
         },
@@ -1111,7 +1157,24 @@
                 "Every technique built on the last: pipelining enabled higher throughput, which exposed hazards, which drove forwarding and prediction, which enabled out-of-order execution, which demanded register renaming.",
                 "But one instruction per cycle was still a limit for in-order designs. The next step: issue multiple instructions per cycle, execute them in parallel, reorder them dynamically. The superscalar era beckoned.",
                 "Continue to Act 9: Superscalar—where processors become true prediction machines."
-              ]
+              ],
+              "nextScene": "scene-8-act-transition"
+            },
+            {
+              "id": "scene-8-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Pipeline Era, 1989-1997",
+                "incomingEra": "Superscalar Era, 1995",
+                "yearsElapsed": 2,
+                "narrative": [
+                  "The Pentium Wars taught the industry that pipelines alone weren't enough. Branch mispredictions, data hazards, and memory latency all conspired to waste cycles.",
+                  "The next step was radical: execute multiple instructions simultaneously. Not in sequence, but out of order, dynamically scheduling work like an air traffic controller.",
+                  "The superscalar era was about to begin."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-9-1-1"
             }
           ]
         }

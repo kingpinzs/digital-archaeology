@@ -439,7 +439,30 @@
                 "The counting board would spread across the ancient world—to Egypt, to Greece, to Rome, to Persia. Each culture would adapt it to their needs, their number systems, their materials.",
                 "But the leap from loose pebbles to fixed beads—the invention of the true abacus—would require a different civilization, a different millennium, a different genius whose name is also lost to time.",
                 "Continue to the next scene: Egypt and the counting tables of the pharaohs."
-              ]
+              ],
+              "nextScene": "scene-0-1-transition"
+            },
+            {
+              "id": "scene-0-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "The Lebombo Mountains, 35,000 BC",
+                "incomingEra": "Egypt and Rome, 1500 BC",
+                "yearsElapsed": 33500,
+                "narrative": [
+                  "The tally bone passed from hand to hand across millennia. Scratches on bone became marks on clay, and marks on clay became the foundation of civilization.",
+                  "Thirty-three thousand years pass. You emerge in the dust of great empires, where counting has become an art."
+                ],
+                "summary": {
+                  "chapterTitle": "Before Numbers Had Names",
+                  "concepts": [
+                    "Tally marks",
+                    "One-to-one correspondence",
+                    "The need to remember quantities"
+                  ]
+                }
+              },
+              "nextScene": "scene-0-1b-1"
             }
           ]
         },
@@ -609,7 +632,30 @@
                 "The Roman Empire would fall, but the abacus would survive. In the chaos of the dark ages, knowledge retreated to monasteries and distant lands.",
                 "Meanwhile, in China, the art of the counting frame was being perfected into something extraordinary—a design so elegant it would remain unchanged for two thousand years.",
                 "Continue to the next chapter: The Suanpan of Han China."
-              ]
+              ],
+              "nextScene": "scene-0-2-transition"
+            },
+            {
+              "id": "scene-0-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Egypt and Rome, 1500 BC",
+                "incomingEra": "Han Dynasty China, 200 BC",
+                "yearsElapsed": 1300,
+                "narrative": [
+                  "From the sands of Egypt to the marble columns of Rome, empires rose and fell, each carrying forward the idea that numbers could be made physical.",
+                  "Thirteen centuries pass. Across the world, a different civilization discovers an elegant solution."
+                ],
+                "summary": {
+                  "chapterTitle": "The Dust of Empires",
+                  "concepts": [
+                    "Egyptian multiplication",
+                    "Roman numerals",
+                    "Physical calculation tools"
+                  ]
+                }
+              },
+              "nextScene": "scene-0-1c-1"
             }
           ]
         },
@@ -988,7 +1034,30 @@
                   "content": "The 1946 abacus vs. calculator contest was held at the U.S. Army's offices in Tokyo. Private Thomas Nathan Wood operated the electric calculator; Kiyoshi Matsuzaki used a soroban. The abacus won 4-1 in events, losing only in multiplication.",
                   "codeSnippet": "// 1946 Contest Results\n// \n// Addition: Soroban wins\n// Subtraction: Soroban wins\n// Multiplication: Calculator wins\n// Division: Soroban wins  \n// Mixed operations: Soroban wins\n// \n// Final score: Abacus 4, Calculator 1\n// \n// The ancient technology outperformed\n// the cutting-edge electronic device"
                 }
-              ]
+              ],
+              "nextScene": "scene-0-3-transition"
+            },
+            {
+              "id": "scene-0-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Han Dynasty China, 200 BC",
+                "incomingEra": "India, 628 AD",
+                "yearsElapsed": 828,
+                "narrative": [
+                  "The suanpan clicked and clacked across Asia for centuries. Merchants used it to tally silks and spices along the trade routes that connected civilizations.",
+                  "Eight centuries pass. In the warm monasteries of India, a mathematician ponders an impossible question: what is the number that represents nothing?"
+                ],
+                "summary": {
+                  "chapterTitle": "The Suanpan",
+                  "concepts": [
+                    "Bead-based calculation",
+                    "Place value representation",
+                    "Carry and borrow operations"
+                  ]
+                }
+              },
+              "nextScene": "scene-0-zero-1"
             }
           ]
         },
@@ -1176,7 +1245,30 @@
                   "content": "Binary computing (0 and 1) is a direct descendant of positional notation with zero. Every bit in every computer is a choice between 0 and 1—presence and absence, on and off. Zero makes the digital world possible.",
                   "codeSnippet": "// Why Zero Enables Computing\n// \n// Positional value: 101 = 1×100 + 0×10 + 1×1\n// Binary:          101 = 1×4 + 0×2 + 1×1 = 5\n// \n// Without zero as placeholder:\n//   - Can't distinguish 101 from 11 from 1001\n//   - Positional notation breaks\n//   - Binary is impossible\n// \n// Zero = the foundation of digital computing"
                 }
-              ]
+              ],
+              "nextScene": "scene-0-4-transition"
+            },
+            {
+              "id": "scene-0-4-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "India, 628 AD",
+                "incomingEra": "Europe, 1623",
+                "yearsElapsed": 995,
+                "narrative": [
+                  "Zero changed everything. Carried by Arab traders along the Silk Road, the Hindu-Arabic number system would eventually replace Roman numerals across Europe.",
+                  "Nearly a thousand years pass. In the workshops of the European Enlightenment, inventors begin to dream of machines that calculate."
+                ],
+                "summary": {
+                  "chapterTitle": "The Invention of Nothing",
+                  "concepts": [
+                    "Zero as a number",
+                    "Hindu-Arabic numerals",
+                    "Positional notation"
+                  ]
+                }
+              },
+              "nextScene": "scene-0-2-0"
             }
           ]
         },
@@ -1562,6 +1654,28 @@
                   "codeSnippet": "// Leibniz Stepped Drum\n// Drum teeth lengths: 1,2,3,4,5,6,7,8,9\n// \n// Position 0: rotate → 0 teeth engage\n// Position 5: rotate → 5 teeth engage\n// Position 9: rotate → 9 teeth engage\n// \n// Multiply 7 × 4:\n// Set drum to position 7\n// Rotate drum 4 times\n// Read result: 28"
                 }
               ],
+              "nextScene": "scene-0-5-transition"
+            },
+            {
+              "id": "scene-0-5-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Europe, 1623-1694",
+                "incomingEra": "Lyon, France, 1804",
+                "yearsElapsed": 110,
+                "narrative": [
+                  "Pascal's gears, Leibniz's wheels, Napier's bones — each inventor pushed the dream of mechanical calculation further. But the machines remained limited: they could compute, but they couldn't be told what to compute.",
+                  "A century passes. In a silk-weaving city in France, a man realizes that instructions themselves can be encoded."
+                ],
+                "summary": {
+                  "chapterTitle": "The Age of Reason",
+                  "concepts": [
+                    "Mechanical addition",
+                    "Carry propagation",
+                    "Step drum multiplication"
+                  ]
+                }
+              },
               "nextScene": "scene-0-jac-1"
             }
           ]
@@ -1735,6 +1849,28 @@
                   "codeSnippet": "// Arithmometer Timeline\n// \n// 1820: Thomas patents design\n// 1851: Mass production begins\n// 1878: Gold medal at Paris Exposition\n// 1915: Production ends (overtaken by newer designs)\n// \n// ~5,000 units sold over 64 years\n// First calculator you could BUY\n// \n// Competitors emerged:\n// - Odhner (Russia, 1873)\n// - Brunsviga (Germany, 1892)\n// - Curta (Austria, 1948)"
                 }
               ],
+              "nextScene": "scene-0-6-transition"
+            },
+            {
+              "id": "scene-0-6-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Lyon, France, 1804",
+                "incomingEra": "London, England, 1833",
+                "yearsElapsed": 29,
+                "narrative": [
+                  "Jacquard's loom wove patterns from punched cards, proving that a machine could follow stored instructions. The idea was too powerful to stay in the textile mills.",
+                  "Twenty-nine years later, in the drawing rooms of Victorian London, a mathematician sees Jacquard's cards and dreams far bigger."
+                ],
+                "summary": {
+                  "chapterTitle": "The Loom That Could Think",
+                  "concepts": [
+                    "Stored instructions",
+                    "Punched card programming",
+                    "Programmable machines"
+                  ]
+                }
+              },
               "nextScene": "scene-0-3-1"
             }
           ]
@@ -2053,7 +2189,24 @@
                 "But their ideas—stored programs, conditional branching, the separation of memory and processor—would be rediscovered a century later by engineers who never knew their names.",
                 "The mechanical era ends here, with a vision too grand for its time. But a new force is rising: electricity. And with it, the ability to switch states not in seconds, but in millionths of a second.",
                 "The story continues in Act 1: Electrification."
-              ]
+              ],
+              "nextScene": "scene-0-act-transition"
+            },
+            {
+              "id": "scene-0-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Victorian England, 1833",
+                "incomingEra": "The Electric Age, 1890",
+                "yearsElapsed": 57,
+                "narrative": [
+                  "Babbage's Analytical Engine was never built. The manufacturing precision of Victorian England simply couldn't produce the thousands of gears his design required.",
+                  "But the idea survived. Ada Lovelace's notes would be rediscovered. The concept of a general-purpose computing machine waited patiently for a new technology.",
+                  "Fifty-seven years pass. Electricity transforms the world — and with it, the dream of computation."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-1-0-persona"
             }
           ]
         }

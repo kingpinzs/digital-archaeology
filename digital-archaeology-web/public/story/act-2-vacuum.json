@@ -463,7 +463,30 @@
                 "ENIAC would operate for ten years, solving problems from hydrogen bomb calculations to weather prediction. But its architecture—hardwired programs—was already obsolete at its unveiling.",
                 "The future belonged to stored-program computers: machines that could switch from task to task by loading new instructions from memory. Machines that could modify their own behavior. Machines that were truly universal.",
                 "Von Neumann's architecture would define computing for the next eighty years. And it started here, watching ENIAC's tubes glow in the Philadelphia night."
-              ]
+              ],
+              "nextScene": "scene-2-1-transition"
+            },
+            {
+              "id": "scene-2-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Moore School, Philadelphia, 1945",
+                "incomingEra": "Princeton / Cambridge, 1945",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "ENIAC proved that electronic computation was possible — 18,000 vacuum tubes calculating artillery trajectories faster than any human could.",
+                  "But ENIAC had a fatal flaw: to reprogram it, you had to physically rewire it. While the tubes still glowed, a brilliant mathematician was already writing a document that would change everything."
+                ],
+                "summary": {
+                  "chapterTitle": "The Firing Tables",
+                  "concepts": [
+                    "Electronic computation",
+                    "Vacuum tube switching",
+                    "Parallel calculation"
+                  ]
+                }
+              },
+              "nextScene": "scene-2-2-1"
             }
           ]
         },
@@ -740,7 +763,30 @@
                 "The stored-program concept was the key that unlocked general-purpose computing. No longer hardwired to a single task, computers could now be reprogrammed simply by loading new instructions into memory.",
                 "But vacuum tube computers were still massive, expensive, and power-hungry. They were tools for governments and giant corporations, not ordinary people.",
                 "That would change. But first, the vacuum tube era would reach its peak—and its limit."
-              ]
+              ],
+              "nextScene": "scene-2-2-transition"
+            },
+            {
+              "id": "scene-2-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "The First Draft, 1945",
+                "incomingEra": "Manchester and Cambridge, 1948",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "Von Neumann's 'First Draft' described a radical idea: store the program in the same memory as the data. The computer could modify its own instructions.",
+                  "Three years of furious engineering follow. Two teams, one in Manchester and one in Cambridge, race to build the first stored-program computer."
+                ],
+                "summary": {
+                  "chapterTitle": "The First Draft",
+                  "concepts": [
+                    "Stored-program concept",
+                    "Von Neumann architecture",
+                    "Memory as instruction store"
+                  ]
+                }
+              },
+              "nextScene": "scene-2-2b-1"
             }
           ]
         },
@@ -929,6 +975,28 @@
                 "Kathleen Booth's assembly language would transform programming from an esoteric art into an accessible skill. Grace Hopper—working with UNIVAC—would soon take the next step: compilers that translated high-level languages into machine code.",
                 "The vacuum tube giants were reaching their peak. But the real revolution was happening at Bell Labs, where three physicists were about to change everything."
               ],
+              "nextScene": "scene-2-3-transition"
+            },
+            {
+              "id": "scene-2-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Manchester and Cambridge, 1948",
+                "incomingEra": "Philadelphia, 1951",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The Manchester Baby ran the first stored program. EDSAC made it practical. The stored-program computer was no longer theoretical — it was real.",
+                  "Three years later, the question shifts: can a computer be a product, not just a research project?"
+                ],
+                "summary": {
+                  "chapterTitle": "The First True Computers",
+                  "concepts": [
+                    "Stored-program execution",
+                    "CRT memory",
+                    "Mercury delay lines"
+                  ]
+                }
+              },
               "nextScene": "scene-2-3-1"
             }
           ]
@@ -1224,7 +1292,24 @@
                 "The solution was already in hand. In 1947, at Bell Labs, Bardeen, Brattain, and Shockley had invented the transistor. Small, cool, reliable—everything the vacuum tube was not.",
                 "The solid-state revolution was about to begin.",
                 "Continue to Act 3: The Solid State Revolution."
-              ]
+              ],
+              "nextScene": "scene-2-act-transition"
+            },
+            {
+              "id": "scene-2-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Vacuum Tube Era, 1945-1955",
+                "incomingEra": "Transistor Era, 1947",
+                "yearsElapsed": 9,
+                "narrative": [
+                  "UNIVAC predicted Eisenhower's election on live television. Computers had captured the public imagination.",
+                  "But vacuum tubes were a dead end. They burned out, consumed enormous power, and filled entire rooms. The future needed something smaller, cooler, and more reliable.",
+                  "The answer had already been invented in a quiet laboratory in New Jersey: the transistor."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-3-0-persona"
             }
           ]
         }

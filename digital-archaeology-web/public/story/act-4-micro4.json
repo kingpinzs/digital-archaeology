@@ -453,7 +453,30 @@
               "narrative": [
                 "The meeting with Busicom is set for June. Everything depends on convincing them that a general-purpose chip is better than their custom design.",
                 "And if they say yes, Intel will need to find someone who can actually make it work."
-              ]
+              ],
+              "nextScene": "scene-4-1-transition"
+            },
+            {
+              "id": "scene-4-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel, Santa Clara, 1969",
+                "incomingEra": "Intel Design Lab, 1969-1970",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "Busicom wanted twelve custom chips for their calculator. Faggin and Hoff saw something bigger: one chip that could do it all.",
+                  "The argument begins. Can a general-purpose processor be as fast as dedicated logic? The technical debates would reshape the entire semiconductor industry."
+                ],
+                "summary": {
+                  "chapterTitle": "The Calculator Crisis",
+                  "concepts": [
+                    "Custom vs general-purpose",
+                    "Cost-performance tradeoffs",
+                    "Chip design constraints"
+                  ]
+                }
+              },
+              "nextScene": "scene-4-2-1"
             }
           ]
         },
@@ -773,7 +796,30 @@
                   "speaker": "Shima",
                   "text": "Will it work? On paper, it should. But we won't know until we see working silicon."
                 }
-              ]
+              ],
+              "nextScene": "scene-4-2-transition"
+            },
+            {
+              "id": "scene-4-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel Design Lab, 1970",
+                "incomingEra": "Intel Fab, 1971",
+                "yearsElapsed": 1,
+                "narrative": [
+                  "The architecture was approved. Four chips instead of twelve: CPU, ROM, RAM, and I/O. The 4004 instruction set was designed — now someone had to build it.",
+                  "One year of sleepless nights begins. Federico Faggin would hand-draw every transistor on the chip."
+                ],
+                "summary": {
+                  "chapterTitle": "The General-Purpose Vision",
+                  "concepts": [
+                    "CPU architecture design",
+                    "Instruction set design",
+                    "4-chip architecture"
+                  ]
+                }
+              },
+              "nextScene": "scene-4-3-1"
             }
           ]
         },
@@ -1035,7 +1081,30 @@
                   "content": "Faggin's initials 'F.F.' were etched into the corner of every 4004 die - a tradition that continues in chip design today. The buyback from Busicom cost Intel about $60,000 in reduced chip prices.",
                   "codeSnippet": "// The Business Deal\n// \n// Original contract: Busicom exclusive rights\n// Problem: Busicom financial troubles\n// Solution: Reduce chip price, Intel keeps rights\n// \n// Result:\n// - Busicom gets cheaper chips\n// - Intel can sell to anyone\n// - Microprocessor industry born\n// \n// Cost: ~$60,000 in discounts\n// Value: Trillions of dollars of industry created"
                 }
-              ]
+              ],
+              "nextScene": "scene-4-3-transition"
+            },
+            {
+              "id": "scene-4-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel Fab, early 1971",
+                "incomingEra": "Intel Headquarters, November 1971",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "The silicon came back from fabrication. Faggin connected the test probes with trembling hands. The chip worked on the first try — 2,300 transistors computing in perfect harmony.",
+                  "Now came the real challenge: convincing the world that a computer on a chip was worth paying attention to."
+                ],
+                "summary": {
+                  "chapterTitle": "Making It Real",
+                  "concepts": [
+                    "Silicon gate technology",
+                    "Hand-drawn transistor layouts",
+                    "First-pass silicon"
+                  ]
+                }
+              },
+              "nextScene": "scene-4-4-1"
             }
           ]
         },
@@ -1214,7 +1283,24 @@
               "narrative": [
                 "The 4004 was a beginning, not an ending. The story of the microprocessor is just starting - and you've been part of its first chapter.",
                 "Continue to Act 5 to witness the 8-bit revolution."
-              ]
+              ],
+              "nextScene": "scene-4-act-transition"
+            },
+            {
+              "id": "scene-4-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "4-bit Microprocessor Era, 1971",
+                "incomingEra": "8-bit Era, 1974",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The Intel 4004 advertisement ran in Electronic News: 'A micro-programmable computer on a chip.' Most people didn't understand what it meant.",
+                  "But the engineers did. Within three years, Intel doubled the data width. The 8080 processor would turn the microprocessor from a curiosity into a revolution.",
+                  "The 8-bit era had begun."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-5-1-1"
             }
           ]
         }

@@ -442,7 +442,30 @@
                 "Shockley's reaction was complex. Pride in his team. Fury that he wasn't involved in the final breakthrough. Determination to find a better design.",
                 "Within weeks, Shockley invented the junction transistor—a more practical design that would dominate the industry. But the Nobel Prize would go to all three: Shockley, Bardeen, and Brattain.",
                 "The vacuum tube's days were numbered. The solid-state revolution had begun."
-              ]
+              ],
+              "nextScene": "scene-3-1-transition"
+            },
+            {
+              "id": "scene-3-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Bell Labs, 1947",
+                "incomingEra": "Texas / California, 1958",
+                "yearsElapsed": 11,
+                "narrative": [
+                  "The transistor replaced the vacuum tube — smaller, faster, more reliable. But each transistor still had to be wired by hand, creating a new bottleneck: the 'tyranny of numbers.'",
+                  "Eleven years pass. Two men, working independently on opposite sides of America, arrive at the same breakthrough."
+                ],
+                "summary": {
+                  "chapterTitle": "The Tyranny of the Tube",
+                  "concepts": [
+                    "Transistor operation",
+                    "Semiconductor physics",
+                    "Solid-state switching"
+                  ]
+                }
+              },
+              "nextScene": "scene-3-2-1"
             }
           ]
         },
@@ -740,7 +763,30 @@
                 "Moore's prediction would prove remarkably accurate. The 'law' bearing his name guided the industry for fifty years: transistor counts doubling roughly every two years.",
                 "But ICs needed a market to drive that growth. They were expensive, unproven, and most engineers didn't trust them.",
                 "That market would come from an unexpected source: the race to the moon."
-              ]
+              ],
+              "nextScene": "scene-3-2-transition"
+            },
+            {
+              "id": "scene-3-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Texas and California, 1958",
+                "incomingEra": "MIT Instrumentation Lab, 1965",
+                "yearsElapsed": 7,
+                "narrative": [
+                  "Kilby and Noyce invented the integrated circuit — multiple transistors on a single chip. But who would be brave enough to trust these fragile new chips in a mission where failure meant death?",
+                  "Seven years later, NASA needs computers small enough to fly to the Moon."
+                ],
+                "summary": {
+                  "chapterTitle": "From Lab to Fab",
+                  "concepts": [
+                    "Integrated circuits",
+                    "Photolithography",
+                    "Silicon fabrication"
+                  ]
+                }
+              },
+              "nextScene": "scene-3-3-1"
             }
           ]
         },
@@ -916,7 +962,30 @@
                 "Integrated circuits, tested and qualified to survive space, have guided humans to the moon and back.",
                 "NASA's investment paid off beyond measure. The price of ICs dropped 98%. Reliability improved a thousandfold. An industry that served a handful of military customers now serves the world.",
                 "The semiconductor revolution is real. The only question now: what comes next?"
-              ]
+              ],
+              "nextScene": "scene-3-3-transition"
+            },
+            {
+              "id": "scene-3-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "MIT / Houston, 1965",
+                "incomingEra": "Santa Clara Valley, 1971",
+                "yearsElapsed": 6,
+                "narrative": [
+                  "The Apollo Guidance Computer proved that integrated circuits could be trusted with human lives. The space program consumed most of America's chip production — and drove costs down.",
+                  "Six years later, in a valley of fruit orchards being paved over for semiconductor fabs, a question emerges: can you put an entire computer on a single chip?"
+                ],
+                "summary": {
+                  "chapterTitle": "The Moon Shot",
+                  "concepts": [
+                    "Miniaturized computing",
+                    "Real-time guidance",
+                    "Reliability engineering"
+                  ]
+                }
+              },
+              "nextScene": "scene-3-4-1"
             }
           ]
         },
@@ -1200,7 +1269,24 @@
                 "From here, you'll discover why 8 bits are better than 4. Why stacks enable subroutines. Why registers multiply speed. Why pipelining changes everything.",
                 "Each limitation you hit will drive the next innovation. Just as the burning vacuum tubes drove the transistor. Just as the tyranny of numbers drove integration.",
                 "Welcome to the microprocessor era. Act 4 awaits."
-              ]
+              ],
+              "nextScene": "scene-3-act-transition"
+            },
+            {
+              "id": "scene-3-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Transistor Era, 1947-1971",
+                "incomingEra": "Microprocessor Era, 1969",
+                "yearsElapsed": 16,
+                "narrative": [
+                  "Silicon Valley earned its name. Intel, AMD, and dozens of startups built faster and more complex chips. Moore's Law was becoming a self-fulfilling prophecy.",
+                  "But every chip was specialized — one for calculators, another for terminals, another for traffic lights. The idea of a general-purpose processor on a single chip seemed like madness.",
+                  "Until a Japanese calculator company came to Intel with an impossible request."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-4-0-persona"
             }
           ]
         }

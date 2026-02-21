@@ -436,7 +436,30 @@
               "narrative": [
                 "Segmentation was Intel's bridge from 16 to 32 bits. It worked—millions of PCs ran on it—but programmers cursed it for a decade.",
                 "The solution would come with the 80386: true 32-bit registers, flat addressing, and a way to escape the segment maze forever."
-              ]
+              ],
+              "nextScene": "scene-6-1-transition"
+            },
+            {
+              "id": "scene-6-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel, Santa Clara, 1978",
+                "incomingEra": "Boca Raton, Florida, 1981",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The 8086 broke the 64KB barrier with segmented memory — an elegant hack that would haunt programmers for a generation.",
+                  "Three years later, the world's largest computer company decides to build a personal computer. The decision that follows would define the entire PC industry."
+                ],
+                "summary": {
+                  "chapterTitle": "The 64KB Barrier",
+                  "concepts": [
+                    "Segmented memory",
+                    "20-bit addressing",
+                    "Real mode operation"
+                  ]
+                }
+              },
+              "nextScene": "scene-6-2-1"
             }
           ]
         },
@@ -809,6 +832,28 @@
                   "codeSnippet": "// 8087 coprocessor operation\n// \n// Software float multiply: ~1000 cycles\n// 8087 FMUL: ~200 cycles\n// Speedup: ~5× per operation\n// \n// But real programs: 50-100× speedup\n// (eliminating loop overhead, memory access)\n// \n// 8087 instructions:\n// FLD   ; Load to stack\n// FADD  ; Add\n// FMUL  ; Multiply\n// FSQRT ; Square root\n// FSIN  ; Sine"
                 }
               ],
+              "nextScene": "scene-6-2-transition"
+            },
+            {
+              "id": "scene-6-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "IBM, Boca Raton, 1981",
+                "incomingEra": "Cupertino / West Chester, 1984",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The IBM PC conquered the business world. Its open architecture spawned an army of clones. But not everyone was building IBM-compatible machines.",
+                  "Across the industry, the Motorola 68000 offered a cleaner, more powerful alternative. Apple, Commodore, and Atari chose a different path."
+                ],
+                "summary": {
+                  "chapterTitle": "The IBM PC",
+                  "concepts": [
+                    "Open architecture",
+                    "IBM PC compatibility",
+                    "MS-DOS"
+                  ]
+                }
+              },
               "nextScene": "scene-6-2b-1"
             }
           ]
@@ -999,6 +1044,28 @@
                 "Still, the 68000's influence persists. Its clean architecture inspired later designs. Its Toolbox, AmigaOS, and GEM showed what operating systems could be. And musicians still speak fondly of their Atari STs.",
                 "True relief would require the 80386: 32-bit registers, 4GB addressing, and the flat memory model programmers craved."
               ],
+              "nextScene": "scene-6-3-transition"
+            },
+            {
+              "id": "scene-6-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "The 68000 Golden Age, 1984",
+                "incomingEra": "Intel Labs, 1984",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "The Macintosh, Amiga, and Atari ST proved that elegant hardware design mattered. But the IBM-compatible juggernaut was unstoppable.",
+                  "Meanwhile, Intel faced its own crisis: the 286's protected mode was powerful but practically useless. They needed to fix it — fast."
+                ],
+                "summary": {
+                  "chapterTitle": "The 68000 Golden Age",
+                  "concepts": [
+                    "Flat memory model",
+                    "68000 architecture",
+                    "GUI computing"
+                  ]
+                }
+              },
               "nextScene": "scene-6-3-1"
             }
           ]
@@ -1275,7 +1342,24 @@
                 "Segmented memory would frustrate programmers for a decade. The 640KB limit would become infamous. But compatibility won, and the IBM PC compatible market exploded.",
                 "Eventually, even Intel would want to escape their own architecture's limitations. The solution would require another doubling: 32 bits, flat addressing, and protected mode done right.",
                 "Continue to Act 7: The 32-bit Era."
-              ]
+              ],
+              "nextScene": "scene-6-act-transition"
+            },
+            {
+              "id": "scene-6-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "16-bit Era, 1978-1985",
+                "incomingEra": "32-bit Era, 1985",
+                "yearsElapsed": 7,
+                "narrative": [
+                  "The 80286 offered protected mode, but switching back to real mode required a reboot. Developers cursed. Compatibility was a trap.",
+                  "Intel learned its lesson. The next generation would get it right: true 32-bit computing with a flat memory model, virtual memory, and backward compatibility.",
+                  "The 80386 was about to change everything."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-7-1-1"
             }
           ]
         }

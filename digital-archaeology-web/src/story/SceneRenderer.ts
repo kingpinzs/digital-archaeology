@@ -3,8 +3,8 @@
 // Story 10.17: Wire Story Mode Integration
 // Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
-import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData } from './content-types';
-import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, HistoricalDecision, ChallengeContext } from './types';
+import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData, SceneTransitionData } from './content-types';
+import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, TransitionData, HistoricalDecision, ChallengeContext } from './types';
 import { ChapterHeader } from './ChapterHeader';
 import { SceneSetting } from './SceneSetting';
 import { CharacterCard } from './CharacterCard';
@@ -18,6 +18,8 @@ import { DecisionMakerScene } from './DecisionMakerScene';
 import { BuilderModeScene } from './BuilderModeScene';
 import { MindsetProvider } from './MindsetProvider';
 import { createEraFilter } from './AnachronismFilter';
+import { ChapterTransitionPanel } from './ChapterTransitionPanel';
+import { PersonaTransitionPanel } from './PersonaTransitionPanel';
 
 /**
  * Scene render context containing act and chapter information.
@@ -136,6 +138,12 @@ export class SceneRenderer {
 
     // Clean up previous scene components
     this.cleanup();
+
+    // Handle transition scenes (chapter/act bridges)
+    if (context.scene.type === 'transition' && context.scene.transition) {
+      this.renderTransitionScene(context);
+      return;
+    }
 
     // Create scene container
     this.sceneContainer = document.createElement('div');
@@ -442,6 +450,96 @@ export class SceneRenderer {
       }
     });
     this.activeComponents.push(builderScene);
+  }
+
+  /**
+   * Render a transition scene (chapter or act bridge).
+   * Chapter transitions use ChapterTransitionPanel (lighter).
+   * Act transitions use PersonaTransitionPanel (epic, with persona swap).
+   */
+  private renderTransitionScene(context: SceneRenderContext): void {
+    const transitionData = context.scene.transition!;
+    const mount = document.createElement('div');
+    mount.className = 'da-scene-transition-mount';
+    this.container!.appendChild(mount);
+
+    if (transitionData.actTransition) {
+      // Epic act transition using PersonaTransitionPanel
+      this.renderActTransition(context, transitionData, mount);
+    } else {
+      // Lighter chapter transition
+      this.renderChapterTransition(transitionData, mount);
+    }
+  }
+
+  /**
+   * Render a chapter transition using ChapterTransitionPanel.
+   */
+  private renderChapterTransition(transitionData: SceneTransitionData, mount: HTMLElement): void {
+    const panel = new ChapterTransitionPanel();
+    panel.mount(mount);
+    panel.setTransitionData(transitionData);
+    panel.onContinue(() => {
+      if (this.callbacks.onContinue) {
+        this.callbacks.onContinue();
+      }
+    });
+    panel.show();
+    this.activeComponents.push(panel);
+  }
+
+  /**
+   * Render an act transition using PersonaTransitionPanel.
+   * Looks up outgoing/incoming persona data from the act.
+   */
+  private renderActTransition(
+    context: SceneRenderContext,
+    transitionData: SceneTransitionData,
+    mount: HTMLElement
+  ): void {
+    const panel = new PersonaTransitionPanel();
+    panel.mount(mount);
+
+    // Build TransitionData for PersonaTransitionPanel from SceneTransitionData
+    const personaTransition: TransitionData = {
+      outgoingPersonaId: '',
+      incomingPersonaId: '',
+      yearsElapsed: transitionData.yearsElapsed,
+      narrative: transitionData.narrative,
+      outgoingEra: transitionData.outgoingEra,
+      incomingEra: transitionData.incomingEra,
+    };
+
+    // Get personas: outgoing = current act's persona, incoming = next act's persona
+    const outgoingPersona = context.act.persona ?? this.createFallbackPersona(transitionData.outgoingEra);
+    const incomingPersona = this.createFallbackPersona(transitionData.incomingEra);
+
+    panel.setTransitionData(personaTransition, outgoingPersona, incomingPersona);
+    panel.onContinue(() => {
+      if (this.callbacks.onContinue) {
+        this.callbacks.onContinue();
+      }
+    });
+    panel.show();
+    this.activeComponents.push(panel);
+  }
+
+  /**
+   * Create a minimal fallback persona when act persona data isn't available.
+   */
+  private createFallbackPersona(era: string): PersonaData {
+    return {
+      id: 'fallback',
+      name: 'Unknown Pioneer',
+      years: '',
+      era,
+      avatar: '\u{1F464}',
+      quote: '',
+      background: '',
+      motivation: '',
+      constraints: [],
+      problem: '',
+    };
   }
 
   /**

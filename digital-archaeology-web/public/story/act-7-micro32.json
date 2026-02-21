@@ -277,7 +277,30 @@
               "narrative": [
                 "The 386's Virtual 8086 mode was crucial for the transition. Old software could run, but safely—unable to crash the system or corrupt other programs.",
                 "This backwards compatibility would define x86 for decades: always carrying the past forward, never breaking what came before."
-              ]
+              ],
+              "nextScene": "scene-7-1-transition"
+            },
+            {
+              "id": "scene-7-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel, Santa Clara, 1985",
+                "incomingEra": "Finland / Redmond, 1991",
+                "yearsElapsed": 6,
+                "narrative": [
+                  "The 386 delivered on Intel's promise: flat 32-bit address space, hardware paging, and virtual 8086 mode. But all this power was wasted running DOS.",
+                  "Six years later, a Finnish student and a Microsoft team independently set out to write operating systems worthy of 32-bit hardware."
+                ],
+                "summary": {
+                  "chapterTitle": "Flat Land",
+                  "concepts": [
+                    "Flat memory model",
+                    "Hardware paging",
+                    "Virtual 8086 mode"
+                  ]
+                }
+              },
+              "nextScene": "scene-7-2-1"
             }
           ]
         },
@@ -560,7 +583,30 @@
               "narrative": [
                 "The 32-bit era established the operating system paradigms we still use. Preemptive multitasking. Virtual memory. Process isolation.",
                 "But single-threaded performance was hitting limits. Clock speeds could only increase so much. The next breakthrough would come from parallelism within the processor itself."
-              ]
+              ],
+              "nextScene": "scene-7-2-transition"
+            },
+            {
+              "id": "scene-7-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Helsinki / Redmond, 1991",
+                "incomingEra": "Intel Labs, 1993",
+                "yearsElapsed": 2,
+                "narrative": [
+                  "Linux and Windows NT gave 32-bit processors the software they deserved. Virtual memory, preemptive multitasking, and proper memory protection transformed computing.",
+                  "Two years later, the battle shifts from features to raw performance. The clock speed wars have begun."
+                ],
+                "summary": {
+                  "chapterTitle": "The Operating System Revolution",
+                  "concepts": [
+                    "Preemptive multitasking",
+                    "Virtual memory",
+                    "Protected memory spaces"
+                  ]
+                }
+              },
+              "nextScene": "scene-7-3-1"
             }
           ]
         },
@@ -871,7 +917,24 @@
                 "The 32-bit era established the architecture we still use. Flat addressing. Protected mode. Paging. These innovations from 1985 remain the foundation of x86-64 today.",
                 "But one instruction at a time wasn't enough. Processor speeds plateaued against physical limits. The solution: work smarter, not just faster. Execute multiple instructions simultaneously through pipelining.",
                 "Continue to Act 8: The Pipeline."
-              ]
+              ],
+              "nextScene": "scene-7-act-transition"
+            },
+            {
+              "id": "scene-7-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "32-bit Era, 1985-1995",
+                "incomingEra": "Pipeline Era, 1989",
+                "yearsElapsed": 4,
+                "narrative": [
+                  "The clock speed wars pushed processors to their limits. But raw frequency alone couldn't keep up with demand.",
+                  "Engineers looked to a technique borrowed from factory assembly lines: break each instruction into stages and overlap them.",
+                  "The age of the pipeline had arrived."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-8-1-1"
             }
           ]
         }

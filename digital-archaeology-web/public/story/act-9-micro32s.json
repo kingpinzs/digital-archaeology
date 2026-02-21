@@ -198,7 +198,7 @@
                   "id": "choice-speculation",
                   "icon": "🔮",
                   "title": "Implement Speculative Execution",
-                  "description": "Build speculative memory access and rollback. See how CPUs gamble on the future\u2014and recover when wrong."
+                  "description": "Build speculative memory access and rollback. See how CPUs gamble on the future—and recover when wrong."
                 }
               ],
               "nextScene": "scene-9-1-6"
@@ -297,7 +297,30 @@
                 "The Pentium Pro validated out-of-order for x86. Every Intel and AMD processor since has used this approach—decode to micro-ops, execute out of order, retire in order.",
                 "But the P6 team couldn't foresee the consequences. Pushing this architecture to its limits would reveal fundamental problems: power consumption, heat, and eventually, security.",
                 "Continue to Chapter 2: The GHz Race."
-              ]
+              ],
+              "nextScene": "scene-9-1-transition"
+            },
+            {
+              "id": "scene-9-1-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Intel, Hillsboro, 1995",
+                "incomingEra": "Intel / AMD / IBM, 1998-2006",
+                "yearsElapsed": 3,
+                "narrative": [
+                  "The Pentium Pro's out-of-order engine was a marvel of engineering. Instructions entered in order, were scrambled for maximum parallelism, and retired in order.",
+                  "Three years later, the industry fell into a seductive trap: if faster clocks mean faster processors, why not push clock speeds as high as possible?"
+                ],
+                "summary": {
+                  "chapterTitle": "Out of Order",
+                  "concepts": [
+                    "Out-of-order execution",
+                    "Register renaming",
+                    "Reservation stations"
+                  ]
+                }
+              },
+              "nextScene": "scene-9-2-1"
             }
           ]
         },
@@ -695,7 +718,30 @@
                 "The multi-core era forced a reckoning. Software must become parallel to benefit from new hardware. Languages, libraries, and programming models all evolved.",
                 "And new opportunities emerged. GPUs, originally for graphics, became general-purpose parallel processors. Neural networks, impossible to run on CPUs alone, flourished on GPU compute.",
                 "Continue to Chapter 3: The End of an Era."
-              ]
+              ],
+              "nextScene": "scene-9-2-transition"
+            },
+            {
+              "id": "scene-9-2-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "The GHz Race, 1998-2006",
+                "incomingEra": "The Reckoning, 2010-2020",
+                "yearsElapsed": 4,
+                "narrative": [
+                  "The Pentium 4 hit the power wall at 3.8 GHz. NetBurst was cancelled. AMD's Athlon 64 proved that smart architecture beat brute-force clock speed.",
+                  "The industry pivoted to multi-core. But deeper problems lurked in the very foundations of out-of-order execution."
+                ],
+                "summary": {
+                  "chapterTitle": "The GHz Race",
+                  "concepts": [
+                    "Deep pipelines",
+                    "Branch prediction",
+                    "The power wall"
+                  ]
+                }
+              },
+              "nextScene": "scene-9-3-1"
             }
           ]
         },
@@ -1019,7 +1065,30 @@
                   "content": "The history of computing is a story of tradeoffs. Speed versus power. Generality versus efficiency. Compatibility versus innovation. Security versus performance. Understanding these tradeoffs—and the reasons behind historical choices—is essential for making good decisions in the future.",
                   "codeSnippet": "// The eternal tradeoffs\n// \n// Performance vs Power:\n//   Higher clocks = more heat\n//   Speculation = wasted work\n// \n// Generality vs Efficiency:\n//   CPUs: good at everything, great at nothing\n//   GPUs: terrible at branching, amazing at parallel\n//   TPUs: useless for general code, 100x ML speed\n// \n// Compatibility vs Innovation:\n//   x86: 40+ years of legacy, hard to change\n//   ARM: simpler, but different ecosystem\n//   RISC-V: clean slate, but proving grounds\n// \n// Every choice has consequences.\n// Understand them, and choose wisely."
                 }
-              ]
+              ],
+              "nextScene": "scene-9-3-transition"
+            },
+            {
+              "id": "scene-9-3-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Spectre/Meltdown, 2018",
+                "incomingEra": "The Alternate Paths, 1991-2007",
+                "yearsElapsed": 0,
+                "narrative": [
+                  "Spectre and Meltdown revealed that decades of performance optimizations had created fundamental security vulnerabilities. The industry was shaken to its core.",
+                  "Before looking forward, it's worth examining the roads not taken — the alternative architectures that promised a different future."
+                ],
+                "summary": {
+                  "chapterTitle": "The End of an Era",
+                  "concepts": [
+                    "Speculative execution vulnerabilities",
+                    "Side-channel attacks",
+                    "Multi-core pivot"
+                  ]
+                }
+              },
+              "nextScene": "scene-9-4-1"
             }
           ]
         },
@@ -1329,7 +1398,24 @@
                   "content": "AlexNet used GPUs to train a neural network with 60 million parameters on 1.2 million images. The key operations—convolutions and matrix multiplications—are massively parallel, making GPUs 10-100x faster than CPUs. This sparked the deep learning revolution.",
                   "codeSnippet": "// Why GPUs dominate AI training\n// \n// Convolution: same operation, many positions\n// Matrix multiply: same operation, many elements\n// \n// CPU: Optimized for latency\n//   Few cores, fast per-core\n//   Great for branching code\n// \n// GPU: Optimized for throughput\n//   Thousands of cores, slower per-core\n//   Great for parallel numeric code\n// \n// Neural nets: parallel numeric code\n// GPU wins: 10-100x faster training"
                 }
-              ]
+              ],
+              "nextScene": "scene-9-act-transition"
+            },
+            {
+              "id": "scene-9-act-transition",
+              "type": "transition",
+              "transition": {
+                "outgoingEra": "Superscalar Era, 1995-2020",
+                "incomingEra": "The Future, 2015-Beyond",
+                "yearsElapsed": 5,
+                "narrative": [
+                  "Itanium bet on the compiler. PowerPC bet on Apple. Both lost. The GPU, born as a graphics accelerator, quietly became the world's most powerful parallel processor.",
+                  "The roads not taken taught a crucial lesson: the future of computing isn't about one architecture — it's about many.",
+                  "Welcome to the age of specialization, where the very idea of a 'general-purpose processor' is being questioned."
+                ],
+                "actTransition": true
+              },
+              "nextScene": "scene-10-1-1"
             }
           ]
         }

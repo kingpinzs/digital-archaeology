@@ -182,6 +182,18 @@ export class ExerciseBrowser {
     this.updateStatsElement(stats);
     titleRow.appendChild(stats);
 
+    // View Progress button (Story 21.7)
+    if (this.callbacks?.onViewProgress) {
+      const progressBtn = document.createElement('button');
+      progressBtn.className = 'da-exercise-browser__progress-btn';
+      progressBtn.textContent = 'View Progress';
+      progressBtn.setAttribute('aria-label', 'View exercise progress');
+      progressBtn.addEventListener('click', () => {
+        this.callbacks?.onViewProgress?.();
+      });
+      titleRow.appendChild(progressBtn);
+    }
+
     // Close button
     const closeBtn = document.createElement('button');
     closeBtn.className = 'da-exercise-browser__close';

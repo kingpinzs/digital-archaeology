@@ -91,4 +91,5 @@ export interface ExerciseBrowserData {
 export interface ExerciseBrowserCallbacks {
   readonly onExerciseSelect: (exercise: ExerciseMetadata) => void;
   readonly onClose: () => void;
+  readonly onViewProgress?: () => void;
 }

@@ -305,7 +305,7 @@ development_status:
   21-4-implement-output-validation: done  # ExerciseValidator + ExerciseResultsPanel, 52 new tests, 5 review fixes, 5415 total passing
   21-5-implement-progressive-hints: done  # ExerciseHintsPanel + ExerciseHintStorage, 38 new tests, 5 review fixes, 5453 total passing
   21-6-implement-solution-reveal: done  # ExerciseSolutionPanel + SolutionViewStorage, 36 new tests, 3 review fixes, 5489 total passing
-  21-7-track-exercise-completion: backlog
+  21-7-track-exercise-completion: done  # ExerciseProgressPanel + attempt tracking, 46 new tests, 5 review fixes, 5535 total passing
   21-8-micro4-capstone-bcd-calculator: backlog
   21-9-micro4-capstone-led-pattern-controller: backlog
   21-10-micro8-capstone-number-guessing-game: backlog

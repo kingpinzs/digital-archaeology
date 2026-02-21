@@ -11495,3 +11495,150 @@ body.da-resizing * {
 .da-exercise-show-solution-btn:hover {
   background: color-mix(in srgb, var(--da-exercise-advanced) 25%, var(--da-bg-secondary));
 }
+
+/* ========================================================================
+   Story 21.7: Exercise Progress Panel
+   ======================================================================== */
+.da-exercise-progress {
+  margin: 8px 12px;
+  padding: 12px;
+  background: var(--da-bg-secondary);
+  border: 1px solid var(--da-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.da-exercise-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.da-exercise-progress__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--da-text-primary);
+}
+
+.da-exercise-progress__dismiss {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.da-exercise-progress__dismiss:hover {
+  background: var(--da-bg-hover);
+  color: var(--da-text-primary);
+}
+
+.da-exercise-progress__stage {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-exercise-progress__stage:last-of-type {
+  border-bottom: none;
+}
+
+.da-exercise-progress__stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.da-exercise-progress__stage-name {
+  font-weight: 600;
+  color: var(--da-text-primary);
+}
+
+.da-exercise-progress__stage-count {
+  font-size: 0.8rem;
+  color: var(--da-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.da-exercise-progress__bar {
+  height: 6px;
+  background: var(--da-bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.da-exercise-progress__bar-fill {
+  height: 100%;
+  background: var(--da-accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.da-exercise-progress__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.da-exercise-progress__exercise {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.da-exercise-progress__exercise-icon {
+  width: 16px;
+  text-align: center;
+  color: var(--da-text-secondary);
+  font-size: 0.8rem;
+}
+
+.da-exercise-progress__exercise-icon--complete {
+  color: var(--da-accent);
+  font-weight: 700;
+}
+
+.da-exercise-progress__exercise-name {
+  flex: 1;
+  color: var(--da-text-primary);
+  font-size: 0.8rem;
+}
+
+.da-exercise-progress__exercise-stats {
+  font-size: 0.75rem;
+  color: var(--da-text-secondary);
+  white-space: nowrap;
+}
+
+.da-exercise-progress__overall {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--da-border);
+  font-weight: 600;
+  color: var(--da-text-primary);
+  text-align: center;
+}
+
+/* View Progress button in exercise browser header (Story 21.7) */
+.da-exercise-browser__progress-btn {
+  padding: 4px 12px;
+  background: color-mix(in srgb, var(--da-accent) 15%, var(--da-bg-secondary));
+  color: var(--da-accent);
+  border: 1px solid var(--da-accent);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.da-exercise-browser__progress-btn:hover {
+  background: color-mix(in srgb, var(--da-accent) 25%, var(--da-bg-secondary));
+}

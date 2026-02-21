@@ -5,12 +5,14 @@
 export { ExerciseBrowser } from './ExerciseBrowser';
 export { ExerciseDetailPanel } from './ExerciseDetailPanel';
 export { ExerciseProgressStorage } from './ExerciseProgressStorage';
+export type { ExerciseAttempt } from './ExerciseProgressStorage';
 export { ExerciseValidator } from './ExerciseValidator';
 export { ExerciseResultsPanel } from './ExerciseResultsPanel';
 export type { ExerciseResultsPanelCallbacks } from './ExerciseResultsPanel';
 export { ExerciseHintsPanel, ExerciseHintStorage } from './ExerciseHintsPanel';
 export { ExerciseSolutionPanel, SolutionViewStorage } from './ExerciseSolutionPanel';
 export type { ExerciseSolutionPanelCallbacks } from './ExerciseSolutionPanel';
+export { ExerciseProgressPanel } from './ExerciseProgressPanel';
 export {
   EXERCISES,
   EXERCISE_IDS,

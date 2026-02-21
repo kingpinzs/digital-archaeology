@@ -52,7 +52,7 @@ import {
 import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
 import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
-import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage, ExerciseValidator, ExerciseResultsPanel, ExerciseHintsPanel, ExerciseSolutionPanel } from '../exercises';
+import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage, ExerciseValidator, ExerciseResultsPanel, ExerciseHintsPanel, ExerciseSolutionPanel, SolutionViewStorage, ExerciseProgressPanel } from '../exercises';
 import type { ExerciseMetadata } from '../exercises';
 
 /**
@@ -313,8 +313,12 @@ export class App {
   private exerciseResultsPanel: ExerciseResultsPanel = new ExerciseResultsPanel();
   // Story 21.5: Progressive Hints
   private exerciseHintsPanel: ExerciseHintsPanel = new ExerciseHintsPanel();
+  // Story 21.7: Shared solution view storage (used by solution panel and progress panel)
+  private solutionViewStorage: SolutionViewStorage = new SolutionViewStorage();
   // Story 21.6: Solution Reveal
-  private exerciseSolutionPanel: ExerciseSolutionPanel = new ExerciseSolutionPanel();
+  private exerciseSolutionPanel: ExerciseSolutionPanel = new ExerciseSolutionPanel(this.solutionViewStorage);
+  // Story 21.7: Track Exercise Completion
+  private exerciseProgressPanel: ExerciseProgressPanel = new ExerciseProgressPanel();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -915,7 +919,25 @@ export class App {
         onClose: () => {
           // No-op: browser handles its own close
         },
+        onViewProgress: () => {
+          this.showExerciseProgress();
+        },
       },
+    );
+  }
+
+  /**
+   * Show the exercise progress panel (Story 21.7).
+   * Closes the exercise browser and displays per-stage completion stats.
+   */
+  private showExerciseProgress(): void {
+    this.exerciseBrowser.close();
+    const codePanel = this.container?.querySelector('.da-code-panel');
+    if (!codePanel) return;
+    this.exerciseProgressPanel.show(
+      this.exerciseProgressStorage,
+      this.solutionViewStorage,
+      codePanel as HTMLElement,
     );
   }
 
@@ -3582,6 +3604,10 @@ export class App {
 
     const result = ExerciseValidator.validate(exercise, memory);
 
+    // Story 21.7: Record the attempt
+    const solutionViewed = this.solutionViewStorage.hasViewed(exercise.id);
+    this.exerciseProgressStorage.recordAttempt(exercise.id, result.passed, solutionViewed);
+
     // Find the code panel to host the results
     const codePanel = this.container?.querySelector('.da-code-panel');
     if (!codePanel) return;
@@ -3627,6 +3653,7 @@ export class App {
     this.exerciseResultsPanel.dismiss();
     this.exerciseHintsPanel.dismiss();
     this.exerciseSolutionPanel.dismiss();
+    this.exerciseProgressPanel.dismiss();
     this.removeSolutionButton();
   }
 
@@ -4929,6 +4956,8 @@ export class App {
     this.persistTimingStatistics();
     this.statisticsDashboard.destroy();
     this.literatureBrowser.destroy();
+    // Story 21.1: Destroy exercise browser
+    this.exerciseBrowser.destroy();
     // Story 21.4: Destroy exercise results panel
     this.exerciseResultsPanel.destroy();
     // Story 21.5: Destroy exercise hints panel
@@ -4936,6 +4965,8 @@ export class App {
     // Story 21.6: Destroy exercise solution panel
     this.exerciseSolutionPanel.destroy();
     this.removeSolutionButton();
+    // Story 21.7: Destroy exercise progress panel
+    this.exerciseProgressPanel.destroy();
     this.currentExercise = null;
 
     // Destroy resizers

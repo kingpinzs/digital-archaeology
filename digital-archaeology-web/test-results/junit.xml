@@ -1,30 +1,157 @@
-<testsuites id="" name="" tests="12" failures="0" skipped="0" errors="0" time="6.710723">
-<testsuite name="epic-11-stage-switching.spec.ts" timestamp="2026-02-10T00:34:39.015Z" hostname="chromium" tests="6" failures="0" skipped="0" time="15.853" errors="0">
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should set URL hash to #/lab/micro4 on initial load" classname="epic-11-stage-switching.spec.ts" time="2.487">
+<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="14.541983">
+<testsuite name="app.spec.ts" timestamp="2026-02-21T04:10:41.914Z" hostname="chromium" tests="2" failures="1" skipped="0" time="10.957" errors="0">
+<testcase name="Digital Archaeology App › [P0] should load the application" classname="app.spec.ts" time="3.13">
 </testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate to lab/micro4 when visiting #/lab/micro4" classname="epic-11-stage-switching.spec.ts" time="2.446">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should fallback to micro4 for invalid stage URL" classname="epic-11-stage-switching.spec.ts" time="2.375">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should show #/story when switching to story mode" classname="epic-11-stage-switching.spec.ts" time="2.957">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should switch back to lab URL when returning from story mode" classname="epic-11-stage-switching.spec.ts" time="2.78">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate via browser back button between mode changes" classname="epic-11-stage-switching.spec.ts" time="2.808">
-</testcase>
-</testsuite>
-<testsuite name="epic-11-stage-switching.spec.ts" timestamp="2026-02-10T00:34:39.015Z" hostname="firefox" tests="6" failures="0" skipped="0" time="13.743" errors="0">
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should set URL hash to #/lab/micro4 on initial load" classname="epic-11-stage-switching.spec.ts" time="2.267">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate to lab/micro4 when visiting #/lab/micro4" classname="epic-11-stage-switching.spec.ts" time="2.267">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should fallback to micro4 for invalid stage URL" classname="epic-11-stage-switching.spec.ts" time="2.2">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should show #/story when switching to story mode" classname="epic-11-stage-switching.spec.ts" time="2.189">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should switch back to lab URL when returning from story mode" classname="epic-11-stage-switching.spec.ts" time="2.325">
-</testcase>
-<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate via browser back button between mode changes" classname="epic-11-stage-switching.spec.ts" time="2.495">
+<testcase name="Digital Archaeology App › [P1] should display without JavaScript errors" classname="app.spec.ts" time="7.827">
+<failure message="app.spec.ts:13:3 [P1] should display without JavaScript errors" type="FAILURE">
+<![CDATA[  [chromium] › app.spec.ts:13:3 › Digital Archaeology App › [P1] should display without JavaScript errors 
+
+    Error: expect(received).toHaveLength(expected)
+
+    Expected length: 0
+    Received length: 5
+    Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
+        at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
+        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
+        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
+        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+
+      27 |
+      28 |     // THEN: No JavaScript errors should occur
+    > 29 |     expect(errors).toHaveLength(0);
+         |                    ^
+      30 |   });
+      31 | });
+      32 |
+        at /home/runner/work/digital-archaeology/digital-archaeology/digital-archaeology-web/tests/e2e/app.spec.ts:29:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toHaveLength(expected)
+
+    Expected length: 0
+    Received length: 5
+    Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
+        at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
+        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
+        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
+        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+
+      27 |
+      28 |     // THEN: No JavaScript errors should occur
+    > 29 |     expect(errors).toHaveLength(0);
+         |                    ^
+      30 |   });
+      31 | });
+      32 |
+        at /home/runner/work/digital-archaeology/digital-archaeology/digital-archaeology-web/tests/e2e/app.spec.ts:29:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toHaveLength(expected)
+
+    Expected length: 0
+    Received length: 5
+    Received array:  ["Failed to load resource: net::ERR_NAME_NOT_RESOLVED", "Failed to initialize AssemblerBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-asm.js
+        at Worker.handleMessage (http://localhost:5173/digital-archaeology/src/emulator/AssemblerBridge.ts:153:18)", "Failed to initialize EmulatorBridge: Error: Worker initialization failed: Failed to fetch dynamically imported module: http://localhost:5173/digital-archaeology/wasm/micro4-cpu.js
+        at Worker.handleInit (http://localhost:5173/digital-archaeology/src/emulator/EmulatorBridge.ts:69:18)", "Failed to load resource: the server responded with a status of 404 (Not Found)", "Failed to mount discoverer experience: Error: Failed to load discoverer experience data
+        at DiscovererExperience.loadData (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:123:13)
+        at async DiscovererExperience.mount (http://localhost:5173/digital-archaeology/src/story/DiscovererExperience.ts:65:5)
+        at async StoryController.showDiscovererExperience (http://localhost:5173/digital-archaeology/src/story/StoryController.ts:273:7)"]
+
+      27 |
+      28 |     // THEN: No JavaScript errors should occur
+    > 29 |     expect(errors).toHaveLength(0);
+         |                    ^
+      30 |   });
+      31 | });
+      32 |
+        at /home/runner/work/digital-archaeology/digital-archaeology/digital-archaeology-web/tests/e2e/app.spec.ts:29:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../test-results/app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/video.webm]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/error-context.md]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium/trace.zip]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/test-failed-1.png]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/video.webm]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/error-context.md]]
+
+[[ATTACHMENT|app-Digital-Archaeology-Ap-0929a-y-without-JavaScript-errors-chromium-retry2/trace.zip]]
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

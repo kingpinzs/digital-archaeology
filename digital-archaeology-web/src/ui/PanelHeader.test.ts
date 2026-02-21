@@ -348,4 +348,107 @@ describe('PanelHeader', () => {
       header.destroy();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 20.3: Help button
+  // ---------------------------------------------------------------------------
+
+  describe('help button (Story 20.3)', () => {
+    it('should render help button when onHelp is provided', () => {
+      const options = {
+        title: 'CIRCUIT',
+        panelId: 'circuit' as const,
+        onClose: vi.fn(),
+        onHelp: vi.fn(),
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+
+      const helpBtn = container.querySelector('.da-panel-help-btn');
+      expect(helpBtn).not.toBeNull();
+      expect(helpBtn!.textContent).toBe('?');
+      header.destroy();
+    });
+
+    it('should NOT render help button when onHelp is omitted', () => {
+      const options = {
+        title: 'CIRCUIT',
+        panelId: 'circuit' as const,
+        onClose: vi.fn(),
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+
+      const helpBtn = container.querySelector('.da-panel-help-btn');
+      expect(helpBtn).toBeNull();
+      header.destroy();
+    });
+
+    it('should fire onHelp callback when help button is clicked', () => {
+      const onHelp = vi.fn();
+      const options = {
+        title: 'CIRCUIT',
+        panelId: 'circuit' as const,
+        onClose: vi.fn(),
+        onHelp,
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+
+      const helpBtn = container.querySelector('.da-panel-help-btn') as HTMLButtonElement;
+      helpBtn.click();
+      expect(onHelp).toHaveBeenCalledTimes(1);
+      header.destroy();
+    });
+
+    it('should have correct aria-label on help button', () => {
+      const options = {
+        title: 'CIRCUIT',
+        panelId: 'circuit' as const,
+        onClose: vi.fn(),
+        onHelp: vi.fn(),
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+
+      const helpBtn = container.querySelector('.da-panel-help-btn');
+      expect(helpBtn!.getAttribute('aria-label')).toBe('Help for CIRCUIT panel');
+      header.destroy();
+    });
+
+    it('should clean up help button on destroy', () => {
+      const onHelp = vi.fn();
+      const options = {
+        title: 'CIRCUIT',
+        panelId: 'circuit' as const,
+        onClose: vi.fn(),
+        onHelp,
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+      header.destroy();
+
+      expect(container.querySelector('.da-panel-help-btn')).toBeNull();
+    });
+
+    it('should fire onHelp on Enter/Space keydown', () => {
+      const onHelp = vi.fn();
+      const options = {
+        title: 'STATE',
+        panelId: 'state' as const,
+        onClose: vi.fn(),
+        onHelp,
+      };
+      const header = new PanelHeader(options);
+      header.mount(container);
+
+      const helpBtn = container.querySelector('.da-panel-help-btn') as HTMLButtonElement;
+      helpBtn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      expect(onHelp).toHaveBeenCalledTimes(1);
+
+      helpBtn.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+      expect(onHelp).toHaveBeenCalledTimes(2);
+      header.destroy();
+    });
+  });
 });

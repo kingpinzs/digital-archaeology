@@ -49,7 +49,8 @@ import {
   StatisticsCollector,
   StatisticsDashboard,
 } from '../progress';
-import { LiteratureBrowser, LITERATURE_ARTICLES } from '@literature/index';
+import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter } from '@literature/index';
+import type { HelpContext } from '@literature/index';
 
 /**
  * Source map for correlating PC addresses to source line numbers (Story 5.1).
@@ -860,6 +861,25 @@ export class App {
   }
 
   /**
+   * Handle contextual help icon click (Story 20.3).
+   * Opens the literature browser pre-filtered to context-relevant articles.
+   */
+  private handleContextualHelp(context: HelpContext): void {
+    const contextFilter = getContextFilter(context, this.currentStage);
+    this.literatureBrowser.open(
+      { articles: LITERATURE_ARTICLES, contextFilter },
+      {
+        onArticleSelect: () => {
+          // Article content rendering is a future story concern
+        },
+        onClose: () => {
+          // No-op: browser handles its own close
+        },
+      },
+    );
+  }
+
+  /**
    * Handle statistics button click (Story 19.6).
    * Collects data from all storage and opens the dashboard modal.
    */
@@ -1329,6 +1349,7 @@ export class App {
         title: 'CODE',
         panelId: 'code',
         onClose: () => this.setPanelVisibility('code', false),
+        onHelp: () => this.handleContextualHelp('code-editor'),
       });
       this.codePanelHeader.mount(codePanelHeaderContainer as HTMLElement);
     }
@@ -1338,6 +1359,7 @@ export class App {
         title: 'CIRCUIT',
         panelId: 'circuit',
         onClose: () => this.setPanelVisibility('circuit', false),
+        onHelp: () => this.handleContextualHelp('circuit'),
       });
       this.circuitPanelHeader.mount(circuitPanelHeaderContainer as HTMLElement);
     }
@@ -1347,6 +1369,7 @@ export class App {
         title: 'STATE',
         panelId: 'state',
         onClose: () => this.setPanelVisibility('state', false),
+        onHelp: () => this.handleContextualHelp('registers'),
       });
       this.statePanelHeader.mount(statePanelHeaderContainer as HTMLElement);
     }

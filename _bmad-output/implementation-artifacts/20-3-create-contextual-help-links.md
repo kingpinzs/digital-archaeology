@@ -1,6 +1,6 @@
 # Story 20.3: Create Contextual Help Links
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -21,58 +21,58 @@ so that I can learn about what I'm seeing.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Extend LiteratureBrowserData with context filter support (AC: 4, 6)
-  - [ ] 1.1 Add `HelpContext` type to `src/literature/types.ts` — string union: `'circuit' | 'registers' | 'flags' | 'memory' | 'stack' | 'code-editor'`
-  - [ ] 1.2 Add `ContextFilter` interface to `src/literature/types.ts` — `{ tags?: readonly string[]; category?: LiteratureCategory; stages?: readonly LabStage[]; contextLabel?: string }`
-  - [ ] 1.3 Add optional `contextFilter?: ContextFilter` field to `LiteratureBrowserData`
-  - [ ] 1.4 Export new types from `src/literature/index.ts`
+- [x] Task 1: Extend LiteratureBrowserData with context filter support (AC: 4, 6)
+  - [x] 1.1 Add `HelpContext` type to `src/literature/types.ts` — string union: `'circuit' | 'registers' | 'flags' | 'memory' | 'stack' | 'code-editor'`
+  - [x] 1.2 Add `ContextFilter` interface to `src/literature/types.ts` — `{ tags?: readonly string[]; category?: LiteratureCategory; stages?: readonly LabStage[]; contextLabel?: string }`
+  - [x] 1.3 Add optional `contextFilter?: ContextFilter` field to `LiteratureBrowserData`
+  - [x] 1.4 Export new types from `src/literature/index.ts`
 
-- [ ] Task 2: Create help context mapping module (AC: 1, 2, 3, 6)
-  - [ ] 2.1 Create `src/literature/helpContextMap.ts` — defines `HELP_CONTEXT_MAP: Record<HelpContext, ContextFilter>`
-  - [ ] 2.2 Circuit context maps to tags: `['gates', 'logic', 'alu', 'boolean', 'transistors']`
-  - [ ] 2.3 Registers context maps to tags: `['registers', 'flip-flop', 'state', 'latch']`
-  - [ ] 2.4 Flags context maps to tags: `['registers', 'flip-flop', 'state']`
-  - [ ] 2.5 Memory context maps to tags: `['memory', 'ram', 'rom', 'hierarchy']`
-  - [ ] 2.6 Stack context maps to tags: `['subroutines', 'call stack', 'stack frame']`
-  - [ ] 2.7 Code-editor context maps to tags: `['encoding', 'machine code', 'opcode', 'instruction format']`
-  - [ ] 2.8 Implement `getContextualArticles(context: HelpContext, stage?: LabStage): LiteratureArticle[]` — filters `LITERATURE_ARTICLES` by matching tags and optionally by stage relevance
-  - [ ] 2.9 Implement `getContextFilter(context: HelpContext, stage?: LabStage): ContextFilter` — returns the resolved filter for a given context
-  - [ ] 2.10 Export from `src/literature/index.ts`
+- [x] Task 2: Create help context mapping module (AC: 1, 2, 3, 6)
+  - [x] 2.1 Create `src/literature/helpContextMap.ts` — defines `HELP_CONTEXT_MAP: Record<HelpContext, ContextFilter>`
+  - [x] 2.2 Circuit context maps to tags: `['gates', 'logic', 'alu', 'boolean', 'transistors']`
+  - [x] 2.3 Registers context maps to tags: `['registers', 'flip-flop', 'state', 'latch']`
+  - [x] 2.4 Flags context maps to tags: `['registers', 'flip-flop', 'state']`
+  - [x] 2.5 Memory context maps to tags: `['memory', 'ram', 'rom', 'hierarchy']`
+  - [x] 2.6 Stack context maps to tags: `['subroutines', 'call stack', 'stack frame']`
+  - [x] 2.7 Code-editor context maps to tags: `['encoding', 'machine code', 'opcode', 'instruction format']`
+  - [x] 2.8 Implement `getContextualArticles(context: HelpContext, stage?: LabStage): LiteratureArticle[]` — filters `LITERATURE_ARTICLES` by matching tags and optionally by stage relevance
+  - [x] 2.9 Implement `getContextFilter(context: HelpContext, stage?: LabStage): ContextFilter` — returns the resolved filter for a given context
+  - [x] 2.10 Export from `src/literature/index.ts`
 
-- [ ] Task 3: Extend LiteratureBrowser to support contextual filtering (AC: 4, 5)
-  - [ ] 3.1 In `open(data, callbacks)`, detect `data.contextFilter` and store it as `this.contextFilter`
-  - [ ] 3.2 When `contextFilter` is set, `getFilteredArticles()` additionally filters by matching tags (article must have at least one matching tag)
-  - [ ] 3.3 Render a "Show all articles" button in the browser header when context filter is active
-  - [ ] 3.4 Clicking "Show all articles" clears `this.contextFilter` and calls `updateGrid()` / `updateFilters()`
-  - [ ] 3.5 Show a contextual banner/label at the top of the content area indicating what context triggered the help (e.g., "Showing articles for: Circuit Panel")
-  - [ ] 3.6 On `close()`, clear `this.contextFilter` so next non-contextual open works normally
+- [x] Task 3: Extend LiteratureBrowser to support contextual filtering (AC: 4, 5)
+  - [x] 3.1 In `open(data, callbacks)`, detect `data.contextFilter` and store it as `this.contextFilter`
+  - [x] 3.2 When `contextFilter` is set, `getFilteredArticles()` additionally filters by matching tags (article must have at least one matching tag)
+  - [x] 3.3 Render a "Show all articles" button in the browser header when context filter is active
+  - [x] 3.4 Clicking "Show all articles" clears `this.contextFilter` and calls `updateGrid()` / `updateFilters()`
+  - [x] 3.5 Show a contextual banner/label at the top of the content area indicating what context triggered the help (e.g., "Showing articles for: Circuit Panel")
+  - [x] 3.6 On `close()`, clear `this.contextFilter` so next non-contextual open works normally
 
-- [ ] Task 4: Add help icon to PanelHeader (AC: 1, 2, 3)
-  - [ ] 4.1 Add optional `onHelp?: () => void` callback to `PanelHeaderOptions`
-  - [ ] 4.2 When `onHelp` is provided, render a help button (`?` icon) before the close button in `render()`
-  - [ ] 4.3 Help button uses CSS class `.da-panel-help-btn` with appropriate sizing and hover state
-  - [ ] 4.4 Bind click handler to call `options.onHelp()` with proper cleanup in `destroy()`
-  - [ ] 4.5 Help button has `aria-label="Help for {title} panel"` for accessibility
+- [x] Task 4: Add help icon to PanelHeader (AC: 1, 2, 3)
+  - [x] 4.1 Add optional `onHelp?: () => void` callback to `PanelHeaderOptions`
+  - [x] 4.2 When `onHelp` is provided, render a help button (`?` icon) before the close button in `render()`
+  - [x] 4.3 Help button uses CSS class `.da-panel-help-btn` with appropriate sizing and hover state
+  - [x] 4.4 Bind click handler to call `options.onHelp()` with proper cleanup in `destroy()`
+  - [x] 4.5 Help button has `aria-label="Help for {title} panel"` for accessibility
 
-- [ ] Task 5: Add CSS styles for help icon and contextual banner (AC: 1, 4)
-  - [ ] 5.1 `.da-panel-help-btn` — small icon button in panel header, subtle styling, hover highlights
-  - [ ] 5.2 `.da-literature-browser__context-banner` — subtle banner at top of content showing context label
-  - [ ] 5.3 `.da-literature-browser__show-all-btn` — button to clear context filter, positioned near the banner
-  - [ ] 5.4 Reuse existing CSS variables only (`--da-text-secondary`, `--da-bg-tertiary`, `--da-accent`, `--da-border`)
+- [x] Task 5: Add CSS styles for help icon and contextual banner (AC: 1, 4)
+  - [x] 5.1 `.da-panel-help-btn` — small icon button in panel header, subtle styling, hover highlights
+  - [x] 5.2 `.da-literature-browser__context-banner` — subtle banner at top of content showing context label
+  - [x] 5.3 `.da-literature-browser__show-all-btn` — button to clear context filter, positioned near the banner
+  - [x] 5.4 Reuse existing CSS variables only (`--da-text-secondary`, `--da-bg-tertiary`, `--da-accent`, `--da-border`)
 
-- [ ] Task 6: Wire help icons into App.ts (AC: 1, 2, 3, 6)
-  - [ ] 6.1 Create `handleContextualHelp(context: HelpContext)` method in App.ts
-  - [ ] 6.2 Method calls `getContextFilter(context, this.currentStage)` and passes result to `literatureBrowser.open()`
-  - [ ] 6.3 Pass `onHelp` callback to circuit panel PanelHeader with `'circuit'` context
-  - [ ] 6.4 Pass `onHelp` callback to state panel PanelHeader with `'registers'` context (primary state panel context)
-  - [ ] 6.5 Pass `onHelp` callback to code editor panel PanelHeader with `'code-editor'` context
+- [x] Task 6: Wire help icons into App.ts (AC: 1, 2, 3, 6)
+  - [x] 6.1 Create `handleContextualHelp(context: HelpContext)` method in App.ts
+  - [x] 6.2 Method calls `getContextFilter(context, this.currentStage)` and passes result to `literatureBrowser.open()`
+  - [x] 6.3 Pass `onHelp` callback to circuit panel PanelHeader with `'circuit'` context
+  - [x] 6.4 Pass `onHelp` callback to state panel PanelHeader with `'registers'` context (primary state panel context)
+  - [x] 6.5 Pass `onHelp` callback to code editor panel PanelHeader with `'code-editor'` context
 
-- [ ] Task 7: Write comprehensive tests (AC: 1-6)
-  - [ ] 7.1 Create `src/literature/helpContextMap.test.ts` — tests for `HELP_CONTEXT_MAP`, `getContextualArticles()`, `getContextFilter()`
-  - [ ] 7.2 Add tests in `LiteratureBrowser.test.ts` — context filter opens with filtered articles, "Show all" clears filter, context banner renders, filter cleared on close
-  - [ ] 7.3 Add tests in `PanelHeader.test.ts` — help button renders when onHelp provided, not rendered without it, click fires callback, aria-label set
-  - [ ] 7.4 `npx vitest run` — all tests pass
-  - [ ] 7.5 `npx tsc --noEmit` — 0 new TypeScript errors
+- [x] Task 7: Write comprehensive tests (AC: 1-6)
+  - [x] 7.1 Create `src/literature/helpContextMap.test.ts` — 20 tests for `HELP_CONTEXT_MAP`, `getContextualArticles()`, `getContextFilter()`
+  - [x] 7.2 Add tests in `LiteratureBrowser.test.ts` — 8 new tests: context filter opens with filtered articles, "Show all" clears filter, context banner renders, filter cleared on close, combines with category and search
+  - [x] 7.3 Add tests in `PanelHeader.test.ts` — 6 new tests: help button renders when onHelp provided, not rendered without it, click fires callback, aria-label set, cleanup, keyboard Enter/Space
+  - [x] 7.4 `npx vitest run` — 5100 tests pass, 128 test files
+  - [x] 7.5 `npx tsc --noEmit` — 0 TypeScript errors
 
 ## Dev Notes
 
@@ -419,6 +419,60 @@ Claude Opus 4.6
 
 ### Debug Log References
 
+- Fixed 6 LiteratureBrowser context test failures caused by detached DOM containers — removed explicit `browser.mount(container)` in context tests, letting browser fall back to `document.body`
+- Fixed close/reopen test timing issue with `vi.useFakeTimers()` and `vi.advanceTimersByTime(300)` for exit animation
+- Removed unused `LabStage` import in `helpContextMap.test.ts` to fix TypeScript lint error
+
 ### Completion Notes List
 
+- All 7 tasks (41 subtasks) implemented and verified
+- 37 new tests: 20 helpContextMap + 11 LiteratureBrowser context + 6 PanelHeader help button
+- Total test count: 5103 tests, 128 test files, 0 failures
+- TypeScript: 0 errors (strict mode, no `any`)
+- All additions are backward-compatible (optional fields only)
+- Bidirectional substring matching provides flexible article discovery
+- Stage fallback ensures users always see relevant articles even when stage filtering yields zero
+- Code review: 0H 3M 3L — all 6 findings fixed
+
 ### File List
+
+**New files:**
+- `digital-archaeology-web/src/literature/helpContextMap.ts` — Help context mapping module (HELP_CONTEXT_MAP, getContextualArticles, getContextFilter)
+- `digital-archaeology-web/src/literature/helpContextMap.test.ts` — 20 tests for help context mapping
+
+**Modified files:**
+- `digital-archaeology-web/src/literature/types.ts` — Added HelpContext type, ContextFilter interface, contextFilter to LiteratureBrowserData
+- `digital-archaeology-web/src/literature/index.ts` — Added exports for new types and functions
+- `digital-archaeology-web/src/literature/LiteratureBrowser.ts` — Added contextFilter state, context tag filtering in getFilteredArticles(), renderContextBanner(), removeContextBanner()
+- `digital-archaeology-web/src/literature/LiteratureBrowser.test.ts` — 8 new tests for contextual filtering
+- `digital-archaeology-web/src/ui/PanelHeader.ts` — Added onHelp option, help button rendering, bound handlers, cleanup
+- `digital-archaeology-web/src/ui/PanelHeader.test.ts` — 6 new tests for help button
+- `digital-archaeology-web/src/ui/App.ts` — Added handleContextualHelp method, wired onHelp into 3 panel headers
+- `digital-archaeology-web/src/styles/main.css` — Added .da-panel-help-btn, .da-literature-browser__context-banner, .da-literature-browser__show-all-btn styles
+
+### Change Log
+
+| Change | File | Reason |
+|--------|------|--------|
+| Added HelpContext type (6 union values) | types.ts | AC 1-3: Map UI panels to help contexts |
+| Added ContextFilter interface | types.ts | AC 4, 6: Structured filter criteria for contextual help |
+| Added contextFilter to LiteratureBrowserData | types.ts | AC 4: Pass filter through data interface |
+| Created HELP_CONTEXT_MAP | helpContextMap.ts | AC 1-3: Maps 6 contexts to tag-based filters |
+| Created getContextualArticles() | helpContextMap.ts | AC 6: Filters articles by context tags and optional stage |
+| Created getContextFilter() | helpContextMap.ts | AC 6: Resolves filter for given context/stage |
+| Added contextFilter state + tag filtering | LiteratureBrowser.ts | AC 4: Filters displayed articles by context |
+| Added renderContextBanner() | LiteratureBrowser.ts | AC 4: Shows "Showing articles for: X" banner |
+| Added "Show all articles" button | LiteratureBrowser.ts | AC 4: Escape hatch to clear context filter |
+| Added onHelp option to PanelHeaderOptions | PanelHeader.ts | AC 1-3: Optional help button callback |
+| Added help button (?) to render() | PanelHeader.ts | AC 1-3: Visual help trigger with aria-label |
+| Added handleContextualHelp() to App | App.ts | AC 1-3, 6: Wires contexts to literature browser |
+| Wired onHelp for CODE, CIRCUIT, STATE panels | App.ts | AC 1-3: Each panel triggers correct context |
+| Added .da-panel-help-btn CSS | main.css | AC 1: Styled help button in panel header |
+| Added .da-literature-browser__context-banner CSS | main.css | AC 4: Styled context banner |
+| **Code Review Fixes** | | |
+| F1: Exported matchesTags, imported in LiteratureBrowser | helpContextMap.ts, LiteratureBrowser.ts | DRY: eliminate duplicated tag-matching logic |
+| F2: Added stage filtering in getFilteredArticles() | LiteratureBrowser.ts | AC 6: contextFilter.stages now consumed with fallback |
+| F3: Chip counts use context-filtered base via getContextFilteredArticles() | LiteratureBrowser.ts | UX: chips show correct counts when context active |
+| F4: Added padding:0, line-height:1, font-family, :focus rules to help btn | main.css | Consistency: match close button pattern |
+| F5: Added :focus-visible to show-all-btn | main.css | A11y: keyboard focus visible on show-all button |
+| F6: Removed getContextualArticles from barrel export | index.ts | Cleanup: unused by app, tests import directly |

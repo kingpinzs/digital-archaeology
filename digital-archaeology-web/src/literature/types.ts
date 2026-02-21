@@ -43,6 +43,20 @@ export interface CategoryMetadata {
   readonly icon: string;
 }
 
+/** UI contexts that can trigger contextual help (Story 20.3) */
+export type HelpContext = 'circuit' | 'registers' | 'flags' | 'memory' | 'stack' | 'code-editor';
+
+/**
+ * Filter criteria for contextual help opening (Story 20.3).
+ * Used to pre-filter the literature browser to relevant articles.
+ */
+export interface ContextFilter {
+  readonly tags?: readonly string[];
+  readonly category?: LiteratureCategory;
+  readonly stages?: readonly LabStage[];
+  readonly contextLabel?: string;
+}
+
 /** Callbacks provided by the parent component to handle browser events */
 export interface LiteratureBrowserCallbacks {
   readonly onArticleSelect: (article: LiteratureArticle) => void;
@@ -53,4 +67,5 @@ export interface LiteratureBrowserCallbacks {
 export interface LiteratureBrowserData {
   readonly articles: readonly LiteratureArticle[];
   readonly readArticleIds?: ReadonlySet<string>;
+  readonly contextFilter?: ContextFilter;
 }

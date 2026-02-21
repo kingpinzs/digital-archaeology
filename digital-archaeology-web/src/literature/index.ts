@@ -13,11 +13,18 @@ export {
   getCategoryTotalReadTime,
   getCategoryStages,
 } from './literatureMetadata';
+export {
+  HELP_CONTEXT_MAP,
+  matchesTags,
+  getContextFilter,
+} from './helpContextMap';
 export type {
   LiteratureArticle,
   LiteratureCategory,
   CategoryMetadata,
   LiteratureBrowserCallbacks,
   LiteratureBrowserData,
+  HelpContext,
+  ContextFilter,
 } from './types';
 export { CATEGORY_LABELS, CATEGORY_ORDER } from './types';

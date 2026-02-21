@@ -16,6 +16,8 @@ export interface PanelHeaderOptions {
   panelId: PanelId;
   /** Callback when close button is clicked */
   onClose: () => void;
+  /** Optional callback when help button is clicked (Story 20.3) */
+  onHelp?: () => void;
 }
 
 /**
@@ -25,16 +27,23 @@ export interface PanelHeaderOptions {
 export class PanelHeader {
   private element: HTMLElement | null = null;
   private closeButton: HTMLButtonElement | null = null;
+  private helpButton: HTMLButtonElement | null = null;
   private options: PanelHeaderOptions;
 
   // Bound event handlers for cleanup
   private boundHandleClick: () => void;
   private boundHandleKeydown: (e: KeyboardEvent) => void;
+  private boundHandleHelpClick: (() => void) | null = null;
+  private boundHandleHelpKeydown: ((e: KeyboardEvent) => void) | null = null;
 
   constructor(options: PanelHeaderOptions) {
     this.options = options;
     this.boundHandleClick = this.handleClick.bind(this);
     this.boundHandleKeydown = this.handleKeydown.bind(this);
+    if (options.onHelp) {
+      this.boundHandleHelpClick = this.handleHelpClick.bind(this);
+      this.boundHandleHelpKeydown = this.handleHelpKeydown.bind(this);
+    }
   }
 
   /**
@@ -64,6 +73,7 @@ export class PanelHeader {
 
     // Clear cached references
     this.closeButton = null;
+    this.helpButton = null;
 
     // Remove element from DOM
     if (this.element) {
@@ -95,6 +105,18 @@ export class PanelHeader {
     closeBtn.textContent = '×';
 
     header.appendChild(title);
+
+    // Optional help button (Story 20.3)
+    if (this.options.onHelp) {
+      const helpBtn = document.createElement('button');
+      helpBtn.className = 'da-panel-help-btn';
+      helpBtn.type = 'button';
+      helpBtn.setAttribute('aria-label', `Help for ${this.options.title} panel`);
+      helpBtn.title = 'Help';
+      helpBtn.textContent = '?';
+      header.appendChild(helpBtn);
+    }
+
     header.appendChild(closeBtn);
 
     return header;
@@ -106,26 +128,35 @@ export class PanelHeader {
   private cacheElements(): void {
     if (!this.element) return;
     this.closeButton = this.element.querySelector<HTMLButtonElement>('.da-panel-close-btn');
+    this.helpButton = this.element.querySelector<HTMLButtonElement>('.da-panel-help-btn');
   }
 
   /**
    * Attach event listeners to the close button.
    */
   private attachEventListeners(): void {
-    if (!this.closeButton) return;
-
-    this.closeButton.addEventListener('click', this.boundHandleClick);
-    this.closeButton.addEventListener('keydown', this.boundHandleKeydown);
+    if (this.closeButton) {
+      this.closeButton.addEventListener('click', this.boundHandleClick);
+      this.closeButton.addEventListener('keydown', this.boundHandleKeydown);
+    }
+    if (this.helpButton && this.boundHandleHelpClick && this.boundHandleHelpKeydown) {
+      this.helpButton.addEventListener('click', this.boundHandleHelpClick);
+      this.helpButton.addEventListener('keydown', this.boundHandleHelpKeydown);
+    }
   }
 
   /**
    * Remove event listeners from the close button.
    */
   private removeEventListeners(): void {
-    if (!this.closeButton) return;
-
-    this.closeButton.removeEventListener('click', this.boundHandleClick);
-    this.closeButton.removeEventListener('keydown', this.boundHandleKeydown);
+    if (this.closeButton) {
+      this.closeButton.removeEventListener('click', this.boundHandleClick);
+      this.closeButton.removeEventListener('keydown', this.boundHandleKeydown);
+    }
+    if (this.helpButton && this.boundHandleHelpClick && this.boundHandleHelpKeydown) {
+      this.helpButton.removeEventListener('click', this.boundHandleHelpClick);
+      this.helpButton.removeEventListener('keydown', this.boundHandleHelpKeydown);
+    }
   }
 
   /**
@@ -143,6 +174,17 @@ export class PanelHeader {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       this.options.onClose();
+    }
+  }
+
+  private handleHelpClick(): void {
+    this.options.onHelp?.();
+  }
+
+  private handleHelpKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.options.onHelp?.();
     }
   }
 }

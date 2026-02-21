@@ -7,9 +7,11 @@ import type {
   LiteratureCategory,
   LiteratureBrowserCallbacks,
   LiteratureBrowserData,
+  ContextFilter,
 } from './types';
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
 import { CATEGORY_METADATA, getCategoryArticleCount, getCategoryTotalReadTime } from './literatureMetadata';
+import { matchesTags } from './helpContextMap';
 
 const EXIT_DURATION_MS = 300;
 
@@ -41,6 +43,7 @@ export class LiteratureBrowser {
 
   private activeCategory: LiteratureCategory | null = null;
   private searchQuery: string = '';
+  private contextFilter: ContextFilter | null = null;
 
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
@@ -73,6 +76,7 @@ export class LiteratureBrowser {
     this.readArticleIds = data.readArticleIds ?? new Set();
     this.activeCategory = null;
     this.searchQuery = '';
+    this.contextFilter = data.contextFilter ?? null;
 
     // Save focus for restoration
     this.previouslyFocusedElement = document.activeElement;
@@ -110,6 +114,7 @@ export class LiteratureBrowser {
       return;
     }
 
+    this.contextFilter = null;
     this.overlay.classList.remove('da-literature-browser--entering');
     this.overlay.classList.add('da-literature-browser--exiting');
 
@@ -163,6 +168,11 @@ export class LiteratureBrowser {
     // Filters
     content.appendChild(this.renderFilters());
 
+    // Context banner (Story 20.3)
+    if (this.contextFilter) {
+      content.appendChild(this.renderContextBanner());
+    }
+
     // Grid
     const grid = this.renderGrid(this.getFilteredArticles());
     grid.className = 'da-literature-browser__grid';
@@ -212,6 +222,9 @@ export class LiteratureBrowser {
     filters.setAttribute('role', 'toolbar');
     filters.setAttribute('aria-label', 'Filter by category');
 
+    // Use context-filtered articles as the base for chip counts
+    const baseArticles = this.getContextFilteredArticles();
+
     // "All" chip
     const allChip = document.createElement('button');
     allChip.type = 'button';
@@ -220,7 +233,7 @@ export class LiteratureBrowser {
     if (this.activeCategory === null) {
       allChip.classList.add('da-literature-filter--active');
     }
-    allChip.textContent = `All (${this.articles.length})`;
+    allChip.textContent = `All (${baseArticles.length})`;
     allChip.addEventListener('click', () => {
       this.activeCategory = null;
       this.updateFilters();
@@ -237,7 +250,7 @@ export class LiteratureBrowser {
       if (this.activeCategory === category) {
         chip.classList.add('da-literature-filter--active');
       }
-      chip.textContent = `${CATEGORY_LABELS[category]} (${this.articles.filter(a => a.category === category).length})`;
+      chip.textContent = `${CATEGORY_LABELS[category]} (${baseArticles.filter(a => a.category === category).length})`;
       chip.addEventListener('click', () => {
         if (this.activeCategory === category) {
           this.activeCategory = null;
@@ -425,6 +438,35 @@ export class LiteratureBrowser {
     return hero;
   }
 
+  private renderContextBanner(): HTMLElement {
+    const banner = document.createElement('div');
+    banner.className = 'da-literature-browser__context-banner';
+
+    const label = document.createElement('span');
+    label.textContent = `Showing articles for: ${this.contextFilter?.contextLabel ?? 'Help'}`;
+    banner.appendChild(label);
+
+    const showAllBtn = document.createElement('button');
+    showAllBtn.type = 'button';
+    showAllBtn.className = 'da-literature-browser__show-all-btn';
+    showAllBtn.textContent = 'Show all articles';
+    showAllBtn.addEventListener('click', () => {
+      this.contextFilter = null;
+      this.removeContextBanner();
+      this.updateFilters();
+      this.updateGrid();
+    });
+    banner.appendChild(showAllBtn);
+
+    return banner;
+  }
+
+  private removeContextBanner(): void {
+    if (!this.overlay) return;
+    const banner = this.overlay.querySelector('.da-literature-browser__context-banner');
+    if (banner) banner.remove();
+  }
+
   // ---------------------------------------------------------------------------
   // Private — filtering
   // ---------------------------------------------------------------------------
@@ -439,19 +481,46 @@ export class LiteratureBrowser {
   }
 
   /**
+   * Get articles after applying context filter only (tags + stages).
+   * Provides the correct base set for chip counts and search filtering.
+   */
+  private getContextFilteredArticles(): readonly LiteratureArticle[] {
+    let filtered: readonly LiteratureArticle[] = this.articles;
+
+    if (this.contextFilter?.tags) {
+      const ctxTags = this.contextFilter.tags;
+      filtered = filtered.filter(a => matchesTags(a, ctxTags));
+    }
+
+    if (this.contextFilter?.stages && this.contextFilter.stages.length > 0) {
+      const ctxStages = this.contextFilter.stages;
+      const stageFiltered = filtered.filter(a =>
+        a.relatedStages.some(s => ctxStages.includes(s))
+      );
+      if (stageFiltered.length > 0) {
+        filtered = stageFiltered;
+      }
+    }
+
+    return filtered;
+  }
+
+  /**
    * Get articles filtered by search query only (no category filter).
    * Used for updating chip counts to reflect search narrowing per category.
+   * Respects context filter as the base article set.
    */
   private getSearchFilteredArticles(): readonly LiteratureArticle[] {
+    const base = this.getContextFilteredArticles();
     if (this.searchQuery.trim() === '') {
-      return this.articles;
+      return base;
     }
     const query = this.searchQuery.trim().toLowerCase();
-    return this.articles.filter(a => this.matchesSearch(a, query));
+    return base.filter(a => this.matchesSearch(a, query));
   }
 
   private getFilteredArticles(): readonly LiteratureArticle[] {
-    let filtered: readonly LiteratureArticle[] = this.articles;
+    let filtered = this.getContextFilteredArticles();
 
     // Category filter
     if (this.activeCategory !== null) {
@@ -487,6 +556,7 @@ export class LiteratureBrowser {
 
   private updateFilters(): void {
     if (!this.overlay) return;
+    const baseArticles = this.getContextFilteredArticles();
     const hasSearch = this.searchQuery.trim() !== '';
     const filteredArticles = hasSearch ? this.getSearchFilteredArticles() : null;
 
@@ -497,14 +567,14 @@ export class LiteratureBrowser {
       if (cat === 'all') {
         el.classList.toggle('da-literature-filter--active', this.activeCategory === null);
         if (hasSearch && filteredArticles) {
-          el.textContent = `All (${filteredArticles.length}/${this.articles.length})`;
+          el.textContent = `All (${filteredArticles.length}/${baseArticles.length})`;
         } else {
-          el.textContent = `All (${this.articles.length})`;
+          el.textContent = `All (${baseArticles.length})`;
         }
       } else if (cat && cat in CATEGORY_LABELS) {
         const category = cat as LiteratureCategory;
         el.classList.toggle('da-literature-filter--active', this.activeCategory === category);
-        const totalCount = this.articles.filter(a => a.category === category).length;
+        const totalCount = baseArticles.filter(a => a.category === category).length;
         if (hasSearch && filteredArticles) {
           const filteredCount = filteredArticles.filter(a => a.category === category).length;
           el.textContent = `${CATEGORY_LABELS[category]} (${filteredCount}/${totalCount})`;

@@ -1271,4 +1271,205 @@ describe('LiteratureBrowser', () => {
       expect(heroMeta!.textContent).toBe('6 articles \u00B7 ~56 min');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Story 20.3: Contextual help filtering
+  // ---------------------------------------------------------------------------
+
+  describe('contextual help filtering (Story 20.3)', () => {
+    it('should show only matching articles when contextFilter with tags is provided', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic'], contextLabel: 'Circuit Panel' },
+        },
+        callbacks,
+      );
+
+      const cards = document.querySelectorAll('.da-literature-card');
+      expect(cards.length).toBeGreaterThan(0);
+      expect(cards.length).toBeLessThan(LITERATURE_ARTICLES.length);
+    });
+
+    it('should render context banner when contextFilter is active', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates'], contextLabel: 'Circuit Panel' },
+        },
+        callbacks,
+      );
+
+      const banner = document.querySelector('.da-literature-browser__context-banner');
+      expect(banner).not.toBeNull();
+      expect(banner!.textContent).toContain('Circuit Panel');
+    });
+
+    it('should show "Show all articles" button in context banner', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates'], contextLabel: 'Circuit Panel' },
+        },
+        callbacks,
+      );
+
+      const showAllBtn = document.querySelector('.da-literature-browser__show-all-btn');
+      expect(showAllBtn).not.toBeNull();
+      expect(showAllBtn!.textContent).toBe('Show all articles');
+    });
+
+    it('should clear context filter and show all articles when "Show all" is clicked', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates'], contextLabel: 'Circuit Panel' },
+        },
+        callbacks,
+      );
+
+      const filteredCount = document.querySelectorAll('.da-literature-card').length;
+
+      const showAllBtn = document.querySelector('.da-literature-browser__show-all-btn') as HTMLButtonElement;
+      showAllBtn.click();
+
+      const allCount = document.querySelectorAll('.da-literature-card').length;
+      expect(allCount).toBe(LITERATURE_ARTICLES.length);
+      expect(allCount).toBeGreaterThan(filteredCount);
+
+      // Banner should be removed
+      const banner = document.querySelector('.da-literature-browser__context-banner');
+      expect(banner).toBeNull();
+    });
+
+    it('should not render context banner when no contextFilter is provided', () => {
+      browser.open({ articles: LITERATURE_ARTICLES }, callbacks);
+
+      const banner = document.querySelector('.da-literature-browser__context-banner');
+      expect(banner).toBeNull();
+    });
+
+    it('should clear contextFilter on close', () => {
+      vi.useFakeTimers();
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates'], contextLabel: 'Circuit Panel' },
+        },
+        callbacks,
+      );
+
+      browser.close();
+      vi.advanceTimersByTime(300);
+
+      // Re-open without context filter — should show all articles
+      browser.open({ articles: LITERATURE_ARTICLES }, callbacks);
+      const cards = document.querySelectorAll('.da-literature-card');
+      expect(cards.length).toBe(LITERATURE_ARTICLES.length);
+      vi.useRealTimers();
+    });
+
+    it('should combine context filter with category filter', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['memory', 'ram', 'cache', 'hierarchy'], contextLabel: 'Memory' },
+        },
+        callbacks,
+      );
+
+      const contextCount = document.querySelectorAll('.da-literature-card').length;
+
+      // Click "Basic" filter chip
+      const filterChips = document.querySelectorAll('.da-literature-filter');
+      const basicChip = Array.from(filterChips).find(c => c.textContent?.startsWith('Basic'));
+      if (basicChip) {
+        (basicChip as HTMLButtonElement).click();
+        const filteredCount = document.querySelectorAll('.da-literature-card').length;
+        expect(filteredCount).toBeLessThanOrEqual(contextCount);
+      }
+    });
+
+    it('should combine context filter with search filter', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic', 'alu', 'boolean'], contextLabel: 'Circuit' },
+        },
+        callbacks,
+      );
+
+      const contextCount = document.querySelectorAll('.da-literature-card').length;
+
+      const searchInput = document.querySelector('.da-literature-browser__search') as HTMLInputElement;
+      searchInput.value = 'alu';
+      searchInput.dispatchEvent(new Event('input'));
+
+      const searchedCount = document.querySelectorAll('.da-literature-card').length;
+      expect(searchedCount).toBeLessThanOrEqual(contextCount);
+      expect(searchedCount).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should narrow by stage when contextFilter includes stages (F2 fix)', () => {
+      // Open with circuit tags + micro4 stage — should show only micro4-related circuit articles
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic', 'alu', 'boolean'], stages: ['micro4'], contextLabel: 'Circuit' },
+        },
+        callbacks,
+      );
+
+      const stageCount = document.querySelectorAll('.da-literature-card').length;
+
+      browser.close();
+      vi.useFakeTimers();
+      vi.advanceTimersByTime(300);
+      vi.useRealTimers();
+
+      // Open with same tags but no stage — should show at least as many
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic', 'alu', 'boolean'], contextLabel: 'Circuit' },
+        },
+        callbacks,
+      );
+
+      const noStageCount = document.querySelectorAll('.da-literature-card').length;
+      expect(stageCount).toBeLessThanOrEqual(noStageCount);
+      expect(stageCount).toBeGreaterThanOrEqual(1); // fallback ensures at least 1
+    });
+
+    it('should fall back to tag-only when stage filter yields zero (F2 fix)', () => {
+      // Use a stage that likely has no circuit-tagged articles
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic'], stages: ['micro32s'], contextLabel: 'Circuit' },
+        },
+        callbacks,
+      );
+
+      const cards = document.querySelectorAll('.da-literature-card');
+      expect(cards.length).toBeGreaterThanOrEqual(1); // falls back to tag-only
+    });
+
+    it('should show context-filtered counts in filter chips (F3 fix)', () => {
+      browser.open(
+        {
+          articles: LITERATURE_ARTICLES,
+          contextFilter: { tags: ['gates', 'logic', 'alu', 'boolean'], contextLabel: 'Circuit' },
+        },
+        callbacks,
+      );
+
+      const contextCards = document.querySelectorAll('.da-literature-card').length;
+      const allChip = document.querySelector('.da-literature-filter[data-category="all"]');
+      expect(allChip).not.toBeNull();
+      // The "All" chip should show the context-filtered count, not the full 20
+      expect(allChip!.textContent).toBe(`All (${contextCards})`);
+      expect(contextCards).toBeLessThan(LITERATURE_ARTICLES.length);
+    });
+  });
 });

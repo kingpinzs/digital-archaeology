@@ -13,6 +13,7 @@ import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
 import { CATEGORY_METADATA, getCategoryArticleCount, getCategoryTotalReadTime } from './literatureMetadata';
 import { matchesTags } from './helpContextMap';
 import { getHintsForArticle, ARTICLES_WITH_HINTS } from './hintData';
+import { getDeepDiveForArticle, ARTICLES_WITH_DEEP_DIVES } from './deepDiveData';
 
 const EXIT_DURATION_MS = 300;
 
@@ -50,6 +51,9 @@ export class LiteratureBrowser {
   private hintProgress: Record<string, number> = {};
   private activeHintArticleId: string | null = null;
 
+  // Deep-dive state (Story 20.6)
+  private activeDeepDiveArticleId: string | null = null;
+
   // Bound handlers for cleanup
   private readonly boundHandleKeydown: (e: KeyboardEvent) => void;
   private readonly boundHandleBackdropClick: (e: MouseEvent) => void;
@@ -84,6 +88,7 @@ export class LiteratureBrowser {
     this.contextFilter = data.contextFilter ?? null;
     this.hintProgress = { ...(data.hintProgress ?? {}) };
     this.activeHintArticleId = null;
+    this.activeDeepDiveArticleId = null;
 
     // Save focus for restoration
     this.previouslyFocusedElement = document.activeElement;
@@ -395,6 +400,20 @@ export class LiteratureBrowser {
         this.showHintPanel(article.id);
       });
       meta.appendChild(hintBtn);
+    }
+
+    // Deep-dive button (Story 20.6 — AC 1)
+    if (ARTICLES_WITH_DEEP_DIVES.has(article.id)) {
+      const deepDiveBtn = document.createElement('button');
+      deepDiveBtn.type = 'button';
+      deepDiveBtn.className = 'da-literature-card__deep-dive-btn';
+      deepDiveBtn.textContent = 'Deep Dive';
+      deepDiveBtn.setAttribute('aria-label', `Deep dive into ${article.title}`);
+      deepDiveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.showDeepDivePanel(article.id);
+      });
+      meta.appendChild(deepDiveBtn);
     }
 
     card.appendChild(meta);
@@ -722,6 +741,111 @@ export class LiteratureBrowser {
       complete.className = 'da-hint-panel__complete';
       complete.textContent = 'All hints revealed!';
       panel.appendChild(complete);
+    }
+
+    return panel;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — deep-dive panel (Story 20.6)
+  // ---------------------------------------------------------------------------
+
+  private showDeepDivePanel(articleId: string): void {
+    this.activeDeepDiveArticleId = articleId;
+    this.updateDeepDivePanel();
+  }
+
+  private updateDeepDivePanel(): void {
+    if (!this.overlay || !this.activeDeepDiveArticleId) return;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    // Remove existing panel
+    const existing = content.querySelector('.da-deep-dive-panel');
+    if (existing) existing.remove();
+
+    // Hide grid, filters, and context banner
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    if (grid) grid.style.display = 'none';
+    if (filters) filters.style.display = 'none';
+    if (banner) banner.style.display = 'none';
+
+    const panel = this.renderDeepDivePanel();
+    content.appendChild(panel);
+
+    const backBtn = panel.querySelector('.da-deep-dive-panel__back') as HTMLButtonElement | null;
+    if (backBtn) backBtn.focus();
+  }
+
+  private closeDeepDivePanel(): void {
+    if (!this.overlay) return;
+    this.activeDeepDiveArticleId = null;
+    const content = this.overlay.querySelector('.da-literature-browser__content');
+    if (!content) return;
+
+    const panel = content.querySelector('.da-deep-dive-panel');
+    if (panel) panel.remove();
+
+    const grid = content.querySelector('.da-literature-browser__grid') as HTMLElement | null;
+    const filters = content.querySelector('.da-literature-browser__filters') as HTMLElement | null;
+    const banner = content.querySelector('.da-literature-browser__context-banner') as HTMLElement | null;
+    if (grid) grid.style.display = '';
+    if (filters) filters.style.display = '';
+    if (banner) banner.style.display = '';
+  }
+
+  private renderDeepDivePanel(): HTMLElement {
+    const articleId = this.activeDeepDiveArticleId!;
+    const deepDive = getDeepDiveForArticle(articleId)!;
+    const article = this.articles.find(a => a.id === articleId);
+
+    const panel = document.createElement('div');
+    panel.className = 'da-deep-dive-panel';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'da-deep-dive-panel__header';
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'da-deep-dive-panel__back';
+    backBtn.textContent = '\u2190 Back';
+    backBtn.setAttribute('aria-label', 'Back to articles');
+    backBtn.addEventListener('click', () => this.closeDeepDivePanel());
+    header.appendChild(backBtn);
+
+    const title = document.createElement('h3');
+    title.className = 'da-deep-dive-panel__title';
+    title.textContent = article?.title ?? 'Deep Dive';
+    header.appendChild(title);
+
+    panel.appendChild(header);
+
+    // Sections
+    const sections: Array<{ heading: string; content: string }> = [
+      { heading: 'Technical Explanation', content: deepDive.explanation },
+      { heading: 'Historical Context', content: deepDive.historicalContext },
+      { heading: 'Design Trade-Offs', content: deepDive.tradeOffs },
+      { heading: 'Real-World Examples', content: deepDive.realWorldExamples },
+    ];
+
+    for (const section of sections) {
+      const sectionEl = document.createElement('div');
+      sectionEl.className = 'da-deep-dive-panel__section';
+
+      const heading = document.createElement('h4');
+      heading.className = 'da-deep-dive-panel__section-heading';
+      heading.textContent = section.heading;
+      sectionEl.appendChild(heading);
+
+      const content = document.createElement('p');
+      content.className = 'da-deep-dive-panel__section-content';
+      content.textContent = section.content;
+      sectionEl.appendChild(content);
+
+      panel.appendChild(sectionEl);
     }
 
     return panel;

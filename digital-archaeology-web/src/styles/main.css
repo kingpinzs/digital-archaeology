@@ -10388,3 +10388,80 @@ body.da-resizing * {
   font-style: italic;
   margin: 0;
 }
+
+/* Deep-dive button on article cards (Story 20.6) */
+.da-literature-card__deep-dive-btn {
+  background: transparent;
+  border: 1px solid var(--da-accent);
+  border-radius: 4px;
+  color: var(--da-accent);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 2px 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+.da-literature-card__deep-dive-btn:hover {
+  background: color-mix(in srgb, var(--da-accent) 15%, transparent);
+}
+.da-literature-card__deep-dive-btn:focus-visible {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 1px;
+}
+
+/* Deep-dive panel (Story 20.6) */
+.da-deep-dive-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.da-deep-dive-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.da-deep-dive-panel__back {
+  background: transparent;
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  color: var(--da-accent);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  line-height: 1;
+}
+.da-deep-dive-panel__back:hover {
+  background: var(--da-bg-hover);
+}
+.da-deep-dive-panel__back:focus-visible {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 1px;
+}
+.da-deep-dive-panel__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--da-text-primary);
+  margin: 0;
+}
+.da-deep-dive-panel__section {
+  padding: 16px;
+  background: var(--da-bg-tertiary);
+  border: 1px solid var(--da-border);
+  border-radius: 6px;
+}
+.da-deep-dive-panel__section-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--da-accent);
+  margin: 0 0 8px 0;
+}
+.da-deep-dive-panel__section-content {
+  font-size: 13px;
+  color: var(--da-text-primary);
+  line-height: 1.6;
+  margin: 0;
+}

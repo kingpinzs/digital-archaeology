@@ -1779,4 +1779,89 @@ describe('LiteratureBrowser', () => {
       expect(btnTexts.every(t => t === 'Hints')).toBe(true);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Deep-dive panel (Story 20.6)
+  // ---------------------------------------------------------------------------
+
+  describe('deep-dive panel', () => {
+    it('should show deep-dive button on cards that have deep-dives', () => {
+      browser.open(mockData, callbacks);
+
+      const deepDiveBtns = document.querySelectorAll('.da-literature-card__deep-dive-btn');
+      expect(deepDiveBtns.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should NOT show deep-dive button on cards without deep-dives', () => {
+      browser.open(mockData, callbacks);
+
+      const cards = document.querySelectorAll('.da-literature-card');
+      const deepDiveBtns = document.querySelectorAll('.da-literature-card__deep-dive-btn');
+      expect(deepDiveBtns.length).toBeLessThan(cards.length);
+    });
+
+    it('should open deep-dive panel when deep-dive button is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      const btn = document.querySelector('.da-literature-card__deep-dive-btn') as HTMLButtonElement;
+      btn.click();
+
+      const panel = document.querySelector('.da-deep-dive-panel');
+      expect(panel).not.toBeNull();
+    });
+
+    it('should show all 4 sections in deep-dive panel', () => {
+      browser.open(mockData, callbacks);
+
+      const btn = document.querySelector('.da-literature-card__deep-dive-btn') as HTMLButtonElement;
+      btn.click();
+
+      const sections = document.querySelectorAll('.da-deep-dive-panel__section');
+      expect(sections.length).toBe(4);
+
+      const headings = document.querySelectorAll('.da-deep-dive-panel__section-heading');
+      const headingTexts = Array.from(headings).map(h => h.textContent);
+      expect(headingTexts).toContain('Technical Explanation');
+      expect(headingTexts).toContain('Historical Context');
+      expect(headingTexts).toContain('Design Trade-Offs');
+      expect(headingTexts).toContain('Real-World Examples');
+    });
+
+    it('should close deep-dive panel on back click', () => {
+      browser.open(mockData, callbacks);
+
+      const btn = document.querySelector('.da-literature-card__deep-dive-btn') as HTMLButtonElement;
+      btn.click();
+      expect(document.querySelector('.da-deep-dive-panel')).not.toBeNull();
+
+      const backBtn = document.querySelector('.da-deep-dive-panel__back') as HTMLButtonElement;
+      backBtn.click();
+      expect(document.querySelector('.da-deep-dive-panel')).toBeNull();
+
+      // Grid should be visible again
+      const grid = document.querySelector('.da-literature-browser__grid') as HTMLElement;
+      expect(grid).not.toBeNull();
+      expect(grid.style.display).not.toBe('none');
+    });
+
+    it('should not trigger article select when deep-dive button is clicked', () => {
+      browser.open(mockData, callbacks);
+
+      const btn = document.querySelector('.da-literature-card__deep-dive-btn') as HTMLButtonElement;
+      btn.click();
+
+      expect(callbacks.onArticleSelect).not.toHaveBeenCalled();
+    });
+
+    it('should show article title in deep-dive panel header', () => {
+      browser.open(mockData, callbacks);
+
+      const btn = document.querySelector('.da-literature-card__deep-dive-btn') as HTMLButtonElement;
+      btn.click();
+
+      const title = document.querySelector('.da-deep-dive-panel__title');
+      expect(title).not.toBeNull();
+      expect(title!.textContent!.length).toBeGreaterThan(0);
+    });
+  });
 });

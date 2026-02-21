@@ -1,2 +1,30 @@
-<testsuites id="" name="" tests="0" failures="0" skipped="0" errors="0" time="120.34022">
+<testsuites id="" name="" tests="12" failures="0" skipped="0" errors="0" time="6.710723">
+<testsuite name="epic-11-stage-switching.spec.ts" timestamp="2026-02-10T00:34:39.015Z" hostname="chromium" tests="6" failures="0" skipped="0" time="15.853" errors="0">
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should set URL hash to #/lab/micro4 on initial load" classname="epic-11-stage-switching.spec.ts" time="2.487">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate to lab/micro4 when visiting #/lab/micro4" classname="epic-11-stage-switching.spec.ts" time="2.446">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should fallback to micro4 for invalid stage URL" classname="epic-11-stage-switching.spec.ts" time="2.375">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should show #/story when switching to story mode" classname="epic-11-stage-switching.spec.ts" time="2.957">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should switch back to lab URL when returning from story mode" classname="epic-11-stage-switching.spec.ts" time="2.78">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate via browser back button between mode changes" classname="epic-11-stage-switching.spec.ts" time="2.808">
+</testcase>
+</testsuite>
+<testsuite name="epic-11-stage-switching.spec.ts" timestamp="2026-02-10T00:34:39.015Z" hostname="firefox" tests="6" failures="0" skipped="0" time="13.743" errors="0">
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should set URL hash to #/lab/micro4 on initial load" classname="epic-11-stage-switching.spec.ts" time="2.267">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate to lab/micro4 when visiting #/lab/micro4" classname="epic-11-stage-switching.spec.ts" time="2.267">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should fallback to micro4 for invalid stage URL" classname="epic-11-stage-switching.spec.ts" time="2.2">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should show #/story when switching to story mode" classname="epic-11-stage-switching.spec.ts" time="2.189">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should switch back to lab URL when returning from story mode" classname="epic-11-stage-switching.spec.ts" time="2.325">
+</testcase>
+<testcase name="Epic 11: Stage Switching › Story 11.7: URL Routing › [11.7] should navigate via browser back button between mode changes" classname="epic-11-stage-switching.spec.ts" time="2.495">
+</testcase>
+</testsuite>
 </testsuites>

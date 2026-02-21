@@ -129,6 +129,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build app for Playwright preview server
+        run: npm run build
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 

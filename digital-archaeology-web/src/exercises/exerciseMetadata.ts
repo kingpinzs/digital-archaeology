@@ -307,6 +307,89 @@ RESULT: DB 0
     solutionExplanation: 'Left shift by 1 equals multiplying by 2, and adding a number to itself is the same as left shift. LDA VALUE loads 3, ADD VALUE adds 3 again (total 6), STA RESULT stores it. Early CPUs without MUL relied on this trick.',
   },
 
+  // ── Micro4 Capstone Exercises ────────────────────────────
+  {
+    id: 'ex-m4-bcd-calculator',
+    title: 'BCD Calculator (Capstone)',
+    stage: 'micro4',
+    difficulty: 'capstone',
+    description: 'Build a BCD addition calculator — the application that launched the microprocessor! For the given inputs (5 + 7 = 12), apply BCD correction by subtracting 10 and recording the carry. Note: the Micro4\'s 4-bit accumulator limits valid BCD sums to 15 or below. The real 4004 solved this with a dedicated DAA (Decimal Adjust) instruction. This is your Micro4 graduation project, inspired by the Busicom calculator that gave birth to Intel\'s 4004.',
+    concepts: ['bcd', 'arithmetic', 'accumulator', 'memory-layout', 'historical-context'],
+    estimatedMinutes: 30,
+    prerequisites: ['ex-m4-bit-shift-multiply'],
+    starterCode: `; BCD Calculator (Capstone)
+; Goal: Add two BCD digits and produce correct BCD result
+;
+; Historical context: This is the application that started it all.
+; In 1969, Busicom contracted Intel for a calculator chip.
+; Federico Faggin completed the 4004 in 1971 to power it.
+;
+; BCD rules: Each nibble holds 0-9 only.
+; If DIGIT_A + DIGIT_B > 9, subtract 10 and set CARRY to 1.
+;
+; For our test data: 5 + 7 = 12 → BCD result: 2, carry: 1
+;
+; Note: The Micro4's 4-bit accumulator can only hold 0-15,
+; so this approach works when the sum is 15 or below.
+; The real 4004 had a DAA instruction for general BCD correction.
+;
+; Approach:
+; 1. Load DIGIT_A, add DIGIT_B → raw sum (12)
+; 2. Subtract TEN from the sum → corrected digit (2)
+; 3. Store the corrected digit at RESULT
+; 4. Set CARRY to 1
+
+; TODO: Load DIGIT_A into accumulator
+
+; TODO: Add DIGIT_B to get the raw sum
+
+; TODO: Subtract TEN to apply BCD correction
+
+; TODO: Store the BCD-corrected result
+
+; TODO: Set CARRY to 1 (overflow occurred)
+
+HLT
+
+  ORG 0xF0
+DIGIT_A: DB 5
+DIGIT_B: DB 7
+RESULT:  DB 0
+CARRY:   DB 0
+TEN:     DB 10
+`,
+    testCases: [
+      { label: 'RESULT (5+7 BCD)', address: 0xF2, expected: 2 },
+      { label: 'CARRY', address: 0xF3, expected: 1 },
+    ],
+    hints: [
+      'Start with LDA DIGIT_A then ADD DIGIT_B to get the raw sum (12) in the accumulator.',
+      'The raw sum 12 is not valid BCD (digits must be 0-9). SUB TEN corrects it to 2.',
+      'After SUB TEN, the accumulator holds the BCD ones digit. Store it with STA RESULT.',
+      'Since 5 + 7 overflows past 9, set the carry: LDI 1 then STA CARRY.',
+      'Double-check your operation order: sum first, then correct, then record carry. Once you overwrite the accumulator, the previous value is gone.',
+    ],
+    solution: `; BCD Calculator (Capstone)
+; Add two BCD digits with BCD correction
+
+LDA DIGIT_A     ; Load first digit (5)
+ADD DIGIT_B     ; Add second digit (5+7=12)
+SUB TEN         ; BCD correction: 12-10=2
+STA RESULT      ; Store corrected ones digit
+LDI 1           ; Carry = 1 (sum exceeded 9)
+STA CARRY
+HLT
+
+  ORG 0xF0
+DIGIT_A: DB 5
+DIGIT_B: DB 7
+RESULT:  DB 0
+CARRY:   DB 0
+TEN:     DB 10
+`,
+    solutionExplanation: 'LDA DIGIT_A loads 5, ADD DIGIT_B adds 7 giving 12 in the accumulator. Since 12 > 9 it is not a valid BCD digit, so SUB TEN corrects it to 2. STA RESULT stores the ones digit. LDI 1 and STA CARRY record that the addition overflowed. This BCD correction — subtract 10 when the sum exceeds 9 — is the fundamental operation of every calculator chip, and the very application that launched Intel\'s microprocessor revolution. The 4004, completed in 1971, had a dedicated DAA instruction to handle general BCD correction that this simple approach cannot.',
+  },
+
   // ── Micro8 Exercises ──────────────────────────────────────
   {
     id: 'ex-m8-register-swap',

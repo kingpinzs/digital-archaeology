@@ -284,7 +284,7 @@ development_status:
   epic-20: in-progress
   20-1-create-literature-browser: done  # 96 tests (24 metadata + 72 component), 5012 total passing — 5 review fixes applied
   20-2-implement-article-categories: done  # 150 literature tests, 5066 total passing — 5 self-review + 9 adversarial review fixes applied
-  20-3-create-contextual-help-links: backlog
+  20-3-create-contextual-help-links: ready-for-dev
   20-4-implement-reading-progress: backlog
   20-5-create-progressive-hint-system: backlog
   20-6-create-technical-deep-dives: backlog

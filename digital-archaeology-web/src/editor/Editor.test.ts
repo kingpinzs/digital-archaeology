@@ -75,7 +75,7 @@ const {
       // Trigger content change listeners
       contentChangeListeners.forEach(cb => cb());
     }),
-    getModel: vi.fn(() => mockModel),
+    getModel: vi.fn((): typeof mockModel | null => mockModel),
     focus: vi.fn(),
     layout: vi.fn(),
     onDidChangeCursorPosition: vi.fn((callback: (e: { position: { lineNumber: number; column: number } }) => void) => {

@@ -169,6 +169,7 @@ const { MockAssemblerBridge, mockAssemblerBridge } = vi.hoisted(() => {
     success: boolean;
     binary: Uint8Array | null;
     error: AssemblerError | null;
+    assembledInExperimentationMode?: boolean;
   };
 
   // Mutable state for test manipulation

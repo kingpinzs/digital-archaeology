@@ -76,6 +76,8 @@ export interface ExerciseMetadata {
   readonly starterCode: string;
   readonly testCases: readonly ExerciseTestCase[];
   readonly hints: readonly string[];
+  readonly solution: string;
+  readonly solutionExplanation: string;
 }
 
 /** Data passed to the browser when opening */

@@ -18,6 +18,8 @@ function makeExercise(
     prerequisites: [],
     starterCode: '; TODO: test\nHLT\n',
     hints: [],
+    solution: '',
+    solutionExplanation: '',
     ...overrides,
   };
 }

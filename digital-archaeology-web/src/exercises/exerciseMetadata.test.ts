@@ -324,4 +324,36 @@ describe('exerciseMetadata', () => {
       }
     });
   });
+
+  describe('solutions (Story 21.6)', () => {
+    it('every exercise should have a non-empty solution', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.solution.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('every exercise should have a non-empty solutionExplanation', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.solutionExplanation.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('solution should contain HLT instruction', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.solution).toContain('HLT');
+      }
+    });
+
+    it('solutionExplanation should be at least 50 characters', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.solutionExplanation.length).toBeGreaterThanOrEqual(50);
+      }
+    });
+
+    it('solution should differ from starterCode', () => {
+      for (const ex of EXERCISES) {
+        expect(ex.solution.trim()).not.toBe(ex.starterCode.trim());
+      }
+    });
+  });
 });

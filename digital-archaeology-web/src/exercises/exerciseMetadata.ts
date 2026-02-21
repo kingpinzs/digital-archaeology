@@ -49,6 +49,18 @@ RESULT: DB 0
       'LDA loads a value FROM a memory label INTO the accumulator.',
       'After loading VALUE with LDA, use STA RESULT to store it.',
     ],
+    solution: `; Exercise: Hello Nibble
+; Goal: Load the value 7 into the accumulator and store it at RESULT
+
+LDA VALUE
+STA RESULT
+HLT
+
+  ORG 0xF0
+VALUE: DB 7
+RESULT: DB 0
+`,
+    solutionExplanation: 'LDA VALUE loads the byte at the VALUE label (7) into the accumulator. STA RESULT stores the accumulator to the RESULT label. Two instructions — that is the entire Micro4 workflow.',
   },
   {
     id: 'ex-m4-simple-addition',
@@ -87,6 +99,20 @@ RESULT: DB 0
       'Then ADD NUM2 — the ALU adds memory to the accumulator.',
       'Finally STA RESULT to write the sum to memory.',
     ],
+    solution: `; Exercise: Simple Addition
+; Goal: Add NUM1 and NUM2, store the sum at RESULT
+
+LDA NUM1
+ADD NUM2
+STA RESULT
+HLT
+
+  ORG 0xF0
+NUM1: DB 3
+NUM2: DB 5
+RESULT: DB 0
+`,
+    solutionExplanation: 'LDA NUM1 loads 3. ADD NUM2 adds 5 to the accumulator, making it 8. STA RESULT stores the sum. The ALU performs addition in a single cycle — the accumulator is both source and destination.',
   },
   {
     id: 'ex-m4-countdown-loop',
@@ -133,6 +159,27 @@ RESULT: DB 0
       'JMP LOOP goes back unconditionally to repeat the loop body.',
       'The loop exits naturally when SUB makes the accumulator zero and JZ fires.',
     ],
+    solution: `; Exercise: Countdown Loop
+; Goal: Count down from START to 0, storing final value at RESULT
+
+START: LDA COUNT
+
+LOOP:
+  STA RESULT
+  SUB ONE
+  JZ DONE
+  JMP LOOP
+
+DONE:
+  STA RESULT
+  HLT
+
+  ORG 0xF0
+COUNT: DB 5
+ONE: DB 1
+RESULT: DB 0
+`,
+    solutionExplanation: 'The loop stores the current value, subtracts 1, checks if zero, and repeats. When SUB ONE produces 0, the zero flag triggers JZ DONE. The final STA RESULT stores 0. This is the fundamental loop pattern: update, test, branch.',
   },
   {
     id: 'ex-m4-max-of-two',
@@ -180,6 +227,31 @@ RESULT: DB 0
       'JC IS_NUM2 jumps to the branch where NUM2 is larger.',
       'In the IS_NUM2 block: LDA NUM2 then STA RESULT then JMP DONE.',
     ],
+    solution: `; Exercise: Max of Two
+; Goal: Find the larger of NUM1 and NUM2, store it at RESULT
+
+LDA NUM1
+SUB NUM2
+JC IS_NUM2
+
+; If we get here, NUM1 >= NUM2
+  LDA NUM1
+  STA RESULT
+  JMP DONE
+
+IS_NUM2:
+  LDA NUM2
+  STA RESULT
+
+DONE:
+  HLT
+
+  ORG 0xF0
+NUM1: DB 9
+NUM2: DB 6
+RESULT: DB 0
+`,
+    solutionExplanation: 'Without a CMP instruction, we compare by subtracting: LDA NUM1, SUB NUM2. If NUM1 < NUM2, the subtraction underflows and sets the carry flag. JC branches to the NUM2-is-larger path. Each branch loads the winner and stores it.',
   },
   {
     id: 'ex-m4-bit-shift-multiply',
@@ -219,6 +291,20 @@ RESULT: DB 0
       'LDA VALUE loads the value, then ADD VALUE adds it again.',
       'STA RESULT writes the doubled value to memory.',
     ],
+    solution: `; Exercise: Bit Shift Multiply
+; Goal: Multiply VALUE by 2 using left shift, store at RESULT
+
+LDA VALUE
+ADD VALUE
+STA RESULT
+HLT
+
+  ORG 0xF0
+; Try different values (keep result under 15!)
+VALUE: DB 3
+RESULT: DB 0
+`,
+    solutionExplanation: 'Left shift by 1 equals multiplying by 2, and adding a number to itself is the same as left shift. LDA VALUE loads 3, ADD VALUE adds 3 again (total 6), STA RESULT stores it. Early CPUs without MUL relied on this trick.',
   },
 
   // ── Micro8 Exercises ──────────────────────────────────────
@@ -264,6 +350,26 @@ SWAP_B: .db 0
       'MOV R2, R0 saves R0 before you overwrite it.',
       'MOV R0, R1 puts R1\'s value into R0. Now MOV R1, R2 completes the swap.',
     ],
+    solution: `; Exercise: Register Swap
+; Goal: Swap the values of R0 and R1 using a third register
+
+LDI R0, 0x42     ; R0 = 0x42
+LDI R1, 0xAB     ; R1 = 0xAB
+
+MOV R2, R0       ; temp = R0
+MOV R0, R1       ; R0 = R1
+MOV R1, R2       ; R1 = temp
+
+; Store results to verify
+ST R0, [SWAP_A]
+ST R1, [SWAP_B]
+HLT
+
+  .org 0x100
+SWAP_A: .db 0
+SWAP_B: .db 0
+`,
+    solutionExplanation: 'The classic three-step swap: save R0 to R2 (temp), copy R1 into R0, then copy temp (R2) into R1. With 8 registers, R2 serves as temporary storage — a luxury Micro4 never had.',
   },
   {
     id: 'ex-m8-array-sum',
@@ -311,6 +417,28 @@ RESULT: .db 0
       'INC HL moves the pointer to the next array element.',
       'DEC R1 decreases the counter. JNZ LOOP repeats if counter is not zero.',
     ],
+    solution: `; Exercise: Array Sum
+; Goal: Sum all values in ARRAY, store total at RESULT
+
+LDI R0, 0        ; R0 = running sum
+LDI R1, 5        ; R1 = array length (counter)
+LDI16 HL, ARRAY  ; HL points to start of array
+
+LOOP:
+  LD R2, [HL]    ; load current element
+  ADD R0, R2     ; add to running sum
+  INC HL         ; advance pointer
+  DEC R1         ; decrement counter
+  JNZ LOOP       ; repeat if counter != 0
+
+ST R0, [RESULT]
+HLT
+
+  .org 0x100
+ARRAY: .db 10, 20, 30, 40, 50
+RESULT: .db 0
+`,
+    solutionExplanation: 'HL acts as an array pointer. Each iteration loads the byte at [HL], adds it to R0, advances HL, and decrements the counter R1. When R1 reaches 0, JNZ falls through. This load-accumulate-advance pattern is universal for array processing.',
   },
   {
     id: 'ex-m8-string-length',
@@ -358,6 +486,29 @@ RESULT: .db 0
       'JZ DONE exits the loop when R1 is zero (null terminator found).',
       'INC R0 counts the character, INC HL advances to the next byte, JMP LOOP repeats.',
     ],
+    solution: `; Exercise: String Length
+; Goal: Count characters in STRING until null (0x00), store count at RESULT
+
+LDI R0, 0         ; R0 = character count
+LDI16 HL, STRING  ; HL points to first character
+
+LOOP:
+  LD R1, [HL]     ; load current byte
+  OR R1, R1       ; test if zero (sets zero flag)
+  JZ DONE         ; null terminator found
+  INC R0          ; count this character
+  INC HL          ; next character
+  JMP LOOP
+
+DONE:
+  ST R0, [RESULT]
+  HLT
+
+  .org 0x100
+STRING: .db 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
+RESULT: .db 0
+`,
+    solutionExplanation: 'Walk through memory byte by byte. OR R1, R1 is an efficient way to test for zero — it sets the zero flag without changing the value. When the null terminator (0x00) is found, JZ exits. The count in R0 excludes the terminator itself.',
   },
   {
     id: 'ex-m8-bubble-sort',
@@ -419,6 +570,45 @@ ARRAY: .db 64, 25, 12, 22, 11
       'To swap: store R0 at current [HL], decrement HL, store R1 at [HL], then increment HL back.',
       'Set R3=1 after each swap. After inner loop, if R3==1 repeat outer. If R3==0, array is sorted.',
     ],
+    solution: `; Exercise: Bubble Sort
+; Goal: Sort ARRAY in ascending order using bubble sort
+
+LDI R4, 5            ; array length
+
+OUTER:
+  LDI R3, 0          ; swapped = false
+  LDI R5, 4          ; inner loop count = length - 1
+  LDI16 HL, ARRAY    ; reset pointer to start
+
+  INNER:
+    LD R0, [HL]      ; load ARRAY[i]
+    INC HL
+    LD R1, [HL]      ; load ARRAY[i+1]
+
+    CMP R0, R1       ; compare adjacent pair
+    JLE NO_SWAP       ; skip if already in order
+
+    ; Swap: store R0 at [HL] (i+1), store R1 at [HL-1] (i)
+    ST R0, [HL]
+    DEC HL
+    ST R1, [HL]
+    INC HL
+    LDI R3, 1        ; swapped = true
+
+  NO_SWAP:
+    DEC R5
+    JNZ INNER
+
+  ; If any swap happened, repeat
+  CMP R3, 0
+  JNZ OUTER
+
+HLT
+
+  .org 0x100
+ARRAY: .db 64, 25, 12, 22, 11
+`,
+    solutionExplanation: 'Bubble sort makes repeated passes. Each pass compares adjacent pairs and swaps them if out of order. The R3 flag tracks whether any swap occurred — if not, the array is sorted and we stop. CMP R0, R1 with JLE skips the swap when elements are already ordered.',
   },
   {
     id: 'ex-m8-fibonacci',
@@ -488,6 +678,44 @@ FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
       'Update for next iteration: MOV R0, R1 then MOV R1, R2 shifts the window forward.',
       'DEC R6 then JNZ LOOP repeats until all 6 remaining numbers are generated.',
     ],
+    solution: `; Exercise: Fibonacci Sequence
+; Goal: Generate first 8 Fibonacci numbers, store in FIB_OUT
+
+LDI R0, 0           ; F(n-2) = 0
+LDI R1, 1           ; F(n-1) = 1
+LDI R6, 8           ; count = 8
+LDI16 HL, FIB_OUT   ; output pointer
+
+; Store first two values
+ST R0, [HL]
+INC HL
+ST R1, [HL]
+INC HL
+LDI R6, 6           ; remaining count
+
+LOOP:
+  CALL NEXT_FIB     ; R2 = R0 + R1
+  ST R2, [HL]       ; store result
+  INC HL            ; advance pointer
+  MOV R0, R1        ; shift window: R0 = old R1
+  MOV R1, R2        ; R1 = new value
+  DEC R6
+  JNZ LOOP
+
+HLT
+
+; Subroutine: compute next Fibonacci number
+; Input: R0 = F(n-2), R1 = F(n-1)
+; Output: R2 = F(n)
+NEXT_FIB:
+  MOV R2, R0
+  ADD R2, R1
+  RET
+
+  .org 0x100
+FIB_OUT: .db 0, 0, 0, 0, 0, 0, 0, 0
+`,
+    solutionExplanation: 'CALL NEXT_FIB pushes the return address and jumps to the subroutine. Inside, MOV R2, R0 then ADD R2, R1 computes the next number. RET pops the return address. After the call, we shift the window (R0=R1, R1=R2) for the next iteration. This is iterative Fibonacci using subroutines.',
   },
 
   // ── Micro16 Exercises ──────────────────────────────────────
@@ -529,6 +757,19 @@ RESULT: .dw 0
       'MOV AX, #0x1000 loads the segment address. MOV DS, AX sets the data segment.',
       'After setting DS, load your value: MOV AX, #0xBEEF then ST AX, [RESULT].',
     ],
+    solution: `; Exercise: Segment Basics
+; Goal: Set up DS to point to a data segment, load and store values
+
+MOV AX, #0x1000
+MOV DS, AX
+MOV AX, #0xBEEF
+ST AX, [RESULT]
+HLT
+
+  .org 0x200
+RESULT: .dw 0
+`,
+    solutionExplanation: 'MOV AX, #0x1000 loads the segment address, then MOV DS, AX sets the Data Segment register. Now all data operations use that segment. MOV AX, #0xBEEF loads the value and ST AX, [RESULT] stores it. Segmentation was how 16-bit CPUs accessed more than 64KB of memory.',
   },
   {
     id: 'ex-m16-hardware-multiply',
@@ -571,6 +812,19 @@ PRODUCT: .dw 0
       'MUL AX, BX multiplies in hardware. The result lands in AX.',
       'ST AX, [PRODUCT] writes the 16-bit result to memory.',
     ],
+    solution: `; Exercise: Hardware Multiply
+; Goal: Multiply two 16-bit values using the MUL instruction
+
+MOV AX, #25
+MOV BX, #13
+MUL AX, BX
+ST AX, [PRODUCT]
+HLT
+
+  .org 0x200
+PRODUCT: .dw 0
+`,
+    solutionExplanation: 'Four instructions replace what would take dozens of shifts and adds on Micro4. MOV loads operands, MUL multiplies in hardware (result in AX), and ST stores it. Dedicated multiply circuitry was a milestone — it made real-time computation practical.',
   },
   {
     id: 'ex-m16-memory-block-copy',
@@ -624,6 +878,29 @@ DEST:   .dw 0, 0, 0, 0, 0
       'ADD SI, #2 and ADD DI, #2 advance both pointers by one word (2 bytes per 16-bit word).',
       'DEC CX decreases the word count. JNZ COPY_LOOP repeats until CX reaches zero.',
     ],
+    solution: `; Exercise: Memory Block Copy
+; Goal: Copy COUNT words from SOURCE to DEST
+
+MOV CX, #5         ; CX = word count
+MOV SI, #SOURCE    ; SI = source pointer
+MOV DI, #DEST      ; DI = destination pointer
+
+COPY_LOOP:
+  LD AX, [SI]      ; load word from source
+  ST AX, [DI]      ; store word to dest
+  ADD SI, #2       ; advance source by word size
+  ADD DI, #2       ; advance dest by word size
+  DEC CX           ; decrement counter
+  JNZ COPY_LOOP    ; repeat if more words
+
+HLT
+
+  .org 0x200
+SOURCE: .dw 0x1111, 0x2222, 0x3333, 0x4444, 0x5555
+  .org 0x220
+DEST:   .dw 0, 0, 0, 0, 0
+`,
+    solutionExplanation: 'SI and DI serve as source and destination pointers. Each iteration loads a word from [SI], stores it at [DI], advances both pointers by 2 (word size), and decrements the counter. This is essentially what memcpy() does — the same pattern early OSes used to move data.',
   },
   {
     id: 'ex-m16-string-reverse',
@@ -679,6 +956,42 @@ STRING: .dw 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
       'Swap: LD AX, [SI] and LD BX, [DI], then ST BX, [SI] and ST AX, [DI].',
       'After swapping, ADD SI, #2 and SUB DI, #2 move the pointers inward. JMP REVERSE_LOOP.',
     ],
+    solution: `; Exercise: String Reverse
+; Goal: Reverse STRING in place using two pointers
+
+MOV SI, #STRING    ; front pointer
+MOV DI, #STRING    ; back pointer — advance to end first
+
+; Find the end of the string
+FIND_END:
+  LD AX, [DI]
+  CMP AX, #0
+  JZ FOUND_END
+  ADD DI, #2
+  JMP FIND_END
+
+FOUND_END:
+  SUB DI, #2       ; point to last real character
+
+REVERSE_LOOP:
+  CMP SI, DI
+  JGE DONE         ; pointers met or crossed
+
+  LD AX, [SI]      ; front char
+  LD BX, [DI]      ; back char
+  ST BX, [SI]      ; swap front
+  ST AX, [DI]      ; swap back
+  ADD SI, #2       ; move front forward
+  SUB DI, #2       ; move back backward
+  JMP REVERSE_LOOP
+
+DONE:
+  HLT
+
+  .org 0x200
+STRING: .dw 0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x00  ; "Hello\\0"
+`,
+    solutionExplanation: 'First, walk DI forward to find the null terminator, then back up one word. The two-pointer technique swaps front and back characters, moving inward until the pointers cross. CMP SI, DI with JGE detects when we are done. This is the classic in-place reversal algorithm.',
   },
   {
     id: 'ex-m16-linked-list',
@@ -737,6 +1050,38 @@ RESULT: .dw 0
       'To follow the next pointer: LD SI, [SI + 2] reads the next-pointer field into SI.',
       'JMP WALK repeats the traversal with the new SI pointing to the next node.',
     ],
+    solution: `; Exercise: Linked List Traversal
+; Goal: Walk a linked list, count nodes, store count at RESULT
+
+MOV SI, #NODE1       ; point to first node
+MOV CX, #0           ; node count = 0
+
+WALK:
+  CMP SI, #0
+  JZ DONE            ; null pointer = end of list
+  ADD CX, #1         ; count this node
+  LD SI, [SI + 2]    ; follow the next pointer (offset +2)
+  JMP WALK
+
+DONE:
+  ST CX, [RESULT]
+  HLT
+
+  .org 0x200
+; Linked list: 3 nodes
+; Node 1: value=10, next=NODE2
+NODE1: .dw 10
+       .dw NODE2
+; Node 2: value=20, next=NODE3
+NODE2: .dw 20
+       .dw NODE3
+; Node 3: value=30, next=0 (end)
+NODE3: .dw 30
+       .dw 0
+
+RESULT: .dw 0
+`,
+    solutionExplanation: 'Check if SI is null (0) to detect end of list. Increment the counter, then read the next-pointer field at offset +2 from the current node. LD SI, [SI + 2] follows the link. This is pointer chasing — the fundamental operation of all dynamic data structures.',
   },
 ] as const;
 

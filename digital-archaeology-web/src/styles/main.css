@@ -11376,3 +11376,122 @@ body.da-resizing * {
   font-size: 0.8rem;
   text-align: center;
 }
+
+/* =============================================================================
+   Exercise Solution Panel — Story 21.6
+   Reveals the solution with explanation and comparison
+   ============================================================================= */
+
+.da-exercise-solution {
+  border-top: 2px solid var(--da-border);
+  background: var(--da-bg-secondary);
+  font-size: 0.85rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.da-exercise-solution__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--da-exercise-advanced) 10%, transparent);
+  border-bottom: 1px solid var(--da-border);
+}
+
+.da-exercise-solution__title {
+  font-weight: 600;
+  color: var(--da-exercise-advanced);
+  flex: 1;
+}
+
+.da-exercise-solution__dismiss {
+  background: none;
+  border: none;
+  color: var(--da-text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.da-exercise-solution__dismiss:hover {
+  color: var(--da-text-primary);
+}
+
+.da-exercise-solution__warning {
+  padding: 8px 12px;
+  color: var(--da-text-secondary);
+  font-style: italic;
+  background: color-mix(in srgb, var(--da-exercise-advanced) 5%, transparent);
+}
+
+.da-exercise-solution__confirm {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 8px 12px;
+  padding: 6px 16px;
+  background: var(--da-exercise-advanced);
+  color: var(--da-bg-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.da-exercise-solution__confirm:hover {
+  filter: brightness(1.1);
+}
+
+.da-exercise-solution__explanation {
+  padding: 8px 12px;
+  color: var(--da-text-primary);
+  line-height: 1.5;
+}
+
+.da-exercise-solution__code-label {
+  padding: 4px 12px 0;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--da-text-secondary);
+}
+
+.da-exercise-solution__code {
+  margin: 4px 12px 8px;
+  padding: 8px;
+  background: var(--da-bg-primary);
+  border: 1px solid var(--da-border);
+  border-radius: 4px;
+  font-family: var(--da-font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--da-text-primary);
+}
+
+.da-exercise-solution__code--user {
+  border-color: color-mix(in srgb, var(--da-accent) 30%, var(--da-border));
+}
+
+/* "Show Solution" button — appears in code panel after failed attempt */
+.da-exercise-show-solution-btn {
+  display: block;
+  width: calc(100% - 24px);
+  margin: 4px 12px 8px;
+  padding: 6px 16px;
+  background: color-mix(in srgb, var(--da-exercise-advanced) 15%, var(--da-bg-secondary));
+  color: var(--da-exercise-advanced);
+  border: 1px solid var(--da-exercise-advanced);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.da-exercise-show-solution-btn:hover {
+  background: color-mix(in srgb, var(--da-exercise-advanced) 25%, var(--da-bg-secondary));
+}

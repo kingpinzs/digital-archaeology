@@ -18,6 +18,8 @@ function makeExercise(hints: string[]): ExerciseMetadata {
     starterCode: '; TODO: test\nHLT\n',
     testCases: [{ label: 'R', address: 0xF1, expected: 7 }],
     hints,
+    solution: '',
+    solutionExplanation: '',
   };
 }
 

@@ -52,7 +52,7 @@ import {
 import { LiteratureBrowser, LITERATURE_ARTICLES, getContextFilter, ReadingProgressStorage, HintProgressStorage, getHintCount } from '@literature/index';
 import { DepthPreferenceStorage } from '@literature/DepthPreferenceStorage';
 import type { HelpContext } from '@literature/index';
-import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage, ExerciseValidator, ExerciseResultsPanel, ExerciseHintsPanel } from '../exercises';
+import { ExerciseBrowser, EXERCISES, ExerciseProgressStorage, ExerciseValidator, ExerciseResultsPanel, ExerciseHintsPanel, ExerciseSolutionPanel } from '../exercises';
 import type { ExerciseMetadata } from '../exercises';
 
 /**
@@ -313,6 +313,8 @@ export class App {
   private exerciseResultsPanel: ExerciseResultsPanel = new ExerciseResultsPanel();
   // Story 21.5: Progressive Hints
   private exerciseHintsPanel: ExerciseHintsPanel = new ExerciseHintsPanel();
+  // Story 21.6: Solution Reveal
+  private exerciseSolutionPanel: ExerciseSolutionPanel = new ExerciseSolutionPanel();
 
   // Hash router for URL-based stage/mode routing (Story 11.7)
   private router: HashRouter = new HashRouter();
@@ -928,9 +930,8 @@ export class App {
 
     this.exerciseBrowser.close();
 
-    // Story 21.4: Dismiss any previous results/hints panels and clear exercise
-    this.exerciseResultsPanel.dismiss();
-    this.exerciseHintsPanel.dismiss();
+    // Story 21.4: Dismiss any previous results/hints/solution panels and clear exercise
+    this.dismissExercisePanels();
 
     // Switch to the exercise's stage if needed
     if (exercise.stage !== this.currentStage) {
@@ -3599,8 +3600,10 @@ export class App {
     // Update status bar to reflect validation outcome
     if (result.passed) {
       this.statusBar?.updateState({ loadStatus: `Exercise passed: ${exercise.title}` });
-      // Story 21.5: Dismiss hints panel when exercise passes
+      // Dismiss hints/solution panels when exercise passes
       this.exerciseHintsPanel.dismiss();
+      this.exerciseSolutionPanel.dismiss();
+      this.removeSolutionButton();
     } else {
       const passCount = result.results.filter((r) => r.passed).length;
       this.statusBar?.updateState({
@@ -3611,7 +3614,49 @@ export class App {
       if (exercise.hints.length > 0) {
         this.exerciseHintsPanel.show(exercise, codePanel as HTMLElement);
       }
+
+      // Story 21.6: Add "Show Solution" button when solution is available
+      if (exercise.solution) {
+        this.addShowSolutionButton(exercise, codePanel as HTMLElement);
+      }
     }
+  }
+
+  /** Dismiss all exercise-related panels and the Show Solution button */
+  private dismissExercisePanels(): void {
+    this.exerciseResultsPanel.dismiss();
+    this.exerciseHintsPanel.dismiss();
+    this.exerciseSolutionPanel.dismiss();
+    this.removeSolutionButton();
+  }
+
+  /** Remove the "Show Solution" button from the code panel */
+  private removeSolutionButton(): void {
+    const btn = this.container?.querySelector('.da-exercise-show-solution-btn');
+    if (btn) btn.remove();
+  }
+
+  /**
+   * Add a "Show Solution" button to the code panel (Story 21.6).
+   * Opens the solution panel on click rather than auto-showing.
+   */
+  private addShowSolutionButton(exercise: ExerciseMetadata, host: HTMLElement): void {
+    // Remove any previous show-solution button
+    const existing = host.querySelector('.da-exercise-show-solution-btn');
+    if (existing) existing.remove();
+
+    const btn = document.createElement('button');
+    btn.className = 'da-exercise-show-solution-btn';
+    btn.textContent = 'Show Solution';
+    btn.setAttribute('aria-label', 'Show exercise solution');
+    btn.addEventListener('click', () => {
+      const userCode = this.editor?.getValue() ?? '';
+      this.exerciseSolutionPanel.show(exercise, userCode, {
+        onDismiss: () => { /* No additional cleanup needed */ },
+      }, host);
+      btn.remove(); // Remove button once solution panel is shown
+    });
+    host.appendChild(btn);
   }
 
   /**
@@ -4030,8 +4075,7 @@ export class App {
 
     // Story 21.4: Clear active exercise
     this.currentExercise = null;
-    this.exerciseResultsPanel.dismiss();
-    this.exerciseHintsPanel.dismiss();
+    this.dismissExercisePanels();
 
     // Clear editor content
     if (this.editor) {
@@ -4100,8 +4144,7 @@ export class App {
 
     // Story 21.4: Clear active exercise — opening a project is not an exercise
     this.currentExercise = null;
-    this.exerciseResultsPanel.dismiss();
-    this.exerciseHintsPanel.dismiss();
+    this.dismissExercisePanels();
 
     try {
       // Load from IndexedDB
@@ -4177,8 +4220,7 @@ export class App {
 
     // Story 21.4: Clear active exercise — importing a file is not an exercise
     this.currentExercise = null;
-    this.exerciseResultsPanel.dismiss();
-    this.exerciseHintsPanel.dismiss();
+    this.dismissExercisePanels();
 
     try {
       const result = await readTextFile('.asm,.txt');
@@ -4252,8 +4294,7 @@ export class App {
 
     // Story 21.4: Clear active exercise — loading an example is not an exercise
     this.currentExercise = null;
-    this.exerciseResultsPanel.dismiss();
-    this.exerciseHintsPanel.dismiss();
+    this.dismissExercisePanels();
 
     try {
       // Story 11.2: Load from config-derived programs path
@@ -4892,6 +4933,9 @@ export class App {
     this.exerciseResultsPanel.destroy();
     // Story 21.5: Destroy exercise hints panel
     this.exerciseHintsPanel.destroy();
+    // Story 21.6: Destroy exercise solution panel
+    this.exerciseSolutionPanel.destroy();
+    this.removeSolutionButton();
     this.currentExercise = null;
 
     // Destroy resizers

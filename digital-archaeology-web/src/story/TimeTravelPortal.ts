@@ -58,17 +58,17 @@ const CONFIGS: Record<PortalMode, PortalConfig> = {
     rotations: 2,
     colors: [
       { r: 184, g: 115, b: 51 },  // copper
-      { r: 212, g: 175, b: 55 },  // gold
+      { r: 212, g: 165, b: 116 },  // gold (#d4a574, matches --persona-gold)
     ],
   },
   persona: {
     ringCount: 14,
     particleCount: 150,
     duration: DURATIONS.persona,
-    rotations: 4,
+    rotations: 3,
     colors: [
-      { r: 212, g: 175, b: 55 },  // gold
-      { r: 30, g: 144, b: 255 },  // blue
+      { r: 212, g: 165, b: 116 },  // gold (#d4a574, matches --persona-gold)
+      { r: 74, g: 158, b: 255 },  // blue (#4a9eff, matches --da-accent)
     ],
   },
 };
@@ -490,12 +490,9 @@ export class TimeTravelPortal {
 
       if (flashAlpha > 0) {
         ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
-        ctx.fillRect(
-          cx - viewMin * 0.5,
-          cy - viewMin * 0.5,
-          viewMin,
-          viewMin
-        );
+        const w = this.canvas!.style.width ? parseInt(this.canvas!.style.width) : window.innerWidth;
+        const h = this.canvas!.style.height ? parseInt(this.canvas!.style.height) : window.innerHeight;
+        ctx.fillRect(0, 0, w, h);
       }
     }
   }

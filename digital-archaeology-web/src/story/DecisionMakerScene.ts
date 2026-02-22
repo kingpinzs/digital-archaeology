@@ -2,7 +2,7 @@
 // Decision scene that wraps HistoricalDecisionCard with era context
 // Story 10.22: Decision-Maker + Builder Mode
 
-import type { HistoricalDecision } from './types';
+import type { HistoricalDecision, BraveAlternative } from './types';
 import { HistoricalDecisionCard } from './HistoricalDecisionCard';
 import { MindsetProvider } from './MindsetProvider';
 
@@ -155,6 +155,11 @@ export class DecisionMakerScene {
     ctaContainer.appendChild(ctaText);
     ctaContainer.appendChild(ctaButton);
     this.element.appendChild(ctaContainer);
+
+    // Story 26.16: Show "What if someone had been brave?" panel
+    if (this.decision?.braveAlternative) {
+      this.renderBraveAlternative(this.decision.braveAlternative);
+    }
   }
 
   /**
@@ -169,6 +174,103 @@ export class DecisionMakerScene {
     if (this.buildTransitionCallback) {
       this.buildTransitionCallback(this.decision.id, chosenOptionId);
     }
+  }
+
+  /**
+   * Story 26.16: Render the "What if someone had been brave?" panel.
+   * Appears after the decision reveal, showing the brave vs safe analysis.
+   */
+  private renderBraveAlternative(brave: BraveAlternative): void {
+    if (!this.element) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'da-brave-alternative';
+    panel.setAttribute('role', 'note');
+
+    // Header
+    const headerId = `da-brave-alternative-header-${this.decision?.id ?? 'default'}`;
+    const header = document.createElement('h4');
+    header.id = headerId;
+    header.className = 'da-brave-alternative__header';
+    header.textContent = 'What if someone had been brave?';
+    panel.setAttribute('aria-labelledby', headerId);
+    panel.appendChild(header);
+
+    // Brave vs Safe comparison
+    const comparison = document.createElement('div');
+    comparison.className = 'da-brave-alternative__comparison';
+
+    const braveCard = document.createElement('div');
+    braveCard.className = 'da-brave-alternative__card da-brave-alternative__card--brave';
+    const braveLabel = document.createElement('div');
+    braveLabel.className = 'da-brave-alternative__card-label';
+    braveLabel.textContent = 'The Brave Path';
+    const braveText = document.createElement('p');
+    braveText.className = 'da-brave-alternative__card-text';
+    braveText.textContent = brave.braveAction;
+    braveCard.appendChild(braveLabel);
+    braveCard.appendChild(braveText);
+
+    const safeCard = document.createElement('div');
+    safeCard.className = 'da-brave-alternative__card da-brave-alternative__card--safe';
+    const safeLabel = document.createElement('div');
+    safeLabel.className = 'da-brave-alternative__card-label';
+    safeLabel.textContent = 'The Safe Choice';
+    const safeText = document.createElement('p');
+    safeText.className = 'da-brave-alternative__card-text';
+    safeText.textContent = brave.safeChoice;
+    safeCard.appendChild(safeLabel);
+    safeCard.appendChild(safeText);
+
+    comparison.appendChild(braveCard);
+    comparison.appendChild(safeCard);
+    panel.appendChild(comparison);
+
+    // Constraint badge — what held people back?
+    const constraintBadge = document.createElement('div');
+    constraintBadge.className = `da-brave-alternative__constraint da-brave-alternative__constraint--${brave.constraintType}`;
+    const constraintLabels: Record<string, string> = {
+      fear: 'Held back by: Fear',
+      economics: 'Held back by: Economics',
+      politics: 'Held back by: Politics',
+      physics: 'Constrained by: Physics',
+      knowledge: 'Constrained by: Knowledge',
+    };
+    constraintBadge.textContent = constraintLabels[brave.constraintType] ?? `Constraint: ${brave.constraintType}`;
+    panel.appendChild(constraintBadge);
+
+    // Why the safe choice was made
+    const whySafe = document.createElement('p');
+    whySafe.className = 'da-brave-alternative__why-safe';
+    whySafe.textContent = brave.whySafe;
+    panel.appendChild(whySafe);
+
+    // What-if narrative
+    const whatIf = document.createElement('div');
+    whatIf.className = 'da-brave-alternative__what-if';
+    const whatIfLabel = document.createElement('div');
+    whatIfLabel.className = 'da-brave-alternative__what-if-label';
+    whatIfLabel.textContent = 'If someone had dared\u2026';
+    const whatIfText = document.createElement('p');
+    whatIfText.className = 'da-brave-alternative__what-if-text';
+    whatIfText.textContent = brave.whatIfNarrative;
+    whatIf.appendChild(whatIfLabel);
+    whatIf.appendChild(whatIfText);
+    panel.appendChild(whatIf);
+
+    // Key insight
+    const insight = document.createElement('div');
+    insight.className = 'da-brave-alternative__insight';
+    insight.textContent = brave.insight;
+    panel.appendChild(insight);
+
+    // Reflection prompt
+    const reflection = document.createElement('div');
+    reflection.className = 'da-brave-alternative__reflection';
+    reflection.textContent = brave.reflectionPrompt;
+    panel.appendChild(reflection);
+
+    this.element.appendChild(panel);
   }
 
   /**

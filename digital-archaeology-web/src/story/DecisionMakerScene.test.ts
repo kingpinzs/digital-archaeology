@@ -1,11 +1,12 @@
 // src/story/DecisionMakerScene.test.ts
 // Tests for DecisionMakerScene component
 // Story 10.22: Decision-Maker + Builder Mode
+// Story 26.16: Brave Alternatives — What If Someone Dared?
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DecisionMakerScene } from './DecisionMakerScene';
 import { MindsetProvider } from './MindsetProvider';
-import type { HistoricalDecision, MindsetContext } from './types';
+import type { HistoricalDecision, MindsetContext, BraveAlternative } from './types';
 
 describe('DecisionMakerScene', () => {
   let scene: DecisionMakerScene;
@@ -237,6 +238,164 @@ describe('DecisionMakerScene', () => {
 
       const ctas = container.querySelectorAll('.da-decision-maker-build-cta');
       expect(ctas.length).toBe(1);
+    });
+  });
+
+  describe('Story 26.16: Brave Alternatives', () => {
+    const mockBraveAlternative: BraveAlternative = {
+      braveAction: 'Use a flat 32-bit address space from the start',
+      safeChoice: 'Add segment registers for backward-compatible 20-bit addressing',
+      constraintType: 'economics',
+      whySafe: 'Backward compatibility with existing 8-bit software was critical for market adoption.',
+      whatIfNarrative: 'If Intel had gone with flat 32-bit addressing in 1978, programmers would never have dealt with segment:offset headaches.',
+      insight: 'The constraint was economics, not physics — a clean design would have worked but risked the installed base.',
+      reflectionPrompt: 'When is backward compatibility worth the technical debt?',
+    };
+
+    const mockDecisionWithBrave: HistoricalDecision = {
+      ...mockDecision,
+      braveAlternative: mockBraveAlternative,
+    };
+
+    /** Helper: mount, set decision, choose option, click reveal */
+    function revealDecision(dec: HistoricalDecision): void {
+      scene.mount(container);
+      scene.setDecision(dec);
+      const optionEl = container.querySelector('[data-option-id="segment-registers"]') as HTMLElement;
+      optionEl.click();
+      const revealBtn = container.querySelector('.da-decision-reveal-btn') as HTMLElement;
+      revealBtn.click();
+    }
+
+    it('should render brave alternative panel after reveal', () => {
+      revealDecision(mockDecisionWithBrave);
+      expect(container.querySelector('.da-brave-alternative')).not.toBeNull();
+    });
+
+    it('should have note role and aria-labelledby pointing to header', () => {
+      revealDecision(mockDecisionWithBrave);
+      const panel = container.querySelector('.da-brave-alternative');
+      expect(panel?.getAttribute('role')).toBe('note');
+      const headerId = panel?.getAttribute('aria-labelledby');
+      expect(headerId).toBeTruthy();
+      const header = container.querySelector(`#${headerId}`);
+      expect(header?.textContent).toBe('What if someone had been brave?');
+    });
+
+    it('should render header as h4 with correct text', () => {
+      revealDecision(mockDecisionWithBrave);
+      const header = container.querySelector('.da-brave-alternative__header');
+      expect(header?.tagName).toBe('H4');
+      expect(header?.textContent).toBe('What if someone had been brave?');
+    });
+
+    it('should render brave path card', () => {
+      revealDecision(mockDecisionWithBrave);
+      const braveCard = container.querySelector('.da-brave-alternative__card--brave');
+      expect(braveCard).not.toBeNull();
+      const label = braveCard?.querySelector('.da-brave-alternative__card-label');
+      expect(label?.textContent).toBe('The Brave Path');
+      const text = braveCard?.querySelector('.da-brave-alternative__card-text');
+      expect(text?.textContent).toBe(mockBraveAlternative.braveAction);
+    });
+
+    it('should render safe choice card', () => {
+      revealDecision(mockDecisionWithBrave);
+      const safeCard = container.querySelector('.da-brave-alternative__card--safe');
+      expect(safeCard).not.toBeNull();
+      const label = safeCard?.querySelector('.da-brave-alternative__card-label');
+      expect(label?.textContent).toBe('The Safe Choice');
+      const text = safeCard?.querySelector('.da-brave-alternative__card-text');
+      expect(text?.textContent).toBe(mockBraveAlternative.safeChoice);
+    });
+
+    it('should render constraint badge with correct type', () => {
+      revealDecision(mockDecisionWithBrave);
+      const badge = container.querySelector('.da-brave-alternative__constraint');
+      expect(badge).not.toBeNull();
+      expect(badge?.classList.contains('da-brave-alternative__constraint--economics')).toBe(true);
+      expect(badge?.textContent).toBe('Held back by: Economics');
+    });
+
+    it('should render constraint badge for each constraint type', () => {
+      const constraintLabels: Record<string, string> = {
+        fear: 'Held back by: Fear',
+        economics: 'Held back by: Economics',
+        politics: 'Held back by: Politics',
+        physics: 'Constrained by: Physics',
+        knowledge: 'Constrained by: Knowledge',
+      };
+
+      for (const [type, expectedLabel] of Object.entries(constraintLabels)) {
+        // Use local scene/container to avoid mutating shared fixtures
+        const localContainer = document.createElement('div');
+        document.body.appendChild(localContainer);
+        const localScene = new DecisionMakerScene();
+        MindsetProvider.getInstance().setMindset(mockMindset);
+
+        const dec: HistoricalDecision = {
+          ...mockDecision,
+          braveAlternative: {
+            ...mockBraveAlternative,
+            constraintType: type as BraveAlternative['constraintType'],
+          },
+        };
+
+        localScene.mount(localContainer);
+        localScene.setDecision(dec);
+        const optionEl = localContainer.querySelector('[data-option-id="segment-registers"]') as HTMLElement;
+        optionEl.click();
+        const revealBtn = localContainer.querySelector('.da-decision-reveal-btn') as HTMLElement;
+        revealBtn.click();
+
+        const badge = localContainer.querySelector('.da-brave-alternative__constraint');
+        expect(badge?.textContent).toBe(expectedLabel);
+        expect(badge?.classList.contains(`da-brave-alternative__constraint--${type}`)).toBe(true);
+
+        localScene.destroy();
+        localContainer.remove();
+      }
+    });
+
+    it('should render why-safe explanation', () => {
+      revealDecision(mockDecisionWithBrave);
+      const whySafe = container.querySelector('.da-brave-alternative__why-safe');
+      expect(whySafe?.textContent).toBe(mockBraveAlternative.whySafe);
+    });
+
+    it('should render what-if narrative', () => {
+      revealDecision(mockDecisionWithBrave);
+      const whatIfLabel = container.querySelector('.da-brave-alternative__what-if-label');
+      expect(whatIfLabel?.textContent).toBe('If someone had dared\u2026');
+      const whatIfText = container.querySelector('.da-brave-alternative__what-if-text');
+      expect(whatIfText?.textContent).toBe(mockBraveAlternative.whatIfNarrative);
+    });
+
+    it('should render key insight', () => {
+      revealDecision(mockDecisionWithBrave);
+      const insight = container.querySelector('.da-brave-alternative__insight');
+      expect(insight?.textContent).toBe(mockBraveAlternative.insight);
+    });
+
+    it('should render reflection prompt', () => {
+      revealDecision(mockDecisionWithBrave);
+      const reflection = container.querySelector('.da-brave-alternative__reflection');
+      expect(reflection?.textContent).toBe(mockBraveAlternative.reflectionPrompt);
+    });
+
+    it('should NOT render brave alternative panel when braveAlternative is absent', () => {
+      revealDecision(mockDecision); // mockDecision has no braveAlternative
+      expect(container.querySelector('.da-brave-alternative')).toBeNull();
+    });
+
+    it('should render brave alternative below the build CTA', () => {
+      revealDecision(mockDecisionWithBrave);
+      const sceneEl = container.querySelector('.da-decision-maker-scene')!;
+      const children = Array.from(sceneEl.children);
+      const ctaIndex = children.findIndex(el => el.classList.contains('da-decision-maker-build-cta'));
+      const braveIndex = children.findIndex(el => el.classList.contains('da-brave-alternative'));
+      expect(ctaIndex).toBeGreaterThan(-1);
+      expect(braveIndex).toBeGreaterThan(ctaIndex);
     });
   });
 

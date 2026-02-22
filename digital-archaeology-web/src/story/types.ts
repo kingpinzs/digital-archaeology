@@ -381,4 +381,28 @@ export interface HistoricalDecision {
   historicalOutcome: string;
   /** What might have happened with other choices */
   alternateOutcomes: { optionId: string; speculation: string }[];
+  /** Story 26.16: "What if someone had been brave?" alternative */
+  braveAlternative?: BraveAlternative;
+}
+
+/**
+ * Story 26.16: A "brave" alternative for a historical decision point.
+ * Shows what computing might look like if someone had dared to take the risky path.
+ * Helps learners understand which constraints were courage vs physics.
+ */
+export interface BraveAlternative {
+  /** The brave action that could have been taken */
+  braveAction: string;
+  /** What was actually chosen (the "safe" choice) */
+  safeChoice: string;
+  /** What held people back — was it fear, economics, politics, or physics? */
+  constraintType: 'fear' | 'economics' | 'politics' | 'physics' | 'knowledge';
+  /** Explanation of why the safe choice was made */
+  whySafe: string;
+  /** Speculative narrative: what computing would look like with the brave choice */
+  whatIfNarrative: string;
+  /** The key insight — what was the real constraint? */
+  insight: string;
+  /** Reflective prompt for the learner */
+  reflectionPrompt: string;
 }

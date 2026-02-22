@@ -7650,6 +7650,168 @@ body.da-resizing * {
   50% { opacity: 1; transform: translateY(4px); }
 }
 
+/* Story 26.16: Brave Alternatives — "What if someone had been brave?" */
+.da-brave-alternative {
+  margin-top: 24px;
+  padding: 20px 24px;
+  background: var(--da-bg-secondary, #252542);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 12px;
+}
+
+.da-brave-alternative__header {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: rgba(255, 193, 7, 0.95);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.da-brave-alternative__comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .da-brave-alternative__comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.da-brave-alternative__card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--da-border);
+}
+
+.da-brave-alternative__card--brave {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.da-brave-alternative__card--safe {
+  background: rgba(158, 158, 158, 0.08);
+  border-color: rgba(158, 158, 158, 0.3);
+}
+
+.da-brave-alternative__card-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.da-brave-alternative__card--brave .da-brave-alternative__card-label {
+  color: rgba(76, 175, 80, 0.9);
+}
+
+.da-brave-alternative__card--safe .da-brave-alternative__card-label {
+  color: rgba(158, 158, 158, 0.9);
+}
+
+.da-brave-alternative__card-text {
+  font-size: 0.85rem;
+  color: var(--da-text-primary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.da-brave-alternative__constraint {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.da-brave-alternative__constraint--fear {
+  background: rgba(244, 67, 54, 0.12);
+  color: rgba(244, 67, 54, 0.9);
+  border: 1px solid rgba(244, 67, 54, 0.25);
+}
+
+.da-brave-alternative__constraint--economics {
+  background: rgba(255, 193, 7, 0.12);
+  color: rgba(255, 193, 7, 0.9);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+}
+
+.da-brave-alternative__constraint--politics {
+  background: rgba(156, 39, 176, 0.12);
+  color: rgba(156, 39, 176, 0.9);
+  border: 1px solid rgba(156, 39, 176, 0.25);
+}
+
+.da-brave-alternative__constraint--physics {
+  background: rgba(33, 150, 243, 0.12);
+  color: rgba(33, 150, 243, 0.9);
+  border: 1px solid rgba(33, 150, 243, 0.25);
+}
+
+.da-brave-alternative__constraint--knowledge {
+  background: rgba(0, 188, 212, 0.12);
+  color: rgba(0, 188, 212, 0.9);
+  border: 1px solid rgba(0, 188, 212, 0.25);
+}
+
+.da-brave-alternative__why-safe {
+  font-size: 0.85rem;
+  color: var(--da-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.da-brave-alternative__what-if {
+  padding: 12px 16px;
+  background: rgba(76, 175, 80, 0.05);
+  border-left: 3px solid rgba(76, 175, 80, 0.4);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.da-brave-alternative__what-if-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(76, 175, 80, 0.8);
+  margin-bottom: 6px;
+}
+
+.da-brave-alternative__what-if-text {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--da-text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.da-brave-alternative__insight {
+  padding: 10px 14px;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 193, 7, 0.95);
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.da-brave-alternative__reflection {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--da-text-secondary);
+  text-align: center;
+  line-height: 1.4;
+}
+
 /* -----------------------------------------------------------------------------
    Builder Mode Scene - Challenge objectives with Enter Lab button
    ----------------------------------------------------------------------------- */

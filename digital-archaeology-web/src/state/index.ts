@@ -15,7 +15,7 @@ export {
 } from './types';
 
 // Project types and defaults (Story 9.2)
-export type { ProjectData, ProjectCursorPosition, Breakpoint } from './types';
+export type { ProjectData, ProjectCursorPosition, Breakpoint, ArchivedProject } from './types';
 export {
   DEFAULT_PROJECT,
   isValidProjectData,
@@ -33,6 +33,7 @@ export {
   PROJECT_DB_VERSION,
   PROJECT_STORE_NAME,
   CURRENT_PROJECT_KEY,
+  ARCHIVES_STORE_NAME,
 } from './ProjectStorage';
 
 // Auto-save manager (Story 9.2)

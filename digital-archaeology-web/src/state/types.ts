@@ -251,3 +251,18 @@ export function isValidProjectData(value: unknown): value is ProjectData {
     typeof obj.version === 'number'
   );
 }
+
+/**
+ * An archived project snapshot (Story 26.3).
+ * Wraps ProjectData with archive metadata.
+ */
+export interface ArchivedProject {
+  /** Unique archive ID (auto-incremented) */
+  id?: number;
+  /** User-provided or auto-generated label */
+  label: string;
+  /** The project snapshot */
+  project: ProjectData;
+  /** When the archive was created (ms since epoch) */
+  archivedAt: number;
+}

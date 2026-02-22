@@ -2,17 +2,20 @@
 // IndexedDB persistence service for project data (code, breakpoints, cursor)
 // Story 9.2: Implement IndexedDB for Projects
 
-import type { ProjectData } from './types';
+import type { ProjectData, ArchivedProject } from './types';
 import { isValidProjectData } from './types';
 
 /** IndexedDB database name */
 export const PROJECT_DB_NAME = 'digital-archaeology-projects';
 
-/** IndexedDB database version */
-export const PROJECT_DB_VERSION = 1;
+/** IndexedDB database version — bumped for archives store (Story 26.3) */
+export const PROJECT_DB_VERSION = 2;
 
 /** Object store name within the database */
 export const PROJECT_STORE_NAME = 'projects';
+
+/** Object store for archived projects (Story 26.3) */
+export const ARCHIVES_STORE_NAME = 'archives';
 
 /** Key for the current (single) project - MVP uses single project */
 export const CURRENT_PROJECT_KEY = 'current';
@@ -60,6 +63,11 @@ export class ProjectStorage {
           // Create object store if it doesn't exist
           if (!db.objectStoreNames.contains(PROJECT_STORE_NAME)) {
             db.createObjectStore(PROJECT_STORE_NAME);
+          }
+
+          // Story 26.3: Create archives store (auto-increment ID)
+          if (!db.objectStoreNames.contains(ARCHIVES_STORE_NAME)) {
+            db.createObjectStore(ARCHIVES_STORE_NAME, { keyPath: 'id', autoIncrement: true });
           }
         };
       } catch (error) {
@@ -166,6 +174,99 @@ export class ProjectStorage {
   async hasProject(): Promise<boolean> {
     const project = await this.loadProject();
     return project !== null;
+  }
+
+  /**
+   * Archive the current project: copies it to the archives store and clears active.
+   * Story 26.3: Cumulative Lab State Persistence — archive mechanism.
+   * Returns true on success, false on failure.
+   */
+  async archiveProject(label?: string): Promise<boolean> {
+    try {
+      const current = await this.loadProject();
+      if (!current) return false;
+
+      const db = await this.openDatabase();
+      return new Promise<boolean>((resolve) => {
+        const transaction = db.transaction([ARCHIVES_STORE_NAME, PROJECT_STORE_NAME], 'readwrite');
+        const archiveStore = transaction.objectStore(ARCHIVES_STORE_NAME);
+        const projectStore = transaction.objectStore(PROJECT_STORE_NAME);
+
+        const archived: ArchivedProject = {
+          label: label ?? `Archive ${new Date().toISOString()}`,
+          project: current,
+          archivedAt: Date.now(),
+        };
+
+        // Add to archives and delete current in single atomic transaction
+        archiveStore.add(archived);
+        projectStore.delete(CURRENT_PROJECT_KEY);
+
+        transaction.oncomplete = () => resolve(true);
+        transaction.onerror = () => {
+          console.error('Failed to archive project:', transaction.error);
+          resolve(false);
+        };
+      });
+    } catch (error) {
+      console.error('Failed to archive project:', error);
+      return false;
+    }
+  }
+
+  /**
+   * List all archived projects, newest first.
+   * Story 26.3: Archive browsing.
+   */
+  async listArchives(): Promise<ArchivedProject[]> {
+    try {
+      const db = await this.openDatabase();
+      return new Promise<ArchivedProject[]>((resolve) => {
+        const transaction = db.transaction(ARCHIVES_STORE_NAME, 'readonly');
+        const store = transaction.objectStore(ARCHIVES_STORE_NAME);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+          const archives = (request.result as ArchivedProject[]) ?? [];
+          // Sort newest first
+          archives.sort((a, b) => b.archivedAt - a.archivedAt);
+          resolve(archives);
+        };
+        request.onerror = () => {
+          console.error('Failed to list archives:', request.error);
+          resolve([]);
+        };
+      });
+    } catch (error) {
+      console.error('Failed to list archives:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Load a specific archived project by ID.
+   * Story 26.3: Archive retrieval.
+   */
+  async loadArchive(id: number): Promise<ArchivedProject | null> {
+    try {
+      const db = await this.openDatabase();
+      return new Promise<ArchivedProject | null>((resolve) => {
+        const transaction = db.transaction(ARCHIVES_STORE_NAME, 'readonly');
+        const store = transaction.objectStore(ARCHIVES_STORE_NAME);
+        const request = store.get(id);
+
+        request.onsuccess = () => {
+          resolve(request.result as ArchivedProject ?? null);
+        };
+        request.onerror = () => {
+          console.error('Failed to load archive:', request.error);
+          resolve(null);
+        };
+      });
+    } catch (error) {
+      console.error('Failed to load archive:', error);
+      return null;
+    }
   }
 
   /**

@@ -457,3 +457,108 @@ describe('isValidProjectData (Story 9.2)', () => {
     expect(isValidProjectData(data)).toBe(false);
   });
 });
+
+describe('ProjectStorage Archive (Story 26.3)', () => {
+  let storageInstances: ProjectStorage[];
+
+  beforeEach(() => {
+    storageInstances = [];
+  });
+
+  function createStorage(): ProjectStorage {
+    const s = new ProjectStorage();
+    storageInstances.push(s);
+    return s;
+  }
+
+  afterEach(async () => {
+    for (const s of storageInstances) {
+      await s.close();
+    }
+    storageInstances = [];
+    await new Promise<void>((resolve) => {
+      const req = indexedDB.deleteDatabase(PROJECT_DB_NAME);
+      req.onsuccess = () => resolve();
+      req.onerror = () => resolve();
+      req.onblocked = () => resolve();
+    });
+  });
+
+  it('should return false when archiving with no current project', async () => {
+    const storage = createStorage();
+    const result = await storage.archiveProject();
+    expect(result).toBe(false);
+  });
+
+  it('should archive current project and clear active', async () => {
+    const storage = createStorage();
+    const project = createTestProject({ code: 'MOV A, B' });
+
+    await storage.saveProject(project);
+    const result = await storage.archiveProject('My Archive');
+    expect(result).toBe(true);
+
+    // Current project should be cleared
+    const current = await storage.loadProject();
+    expect(current).toBeNull();
+
+    // Archive should contain the project
+    const archives = await storage.listArchives();
+    expect(archives).toHaveLength(1);
+    expect(archives[0].label).toBe('My Archive');
+    expect(archives[0].project.code).toBe('MOV A, B');
+  });
+
+  it('should use default label when none provided', async () => {
+    const storage = createStorage();
+    await storage.saveProject(createTestProject());
+    await storage.archiveProject();
+
+    const archives = await storage.listArchives();
+    expect(archives).toHaveLength(1);
+    expect(archives[0].label).toMatch(/^Archive /);
+  });
+
+  it('should list multiple archives', async () => {
+    const storage = createStorage();
+
+    // Create and archive two projects
+    await storage.saveProject(createTestProject({ code: 'first' }));
+    await storage.archiveProject('First');
+
+    await storage.saveProject(createTestProject({ code: 'second' }));
+    await storage.archiveProject('Second');
+
+    const archives = await storage.listArchives();
+    expect(archives).toHaveLength(2);
+    const labels = archives.map(a => a.label);
+    expect(labels).toContain('First');
+    expect(labels).toContain('Second');
+  });
+
+  it('should return empty array when no archives exist', async () => {
+    const storage = createStorage();
+    const archives = await storage.listArchives();
+    expect(archives).toEqual([]);
+  });
+
+  it('should load a specific archive by ID', async () => {
+    const storage = createStorage();
+    await storage.saveProject(createTestProject({ code: 'archived code' }));
+    await storage.archiveProject('Test');
+
+    const archives = await storage.listArchives();
+    const id = archives[0].id!;
+
+    const loaded = await storage.loadArchive(id);
+    expect(loaded).not.toBeNull();
+    expect(loaded!.label).toBe('Test');
+    expect(loaded!.project.code).toBe('archived code');
+  });
+
+  it('should return null for non-existent archive ID', async () => {
+    const storage = createStorage();
+    const loaded = await storage.loadArchive(9999);
+    expect(loaded).toBeNull();
+  });
+});

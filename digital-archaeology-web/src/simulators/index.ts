@@ -3,6 +3,7 @@
 
 export { BaseSimulator } from './BaseSimulator';
 export { ChallengeStation } from './ChallengeStation';
+export { ChallengeProgressStorage, CHALLENGE_PROGRESS_KEY } from './ChallengeProgressStorage';
 export { CountingBoardSimulator } from './CountingBoardSimulator';
 export { SuanpanSimulator } from './SuanpanSimulator';
 export { PascalineSimulator } from './PascalineSimulator';

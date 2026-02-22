@@ -4,6 +4,7 @@
 import type { ChallengeContext, SimulatorType } from '@story/types';
 import { ChallengeObjectives } from '@story/ChallengeObjectives';
 import type { Simulator, SimulatorCallbacks } from './types';
+import { ChallengeProgressStorage } from './ChallengeProgressStorage';
 import { CountingBoardSimulator } from './CountingBoardSimulator';
 import { SuanpanSimulator } from './SuanpanSimulator';
 import { PascalineSimulator } from './PascalineSimulator';
@@ -39,6 +40,13 @@ export class ChallengeStation {
 
   // Track current challenge scene ID (for re-entry preservation)
   private currentSceneId: string | null = null;
+
+  // Story 26.3: Persist completed objectives across sessions
+  private progressStorage: ChallengeProgressStorage;
+
+  constructor(progressStorage?: ChallengeProgressStorage) {
+    this.progressStorage = progressStorage ?? new ChallengeProgressStorage();
+  }
 
   /**
    * Mount the challenge station to a DOM element.
@@ -105,6 +113,16 @@ export class ChallengeStation {
     this.challengeObjectives.mount(objectivesMount);
     this.challengeObjectives.setChallengeData(context.challengeData);
 
+    // Story 26.3: Restore previously completed objectives from storage
+    const savedCompleted = this.progressStorage.getCompleted(context.sceneId);
+    for (const objId of savedCompleted) {
+      this.challengeObjectives.setObjectiveComplete(objId, true);
+    }
+    // If all objectives were already completed, mark complete and show return button
+    if (savedCompleted.length > 0 && savedCompleted.length >= context.challengeData.objectives.length) {
+      this.allObjectivesCompleted = true;
+    }
+
     // Add instructions
     const instructions = document.createElement('div');
     instructions.className = 'da-challenge-station-instructions';
@@ -119,12 +137,15 @@ export class ChallengeStation {
     resetBtn.setAttribute('aria-label', 'Reset simulator to initial state');
     resetBtn.addEventListener('click', () => {
       this.currentSimulator?.reset();
-      // Reset objective checkboxes
+      // Reset objective checkboxes and clear persisted progress
       if (this.challengeObjectives && context.challengeData) {
         for (const obj of context.challengeData.objectives) {
           this.challengeObjectives.setObjectiveComplete(obj.id, false);
         }
       }
+      this.progressStorage.clearScene(context.sceneId);
+      this.allObjectivesCompleted = false;
+      this.returnButton?.classList.add('da-challenge-station-return-btn--hidden');
     });
     this.sidebarContainer.appendChild(resetBtn);
 
@@ -139,6 +160,11 @@ export class ChallengeStation {
     });
     this.sidebarContainer.appendChild(this.returnButton);
 
+    // Story 26.3: If all objectives were already completed from saved state, show return button
+    if (this.allObjectivesCompleted) {
+      this.returnButton.classList.remove('da-challenge-station-return-btn--hidden');
+    }
+
     // Create the simulator
     const simulator = this.createSimulator(context.simulatorType);
     if (!simulator) return;
@@ -149,6 +175,8 @@ export class ChallengeStation {
     const callbacks: SimulatorCallbacks = {
       onObjectiveComplete: (objectiveId: string) => {
         this.challengeObjectives?.setObjectiveComplete(objectiveId, true);
+        // Story 26.3: Persist objective completion
+        this.progressStorage.markCompleted(context.sceneId, objectiveId);
       },
       onAllObjectivesComplete: () => {
         this.allObjectivesCompleted = true;

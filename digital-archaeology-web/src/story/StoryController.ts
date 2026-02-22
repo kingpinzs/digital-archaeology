@@ -4,6 +4,7 @@
 
 import type { StoryAct, StoryScene } from './content-types';
 import type { StoryProgress } from './StoryState';
+import type { TimelineEntry } from './StoryState';
 import type { RoleData, ChallengeContext } from './types';
 import type { StoryStateChangedEvent } from './StoryEngine';
 import type { SceneRenderContext, SceneRendererCallbacks } from './SceneRenderer';
@@ -405,6 +406,75 @@ export class StoryController {
     return this.loader;
   }
 
+  // ==========================================================================
+  // Story 26.8: Time-Travel Replay
+  // ==========================================================================
+
+  /**
+   * Enter replay mode and render a past scene read-only.
+   * The renderer disables interactive elements and shows a replay badge.
+   */
+  startReplay(sceneId: string): void {
+    // Don't enter replay mode for the currently-active live scene
+    const currentSceneId = this.engine.getProgress()?.position.sceneId;
+    if (sceneId === currentSceneId) return;
+
+    this.engine.enterReplayMode(sceneId);
+
+    const replayScene = this.engine.getReplayScene();
+    if (!replayScene || !this.renderContainer) return;
+
+    // Build a render context for the replay scene
+    const context = this.buildSceneContext(replayScene);
+    if (!context) return;
+
+    this.renderer.setReplayMode(true, () => this.stopReplay());
+    this.renderer.renderScene(context, this.renderContainer);
+    // Disable all footer navigation during replay
+    this.renderer.updateFooterState(false, false);
+  }
+
+  /**
+   * Exit replay mode and return to the current (live) scene.
+   */
+  stopReplay(): void {
+    this.engine.exitReplayMode();
+    this.renderer.setReplayMode(false);
+    this.renderCurrentScene();
+  }
+
+  /**
+   * Check if the engine is currently in replay mode.
+   */
+  isInReplayMode(): boolean {
+    return this.engine.isInReplayMode();
+  }
+
+  /**
+   * Get the visited scene timeline for the replay panel.
+   */
+  getVisitedSceneTimeline(): TimelineEntry[] {
+    return this.engine.getVisitedSceneTimeline();
+  }
+
+  /**
+   * Build a SceneRenderContext for an arbitrary scene (used for replay).
+   */
+  private buildSceneContext(scene: StoryScene): SceneRenderContext | null {
+    // Find the act and chapter that contain this scene
+    for (const act of this.acts) {
+      for (const chapter of act.chapters) {
+        const found = chapter.scenes.find(s => s.id === scene.id);
+        if (found) {
+          const isFirstSceneInChapter = chapter.scenes.length > 0 &&
+            chapter.scenes[0].id === scene.id;
+          return { act, chapter, scene, isFirstSceneInChapter };
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Check if the discoverer experience is currently active.
    */
@@ -420,8 +490,11 @@ export class StoryController {
       const customEvent = event as StoryStateChangedEvent;
       const { progress } = customEvent.detail;
 
-      // Render the new scene
-      this.renderCurrentScene();
+      // Story 26.8: Don't overwrite the replay scene when in replay mode.
+      // Replay is exited explicitly via stopReplay(), not by story-state-changed.
+      if (!this.isInReplayMode()) {
+        this.renderCurrentScene();
+      }
 
       // Detect act completion (Story 19.2)
       if (progress) {

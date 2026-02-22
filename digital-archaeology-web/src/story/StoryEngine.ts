@@ -5,7 +5,7 @@
 // Story 10.21: Historical Mindset Time-Travel
 
 import type { StoryScene, StoryAct } from './content-types';
-import type { StoryProgress, StoryPosition, StoryChoice, StoryEngineState } from './StoryState';
+import type { StoryProgress, StoryPosition, StoryChoice, StoryEngineState, TimelineEntry } from './StoryState';
 import type { PersonaData, MindsetContext } from './types';
 import { createDefaultProgress, createDefaultEngineState } from './StoryState';
 import { StoryStorage } from './StoryStorage';
@@ -292,6 +292,128 @@ export class StoryEngine {
    */
   isOnAlternateBranch(): boolean {
     return this.state.progress?.currentBranchId != null;
+  }
+
+  // =========================================================================
+  // Story 26.8: Time-Travel Replay
+  // =========================================================================
+
+  /**
+   * Enter replay mode to revisit a past scene without affecting progress.
+   * The scene must exist in the content and the player must have visited it.
+   */
+  enterReplayMode(sceneId: string): void {
+    if (!this.content) return;
+    const entry = this.content.sceneIndex.get(sceneId);
+    if (!entry) return;
+
+    this.state = { ...this.state, replaySceneId: sceneId };
+    this.dispatchReplayChanged(sceneId);
+  }
+
+  /**
+   * Exit replay mode and return to live play.
+   */
+  exitReplayMode(): void {
+    if (!this.state.replaySceneId) return;
+    this.state = { ...this.state, replaySceneId: null };
+    this.dispatchReplayChanged(null);
+  }
+
+  /**
+   * Check if the engine is in replay mode.
+   */
+  isInReplayMode(): boolean {
+    return this.state.replaySceneId !== null;
+  }
+
+  /**
+   * Get the scene being replayed (null if not replaying).
+   */
+  getReplayScene(): StoryScene | null {
+    if (!this.state.replaySceneId || !this.content) return null;
+    const entry = this.content.sceneIndex.get(this.state.replaySceneId);
+    return entry?.scene ?? null;
+  }
+
+  /**
+   * Get the replay scene ID (null if not replaying).
+   */
+  getReplaySceneId(): string | null {
+    return this.state.replaySceneId;
+  }
+
+  /**
+   * Build a chronological timeline of visited scenes with context.
+   * Uses scene history + choices to reconstruct the journey.
+   */
+  getVisitedSceneTimeline(): TimelineEntry[] {
+    if (!this.content || !this.state.progress) return [];
+
+    // Build a set of scenes where choices were made (for "choiceMade" field)
+    const choicesByScene = new Map<string, string>();
+    for (const choice of this.state.progress.choices) {
+      choicesByScene.set(choice.sceneId, choice.choiceId);
+    }
+
+    // Use scene history as the primary ordering
+    const timeline: TimelineEntry[] = [];
+    const seen = new Set<string>();
+
+    for (const sceneId of this.sceneHistory) {
+      if (seen.has(sceneId)) continue;
+      seen.add(sceneId);
+
+      const entry = this.content.sceneIndex.get(sceneId);
+      if (!entry) continue;
+
+      const act = this.content.acts.find(a => a.number === entry.actNumber);
+      const chapter = act?.chapters.find(c => c.number === entry.chapterNumber);
+
+      timeline.push({
+        sceneId,
+        actNumber: entry.actNumber,
+        chapterNumber: entry.chapterNumber,
+        sceneType: entry.scene.type,
+        actTitle: act?.title ?? `Act ${entry.actNumber}`,
+        chapterTitle: chapter?.title ?? `Chapter ${entry.chapterNumber}`,
+        visitedAt: this.state.progress!.startedAt + timeline.length * 1000,
+        choiceMade: choicesByScene.get(sceneId),
+      });
+    }
+
+    // Include current scene if not already in history
+    const currentSceneId = this.state.progress.position.sceneId;
+    if (!seen.has(currentSceneId)) {
+      const entry = this.content.sceneIndex.get(currentSceneId);
+      if (entry) {
+        const act = this.content.acts.find(a => a.number === entry.actNumber);
+        const chapter = act?.chapters.find(c => c.number === entry.chapterNumber);
+        timeline.push({
+          sceneId: currentSceneId,
+          actNumber: entry.actNumber,
+          chapterNumber: entry.chapterNumber,
+          sceneType: entry.scene.type,
+          actTitle: act?.title ?? `Act ${entry.actNumber}`,
+          chapterTitle: chapter?.title ?? `Chapter ${entry.chapterNumber}`,
+          visitedAt: this.state.progress!.lastPlayedAt,
+          choiceMade: choicesByScene.get(currentSceneId),
+        });
+      }
+    }
+
+    return timeline;
+  }
+
+  /**
+   * Dispatch replay mode change event.
+   */
+  private dispatchReplayChanged(replaySceneId: string | null): void {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('story-replay-changed', {
+        detail: { replaySceneId, progress: this.state.progress },
+      }));
+    }
   }
 
   /**

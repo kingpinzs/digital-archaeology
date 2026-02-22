@@ -1297,4 +1297,131 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       expect(engine2.getCurrentBranchId()).toBe('branch-scene-1-1-2-choice-branch');
     });
   });
+
+  // ==========================================================================
+  // Story 26.8: Time-Travel Replay
+  // ==========================================================================
+
+  describe('enterReplayMode', () => {
+    beforeEach(() => {
+      engine.startNewGame();
+    });
+
+    it('should set replaySceneId when scene exists', () => {
+      engine.enterReplayMode('scene-1-1-1');
+      expect(engine.isInReplayMode()).toBe(true);
+      expect(engine.getReplaySceneId()).toBe('scene-1-1-1');
+    });
+
+    it('should not set replay mode for non-existent scene', () => {
+      engine.enterReplayMode('non-existent');
+      expect(engine.isInReplayMode()).toBe(false);
+    });
+
+    it('should dispatch story-replay-changed event', () => {
+      const handler = vi.fn();
+      window.addEventListener('story-replay-changed', handler);
+      engine.enterReplayMode('scene-1-1-1');
+      expect(handler).toHaveBeenCalledTimes(1);
+      const detail = (handler.mock.calls[0][0] as CustomEvent).detail;
+      expect(detail.replaySceneId).toBe('scene-1-1-1');
+      window.removeEventListener('story-replay-changed', handler);
+    });
+  });
+
+  describe('exitReplayMode', () => {
+    beforeEach(() => {
+      engine.startNewGame();
+    });
+
+    it('should clear replaySceneId', () => {
+      engine.enterReplayMode('scene-1-1-1');
+      engine.exitReplayMode();
+      expect(engine.isInReplayMode()).toBe(false);
+      expect(engine.getReplaySceneId()).toBeNull();
+    });
+
+    it('should not dispatch event if not in replay mode', () => {
+      const handler = vi.fn();
+      window.addEventListener('story-replay-changed', handler);
+      engine.exitReplayMode();
+      expect(handler).not.toHaveBeenCalled();
+      window.removeEventListener('story-replay-changed', handler);
+    });
+
+    it('should dispatch event with null replaySceneId', () => {
+      engine.enterReplayMode('scene-1-1-1');
+      const handler = vi.fn();
+      window.addEventListener('story-replay-changed', handler);
+      engine.exitReplayMode();
+      const detail = (handler.mock.calls[0][0] as CustomEvent).detail;
+      expect(detail.replaySceneId).toBeNull();
+      window.removeEventListener('story-replay-changed', handler);
+    });
+  });
+
+  describe('getReplayScene', () => {
+    beforeEach(() => {
+      engine.startNewGame();
+    });
+
+    it('should return the scene object for the replay scene', () => {
+      engine.enterReplayMode('scene-1-1-1');
+      const scene = engine.getReplayScene();
+      expect(scene).not.toBeNull();
+      expect(scene!.id).toBe('scene-1-1-1');
+    });
+
+    it('should return null when not in replay mode', () => {
+      expect(engine.getReplayScene()).toBeNull();
+    });
+  });
+
+  describe('getVisitedSceneTimeline', () => {
+    beforeEach(() => {
+      engine.startNewGame();
+    });
+
+    it('should include the current scene even with no navigation history', () => {
+      const timeline = engine.getVisitedSceneTimeline();
+      expect(timeline.length).toBeGreaterThanOrEqual(1);
+      expect(timeline.some(e => e.sceneId === 'scene-1-1-1')).toBe(true);
+    });
+
+    it('should include scenes after navigation', () => {
+      engine.nextScene(); // scene-1-1-2
+      const timeline = engine.getVisitedSceneTimeline();
+      expect(timeline.some(e => e.sceneId === 'scene-1-1-1')).toBe(true);
+      expect(timeline.some(e => e.sceneId === 'scene-1-1-2')).toBe(true);
+    });
+
+    it('should populate timeline entry fields correctly', () => {
+      const timeline = engine.getVisitedSceneTimeline();
+      const entry = timeline.find(e => e.sceneId === 'scene-1-1-1');
+      expect(entry).toBeDefined();
+      expect(entry!.actNumber).toBe(1);
+      expect(entry!.chapterNumber).toBe(1);
+      expect(entry!.sceneType).toBe('narrative');
+      expect(entry!.actTitle).toBe('Branch Test Act');
+      expect(entry!.chapterTitle).toBe('Chapter 1');
+      expect(entry!.visitedAt).toBeGreaterThan(0);
+    });
+
+    it('should include choiceMade when a choice was recorded at a scene', () => {
+      engine.recordChoice('some-choice');
+      const timeline = engine.getVisitedSceneTimeline();
+      const entry = timeline.find(e => e.sceneId === 'scene-1-1-1');
+      expect(entry?.choiceMade).toBe('some-choice');
+    });
+
+    it('should not duplicate scenes', () => {
+      // Visit scene-1-1-2, then go back, then forward again
+      engine.nextScene(); // scene-1-1-2
+      engine.previousScene(); // back to scene-1-1-1
+      engine.nextScene(); // scene-1-1-2 again
+      const timeline = engine.getVisitedSceneTimeline();
+      const scene2Entries = timeline.filter(e => e.sceneId === 'scene-1-1-2');
+      expect(scene2Entries.length).toBe(1);
+    });
+  });
 });

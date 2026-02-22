@@ -75,6 +75,20 @@ export class SceneRenderer {
   // Story acts for persona lookup during transitions
   private storyActs: StoryAct[] = [];
 
+  // Story 26.8: Replay mode flag
+  private replayMode = false;
+  private onExitReplay: (() => void) | null = null;
+
+  /**
+   * Enable or disable replay mode on the renderer.
+   * When enabled, interactive elements are disabled and a replay badge is shown.
+   * Story 26.8: Time-Travel Replay
+   */
+  setReplayMode(enabled: boolean, onExitReplay?: () => void): void {
+    this.replayMode = enabled;
+    this.onExitReplay = onExitReplay ?? null;
+  }
+
   /**
    * Set callbacks for scene interactions.
    */
@@ -175,6 +189,16 @@ export class SceneRenderer {
     this.sceneContainer.setAttribute('role', 'article');
     this.sceneContainer.setAttribute('aria-label', 'Story scene');
 
+    // Story 26.8: Add replay badge when in replay mode
+    if (this.replayMode) {
+      this.sceneContainer.classList.add('da-scene-container--replay');
+      const replayBadge = document.createElement('div');
+      replayBadge.className = 'da-scene-replay-badge';
+      replayBadge.setAttribute('aria-label', 'Replaying past scene');
+      replayBadge.textContent = '\u23F1 REPLAYING'; // ⏱ REPLAYING
+      this.sceneContainer.appendChild(replayBadge);
+    }
+
     // Render chapter header if first scene in chapter
     if (context.isFirstSceneInChapter) {
       this.renderChapterHeader(context);
@@ -221,12 +245,13 @@ export class SceneRenderer {
     }
 
     // Render decision scene (Story 10.22)
-    if (context.scene.type === 'decision' && context.scene.decision) {
+    // Story 26.8: Skip interactive decision/builder in replay mode
+    if (context.scene.type === 'decision' && context.scene.decision && !this.replayMode) {
       this.renderDecisionScene(context.scene.decision);
     }
 
     // Render builder scene (Story 10.22)
-    if (context.scene.type === 'builder' && context.scene.builderChallenge) {
+    if (context.scene.type === 'builder' && context.scene.builderChallenge && !this.replayMode) {
       this.renderBuilderScene(context.scene.builderChallenge);
     }
 
@@ -381,10 +406,16 @@ export class SceneRenderer {
 
   /**
    * Render choice cards.
+   * Story 26.8: Choices are visually disabled during replay mode.
    */
   private renderChoices(choices: ChoiceData[]): void {
     const choicesContainer = document.createElement('div');
     choicesContainer.className = 'da-scene-choices';
+
+    // Story 26.8: Mark choices container as disabled during replay
+    if (this.replayMode) {
+      choicesContainer.classList.add('da-scene-choices--disabled');
+    }
 
     for (const choice of choices) {
       const card = new ChoiceCard();
@@ -393,11 +424,14 @@ export class SceneRenderer {
       choicesContainer.appendChild(mount);
       card.mount(mount);
       card.setChoiceData(choice);
-      card.onSelect((choiceId) => {
-        if (this.callbacks.onChoiceSelect) {
-          this.callbacks.onChoiceSelect(choiceId);
-        }
-      });
+      // Story 26.8: Don't wire click handlers during replay
+      if (!this.replayMode) {
+        card.onSelect((choiceId) => {
+          if (this.callbacks.onChoiceSelect) {
+            this.callbacks.onChoiceSelect(choiceId);
+          }
+        });
+      }
       this.activeComponents.push(card);
     }
 
@@ -406,8 +440,12 @@ export class SceneRenderer {
 
   /**
    * Render Enter Lab button for challenge scenes.
+   * Story 26.8: Lab button is hidden during replay mode.
    */
   private renderEnterLabButton(): void {
+    // Story 26.8: Don't render lab button during replay
+    if (this.replayMode) return;
+
     const labButton = new EnterLabButton();
     const mount = document.createElement('div');
     mount.className = 'da-scene-enter-lab-mount';
@@ -586,12 +624,19 @@ export class SceneRenderer {
 
   /**
    * Render story actions footer.
+   * Story 26.8: In replay mode, disables navigation and shows "Return to Present" button.
    */
   private renderFooter(context: SceneRenderContext): void {
     // Create footer container
     const footerMount = document.createElement('div');
     footerMount.className = 'da-scene-footer-mount';
     this.container!.appendChild(footerMount);
+
+    // Story 26.8: In replay mode, render a simplified footer with "Return to Present"
+    if (this.replayMode) {
+      this.renderReplayFooter(footerMount);
+      return;
+    }
 
     this.footer = new StoryActionsFooter();
     this.footer.mount(footerMount);
@@ -612,6 +657,40 @@ export class SceneRenderer {
     this.footer.setEnterLabVisible(isChallenge);
 
     this.activeComponents.push(this.footer);
+  }
+
+  /**
+   * Render a replay-mode footer with "Return to Present" button.
+   * Story 26.8: Time-Travel Replay
+   */
+  private renderReplayFooter(mount: HTMLElement): void {
+    const footer = document.createElement('footer');
+    footer.className = 'da-story-actions-footer da-story-actions-footer--replay';
+    footer.setAttribute('role', 'navigation');
+    footer.setAttribute('aria-label', 'Replay navigation');
+
+    const returnBtn = document.createElement('button');
+    returnBtn.type = 'button';
+    returnBtn.className = 'da-story-action-btn da-story-action-btn--return-to-present';
+    returnBtn.setAttribute('aria-label', 'Return to present timeline');
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'da-story-action-btn-text';
+    textSpan.textContent = 'Return to Present';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'da-story-action-btn-icon';
+    iconSpan.textContent = '\u2192'; // →
+    iconSpan.setAttribute('aria-hidden', 'true');
+
+    returnBtn.appendChild(textSpan);
+    returnBtn.appendChild(iconSpan);
+    returnBtn.addEventListener('click', () => {
+      this.onExitReplay?.();
+    });
+
+    footer.appendChild(returnBtn);
+    mount.appendChild(footer);
   }
 
   /**

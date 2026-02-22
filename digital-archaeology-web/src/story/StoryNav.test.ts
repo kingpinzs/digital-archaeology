@@ -363,17 +363,18 @@ describe('StoryNav', () => {
       expect(journalButton?.getAttribute('aria-label')).toBe('Open journal');
     });
 
-    it('should position Journey, Stats, Literature, Journal, and Save buttons in order', () => {
+    it('should position Journey, Replay, Stats, Literature, Journal, and Save buttons in order', () => {
       storyNav = createStoryNav();
       storyNav.mount(container);
 
       const buttons = container.querySelectorAll('.da-story-nav-action');
-      expect(buttons.length).toBe(5);
+      expect(buttons.length).toBe(6);
       expect(buttons[0].textContent).toBe('Journey');
-      expect(buttons[1].textContent).toBe('Stats');
-      expect(buttons[2].textContent).toBe('Literature');
-      expect(buttons[3].textContent).toBe('Journal');
-      expect(buttons[4].textContent).toBe('Save');
+      expect(buttons[1].textContent).toBe('Replay');
+      expect(buttons[2].textContent).toBe('Stats');
+      expect(buttons[3].textContent).toBe('Literature');
+      expect(buttons[4].textContent).toBe('Journal');
+      expect(buttons[5].textContent).toBe('Save');
     });
   });
 

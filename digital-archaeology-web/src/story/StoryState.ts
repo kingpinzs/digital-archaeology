@@ -56,6 +56,28 @@ export interface StoryProgress {
 }
 
 /**
+ * Story 26.8: A single entry in the visited scene timeline for replay.
+ */
+export interface TimelineEntry {
+  /** Scene ID */
+  sceneId: string;
+  /** Act number this scene belongs to */
+  actNumber: number;
+  /** Chapter number within the act */
+  chapterNumber: number;
+  /** Scene type (narrative, dialogue, choice, etc.) */
+  sceneType: string;
+  /** Act title for display */
+  actTitle: string;
+  /** Chapter title for display */
+  chapterTitle: string;
+  /** Approximate visit timestamp (derived from choice ordering) */
+  visitedAt: number;
+  /** Choice ID if a choice was recorded at this scene */
+  choiceMade?: string;
+}
+
+/**
  * Represents the complete state of the story engine.
  */
 export interface StoryEngineState {
@@ -65,6 +87,8 @@ export interface StoryEngineState {
   isLoading: boolean;
   /** Error message if any */
   error: string | null;
+  /** Story 26.8: Scene ID being replayed (null = not in replay mode) */
+  replaySceneId: string | null;
 }
 
 /**
@@ -96,5 +120,6 @@ export function createDefaultEngineState(): StoryEngineState {
     progress: null,
     isLoading: false,
     error: null,
+    replaySceneId: null,
   };
 }

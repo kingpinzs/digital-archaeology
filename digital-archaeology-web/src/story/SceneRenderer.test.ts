@@ -1067,6 +1067,158 @@ describe('SceneRenderer', () => {
     });
   });
 
+  // Story 26.8: Replay Mode
+  describe('replay mode', () => {
+    it('should add replay badge when replay mode is enabled', () => {
+      renderer.setReplayMode(true);
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      const badge = container.querySelector('.da-scene-replay-badge');
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toContain('REPLAYING');
+    });
+
+    it('should add --replay class to scene container', () => {
+      renderer.setReplayMode(true);
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      const sceneContainer = container.querySelector('.da-scene-container--replay');
+      expect(sceneContainer).not.toBeNull();
+    });
+
+    it('should not show replay badge when replay mode is off', () => {
+      renderer.setReplayMode(false);
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-replay-badge')).toBeNull();
+    });
+
+    it('should disable choices during replay mode', () => {
+      renderer.setReplayMode(true);
+      const onChoiceSelect = vi.fn();
+      renderer.setCallbacks({ onChoiceSelect });
+
+      const context = createContext({
+        scene: createMockScene({
+          type: 'choice',
+          choices: [
+            { id: 'c1', icon: '🔧', title: 'A', description: 'Do A' },
+          ],
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      // Choices container should have disabled class
+      const choicesContainer = container.querySelector('.da-scene-choices--disabled');
+      expect(choicesContainer).not.toBeNull();
+
+      // Clicking choice should NOT fire callback
+      const choiceCard = container.querySelector('.da-choice-card') as HTMLButtonElement;
+      choiceCard?.click();
+      expect(onChoiceSelect).not.toHaveBeenCalled();
+    });
+
+    it('should not render Enter Lab button during replay', () => {
+      renderer.setReplayMode(true);
+      const context = createContext({
+        scene: createMockScene({
+          type: 'challenge',
+          challenge: { title: 'Test', objectives: [] },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-enter-lab-button')).toBeNull();
+    });
+
+    it('should not render decision scene during replay', () => {
+      renderer.setReplayMode(true);
+      const context = createContext({
+        scene: createMockScene({
+          type: 'decision',
+          decision: {
+            id: 'd1',
+            question: 'Q?',
+            context: 'C',
+            options: [{ id: 'o1', description: 'Opt A', visiblePros: [], visibleCons: [], isHistorical: true }],
+            historicalChoice: 'o1',
+            historicalOutcome: 'R',
+            alternateOutcomes: [],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-decision-maker-scene')).toBeNull();
+    });
+
+    it('should not render builder scene during replay', () => {
+      renderer.setReplayMode(true);
+      const context = createContext({
+        scene: createMockScene({
+          type: 'builder',
+          builderChallenge: {
+            title: 'Build It',
+            description: 'Build.',
+            objectives: [{ id: 'obj-1', text: 'Step', completed: false }],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-builder-mode-scene')).toBeNull();
+    });
+
+    it('should render "Return to Present" button instead of normal footer', () => {
+      renderer.setReplayMode(true);
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      const returnBtn = container.querySelector('.da-story-action-btn--return-to-present');
+      expect(returnBtn).not.toBeNull();
+      expect(returnBtn?.textContent).toContain('Return to Present');
+    });
+
+    it('should not render normal footer during replay', () => {
+      renderer.setReplayMode(true);
+      const context = createContext({
+        scene: createMockScene({ nextScene: 'scene-next' }),
+      });
+      renderer.renderScene(context, container);
+
+      // Should have replay footer, not normal one
+      expect(container.querySelector('.da-story-actions-footer--replay')).not.toBeNull();
+      expect(container.querySelector('.da-story-action-btn--primary')).toBeNull();
+    });
+
+    it('should call onExitReplay when "Return to Present" is clicked', () => {
+      const exitCallback = vi.fn();
+      renderer.setReplayMode(true, exitCallback);
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      const returnBtn = container.querySelector('.da-story-action-btn--return-to-present') as HTMLElement;
+      returnBtn?.click();
+
+      expect(exitCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear replay mode and render normally after setReplayMode(false)', () => {
+      renderer.setReplayMode(true);
+      const context = createContext();
+      renderer.renderScene(context, container);
+      expect(container.querySelector('.da-scene-replay-badge')).not.toBeNull();
+
+      renderer.setReplayMode(false);
+      renderer.renderScene(context, container);
+      expect(container.querySelector('.da-scene-replay-badge')).toBeNull();
+      expect(container.querySelector('.da-story-action-btn--primary')).not.toBeNull();
+    });
+  });
+
   describe('transition scene rendering', () => {
     it('should render ChapterTransitionPanel for chapter transition scenes', async () => {
       const context = createContext({

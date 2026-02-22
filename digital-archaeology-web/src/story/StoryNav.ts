@@ -36,6 +36,8 @@ export interface StoryNavOptions {
   onStatisticsClick?: () => void;
   /** Callback when literature button is clicked (Story 20.1) */
   onLiteratureClick?: () => void;
+  /** Callback when replay button is clicked (Story 26.8) */
+  onReplayClick?: () => void;
 }
 
 /**
@@ -65,6 +67,7 @@ export class StoryNav {
   private onJourneyMapClick: (() => void) | undefined;
   private onStatisticsClick: (() => void) | undefined;
   private onLiteratureClick: (() => void) | undefined;
+  private onReplayClick: (() => void) | undefined;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
@@ -77,6 +80,7 @@ export class StoryNav {
     this.onJourneyMapClick = options.onJourneyMapClick;
     this.onStatisticsClick = options.onStatisticsClick;
     this.onLiteratureClick = options.onLiteratureClick;
+    this.onReplayClick = options.onReplayClick;
   }
 
   /**
@@ -199,8 +203,19 @@ export class StoryNav {
       this.onLiteratureClick?.();
     });
 
+    // Story 26.8: Replay button
+    const replayButton = document.createElement('button');
+    replayButton.type = 'button';
+    replayButton.className = 'da-story-nav-action';
+    replayButton.setAttribute('aria-label', 'Open time-travel replay');
+    replayButton.textContent = 'Replay';
+    replayButton.addEventListener('click', () => {
+      this.onReplayClick?.();
+    });
+
     right.appendChild(eraBadgeContainer);
     right.appendChild(journeyMapButton);
+    right.appendChild(replayButton);
     right.appendChild(statsButton);
     right.appendChild(literatureButton);
     right.appendChild(journalButton);

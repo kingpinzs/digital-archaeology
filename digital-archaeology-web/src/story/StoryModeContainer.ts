@@ -10,6 +10,7 @@ import { StoryContent } from './StoryContent';
 import { StoryController } from './StoryController';
 import { StoryBrowser } from './StoryBrowser';
 import { StoryJournal } from './StoryJournal';
+import { ReplayPanel } from './ReplayPanel';
 import { JourneyMap } from '../progress/JourneyMap';
 import type { JourneyMapTab } from '../progress/JourneyMap';
 import { JourneyMapBuilder } from '../progress/JourneyMapBuilder';
@@ -66,6 +67,9 @@ export class StoryModeContainer {
   // Story 19.4: Journey Map
   private journeyMap: JourneyMap | null = null;
   private journeyMapBuilder: JourneyMapBuilder | null = null;
+
+  // Story 26.8: Replay panel
+  private replayPanel: ReplayPanel | null = null;
 
   // Collectible locations & artifacts
   private collectibleStorage: CollectibleStorage | null = null;
@@ -150,6 +154,9 @@ export class StoryModeContainer {
         onLiteratureClick: () => {
           this.options.onLiteratureClick?.();
         },
+        onReplayClick: () => {
+          this.openReplayPanel();
+        },
       });
       this.storyNav.mount(navMount as HTMLElement);
     }
@@ -170,6 +177,22 @@ export class StoryModeContainer {
     this.storyJournal.setCallbacks({
       onClose: () => {
         // Journal closed - no additional action needed
+      },
+    });
+
+    // Story 26.8: Create ReplayPanel
+    this.replayPanel = new ReplayPanel();
+    this.replayPanel.setCallbacks({
+      onClose: () => {
+        this.replayPanel?.close();
+      },
+      onReplayScene: (sceneId: string) => {
+        this.replayPanel?.close();
+        this.storyController?.startReplay(sceneId);
+      },
+      onReturnToPresent: () => {
+        this.replayPanel?.close();
+        this.storyController?.stopReplay();
       },
     });
 
@@ -487,6 +510,27 @@ export class StoryModeContainer {
   }
 
   /**
+   * Open the replay panel modal (Story 26.8).
+   */
+  private openReplayPanel(): void {
+    if (!this.storyController || !this.replayPanel) return;
+
+    const progress = this.storyController.getProgress();
+    if (!progress) return;
+
+    const timeline = this.storyController.getVisitedSceneTimeline();
+    const replaySceneId = this.storyController.isInReplayMode()
+      ? this.storyController.getEngine().getReplaySceneId()
+      : null;
+
+    this.replayPanel.open({
+      timeline,
+      currentSceneId: progress.position.sceneId,
+      replaySceneId,
+    });
+  }
+
+  /**
    * Show the story mode container and all child components.
    */
   show(): void {
@@ -614,6 +658,10 @@ export class StoryModeContainer {
 
     this.storyJournal?.destroy();
     this.storyJournal = null;
+
+    // Story 26.8: Destroy replay panel
+    this.replayPanel?.destroy();
+    this.replayPanel = null;
 
     // Story 19.4: Destroy journey map
     this.journeyMap?.destroy();

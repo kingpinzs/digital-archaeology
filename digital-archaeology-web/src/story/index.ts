@@ -86,3 +86,8 @@ export { DISCOVERER_COMPLETE_KEY } from './StoryStorage';
 // Time Travel Portal
 export { TimeTravelPortal } from './TimeTravelPortal';
 export type { PortalMode } from './TimeTravelPortal';
+
+// Story 26.8: Time-Travel Replay
+export { ReplayPanel } from './ReplayPanel';
+export type { ReplayPanelCallbacks, ReplayPanelData } from './ReplayPanel';
+export type { TimelineEntry } from './StoryState';

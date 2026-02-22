@@ -337,48 +337,53 @@ describe('StoryBrowser', () => {
       expect(acts[1].classList.contains('da-story-browser-act--locked')).toBe(false);
     });
 
-    it('should show lock icon on locked act header', () => {
+    // Story 26.13: Locked acts show expand arrow (not lock icon)
+    it('should show expand arrow on locked act header (open doors)', () => {
       browser.open(mockData);
 
       const acts = document.querySelectorAll('.da-story-browser-act');
       const lockedIcon = acts[2].querySelector('.da-story-browser-act-icon');
-      expect(lockedIcon?.textContent).toBe('\uD83D\uDD12'); // 🔒
+      expect(lockedIcon?.textContent).toBe('\u25B6'); // ▶ (collapsed arrow)
     });
 
-    it('should show unlock requirement on locked act', () => {
+    it('should show skip-ahead badge on locked act (open doors)', () => {
       browser.open(mockData);
 
-      const lockBadge = document.querySelector('.da-story-browser-lock-badge');
-      expect(lockBadge).not.toBeNull();
-      expect(lockBadge?.textContent).toBe('Complete Act 1 to unlock');
+      const skipBadge = document.querySelector('.da-story-browser-skip-badge');
+      expect(skipBadge).not.toBeNull();
+      expect(skipBadge?.textContent).toBe('Skip ahead');
     });
 
-    it('should disable locked act header button', () => {
+    // Story 26.13: Locked act header is NOT disabled (open doors)
+    it('should NOT disable locked act header button (open doors)', () => {
       browser.open(mockData);
 
       const acts = document.querySelectorAll('.da-story-browser-act');
       const lockedHeader = acts[2].querySelector('.da-story-browser-act-header') as HTMLButtonElement;
-      expect(lockedHeader.disabled).toBe(true);
+      expect(lockedHeader.disabled).toBe(false);
     });
 
-    it('should not render chapters for locked acts', () => {
+    // Story 26.13: Locked acts DO have chapters (collapsed by default)
+    it('should render chapters for locked acts (open doors)', () => {
       browser.open(mockData);
 
       const acts = document.querySelectorAll('.da-story-browser-act');
       const lockedChapters = acts[2].querySelector('.da-story-browser-chapters');
-      expect(lockedChapters).toBeNull();
+      expect(lockedChapters).not.toBeNull();
+      expect(lockedChapters?.classList.contains('da-story-browser-chapters--collapsed')).toBe(true);
     });
 
-    it('should not expand locked act on click', () => {
+    // Story 26.13: Locked acts CAN be expanded
+    it('should expand locked act on click (open doors)', () => {
       browser.open(mockData);
 
       const acts = document.querySelectorAll('.da-story-browser-act');
       const lockedHeader = acts[2].querySelector('.da-story-browser-act-header') as HTMLElement;
       lockedHeader.click();
 
-      // Should still have no chapters container
       const lockedChapters = acts[2].querySelector('.da-story-browser-chapters');
-      expect(lockedChapters).toBeNull();
+      expect(lockedChapters).not.toBeNull();
+      expect(lockedChapters?.classList.contains('da-story-browser-chapters--collapsed')).toBe(false);
     });
 
     it('should unlock a completed act even if beyond current position', () => {

@@ -1833,4 +1833,54 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       expect(engine.getNavigationBookmark()).toBeNull();
     });
   });
+
+  // Story 26.13: Skip Tracking
+  describe('Story 26.13: Skip Tracking', () => {
+    it('should mark scenes as skipped', () => {
+      engine.goToScene('scene-1-1-1'); // Initialize progress
+      engine.markScenesSkipped(['scene-1-1-2', 'scene-1-1-3']);
+      expect(engine.getSkippedSceneIds()).toEqual(['scene-1-1-2', 'scene-1-1-3']);
+    });
+
+    it('should deduplicate skipped scene IDs', () => {
+      engine.goToScene('scene-1-1-1');
+      engine.markScenesSkipped(['scene-1-1-2']);
+      engine.markScenesSkipped(['scene-1-1-2', 'scene-1-1-3']);
+      const skipped = engine.getSkippedSceneIds();
+      expect(skipped).toContain('scene-1-1-2');
+      expect(skipped).toContain('scene-1-1-3');
+      expect(skipped).toHaveLength(2);
+    });
+
+    it('should return empty array when no scenes skipped', () => {
+      engine.goToScene('scene-1-1-1');
+      expect(engine.getSkippedSceneIds()).toEqual([]);
+    });
+
+    it('should not mark scenes when no progress exists', () => {
+      engine.clearProgress();
+      engine.markScenesSkipped(['scene-1-1-2']);
+      expect(engine.getSkippedSceneIds()).toEqual([]);
+    });
+
+    it('should get scenes between acts for content with act 1', () => {
+      // The branch test acts only have act 1, so between(0,1) would get act 0 (not present)
+      // Between(1,2) would get act 1 scenes
+      const scenes = engine.getScenesBetween(1, 2);
+      expect(scenes.length).toBeGreaterThan(0);
+      expect(scenes).toContain('scene-1-1-1');
+    });
+
+    it('should return empty array when target is not ahead', () => {
+      expect(engine.getScenesBetween(3, 1)).toEqual([]);
+      expect(engine.getScenesBetween(1, 1)).toEqual([]);
+    });
+
+    it('should save progress when marking scenes skipped', () => {
+      engine.goToScene('scene-1-1-1');
+      vi.clearAllMocks();
+      engine.markScenesSkipped(['scene-1-1-2']);
+      expect(mockStorage.saveProgress).toHaveBeenCalled();
+    });
+  });
 });

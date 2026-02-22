@@ -200,19 +200,14 @@ export class StoryBrowser {
     }
     if (isLocked) {
       actHeader.classList.add('da-story-browser-act-header--locked');
-      actHeader.disabled = true;
-      actHeader.setAttribute('aria-expanded', 'false');
-    } else {
-      actHeader.setAttribute('aria-expanded', String(isExpanded));
+      // Story 26.13: Locked acts are still expandable ("open doors" philosophy)
     }
+    actHeader.setAttribute('aria-expanded', String(isExpanded));
 
     const actIcon = document.createElement('span');
     actIcon.className = 'da-story-browser-act-icon';
-    if (isLocked) {
-      actIcon.textContent = '\uD83D\uDD12'; // 🔒
-    } else {
-      actIcon.textContent = isExpanded ? '\u25BC' : '\u25B6'; // ▼ or ▶
-    }
+    // Story 26.13: Always show expand/collapse arrows (no lock icon)
+    actIcon.textContent = isExpanded ? '\u25BC' : '\u25B6'; // ▼ or ▶
 
     const actInfo = document.createElement('span');
     actInfo.className = 'da-story-browser-act-info';
@@ -244,38 +239,34 @@ export class StoryBrowser {
       actHeader.appendChild(currentBadge);
     }
 
-    // Story 26.5: Show lock requirement for locked acts
+    // Story 26.13: Show "skip ahead" badge instead of lock requirement
     if (isLocked) {
-      const currentActNum = this.data?.progress?.position.actNumber ?? 0;
-      const lockBadge = document.createElement('span');
-      lockBadge.className = 'da-story-browser-lock-badge';
-      lockBadge.textContent = `Complete Act ${currentActNum} to unlock`;
-      actHeader.appendChild(lockBadge);
+      const skipBadge = document.createElement('span');
+      skipBadge.className = 'da-story-browser-skip-badge';
+      skipBadge.textContent = 'Skip ahead';
+      actHeader.appendChild(skipBadge);
     }
 
-    if (!isLocked) {
-      actHeader.addEventListener('click', () => {
-        this.toggleAct(act.number, section, actHeader, actIcon);
-      });
-    }
+    // Story 26.13: All acts are expandable ("open doors" philosophy)
+    actHeader.addEventListener('click', () => {
+      this.toggleAct(act.number, section, actHeader, actIcon);
+    });
 
     section.appendChild(actHeader);
 
-    // Chapters container — locked acts have no expandable content
-    if (!isLocked) {
-      const chaptersContainer = document.createElement('div');
-      chaptersContainer.className = 'da-story-browser-chapters';
-      if (!isExpanded) {
-        chaptersContainer.classList.add('da-story-browser-chapters--collapsed');
-      }
-
-      for (const chapter of act.chapters) {
-        const chapterSection = this.createChapterSection(act, chapter);
-        chaptersContainer.appendChild(chapterSection);
-      }
-
-      section.appendChild(chaptersContainer);
+    // Story 26.13: All acts have expandable chapter content ("open doors")
+    const chaptersContainer = document.createElement('div');
+    chaptersContainer.className = 'da-story-browser-chapters';
+    if (!isExpanded) {
+      chaptersContainer.classList.add('da-story-browser-chapters--collapsed');
     }
+
+    for (const chapter of act.chapters) {
+      const chapterSection = this.createChapterSection(act, chapter);
+      chaptersContainer.appendChild(chapterSection);
+    }
+
+    section.appendChild(chaptersContainer);
 
     return section;
   }

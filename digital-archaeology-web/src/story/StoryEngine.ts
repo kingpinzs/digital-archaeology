@@ -470,6 +470,46 @@ export class StoryEngine {
   }
 
   /**
+   * Story 26.13: Mark scene IDs as skipped when jumping ahead.
+   */
+  markScenesSkipped(sceneIds: string[]): void {
+    if (!this.state.progress || sceneIds.length === 0) return;
+    const existing = this.state.progress.skippedSceneIds ?? [];
+    const combined = new Set([...existing, ...sceneIds]);
+    this.state.progress = {
+      ...this.state.progress,
+      skippedSceneIds: [...combined],
+      lastPlayedAt: Date.now(),
+    };
+    this.saveProgress();
+  }
+
+  /**
+   * Story 26.13: Get all skipped scene IDs.
+   */
+  getSkippedSceneIds(): readonly string[] {
+    return this.state.progress?.skippedSceneIds ?? [];
+  }
+
+  /**
+   * Story 26.13: Get scene IDs between current position and target act (for skip warning).
+   */
+  getScenesBetween(currentActNumber: number, targetActNumber: number): string[] {
+    if (!this.content || targetActNumber <= currentActNumber) return [];
+    const sceneIds: string[] = [];
+    for (const act of this.content.acts) {
+      if (act.number >= currentActNumber && act.number < targetActNumber) {
+        for (const chapter of act.chapters) {
+          for (const scene of chapter.scenes) {
+            sceneIds.push(scene.id);
+          }
+        }
+      }
+    }
+    return sceneIds;
+  }
+
+  /**
    * Build a chronological timeline of visited scenes with context.
    * Uses scene history + choices to reconstruct the journey.
    */

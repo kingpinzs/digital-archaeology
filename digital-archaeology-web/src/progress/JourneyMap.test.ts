@@ -105,8 +105,8 @@ describe('JourneyMap', () => {
     expect((upcomingNodes[0] as HTMLElement).dataset.actNumber).toBe('4');
   });
 
-  // Task 8.5: locked nodes have --locked class and aria-disabled
-  it('should add --locked class and aria-disabled to locked nodes', () => {
+  // Task 8.5: Story 26.13 — locked nodes have --locked class but are still clickable
+  it('should add --locked class but remain clickable (open doors)', () => {
     const data = makeData(3, 3);
     journeyMap.show(data, onNavigate);
 
@@ -114,7 +114,9 @@ describe('JourneyMap', () => {
     expect(lockedNodes).toHaveLength(6); // Acts 5-10
 
     for (const node of lockedNodes) {
-      expect(node.getAttribute('aria-disabled')).toBe('true');
+      // Story 26.13: locked nodes are navigable — no aria-disabled
+      expect(node.getAttribute('role')).toBe('button');
+      expect(node.getAttribute('tabindex')).toBe('0');
     }
   });
 
@@ -163,25 +165,54 @@ describe('JourneyMap', () => {
     expect(onNavigate).toHaveBeenCalledWith(3);
   });
 
-  // Task 8.7: clicking locked node does NOT call onNavigate
-  it('should NOT call onNavigate when clicking a locked node', () => {
+  // Story 26.13: clicking locked/upcoming nodes opens preview (open doors)
+  it('should open preview when clicking a locked node (open doors)', () => {
     const data = makeData(3, 3);
-    journeyMap.show(data, onNavigate);
+    const storyActs = [{ id: 'act-7', number: 7, title: 'Act 7', description: '', era: 'Era 7', cpuStage: 'micro32' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '1990', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
+
+    journeyMap.show({
+      journeyData: data,
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 3,
+      onNavigate,
+      onPinLocation: () => {},
+      onUnpinLocation: () => {},
+      onCollectArtifact: () => {},
+      storyActs,
+    });
 
     const lockedNode = container.querySelector('[data-act-number="7"]') as HTMLElement;
     lockedNode.click();
 
-    expect(onNavigate).not.toHaveBeenCalled();
+    // Preview should open with skip warning
+    const preview = container.querySelector('.da-journey-map__preview');
+    expect(preview).not.toBeNull();
+    const skipWarning = container.querySelector('.da-journey-map__preview-skip-warning');
+    expect(skipWarning).not.toBeNull();
   });
 
-  it('should NOT call onNavigate when clicking an upcoming node', () => {
+  it('should open preview when clicking an upcoming node (open doors)', () => {
     const data = makeData(3, 3);
-    journeyMap.show(data, onNavigate);
+    const storyActs = [{ id: 'act-4', number: 4, title: 'Act 4', description: '', era: 'Era 4', cpuStage: 'micro4' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '1975', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
+
+    journeyMap.show({
+      journeyData: data,
+      collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+      currentActNumber: 3,
+      onNavigate,
+      onPinLocation: () => {},
+      onUnpinLocation: () => {},
+      onCollectArtifact: () => {},
+      storyActs,
+    });
 
     const upcomingNode = container.querySelector('[data-act-number="4"]') as HTMLElement;
     upcomingNode.click();
 
-    expect(onNavigate).not.toHaveBeenCalled();
+    const preview = container.querySelector('.da-journey-map__preview');
+    expect(preview).not.toBeNull();
+    const skipWarning = container.querySelector('.da-journey-map__preview-skip-warning');
+    expect(skipWarning).not.toBeNull();
   });
 
   // Task 8.8: Escape key closes modal
@@ -350,21 +381,17 @@ describe('JourneyMap', () => {
   });
 
   // Navigable nodes should have role="button" and tabindex
-  it('should set role="button" and tabindex on navigable nodes', () => {
+  // Story 26.13: ALL nodes have role="button" and tabindex (open doors)
+  it('should set role="button" and tabindex on ALL nodes (open doors)', () => {
     const data = makeData(3, 3);
     journeyMap.show(data, onNavigate);
 
-    // Completed and current nodes are navigable
-    const node0 = container.querySelector('[data-act-number="0"]');
-    expect(node0?.getAttribute('role')).toBe('button');
-    expect(node0?.getAttribute('tabindex')).toBe('0');
-
-    const node3 = container.querySelector('[data-act-number="3"]');
-    expect(node3?.getAttribute('role')).toBe('button');
-
-    // Locked nodes should NOT have role="button"
-    const node7 = container.querySelector('[data-act-number="7"]');
-    expect(node7?.getAttribute('role')).toBeNull();
+    // All nodes are navigable
+    for (let i = 0; i < 11; i++) {
+      const node = container.querySelector(`[data-act-number="${i}"]`);
+      expect(node?.getAttribute('role')).toBe('button');
+      expect(node?.getAttribute('tabindex')).toBe('0');
+    }
   });
 
   // Each node displays title and era
@@ -1322,6 +1349,46 @@ describe('JourneyMap', () => {
       const enterBtn = container.querySelector('.da-journey-map__era-detail-go');
       expect(enterBtn).not.toBeNull();
       expect(enterBtn?.textContent).toContain('Pre-history');
+    });
+
+    // Story 26.13: Enter button shown for locked/upcoming nodes (open doors)
+    it('should render enter button and skip warning for locked nodes', () => {
+      const nodes = [
+        makeNode(0, 'current', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical'),
+        makeNode(1, 'locked', 'Relay Era', '1940', '\u{26A1}', 'relay'),
+      ];
+      const data: JourneyMapData = { nodes, totalActs: 2, completedCount: 0, currentActNumber: 0 };
+      const storyActs = [
+        { id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-0', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-0-1', type: 'narrative' as const }] }] },
+        { id: 'act-1', number: 1, title: 'Relay Era', description: '', era: '1940', cpuStage: 'relay' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '1940', scenes: [{ id: 'scene-1-1', type: 'narrative' as const }] }] },
+      ];
+
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
+
+      // Click on the locked node
+      const lockedNode = container.querySelector('.da-journey-map__node--locked') as HTMLElement;
+      lockedNode?.click();
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn?.click();
+
+      // Enter button should be present
+      const enterBtn = container.querySelector('.da-journey-map__era-detail-go');
+      expect(enterBtn).not.toBeNull();
+      expect(enterBtn?.textContent).toContain('Relay Era');
+
+      // Skip warning should be present
+      const skipWarning = container.querySelector('.da-journey-map__era-detail-skip-warning');
+      expect(skipWarning).not.toBeNull();
+      expect(skipWarning?.textContent).toContain('skip earlier content');
     });
   });
 

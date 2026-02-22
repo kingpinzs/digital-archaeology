@@ -375,6 +375,21 @@ export class StoryModeContainer {
       engine.setNavigationBookmark();
     }
 
+    // Story 26.13: Track skipped scenes when jumping to a scene in a later act
+    const currentActNumber = engine.getProgress()?.position.actNumber;
+    if (currentActNumber !== undefined) {
+      const acts = this.storyController.getActs();
+      const targetAct = acts.find(act =>
+        act.chapters.some(ch => ch.scenes.some(s => s.id === sceneId))
+      );
+      if (targetAct && targetAct.number > currentActNumber) {
+        const skipped = engine.getScenesBetween(currentActNumber, targetAct.number);
+        if (skipped.length > 0) {
+          engine.markScenesSkipped(skipped);
+        }
+      }
+    }
+
     try {
       engine.goToScene(sceneId);
       this.updateReturnButton();
@@ -500,6 +515,14 @@ export class StoryModeContainer {
     // Story 26.12: Save bookmark before jumping to a different act
     if (currentActNumber !== undefined && currentActNumber !== actNumber) {
       engine.setNavigationBookmark();
+    }
+
+    // Story 26.13: Track skipped scenes when jumping ahead
+    if (currentActNumber !== undefined && actNumber > currentActNumber) {
+      const skipped = engine.getScenesBetween(currentActNumber, actNumber);
+      if (skipped.length > 0) {
+        engine.markScenesSkipped(skipped);
+      }
     }
 
     const firstSceneId = targetAct.chapters[0].scenes[0].id;

@@ -3147,6 +3147,52 @@ body.da-resizing * {
   display: none;
 }
 
+/* Story 26.13: Skip warning in JourneyMap preview */
+.da-journey-map__preview-skip-warning {
+  padding: 6px 10px;
+  margin: 4px 0;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  color: rgba(255, 193, 7, 0.9);
+  line-height: 1.3;
+}
+
+/* Story 26.13: Skip badge in StoryBrowser */
+.da-story-browser-skip-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  background: rgba(255, 193, 7, 0.15);
+  color: rgba(255, 193, 7, 0.8);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  letter-spacing: 0.04em;
+}
+
+/* Story 26.13: Locked nodes are clickable but dimmed */
+.da-journey-map__node--locked,
+.da-journey-map__node--upcoming {
+  cursor: pointer;
+}
+
+.da-journey-map__node--locked:hover,
+.da-journey-map__node--upcoming:hover {
+  transform: scale(1.08);
+}
+
+/* Story 26.13: Skip warning in era detail view */
+.da-journey-map__era-detail-skip-warning {
+  padding: 8px 12px;
+  margin-top: 8px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: rgba(255, 193, 7, 0.9);
+  line-height: 1.4;
+}
+
 /* =============================================================================
    YourRolePanel - Fixed Left Panel (220px, desktop only)
    ============================================================================= */

@@ -57,6 +57,8 @@ export interface StoryProgress {
   completedChallenges?: string[];
   /** Story 26.12: Saved position before timeline jump (for "return" navigation) */
   navigationBookmark?: StoryPosition;
+  /** Story 26.13: Scene IDs that were skipped when jumping ahead */
+  skippedSceneIds?: string[];
 }
 
 /**

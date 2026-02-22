@@ -468,26 +468,22 @@ export class JourneyMap {
     el.dataset.actNumber = String(node.actNumber);
     el.className = `da-journey-map__node da-journey-map__node--${node.status}`;
 
-    const isNavigable = node.status === 'completed' || node.status === 'current';
-
-    if (isNavigable) {
-      el.setAttribute('role', 'button');
-      el.setAttribute('tabindex', '0');
-      el.setAttribute('aria-label', `Navigate to ${node.title} (${node.era})`);
-      // Story 26.6: Click toggles preview instead of immediately navigating
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
+    // Story 26.13: All nodes are navigable ("open doors" philosophy)
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    const statusHint = node.status === 'locked' || node.status === 'upcoming'
+      ? ' (not yet visited)' : '';
+    el.setAttribute('aria-label', `Navigate to ${node.title} (${node.era})${statusHint}`);
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.togglePreview(node, el);
+    });
+    el.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
         this.togglePreview(node, el);
-      });
-      el.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.togglePreview(node, el);
-        }
-      });
-    } else {
-      el.setAttribute('aria-disabled', 'true');
-    }
+      }
+    });
 
     // Icon
     const iconEl = document.createElement('div');
@@ -599,6 +595,14 @@ export class JourneyMap {
     header.appendChild(headerTitle);
     header.appendChild(goBtn);
     preview.appendChild(header);
+
+    // Story 26.13: Skip ahead warning for locked/upcoming nodes
+    if (node && (node.status === 'locked' || node.status === 'upcoming')) {
+      const skipWarning = document.createElement('div');
+      skipWarning.className = 'da-journey-map__preview-skip-warning';
+      skipWarning.textContent = 'Jumping here will skip earlier content. You can always return later.';
+      preview.appendChild(skipWarning);
+    }
 
     // Scene type icons
     const typeIcons: Record<string, string> = {
@@ -886,18 +890,23 @@ export class JourneyMap {
       detail.appendChild(section);
     }
 
-    // "Enter This Era" button
-    const isNavigable = node.status === 'completed' || node.status === 'current';
-    if (isNavigable) {
-      const enterBtn = document.createElement('button');
-      enterBtn.type = 'button';
-      enterBtn.className = 'da-journey-map__era-detail-go';
-      enterBtn.textContent = `Enter ${node.title} \u2192`;
-      enterBtn.addEventListener('click', () => {
-        this.onNavigate?.(node.actNumber);
-        this.hide();
-      });
-      detail.appendChild(enterBtn);
+    // "Enter This Era" button — Story 26.13: always shown (open doors)
+    const enterBtn = document.createElement('button');
+    enterBtn.type = 'button';
+    enterBtn.className = 'da-journey-map__era-detail-go';
+    enterBtn.textContent = `Enter ${node.title} \u2192`;
+    enterBtn.addEventListener('click', () => {
+      this.onNavigate?.(node.actNumber);
+      this.hide();
+    });
+    detail.appendChild(enterBtn);
+
+    // Story 26.13: Skip warning for locked/upcoming eras
+    if (node.status === 'locked' || node.status === 'upcoming') {
+      const skipWarning = document.createElement('div');
+      skipWarning.className = 'da-journey-map__era-detail-skip-warning';
+      skipWarning.textContent = 'Jumping here will skip earlier content. You can always return later.';
+      detail.appendChild(skipWarning);
     }
 
     content.appendChild(detail);

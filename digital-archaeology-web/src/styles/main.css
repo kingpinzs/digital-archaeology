@@ -10081,6 +10081,50 @@ body.da-resizing * {
   white-space: nowrap;
 }
 
+/* Story 26.7: Branch badge next to golden path label */
+.da-journey-map__branch-badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.12);
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  border-radius: 10px;
+  padding: 1px 8px;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+/* Story 26.7: Branch indicator on timeline nodes */
+.da-journey-map__branch-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  color: var(--persona-gold, #d4a574);
+  opacity: 0.8;
+}
+
+/* Story 26.7: Scene that user branched from */
+.da-journey-map__preview-scene--branched {
+  border-left: 2px solid var(--da-accent, #00b4d8);
+  padding-left: 6px;
+}
+
+/* Story 26.7: Branch label tag in preview */
+.da-journey-map__preview-branch-tag {
+  margin-left: auto;
+  font-size: 0.6rem;
+  color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.1);
+  border-radius: 3px;
+  padding: 0 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* =============================================================================
    World Map View
    ============================================================================= */

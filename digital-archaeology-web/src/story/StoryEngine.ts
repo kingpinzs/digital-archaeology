@@ -228,26 +228,70 @@ export class StoryEngine {
 
   /**
    * Record a choice made by the user.
+   * Story 26.7: Also detects branch points and tracks alternate timelines.
    */
   recordChoice(choiceId: string): void {
     if (!this.state.progress) {
       throw new Error('No active progress. Navigate to a scene first.');
     }
 
+    // Story 26.7: Check if this choice creates a timeline branch
+    const currentScene = this.getCurrentScene();
+    const choiceData = currentScene?.choices?.find(c => c.id === choiceId);
+    const isBranchPoint = choiceData?.isBranchPoint ?? false;
+    const branchLabel = choiceData?.branchLabel;
+
     const choice: StoryChoice = {
       sceneId: this.state.progress.position.sceneId,
       choiceId,
       timestamp: Date.now(),
+      ...(isBranchPoint && { isBranchPoint: true }),
+      ...(branchLabel && { branchLabel }),
     };
+
+    // Story 26.7: If entering a branch, set currentBranchId (scoped to scene for global uniqueness)
+    const currentBranchId = isBranchPoint
+      ? `branch-${this.state.progress.position.sceneId}-${choiceId}`
+      : this.state.progress.currentBranchId;
 
     this.state.progress = {
       ...this.state.progress,
       choices: [...this.state.progress.choices, choice],
       lastPlayedAt: Date.now(),
+      currentBranchId,
     };
 
     this.dispatchStateChanged(null);
     this.saveProgress();
+  }
+
+  /**
+   * Story 26.7: Rejoin the golden path from an alternate timeline.
+   * Called when the story converges back to the main timeline.
+   */
+  rejoinGoldenPath(): void {
+    if (!this.state.progress) return;
+    this.state.progress = {
+      ...this.state.progress,
+      currentBranchId: null,
+      lastPlayedAt: Date.now(),
+    };
+    this.dispatchStateChanged(null);
+    this.saveProgress();
+  }
+
+  /**
+   * Story 26.7: Get the current branch ID (null = golden path).
+   */
+  getCurrentBranchId(): string | null {
+    return this.state.progress?.currentBranchId ?? null;
+  }
+
+  /**
+   * Story 26.7: Check if the player is on an alternate timeline.
+   */
+  isOnAlternateBranch(): boolean {
+    return this.state.progress?.currentBranchId != null;
   }
 
   /**

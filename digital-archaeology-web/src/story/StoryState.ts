@@ -27,6 +27,10 @@ export interface StoryChoice {
   choiceId: string;
   /** Unix timestamp when the choice was made */
   timestamp: number;
+  /** Story 26.7: Whether this choice created an alternate timeline branch */
+  isBranchPoint?: boolean;
+  /** Story 26.7: Label of the branch entered (if this was a branch point) */
+  branchLabel?: string;
 }
 
 /**
@@ -47,6 +51,8 @@ export interface StoryProgress {
   currentPersona?: PersonaData | null;
   /** Pending decision context for builder scenes (Story 10.22) */
   pendingDecision?: { decisionId: string; chosenOptionId: string } | null;
+  /** Story 26.7: ID of the current alternate timeline branch (null/undefined = golden path) */
+  currentBranchId?: string | null;
 }
 
 /**

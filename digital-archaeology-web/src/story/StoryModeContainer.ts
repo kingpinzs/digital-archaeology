@@ -370,6 +370,36 @@ export class StoryModeContainer {
       visitedScenes.add(progress.position.sceneId);
     }
 
+    // Story 26.7: Gather branch data for timeline visualization
+    let activeBranchLabel: string | null = null;
+    let branchActNumbers: Set<number> | undefined;
+    let takenBranches: Map<string, string> | undefined;
+    if (progress) {
+      // Find the branch label for the current branch
+      const branchChoices = progress.choices.filter(c => c.isBranchPoint);
+      if (engine.isOnAlternateBranch() && branchChoices.length > 0) {
+        const lastBranch = branchChoices[branchChoices.length - 1];
+        activeBranchLabel = lastBranch.branchLabel ?? 'Alternate Timeline';
+      }
+
+      // Compute which acts have branch points and which scenes were branched from
+      if (branchChoices.length > 0) {
+        branchActNumbers = new Set<number>();
+        takenBranches = new Map<string, string>();
+        for (const choice of branchChoices) {
+          // Find which act this scene belongs to
+          for (const act of acts) {
+            for (const chapter of act.chapters) {
+              if (chapter.scenes.some(s => s.id === choice.sceneId)) {
+                branchActNumbers.add(act.number);
+              }
+            }
+          }
+          takenBranches.set(choice.sceneId, choice.branchLabel ?? 'Alternate');
+        }
+      }
+    }
+
     this.journeyMap.show({
       journeyData,
       collectibleProfile,
@@ -396,6 +426,10 @@ export class StoryModeContainer {
       onSceneNavigate: (sceneId: string) => {
         this.navigateToScene(sceneId);
       },
+      // Story 26.7: Branch visualization data
+      activeBranchLabel,
+      branchActNumbers,
+      takenBranches,
     });
   }
 

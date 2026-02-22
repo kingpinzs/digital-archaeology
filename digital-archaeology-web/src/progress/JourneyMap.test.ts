@@ -834,4 +834,248 @@ describe('JourneyMap', () => {
       expect(onNavigate).toHaveBeenCalledWith(0);
     });
   });
+
+  // =========================================================================
+  // Story 26.7: Alternate Timeline Branches
+  // =========================================================================
+
+  describe('branch badge (Story 26.7)', () => {
+    it('should show branch badge when activeBranchLabel is set', () => {
+      journeyMap.show({
+        journeyData: makeData(1, 1),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        activeBranchLabel: 'Stack Machine Path',
+      });
+
+      const badge = container.querySelector('.da-journey-map__branch-badge');
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toContain('Stack Machine Path');
+    });
+
+    it('should not show branch badge when activeBranchLabel is null', () => {
+      journeyMap.show({
+        journeyData: makeData(1, 1),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        activeBranchLabel: null,
+      });
+
+      const badge = container.querySelector('.da-journey-map__branch-badge');
+      expect(badge).toBeNull();
+    });
+
+    it('should not show branch badge with old 2-arg API', () => {
+      journeyMap.show(makeData(1, 1), onNavigate);
+
+      const badge = container.querySelector('.da-journey-map__branch-badge');
+      expect(badge).toBeNull();
+    });
+
+    it('should still show golden path label alongside branch badge', () => {
+      journeyMap.show({
+        journeyData: makeData(1, 1),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        activeBranchLabel: 'What If Path',
+      });
+
+      const label = container.querySelector('.da-journey-map__golden-path-label');
+      expect(label?.textContent).toContain('The Golden Path');
+      expect(label?.textContent).toContain('What If Path');
+    });
+  });
+
+  describe('branch indicators on nodes (Story 26.7)', () => {
+    it('should show branch indicator on nodes in branchActNumbers', () => {
+      journeyMap.show({
+        journeyData: makeData(3, 3),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 3,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        branchActNumbers: new Set([1, 2]),
+      });
+
+      const node1 = container.querySelector('[data-act-number="1"]');
+      const indicator1 = node1?.querySelector('.da-journey-map__branch-indicator');
+      expect(indicator1).not.toBeNull();
+
+      const node2 = container.querySelector('[data-act-number="2"]');
+      const indicator2 = node2?.querySelector('.da-journey-map__branch-indicator');
+      expect(indicator2).not.toBeNull();
+    });
+
+    it('should not show branch indicator on nodes not in branchActNumbers', () => {
+      journeyMap.show({
+        journeyData: makeData(3, 3),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 3,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        branchActNumbers: new Set([1]),
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]');
+      expect(node0?.querySelector('.da-journey-map__branch-indicator')).toBeNull();
+
+      const node3 = container.querySelector('[data-act-number="3"]');
+      expect(node3?.querySelector('.da-journey-map__branch-indicator')).toBeNull();
+    });
+
+    it('should not show branch indicators when branchActNumbers not provided', () => {
+      journeyMap.show(makeData(3, 3), onNavigate);
+
+      const indicators = container.querySelectorAll('.da-journey-map__branch-indicator');
+      expect(indicators).toHaveLength(0);
+    });
+
+    it('should set aria-label on branch indicator', () => {
+      journeyMap.show({
+        journeyData: makeData(3, 3),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 3,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        branchActNumbers: new Set([0]),
+      });
+
+      const indicator = container.querySelector('.da-journey-map__branch-indicator');
+      expect(indicator?.getAttribute('aria-label')).toBe('Contains alternate timeline branch');
+    });
+  });
+
+  describe('branch-aware scene preview (Story 26.7)', () => {
+    const mockActsWithBranch = [
+      {
+        id: 'act-0', number: 0, title: 'Genesis', description: 'Desc',
+        era: '1940', cpuStage: 'mechanical' as const,
+        chapters: [
+          {
+            id: 'ch-0-1', number: 1, title: 'Dawn', subtitle: 'Sub', year: '1940',
+            scenes: [
+              { id: 'scene-0-1-1', type: 'narrative' as const, nextScene: 'scene-0-1-2' },
+              { id: 'scene-0-1-2', type: 'choice' as const },
+              { id: 'scene-0-1-3', type: 'narrative' as const },
+            ],
+          },
+        ],
+      },
+    ];
+
+    function showWithBranchData(
+      opts: {
+        takenBranches?: Map<string, string>;
+        branchActNumbers?: Set<number>;
+        activeBranchLabel?: string | null;
+      } = {},
+    ) {
+      journeyMap.show({
+        journeyData: makeData(1, 1),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        storyActs: mockActsWithBranch,
+        takenBranches: opts.takenBranches,
+        branchActNumbers: opts.branchActNumbers,
+        activeBranchLabel: opts.activeBranchLabel,
+      });
+    }
+
+    it('should show branch tag on scenes in takenBranches map', () => {
+      showWithBranchData({
+        takenBranches: new Map([['scene-0-1-2', 'Stack Machine Path']]),
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const branchTags = container.querySelectorAll('.da-journey-map__preview-branch-tag');
+      expect(branchTags).toHaveLength(1);
+      expect(branchTags[0]?.textContent).toBe('Stack Machine Path');
+    });
+
+    it('should add --branched class to scenes in takenBranches', () => {
+      showWithBranchData({
+        takenBranches: new Map([['scene-0-1-2', 'Alt Path']]),
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const branchedScenes = container.querySelectorAll('.da-journey-map__preview-scene--branched');
+      expect(branchedScenes).toHaveLength(1);
+    });
+
+    it('should not show branch tags when takenBranches not provided', () => {
+      showWithBranchData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const branchTags = container.querySelectorAll('.da-journey-map__preview-branch-tag');
+      expect(branchTags).toHaveLength(0);
+    });
+
+    it('should not add --branched class to non-branched scenes', () => {
+      showWithBranchData({
+        takenBranches: new Map([['scene-0-1-2', 'Alt Path']]),
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const scenes = container.querySelectorAll('.da-journey-map__preview-scene');
+      // First scene (narrative) should NOT have --branched
+      expect(scenes[0]?.classList.contains('da-journey-map__preview-scene--branched')).toBe(false);
+      // Second scene (choice) should have --branched
+      expect(scenes[1]?.classList.contains('da-journey-map__preview-scene--branched')).toBe(true);
+      // Third scene (narrative) should NOT have --branched
+      expect(scenes[2]?.classList.contains('da-journey-map__preview-scene--branched')).toBe(false);
+    });
+
+    it('should clean up branch state on destroy', () => {
+      showWithBranchData({
+        activeBranchLabel: 'Test Branch',
+        branchActNumbers: new Set([0]),
+        takenBranches: new Map([['scene-0-1-2', 'Test']]),
+      });
+
+      journeyMap.destroy();
+
+      // Clean up old container before re-creating
+      container.remove();
+
+      // Re-mount and show without branch data
+      container = document.createElement('div');
+      document.body.appendChild(container);
+      journeyMap = new JourneyMap();
+      journeyMap.mount(container);
+      journeyMap.show(makeData(1, 1), onNavigate);
+
+      expect(container.querySelector('.da-journey-map__branch-badge')).toBeNull();
+      expect(container.querySelectorAll('.da-journey-map__branch-indicator')).toHaveLength(0);
+    });
+  });
 });

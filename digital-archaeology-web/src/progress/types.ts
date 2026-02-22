@@ -552,6 +552,8 @@ export interface JourneyNode {
   readonly cpuStage: string;
   /** Visual status of this node */
   readonly status: JourneyNodeStatus;
+  /** Story 26.7: Labels of branch points in this act (empty = no branches) */
+  readonly branchPoints?: readonly string[];
 }
 
 /**

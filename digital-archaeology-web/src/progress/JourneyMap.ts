@@ -38,6 +38,12 @@ export interface JourneyMapShowOptions {
   currentSceneId?: string;
   /** Story 26.6: Navigate to a specific scene */
   onSceneNavigate?: (sceneId: string) => void;
+  /** Story 26.7: Current branch label (null = golden path) */
+  activeBranchLabel?: string | null;
+  /** Story 26.7: Set of act numbers containing active branch points */
+  branchActNumbers?: Set<number>;
+  /** Story 26.7: Map of sceneId → branch label for scenes where user took a branch */
+  takenBranches?: Map<string, string>;
 }
 
 /**
@@ -60,6 +66,11 @@ export class JourneyMap {
   private currentSceneId: string | null = null;
   private onSceneNavigate: ((sceneId: string) => void) | null = null;
   private activePreview: HTMLElement | null = null;
+
+  // Story 26.7: Active branch tracking
+  private activeBranchLabel: string | null = null;
+  private branchActNumbers: Set<number> | null = null;
+  private takenBranches: Map<string, string> | null = null;
 
   // Tab state
   private activeTab: JourneyMapTab = 'timeline';
@@ -124,6 +135,11 @@ export class JourneyMap {
     this.visitedScenes = options.visitedScenes ?? null;
     this.currentSceneId = options.currentSceneId ?? null;
     this.onSceneNavigate = options.onSceneNavigate ?? null;
+
+    // Story 26.7: Active branch label and branch data
+    this.activeBranchLabel = options.activeBranchLabel ?? null;
+    this.branchActNumbers = options.branchActNumbers ?? null;
+    this.takenBranches = options.takenBranches ?? null;
 
     // Clean up any existing overlay
     this.removeOverlay();
@@ -268,6 +284,9 @@ export class JourneyMap {
     this.visitedScenes = null;
     this.currentSceneId = null;
     this.onSceneNavigate = null;
+    this.activeBranchLabel = null;
+    this.branchActNumbers = null;
+    this.takenBranches = null;
   }
 
   // =========================================================================
@@ -345,9 +364,18 @@ export class JourneyMap {
     panel.setAttribute('role', 'tabpanel');
 
     // Story 26.6: "Golden Path" label above the timeline
+    // Story 26.7: Show active branch badge when on alternate timeline
     const pathLabel = document.createElement('div');
     pathLabel.className = 'da-journey-map__golden-path-label';
-    pathLabel.textContent = 'The Golden Path';
+    if (this.activeBranchLabel) {
+      pathLabel.textContent = 'The Golden Path';
+      const branchBadge = document.createElement('span');
+      branchBadge.className = 'da-journey-map__branch-badge';
+      branchBadge.textContent = `\u2192 ${this.activeBranchLabel}`;
+      pathLabel.appendChild(branchBadge);
+    } else {
+      pathLabel.textContent = 'The Golden Path';
+    }
     panel.appendChild(pathLabel);
 
     const timeline = document.createElement('div');
@@ -482,6 +510,15 @@ export class JourneyMap {
     el.appendChild(titleEl);
     el.appendChild(eraEl);
 
+    // Story 26.7: Branch indicator for acts with branch points
+    if (this.branchActNumbers?.has(node.actNumber)) {
+      const branchIndicator = document.createElement('div');
+      branchIndicator.className = 'da-journey-map__branch-indicator';
+      branchIndicator.textContent = '\u2B95'; // ⮕ fork arrow
+      branchIndicator.setAttribute('aria-label', 'Contains alternate timeline branch');
+      el.appendChild(branchIndicator);
+    }
+
     return el;
   }
 
@@ -590,6 +627,10 @@ export class JourneyMap {
         if (isVisited) sceneEl.classList.add('da-journey-map__preview-scene--visited');
         if (scene.type === 'choice') sceneEl.classList.add('da-journey-map__preview-scene--branch');
 
+        // Story 26.7: Check if user took a branch from this scene
+        const branchLabel = this.takenBranches?.get(scene.id);
+        if (branchLabel) sceneEl.classList.add('da-journey-map__preview-scene--branched');
+
         const typeIcon = document.createElement('span');
         typeIcon.className = 'da-journey-map__preview-scene-icon';
         typeIcon.textContent = typeIcons[scene.type] ?? '\u25CB'; // ○
@@ -600,6 +641,14 @@ export class JourneyMap {
 
         sceneEl.appendChild(typeIcon);
         sceneEl.appendChild(sceneLabel);
+
+        // Story 26.7: Show branch label if user branched from this scene
+        if (branchLabel) {
+          const branchTag = document.createElement('span');
+          branchTag.className = 'da-journey-map__preview-branch-tag';
+          branchTag.textContent = branchLabel;
+          sceneEl.appendChild(branchTag);
+        }
 
         sceneEl.addEventListener('click', (e) => {
           e.stopPropagation();

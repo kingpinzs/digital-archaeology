@@ -1094,3 +1094,207 @@ describe('StoryEngine Mindset Integration', () => {
     });
   });
 });
+
+// Story 26.7: Alternate Timeline Branch Tracking Tests
+describe('StoryEngine Branch Tracking (Story 26.7)', () => {
+  let engine: StoryEngine;
+  let mockStorage: StoryStorage;
+
+  const createBranchActs = (): StoryAct[] => [
+    {
+      id: 'act-1',
+      number: 1,
+      title: 'Branch Test Act',
+      description: 'Test',
+      era: '1970',
+      cpuStage: 'micro4',
+      chapters: [
+        {
+          id: 'ch-1-1',
+          number: 1,
+          title: 'Chapter 1',
+          subtitle: 'Sub',
+          year: '1970',
+          scenes: [
+            {
+              id: 'scene-1-1-1',
+              type: 'narrative',
+              nextScene: 'scene-1-1-2',
+            },
+            {
+              id: 'scene-1-1-2',
+              type: 'choice',
+              choices: [
+                {
+                  id: 'choice-golden',
+                  icon: '\u{1F4D6}',
+                  title: 'Stay on path',
+                  description: 'Continue the golden path',
+                },
+                {
+                  id: 'choice-branch',
+                  icon: '\u{1F500}',
+                  title: 'What if stack machines?',
+                  description: 'Explore the alternate timeline',
+                  isBranchPoint: true,
+                  branchLabel: 'Stack Machine Path',
+                },
+              ],
+              nextScene: 'scene-1-1-3',
+            },
+            {
+              id: 'scene-1-1-3',
+              type: 'narrative',
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  beforeEach(() => {
+    mockStorage = {
+      saveProgress: vi.fn(),
+      loadProgress: vi.fn().mockReturnValue(null),
+      clearProgress: vi.fn(),
+      hasProgress: vi.fn().mockReturnValue(false),
+    } as unknown as StoryStorage;
+
+    engine = new StoryEngine(mockStorage);
+    engine.initialize(createBranchActs());
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('isOnAlternateBranch', () => {
+    it('should return false by default', () => {
+      engine.goToScene('scene-1-1-1');
+      expect(engine.isOnAlternateBranch()).toBe(false);
+    });
+
+    it('should return false after recording a non-branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-golden');
+      expect(engine.isOnAlternateBranch()).toBe(false);
+    });
+
+    it('should return true after recording a branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+      expect(engine.isOnAlternateBranch()).toBe(true);
+    });
+  });
+
+  describe('getCurrentBranchId', () => {
+    it('should return null by default', () => {
+      engine.goToScene('scene-1-1-1');
+      expect(engine.getCurrentBranchId()).toBeNull();
+    });
+
+    it('should return branch ID after recording branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+      expect(engine.getCurrentBranchId()).toBe('branch-scene-1-1-2-choice-branch');
+    });
+
+    it('should keep null after recording non-branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-golden');
+      expect(engine.getCurrentBranchId()).toBeNull();
+    });
+  });
+
+  describe('recordChoice with branch data', () => {
+    it('should set isBranchPoint on stored choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+
+      const progress = engine.getProgress();
+      const choice = progress?.choices.find(c => c.choiceId === 'choice-branch');
+      expect(choice?.isBranchPoint).toBe(true);
+    });
+
+    it('should set branchLabel on stored choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+
+      const progress = engine.getProgress();
+      const choice = progress?.choices.find(c => c.choiceId === 'choice-branch');
+      expect(choice?.branchLabel).toBe('Stack Machine Path');
+    });
+
+    it('should not set isBranchPoint on non-branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-golden');
+
+      const progress = engine.getProgress();
+      const choice = progress?.choices.find(c => c.choiceId === 'choice-golden');
+      expect(choice?.isBranchPoint).toBeUndefined();
+    });
+
+    it('should not set branchLabel on non-branch choice', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-golden');
+
+      const progress = engine.getProgress();
+      const choice = progress?.choices.find(c => c.choiceId === 'choice-golden');
+      expect(choice?.branchLabel).toBeUndefined();
+    });
+  });
+
+  describe('rejoinGoldenPath', () => {
+    it('should clear currentBranchId', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+      expect(engine.isOnAlternateBranch()).toBe(true);
+
+      engine.rejoinGoldenPath();
+      expect(engine.isOnAlternateBranch()).toBe(false);
+      expect(engine.getCurrentBranchId()).toBeNull();
+    });
+
+    it('should save progress after rejoining', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+      vi.mocked(mockStorage.saveProgress).mockClear();
+
+      engine.rejoinGoldenPath();
+      expect(mockStorage.saveProgress).toHaveBeenCalled();
+    });
+
+    it('should be no-op when no progress', () => {
+      // No goToScene — no progress
+      engine.rejoinGoldenPath();
+      expect(engine.getCurrentBranchId()).toBeNull();
+    });
+  });
+
+  describe('branch persistence', () => {
+    it('should persist currentBranchId in progress', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+
+      const progress = engine.getProgress();
+      expect(progress?.currentBranchId).toBe('branch-scene-1-1-2-choice-branch');
+    });
+
+    it('should restore branch state on resume', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.recordChoice('choice-branch');
+
+      // Get the saved progress
+      const savedProgress = vi.mocked(mockStorage.saveProgress).mock.calls.at(-1)?.[0];
+
+      // Create new engine and resume with saved progress
+      const engine2 = new StoryEngine(mockStorage);
+      vi.mocked(mockStorage.loadProgress).mockReturnValue(savedProgress!);
+      engine2.initialize(createBranchActs());
+      engine2.resume();
+
+      expect(engine2.isOnAlternateBranch()).toBe(true);
+      expect(engine2.getCurrentBranchId()).toBe('branch-scene-1-1-2-choice-branch');
+    });
+  });
+});

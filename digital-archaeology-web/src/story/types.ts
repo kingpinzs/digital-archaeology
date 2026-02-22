@@ -115,6 +115,30 @@ export interface ChoiceData {
   description: string;
   /** Target scene ID for branching navigation (falls back to scene-level nextScene if absent) */
   nextScene?: string;
+  /** Story 26.7: Whether this choice creates an alternate timeline branch */
+  isBranchPoint?: boolean;
+  /** Story 26.7: Label for the alternate timeline (e.g., "What if stack machines won?") */
+  branchLabel?: string;
+}
+
+/**
+ * Story 26.7: Represents an alternate timeline branch.
+ * Tracks where the player diverged from the golden path
+ * and optionally where they rejoin.
+ */
+export interface TimelineBranch {
+  /** Unique identifier for this branch */
+  id: string;
+  /** Human-readable label (e.g., "Stack Machine Path") */
+  label: string;
+  /** Scene ID where the branch diverged from the golden path */
+  divergeSceneId: string;
+  /** Act number containing the divergence point */
+  divergeActNumber: number;
+  /** Choice ID that created this branch */
+  choiceId: string;
+  /** Scene ID where this branch rejoins the golden path (if it converges) */
+  rejoinsAtSceneId?: string;
 }
 
 /**

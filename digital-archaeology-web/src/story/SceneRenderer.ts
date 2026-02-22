@@ -72,6 +72,9 @@ export class SceneRenderer {
   // Time travel portal for animated transitions
   private portal: TimeTravelPortal | null = null;
 
+  // Story acts for persona lookup during transitions
+  private storyActs: StoryAct[] = [];
+
   /**
    * Set callbacks for scene interactions.
    */
@@ -93,6 +96,23 @@ export class SceneRenderer {
     this.filteringEnabled = enabled;
     // Note: The actual filter is created fresh in filterText() based on current mindset
     // This allows the filter to adapt as the mindset changes between scenes
+  }
+
+  /**
+   * Provide the full list of story acts for persona lookup during transitions.
+   */
+  setStoryActs(acts: StoryAct[]): void {
+    this.storyActs = acts;
+  }
+
+  /**
+   * Look up the persona for the act following the given act number.
+   * Returns null if the next act doesn't exist or has no persona defined.
+   */
+  private getNextActPersona(currentActNumber: number): PersonaData | null {
+    // Acts are numbered sequentially; find the one after currentActNumber
+    const nextAct = this.storyActs.find(a => a.number === currentActNumber + 1);
+    return nextAct?.persona ?? null;
   }
 
   /**
@@ -475,14 +495,15 @@ export class SceneRenderer {
 
     const mode = transitionData.actTransition ? 'persona' : 'chapter';
 
-    // Play portal animation, then show panel
-    this.portal.play(mode).then(() => {
+    // Play portal animation, then show panel (catch ensures panel shows even if animation fails)
+    const showPanel = () => {
       if (transitionData.actTransition) {
         this.renderActTransition(context, transitionData, mount);
       } else {
         this.renderChapterTransition(transitionData, mount);
       }
-    });
+    };
+    this.portal.play(mode).then(showPanel).catch(showPanel);
   }
 
   /**
@@ -491,7 +512,13 @@ export class SceneRenderer {
   private renderChapterTransition(transitionData: SceneTransitionData, mount: HTMLElement): void {
     const panel = new ChapterTransitionPanel();
     panel.mount(mount);
-    panel.setTransitionData(transitionData);
+
+    // Apply anachronism filtering to narrative text
+    const filteredData: SceneTransitionData = {
+      ...transitionData,
+      narrative: transitionData.narrative.map(p => this.filterText(p)),
+    };
+    panel.setTransitionData(filteredData);
     panel.onContinue(() => {
       if (this.callbacks.onContinue) {
         this.callbacks.onContinue();
@@ -518,14 +545,14 @@ export class SceneRenderer {
       outgoingPersonaId: '',
       incomingPersonaId: '',
       yearsElapsed: transitionData.yearsElapsed,
-      narrative: transitionData.narrative,
+      narrative: transitionData.narrative.map(p => this.filterText(p)),
       outgoingEra: transitionData.outgoingEra,
       incomingEra: transitionData.incomingEra,
     };
 
     // Get personas: outgoing = current act's persona, incoming = next act's persona
     const outgoingPersona = context.act.persona ?? this.createFallbackPersona(transitionData.outgoingEra);
-    const incomingPersona = this.createFallbackPersona(transitionData.incomingEra);
+    const incomingPersona = this.getNextActPersona(context.act.number) ?? this.createFallbackPersona(transitionData.incomingEra);
 
     panel.setTransitionData(personaTransition, outgoingPersona, incomingPersona);
     panel.onContinue(() => {

@@ -271,9 +271,11 @@ export class PersonaTransitionPanel {
       }
     }
 
-    // Timeline
+    // Timeline (zero years → "A NEW ERA" instead of "0 YEARS")
     if (this.yearsElapsedElement) {
-      this.yearsElapsedElement.textContent = `${this.transitionData.yearsElapsed} YEARS`;
+      this.yearsElapsedElement.textContent = this.transitionData.yearsElapsed === 0
+        ? 'A NEW ERA'
+        : `${this.transitionData.yearsElapsed} YEARS`;
     }
     if (this.outgoingEraElement) {
       this.outgoingEraElement.textContent = this.transitionData.outgoingEra;
@@ -287,8 +289,11 @@ export class PersonaTransitionPanel {
       while (this.narrativeContainer.firstChild) {
         this.narrativeContainer.removeChild(this.narrativeContainer.firstChild);
       }
+      const paragraphs = this.transitionData.narrative.length > 0
+        ? this.transitionData.narrative
+        : ['A new chapter in the story of computation begins...'];
       const fragment = document.createDocumentFragment();
-      for (const paragraph of this.transitionData.narrative) {
+      for (const paragraph of paragraphs) {
         const p = document.createElement('p');
         p.textContent = paragraph;
         fragment.appendChild(p);

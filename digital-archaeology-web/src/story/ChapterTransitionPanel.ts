@@ -191,18 +191,25 @@ export class ChapterTransitionPanel {
     }
     if (this.yearsElapsedElement) {
       const years = this.transitionData.yearsElapsed;
-      this.yearsElapsedElement.textContent = years >= 1000
-        ? `${(years / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k years pass...`
-        : `${years.toLocaleString()} years pass...`;
+      if (years === 0) {
+        this.yearsElapsedElement.textContent = 'Time passes...';
+      } else if (years >= 1000) {
+        this.yearsElapsedElement.textContent = `${(years / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k years pass...`;
+      } else {
+        this.yearsElapsedElement.textContent = `${years.toLocaleString()} years pass...`;
+      }
     }
 
-    // Narrative paragraphs
+    // Narrative paragraphs (fallback if empty)
     if (this.narrativeContainer) {
       while (this.narrativeContainer.firstChild) {
         this.narrativeContainer.removeChild(this.narrativeContainer.firstChild);
       }
+      const paragraphs = this.transitionData.narrative.length > 0
+        ? this.transitionData.narrative
+        : ['The story continues...'];
       const fragment = document.createDocumentFragment();
-      for (const paragraph of this.transitionData.narrative) {
+      for (const paragraph of paragraphs) {
         const p = document.createElement('p');
         p.className = 'da-chapter-transition-narrative-text';
         p.textContent = paragraph;

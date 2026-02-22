@@ -124,6 +124,9 @@ export class StoryController {
       // Initialize engine with content
       this.engine.initialize(this.acts);
 
+      // Provide acts to renderer for persona lookup during transitions
+      this.renderer.setStoryActs(this.acts);
+
       // Subscribe to state changes
       this.subscribeToStateChanges();
 

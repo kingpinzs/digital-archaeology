@@ -155,19 +155,31 @@ export class TimeTravelPortal {
       const duration = config.duration;
 
       const tick = () => {
-        const elapsed = performance.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
+        try {
+          const elapsed = performance.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
 
-        this.renderFrame(progress, mode);
+          this.renderFrame(progress, mode);
 
-        if (progress < 1) {
-          this.animationFrameId = requestAnimationFrame(tick);
-        } else {
-          // Animation complete — clear canvas so it doesn't obscure content beneath
-          this.animationFrameId = null;
-          if (this.ctx && this.canvas) {
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          if (progress < 1) {
+            this.animationFrameId = requestAnimationFrame(tick);
+          } else {
+            // Animation complete — clear canvas so it doesn't obscure content beneath
+            this.animationFrameId = null;
+            if (this.ctx && this.canvas) {
+              this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+            if (this.backdropElement) {
+              this.backdropElement.classList.remove('da-portal-backdrop--visible');
+            }
+            if (this.playResolve) {
+              this.playResolve();
+              this.playResolve = null;
+            }
           }
+        } catch {
+          // Resolve on error so the transition panel still shows
+          this.animationFrameId = null;
           if (this.backdropElement) {
             this.backdropElement.classList.remove('da-portal-backdrop--visible');
           }

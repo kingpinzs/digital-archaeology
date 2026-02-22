@@ -1832,6 +1832,16 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       engine.setNavigationBookmark();
       expect(engine.getNavigationBookmark()).toBeNull();
     });
+
+    it('should persist bookmark in saved progress data', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.setNavigationBookmark();
+      const lastCall = vi.mocked(mockStorage.saveProgress).mock.calls.at(-1);
+      expect(lastCall).toBeDefined();
+      const savedProgress = lastCall![0];
+      expect(savedProgress.navigationBookmark).toBeDefined();
+      expect(savedProgress.navigationBookmark?.sceneId).toBe('scene-1-1-2');
+    });
   });
 
   // Story 26.13: Skip Tracking

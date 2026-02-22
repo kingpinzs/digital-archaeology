@@ -401,6 +401,43 @@ describe('StoryModeContainer', () => {
       const banners = container.querySelectorAll('.da-challenge-complete-banner');
       expect(banners.length).toBe(1);
     });
+
+    it('should call completeChallengeAndAdvance when sceneId is provided', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      await storyContainer.waitForInitialization();
+
+      const controller = storyContainer.getStoryController();
+      if (controller) {
+        const spy = vi.spyOn(controller, 'completeChallengeAndAdvance').mockImplementation(() => {});
+
+        storyContainer.advanceAfterChallenge('scene-challenge-1');
+
+        expect(spy).toHaveBeenCalledWith('scene-challenge-1');
+        spy.mockRestore();
+      }
+    });
+
+    it('should fall back to nextScene when no sceneId is provided', async () => {
+      storyContainer = createStoryModeContainer();
+      storyContainer.mount(container);
+
+      await storyContainer.waitForInitialization();
+
+      const controller = storyContainer.getStoryController();
+      if (controller) {
+        const completeSpy = vi.spyOn(controller, 'completeChallengeAndAdvance').mockImplementation(() => {});
+        const nextSpy = vi.spyOn(controller, 'nextScene').mockImplementation(() => {});
+
+        storyContainer.advanceAfterChallenge();
+
+        expect(completeSpy).not.toHaveBeenCalled();
+        expect(nextSpy).toHaveBeenCalledTimes(1);
+        completeSpy.mockRestore();
+        nextSpy.mockRestore();
+      }
+    });
   });
 
   // Story 10.3: Options Pattern Tests

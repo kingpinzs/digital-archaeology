@@ -1351,9 +1351,10 @@ export class App {
       this.challengeStation = new ChallengeStation();
       this.challengeStation.mount(this.labChallengeStation);
       this.challengeStation.setOnReturnToStory((completed: boolean) => {
-        // If challenge completed, advance story to next scene before switching
+        // Story 26.10: If challenge completed, pass scene ID for completion tracking
         if (completed) {
-          this.storyModeContainer?.advanceAfterChallenge();
+          const sceneId = this.challengeStation?.getCurrentSceneId() ?? undefined;
+          this.storyModeContainer?.advanceAfterChallenge(sceneId);
         }
         this.handleModeChange('story');
         // Hide the challenge tab when returning to story

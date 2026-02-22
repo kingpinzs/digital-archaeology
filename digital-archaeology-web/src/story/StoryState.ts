@@ -53,6 +53,8 @@ export interface StoryProgress {
   pendingDecision?: { decisionId: string; chosenOptionId: string } | null;
   /** Story 26.7: ID of the current alternate timeline branch (null/undefined = golden path) */
   currentBranchId?: string | null;
+  /** Story 26.10: Scene IDs of completed lab challenges (for post-lab acknowledgment) */
+  completedChallenges?: string[];
 }
 
 /**

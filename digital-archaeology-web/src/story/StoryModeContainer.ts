@@ -594,15 +594,21 @@ export class StoryModeContainer {
    * Advance story to next scene after a completed challenge.
    * Called by App when user returns from lab with all objectives complete.
    * Shows a completion banner (AC #3) then advances to the next scene.
+   * Story 26.10: Accepts optional challengeSceneId for completion tracking.
    */
-  advanceAfterChallenge(): void {
+  advanceAfterChallenge(challengeSceneId?: string): void {
     try {
-      this.storyController?.nextScene();
-      // Show completion acknowledgment after scene renders (AC #3)
-      this.showChallengeCompletionBanner();
+      if (challengeSceneId) {
+        this.storyController?.completeChallengeAndAdvance(challengeSceneId);
+      } else {
+        this.storyController?.nextScene();
+      }
     } catch (error) {
       console.warn('Cannot advance story after challenge:', error);
+      return; // don't show banner if advance failed
     }
+    // Show completion acknowledgment after scene renders (AC #3)
+    this.showChallengeCompletionBanner();
   }
 
   /**

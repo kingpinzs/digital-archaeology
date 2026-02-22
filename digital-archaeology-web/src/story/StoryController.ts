@@ -72,6 +72,9 @@ export class StoryController {
   private actCelebration = new ActCelebration();
   private previousActNumber: number = -1;
 
+  // Story 26.10: Transient challenge acknowledgment (consumed after one render)
+  private pendingChallengeAcknowledgment: string | undefined = undefined;
+
   // Achievement tracking (Story 19.3)
   private discoveryStorage: DiscoveryStorage;
   private achievementStorage = new AchievementStorage();
@@ -263,6 +266,38 @@ export class StoryController {
     };
   }
 
+  // ==========================================================================
+  // Story 26.10: Seamless Story-Lab-Story Loop
+  // ==========================================================================
+
+  /**
+   * Mark a challenge as completed and advance the story.
+   * Called by StoryModeContainer when player returns from lab with all objectives done.
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  completeChallengeAndAdvance(challengeSceneId: string): void {
+    this.engine.markChallengeCompleted(challengeSceneId);
+    this.pendingChallengeAcknowledgment = challengeSceneId;
+    this.nextScene();
+  }
+
+  /**
+   * Check if a specific challenge scene has been completed.
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  isChallengeCompleted(sceneId: string): boolean {
+    return this.engine.isChallengeCompleted(sceneId);
+  }
+
+  /**
+   * Get the most recently completed challenge scene ID (or undefined).
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  getLastCompletedChallenge(): string | undefined {
+    const completed = this.engine.getCompletedChallenges();
+    return completed.length > 0 ? completed[completed.length - 1] : undefined;
+  }
+
   /**
    * Navigate to the next scene.
    */
@@ -312,6 +347,7 @@ export class StoryController {
    */
   startNewGame(): void {
     this.previousActNumber = -1;
+    this.pendingChallengeAcknowledgment = undefined;
     this.engine.clearProgress();
     this.engine.startNewGame();
   }
@@ -624,6 +660,10 @@ export class StoryController {
     const act = this.acts.find(a => a.number === progress.position.actNumber);
     if (!act) return null;
 
+    // Story 26.10: Consume the transient acknowledgment (shown once, then cleared)
+    const lastCompletedChallenge = this.pendingChallengeAcknowledgment;
+    this.pendingChallengeAcknowledgment = undefined;
+
     // Story 26.9: Look up branch context for the current scene
     const branchId = this.engine.getBranchForScene(scene.id) ?? undefined;
     let branchLabel: string | undefined;
@@ -635,7 +675,7 @@ export class StoryController {
       branchLabel = branches.find(b => b.id === branchId)?.label;
       const chapter = act.chapters[0];
       if (!chapter) return null;
-      return { act, chapter, scene, isFirstSceneInChapter: false, branchId, branchLabel };
+      return { act, chapter, scene, isFirstSceneInChapter: false, branchId, branchLabel, lastCompletedChallenge };
     }
 
     const chapter = act.chapters.find(c => c.number === progress.position.chapterNumber);
@@ -652,6 +692,7 @@ export class StoryController {
       isFirstSceneInChapter,
       branchId,
       branchLabel,
+      lastCompletedChallenge,
     };
   }
 
@@ -755,5 +796,6 @@ export class StoryController {
     this.callbacks = {};
     this.initialized = false;
     this.previousActNumber = -1;
+    this.pendingChallengeAcknowledgment = undefined;
   }
 }

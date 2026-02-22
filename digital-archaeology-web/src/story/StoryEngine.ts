@@ -385,6 +385,42 @@ export class StoryEngine {
     return act?.branches ?? [];
   }
 
+  // =========================================================================
+  // Story 26.10: Challenge Completion Tracking
+  // =========================================================================
+
+  /**
+   * Mark a challenge scene as completed.
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  markChallengeCompleted(sceneId: string): void {
+    if (!this.state.progress) return;
+    const existing = this.state.progress.completedChallenges ?? [];
+    if (existing.includes(sceneId)) return;
+    this.state.progress = {
+      ...this.state.progress,
+      completedChallenges: [...existing, sceneId],
+      lastPlayedAt: Date.now(),
+    };
+    this.saveProgress();
+  }
+
+  /**
+   * Check if a specific challenge was completed.
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  isChallengeCompleted(sceneId: string): boolean {
+    return this.state.progress?.completedChallenges?.includes(sceneId) ?? false;
+  }
+
+  /**
+   * Get all completed challenge scene IDs.
+   * Story 26.10: Seamless Story-Lab-Story Loop
+   */
+  getCompletedChallenges(): string[] {
+    return this.state.progress?.completedChallenges ?? [];
+  }
+
   /**
    * Build a chronological timeline of visited scenes with context.
    * Uses scene history + choices to reconstruct the journey.

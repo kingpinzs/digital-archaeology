@@ -1706,4 +1706,70 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       });
     });
   });
+
+  // ===========================================================================
+  // Story 26.10: Challenge Completion Tracking
+  // ===========================================================================
+
+  describe('Story 26.10: Challenge Completion Tracking', () => {
+    let engine: StoryEngine;
+
+    beforeEach(() => {
+      localStorage.clear();
+      engine = new StoryEngine();
+      engine.initialize(createTestActs());
+      engine.startNewGame();
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    it('markChallengeCompleted adds scene ID to completedChallenges', () => {
+      engine.markChallengeCompleted('scene-1-1-1');
+      expect(engine.getCompletedChallenges()).toEqual(['scene-1-1-1']);
+    });
+
+    it('markChallengeCompleted is idempotent — duplicate calls do not add duplicates', () => {
+      engine.markChallengeCompleted('scene-1-1-1');
+      engine.markChallengeCompleted('scene-1-1-1');
+      expect(engine.getCompletedChallenges()).toEqual(['scene-1-1-1']);
+    });
+
+    it('markChallengeCompleted does nothing when no progress', () => {
+      engine.clearProgress();
+      engine.markChallengeCompleted('scene-1-1-1');
+      expect(engine.getCompletedChallenges()).toEqual([]);
+    });
+
+    it('isChallengeCompleted returns true for completed challenges', () => {
+      engine.markChallengeCompleted('scene-1-1-1');
+      expect(engine.isChallengeCompleted('scene-1-1-1')).toBe(true);
+    });
+
+    it('isChallengeCompleted returns false for uncompleted challenges', () => {
+      expect(engine.isChallengeCompleted('scene-1-1-1')).toBe(false);
+    });
+
+    it('getCompletedChallenges returns empty array by default', () => {
+      expect(engine.getCompletedChallenges()).toEqual([]);
+    });
+
+    it('completed challenges persist across sessions', () => {
+      engine.markChallengeCompleted('scene-1-1-2');
+      // Create a new engine that reads from storage
+      const engine2 = new StoryEngine();
+      engine2.initialize(createTestActs());
+      engine2.resume();
+      expect(engine2.isChallengeCompleted('scene-1-1-2')).toBe(true);
+    });
+
+    it('multiple challenges can be tracked independently', () => {
+      engine.markChallengeCompleted('scene-1-1-1');
+      engine.markChallengeCompleted('scene-1-1-2');
+      engine.markChallengeCompleted('scene-1-1-3');
+      expect(engine.getCompletedChallenges()).toEqual(['scene-1-1-1', 'scene-1-1-2', 'scene-1-1-3']);
+      expect(engine.isChallengeCompleted('scene-1-1-2')).toBe(true);
+    });
+  });
 });

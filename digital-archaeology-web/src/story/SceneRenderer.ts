@@ -34,6 +34,8 @@ export interface SceneRenderContext {
   branchId?: string;
   /** Story 26.9: Branch label for display (e.g., "What if stack machines won?") */
   branchLabel?: string;
+  /** Story 26.10: Scene ID of the most recently completed challenge (for post-lab acknowledgment) */
+  lastCompletedChallenge?: string;
 }
 
 /**
@@ -211,6 +213,15 @@ export class SceneRenderer {
       branchBadge.setAttribute('aria-label', 'Alternate timeline');
       branchBadge.textContent = context.branchLabel ?? 'Alternate Timeline';
       this.sceneContainer.appendChild(branchBadge);
+    }
+
+    // Story 26.10: Show challenge acknowledgment for post-lab scenes
+    if (context.lastCompletedChallenge) {
+      const acknowledgment = document.createElement('div');
+      acknowledgment.className = 'da-scene-challenge-acknowledgment';
+      acknowledgment.setAttribute('role', 'status');
+      acknowledgment.textContent = 'Your work in the lab has been verified. The story continues\u2026';
+      this.sceneContainer.appendChild(acknowledgment);
     }
 
     // Render chapter header if first scene in chapter
@@ -517,9 +528,27 @@ export class SceneRenderer {
     this.sceneContainer!.appendChild(mount);
     builderScene.mount(mount);
     builderScene.setChallengeData(challenge);
+    // Story 26.10: Build ChallengeContext from builder data so the lab
+    // receives era/act context and shows the correct objectives sidebar.
     builderScene.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        this.callbacks.onEnterLab();
+        const scene = this.currentContext?.scene;
+        const builder = scene?.builderChallenge;
+        if (builder) {
+          const context: ChallengeContext = {
+            sceneId: scene!.id,
+            challengeData: {
+              title: builder.title,
+              objectives: builder.objectives,
+            },
+            simulatorType: 'counting-board',
+            era: this.currentContext?.act.era,
+            actTitle: this.currentContext?.act.title,
+          };
+          this.callbacks.onEnterLab(context);
+        } else {
+          this.callbacks.onEnterLab();
+        }
       }
     });
     builderScene.onComplete(() => {

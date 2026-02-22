@@ -1491,4 +1491,137 @@ describe('SceneRenderer', () => {
       expect(container.querySelector('.da-scene-branch-badge')).not.toBeNull();
     });
   });
+
+  // ===========================================================================
+  // Story 26.10: Challenge Acknowledgment and Builder ChallengeContext
+  // ===========================================================================
+
+  describe('Story 26.10: Challenge Acknowledgment', () => {
+    it('should render acknowledgment when lastCompletedChallenge is set', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+      });
+      renderer.renderScene(context, container);
+
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack).not.toBeNull();
+      expect(ack?.textContent).toContain('Your work in the lab has been verified');
+    });
+
+    it('should not render acknowledgment when lastCompletedChallenge is undefined', () => {
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack).toBeNull();
+    });
+
+    it('should have role=status for accessibility', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+      });
+      renderer.renderScene(context, container);
+
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack?.getAttribute('role')).toBe('status');
+    });
+
+    it('should render acknowledgment before chapter header', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        isFirstSceneInChapter: true,
+      });
+      renderer.renderScene(context, container);
+
+      const sceneContainer = container.querySelector('.da-scene-container');
+      const children = Array.from(sceneContainer?.children ?? []);
+      const ackIndex = children.findIndex(c => c.classList.contains('da-scene-challenge-acknowledgment'));
+      const headerIndex = children.findIndex(c => c.classList.contains('da-scene-chapter-header-mount'));
+      expect(ackIndex).toBeGreaterThanOrEqual(0);
+      expect(headerIndex).toBeGreaterThan(ackIndex);
+    });
+
+    it('should not render acknowledgment when lastCompletedChallenge is empty string', () => {
+      const context = createContext({
+        lastCompletedChallenge: '',
+      });
+      renderer.renderScene(context, container);
+
+      // Empty string is falsy — no acknowledgment should show
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack).toBeNull();
+    });
+
+    it('should coexist with branch badge', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        branchId: 'branch-test',
+        branchLabel: 'Alt Path',
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-challenge-acknowledgment')).not.toBeNull();
+      expect(container.querySelector('.da-scene-branch-badge')).not.toBeNull();
+    });
+  });
+
+  describe('Story 26.10: Builder scene ChallengeContext', () => {
+    it('should pass ChallengeContext when builder scene Enter Lab is clicked', () => {
+      const enterLabSpy = vi.fn();
+      renderer.setCallbacks({ onEnterLab: enterLabSpy });
+
+      const context = createContext({
+        scene: createMockScene({
+          type: 'builder',
+          builderChallenge: {
+            title: 'Build Registers',
+            description: 'Implement register file',
+            objectives: [
+              { id: 'obj-1', text: 'Create registers', completed: false },
+            ],
+          },
+        }),
+        act: createMockAct({ era: '1974', title: 'The 8-bit Era' }),
+      });
+      renderer.renderScene(context, container);
+
+      // Find and click the Enter Lab button (EnterLabButton renders with class da-enter-lab-button)
+      const labBtn = container.querySelector('.da-enter-lab-button');
+      expect(labBtn).not.toBeNull();
+      (labBtn as HTMLElement)?.click();
+
+      expect(enterLabSpy).toHaveBeenCalledTimes(1);
+      const passedContext = enterLabSpy.mock.calls[0][0];
+      expect(passedContext).toBeDefined();
+      expect(passedContext.sceneId).toBe('scene-1-1-1');
+      expect(passedContext.challengeData.title).toBe('Build Registers');
+      expect(passedContext.era).toBe('1974');
+      expect(passedContext.actTitle).toBe('The 8-bit Era');
+    });
+
+    it('should call onEnterLab without context when no builderChallenge data', () => {
+      const enterLabSpy = vi.fn();
+      renderer.setCallbacks({ onEnterLab: enterLabSpy });
+
+      // builder type but no builderChallenge data — falls through to no-context call
+      const context = createContext({
+        scene: createMockScene({
+          type: 'builder',
+          builderChallenge: {
+            title: 'Empty',
+            description: 'Test',
+            objectives: [],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const labBtn = container.querySelector('.da-enter-lab-button');
+      if (labBtn) {
+        (labBtn as HTMLElement).click();
+        // Should still have called with context since builderChallenge exists
+        expect(enterLabSpy).toHaveBeenCalled();
+      }
+    });
+  });
 });

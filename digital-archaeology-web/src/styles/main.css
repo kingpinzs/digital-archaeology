@@ -9722,6 +9722,7 @@ body.da-resizing * {
 /* --- Node Base --- */
 
 .da-journey-map__node {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9958,6 +9959,126 @@ body.da-resizing * {
 
 .da-journey-map__panel--hidden {
   display: none;
+}
+
+/* Story 26.6: Golden Path label */
+.da-journey-map__golden-path-label {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--persona-gold, #d4a574);
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+/* Story 26.6: Timeline preview tooltip */
+.da-journey-map__preview {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  min-width: 220px;
+  max-width: 300px;
+  background: var(--da-bg-secondary, #252542);
+  border: 1px solid var(--persona-gold, #d4a574);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  font-size: 0.8rem;
+}
+
+.da-journey-map__preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(212, 165, 116, 0.3);
+}
+
+.da-journey-map__preview-title {
+  font-weight: 700;
+  color: var(--da-text-primary, #e0e0e0);
+  font-size: 0.8rem;
+}
+
+.da-journey-map__preview-go {
+  background: none;
+  border: 1px solid var(--persona-gold, #d4a574);
+  border-radius: 4px;
+  color: var(--persona-gold, #d4a574);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.da-journey-map__preview-go:hover {
+  background: rgba(212, 165, 116, 0.15);
+}
+
+.da-journey-map__preview-chapter {
+  margin-bottom: 6px;
+}
+
+.da-journey-map__preview-chapter-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--da-text-secondary, #a0a0b0);
+  margin-bottom: 3px;
+}
+
+.da-journey-map__preview-scenes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.da-journey-map__preview-scene {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: var(--da-text-primary, #e0e0e0);
+  font-size: 0.72rem;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.da-journey-map__preview-scene:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.da-journey-map__preview-scene--current {
+  color: var(--da-accent, #00b4d8);
+  font-weight: 700;
+}
+
+.da-journey-map__preview-scene--visited {
+  opacity: 0.7;
+}
+
+.da-journey-map__preview-scene--branch {
+  color: var(--persona-gold, #d4a574);
+}
+
+.da-journey-map__preview-scene-icon {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.da-journey-map__preview-scene-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* =============================================================================

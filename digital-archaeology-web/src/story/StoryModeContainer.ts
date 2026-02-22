@@ -358,6 +358,18 @@ export class StoryModeContainer {
     const journeyData = this.journeyMapBuilder.build(currentActNumber);
     const collectibleProfile = this.collectibleStorage.getProfileOrDefault();
 
+    // Story 26.6: Gather scene-level data for timeline preview
+    const acts = this.storyController.getActs();
+    const progress = this.storyController.getProgress();
+    const engine = this.storyController.getEngine();
+    const visitedScenes = new Set<string>();
+    if (progress) {
+      for (const sceneId of engine.getSceneHistory()) {
+        visitedScenes.add(sceneId);
+      }
+      visitedScenes.add(progress.position.sceneId);
+    }
+
     this.journeyMap.show({
       journeyData,
       collectibleProfile,
@@ -377,6 +389,13 @@ export class StoryModeContainer {
       initialTab,
       highlightedLocationId,
       highlightedArtifactId,
+      // Story 26.6: Timeline preview data
+      storyActs: acts,
+      visitedScenes,
+      currentSceneId: progress?.position.sceneId,
+      onSceneNavigate: (sceneId: string) => {
+        this.navigateToScene(sceneId);
+      },
     });
   }
 

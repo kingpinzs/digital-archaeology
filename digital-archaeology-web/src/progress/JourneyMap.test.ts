@@ -569,4 +569,269 @@ describe('JourneyMap', () => {
     const nodes = container.querySelectorAll('.da-journey-map__node');
     expect(nodes).toHaveLength(11);
   });
+
+  // =========================================================================
+  // Story 26.6: Timeline Visualization Interface
+  // =========================================================================
+
+  describe('golden path label (Story 26.6)', () => {
+    it('should render "The Golden Path" label in timeline panel', () => {
+      const data = makeData(3, 3);
+      journeyMap.show(data, onNavigate);
+
+      const label = container.querySelector('.da-journey-map__golden-path-label');
+      expect(label).not.toBeNull();
+      expect(label?.textContent).toBe('The Golden Path');
+    });
+
+    it('should place golden path label before the timeline', () => {
+      const data = makeData(3, 3);
+      journeyMap.show(data, onNavigate);
+
+      const panel = container.querySelector('#da-journey-map-panel-timeline');
+      const label = panel?.querySelector('.da-journey-map__golden-path-label');
+      const timeline = panel?.querySelector('.da-journey-map__timeline');
+      // Label should come before timeline in DOM
+      expect(label).not.toBeNull();
+      expect(timeline).not.toBeNull();
+      const children = Array.from(panel?.children ?? []);
+      expect(children.indexOf(label!)).toBeLessThan(children.indexOf(timeline!));
+    });
+  });
+
+  describe('timeline hover preview (Story 26.6)', () => {
+    const mockActs = [
+      {
+        id: 'act-0', number: 0, title: 'Genesis', description: 'Desc',
+        era: '1940', cpuStage: 'mechanical' as const,
+        chapters: [
+          {
+            id: 'ch-0-1', number: 1, title: 'Dawn', subtitle: 'Sub', year: '1940',
+            scenes: [
+              { id: 'scene-0-1-1', type: 'narrative' as const, nextScene: 'scene-0-1-2' },
+              { id: 'scene-0-1-2', type: 'choice' as const },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'act-1', number: 1, title: 'Transistor', description: 'Desc',
+        era: '1950', cpuStage: 'mechanical' as const,
+        chapters: [
+          {
+            id: 'ch-1-1', number: 1, title: 'Revolution', subtitle: 'Sub', year: '1950',
+            scenes: [
+              { id: 'scene-1-1-1', type: 'narrative' as const },
+              { id: 'scene-1-1-2', type: 'dialogue' as const },
+              { id: 'scene-1-1-3', type: 'challenge' as const },
+            ],
+          },
+        ],
+      },
+    ];
+
+    function showWithPreviewData(
+      opts: { visitedScenes?: Set<string>; currentSceneId?: string; onSceneNavigate?: (id: string) => void } = {},
+    ) {
+      journeyMap.show({
+        journeyData: makeData(1, 1), // Act 0 completed, Act 1 current
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        storyActs: mockActs,
+        visitedScenes: opts.visitedScenes,
+        currentSceneId: opts.currentSceneId,
+        onSceneNavigate: opts.onSceneNavigate,
+      });
+    }
+
+    it('should show preview tooltip when clicking a completed node with storyActs', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const preview = container.querySelector('.da-journey-map__preview');
+      expect(preview).not.toBeNull();
+    });
+
+    it('should show act title in preview header', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const title = container.querySelector('.da-journey-map__preview-title');
+      expect(title?.textContent).toBe('Act 0: Genesis');
+    });
+
+    it('should show "Go →" button in preview', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const goBtn = container.querySelector('.da-journey-map__preview-go');
+      expect(goBtn).not.toBeNull();
+      expect(goBtn?.textContent).toBe('Go \u2192');
+    });
+
+    it('should show chapter titles in preview', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const chapterTitle = container.querySelector('.da-journey-map__preview-chapter-title');
+      expect(chapterTitle?.textContent).toBe('Ch 1: Dawn');
+    });
+
+    it('should show scene buttons in preview', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const scenes = container.querySelectorAll('.da-journey-map__preview-scene');
+      expect(scenes).toHaveLength(2); // 2 scenes in act 0
+    });
+
+    it('should format scene types correctly', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const labels = container.querySelectorAll('.da-journey-map__preview-scene-label');
+      expect(labels[0]?.textContent).toBe('Story');       // narrative → Story
+      expect(labels[1]?.textContent).toBe('Branch Point'); // choice → Branch Point
+    });
+
+    it('should mark choice scenes as branch points', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const branchScenes = container.querySelectorAll('.da-journey-map__preview-scene--branch');
+      expect(branchScenes).toHaveLength(1); // Only the choice scene
+    });
+
+    it('should mark visited scenes', () => {
+      showWithPreviewData({
+        visitedScenes: new Set(['scene-0-1-1']),
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const visitedScenes = container.querySelectorAll('.da-journey-map__preview-scene--visited');
+      expect(visitedScenes).toHaveLength(1);
+    });
+
+    it('should mark current scene', () => {
+      showWithPreviewData({
+        currentSceneId: 'scene-0-1-2',
+      });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const currentScenes = container.querySelectorAll('.da-journey-map__preview-scene--current');
+      expect(currentScenes).toHaveLength(1);
+    });
+
+    it('should call onSceneNavigate when a scene is clicked in preview', () => {
+      const onSceneNavigate = vi.fn();
+      showWithPreviewData({ onSceneNavigate });
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const scenes = container.querySelectorAll('.da-journey-map__preview-scene');
+      (scenes[0] as HTMLElement).click();
+
+      expect(onSceneNavigate).toHaveBeenCalledWith('scene-0-1-1');
+    });
+
+    it('should dismiss preview and navigate on second click of same node', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click(); // First click → show preview
+      expect(container.querySelector('.da-journey-map__preview')).not.toBeNull();
+
+      node0.click(); // Second click → navigate
+      expect(onNavigate).toHaveBeenCalledWith(0);
+    });
+
+    it('should dismiss preview when clicking timeline background', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+      expect(container.querySelector('.da-journey-map__preview')).not.toBeNull();
+
+      // Click the timeline container itself
+      const timeline = container.querySelector('.da-journey-map__timeline') as HTMLElement;
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: timeline });
+      timeline.dispatchEvent(event);
+
+      expect(container.querySelector('.da-journey-map__preview')).toBeNull();
+    });
+
+    it('should replace old preview when clicking a different node', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+      expect(container.querySelector('.da-journey-map__preview-title')?.textContent).toBe('Act 0: Genesis');
+
+      const node1 = container.querySelector('[data-act-number="1"]') as HTMLElement;
+      node1.click();
+      expect(container.querySelector('.da-journey-map__preview-title')?.textContent).toBe('Act 1: Transistor');
+
+      // Only one preview should exist
+      expect(container.querySelectorAll('.da-journey-map__preview')).toHaveLength(1);
+    });
+
+    it('should navigate via Go button in preview', () => {
+      showWithPreviewData();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const goBtn = container.querySelector('.da-journey-map__preview-go') as HTMLElement;
+      goBtn.click();
+
+      expect(onNavigate).toHaveBeenCalledWith(0);
+    });
+
+    it('should fall back to onNavigate when no storyActs provided', () => {
+      // Old-style call without storyActs
+      journeyMap.show(makeData(3, 3), onNavigate);
+
+      const node1 = container.querySelector('[data-act-number="1"]') as HTMLElement;
+      node1.click();
+
+      expect(onNavigate).toHaveBeenCalledWith(1);
+    });
+
+    it('should fall back to onNavigate for scenes when onSceneNavigate not provided', () => {
+      showWithPreviewData(); // No onSceneNavigate
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const scenes = container.querySelectorAll('.da-journey-map__preview-scene');
+      (scenes[0] as HTMLElement).click();
+
+      // Should fall back to act-level navigate
+      expect(onNavigate).toHaveBeenCalledWith(0);
+    });
+  });
 });

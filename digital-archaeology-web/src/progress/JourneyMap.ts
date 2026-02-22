@@ -8,6 +8,7 @@ import type { CollectibleProfile } from './collectible-types';
 import { DEFAULT_COLLECTIBLE_PROFILE } from './collectible-types';
 import { WorldMapView } from './WorldMapView';
 import { ArtifactGallery } from './ArtifactGallery';
+import type { StoryAct } from '@story/content-types';
 
 /** Exit animation duration in milliseconds */
 const EXIT_DURATION_MS = 300;
@@ -29,6 +30,14 @@ export interface JourneyMapShowOptions {
   initialTab?: JourneyMapTab;
   highlightedLocationId?: string;
   highlightedArtifactId?: string;
+  /** Story 26.6: Story acts for timeline hover preview */
+  storyActs?: StoryAct[];
+  /** Story 26.6: Visited scenes for preview indicators */
+  visitedScenes?: Set<string>;
+  /** Story 26.6: Current scene ID for preview highlighting */
+  currentSceneId?: string;
+  /** Story 26.6: Navigate to a specific scene */
+  onSceneNavigate?: (sceneId: string) => void;
 }
 
 /**
@@ -44,6 +53,13 @@ export class JourneyMap {
   private exitTimeout: ReturnType<typeof setTimeout> | null = null;
   private previouslyFocusedElement: Element | null = null;
   private onNavigate: ((actNumber: number) => void) | null = null;
+
+  // Story 26.6: Timeline preview data
+  private storyActs: StoryAct[] | null = null;
+  private visitedScenes: Set<string> | null = null;
+  private currentSceneId: string | null = null;
+  private onSceneNavigate: ((sceneId: string) => void) | null = null;
+  private activePreview: HTMLElement | null = null;
 
   // Tab state
   private activeTab: JourneyMapTab = 'timeline';
@@ -102,6 +118,12 @@ export class JourneyMap {
     this.previouslyFocusedElement = document.activeElement;
     this.onNavigate = options.onNavigate;
     this.activeTab = options.initialTab ?? 'timeline';
+
+    // Story 26.6: Store preview data for timeline hover
+    this.storyActs = options.storyActs ?? null;
+    this.visitedScenes = options.visitedScenes ?? null;
+    this.currentSceneId = options.currentSceneId ?? null;
+    this.onSceneNavigate = options.onSceneNavigate ?? null;
 
     // Clean up any existing overlay
     this.removeOverlay();
@@ -236,11 +258,16 @@ export class JourneyMap {
       clearTimeout(this.exitTimeout);
       this.exitTimeout = null;
     }
+    this.dismissPreview();
     this.destroyChildComponents();
     this.removeOverlay();
     document.removeEventListener('keydown', this.boundHandleKeydown);
     this.container = null;
     this.onNavigate = null;
+    this.storyActs = null;
+    this.visitedScenes = null;
+    this.currentSceneId = null;
+    this.onSceneNavigate = null;
   }
 
   // =========================================================================
@@ -317,6 +344,12 @@ export class JourneyMap {
     panel.id = 'da-journey-map-panel-timeline';
     panel.setAttribute('role', 'tabpanel');
 
+    // Story 26.6: "Golden Path" label above the timeline
+    const pathLabel = document.createElement('div');
+    pathLabel.className = 'da-journey-map__golden-path-label';
+    pathLabel.textContent = 'The Golden Path';
+    panel.appendChild(pathLabel);
+
     const timeline = document.createElement('div');
     timeline.className = 'da-journey-map__timeline';
 
@@ -333,6 +366,11 @@ export class JourneyMap {
       const nodeEl = this.createNode(node);
       timeline.appendChild(nodeEl);
     }
+
+    // Story 26.6: Dismiss active preview when clicking timeline background
+    timeline.addEventListener('click', (e) => {
+      if (e.target === timeline) this.dismissPreview();
+    });
 
     panel.appendChild(timeline);
     return panel;
@@ -402,15 +440,15 @@ export class JourneyMap {
       el.setAttribute('role', 'button');
       el.setAttribute('tabindex', '0');
       el.setAttribute('aria-label', `Navigate to ${node.title} (${node.era})`);
-      el.addEventListener('click', () => {
-        this.onNavigate?.(node.actNumber);
-        this.hide();
+      // Story 26.6: Click toggles preview instead of immediately navigating
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.togglePreview(node, el);
       });
       el.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          this.onNavigate?.(node.actNumber);
-          this.hide();
+          this.togglePreview(node, el);
         }
       });
     } else {
@@ -445,6 +483,157 @@ export class JourneyMap {
     el.appendChild(eraEl);
 
     return el;
+  }
+
+  // =========================================================================
+  // Story 26.6: Timeline hover preview
+  // =========================================================================
+
+  /**
+   * Toggle the scene preview tooltip on a timeline node.
+   */
+  private togglePreview(node: JourneyNode, nodeEl: HTMLElement): void {
+    // If clicking the same node that has an active preview, dismiss and navigate
+    if (this.activePreview && nodeEl.contains(this.activePreview)) {
+      this.onNavigate?.(node.actNumber);
+      this.hide();
+      return;
+    }
+
+    this.dismissPreview();
+
+    const act = this.storyActs?.find(a => a.number === node.actNumber);
+    if (!act) {
+      // No story data — fall back to direct navigation
+      this.onNavigate?.(node.actNumber);
+      this.hide();
+      return;
+    }
+
+    const preview = this.createPreview(act);
+    nodeEl.appendChild(preview);
+    this.activePreview = preview;
+  }
+
+  /**
+   * Dismiss the active preview tooltip.
+   */
+  private dismissPreview(): void {
+    if (this.activePreview) {
+      this.activePreview.remove();
+      this.activePreview = null;
+    }
+  }
+
+  /**
+   * Create a preview tooltip showing chapters and scenes for an act.
+   */
+  private createPreview(act: StoryAct): HTMLElement {
+    const preview = document.createElement('div');
+    preview.className = 'da-journey-map__preview';
+    preview.setAttribute('role', 'dialog');
+
+    // "Go to Act" header with navigate button
+    const header = document.createElement('div');
+    header.className = 'da-journey-map__preview-header';
+
+    const headerTitle = document.createElement('span');
+    headerTitle.className = 'da-journey-map__preview-title';
+    headerTitle.textContent = `Act ${act.number}: ${act.title}`;
+
+    const goBtn = document.createElement('button');
+    goBtn.type = 'button';
+    goBtn.className = 'da-journey-map__preview-go';
+    goBtn.textContent = 'Go \u2192';
+    goBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.onNavigate?.(act.number);
+      this.hide();
+    });
+
+    header.appendChild(headerTitle);
+    header.appendChild(goBtn);
+    preview.appendChild(header);
+
+    // Scene type icons
+    const typeIcons: Record<string, string> = {
+      narrative: '\u{1F4D6}', // 📖
+      dialogue: '\u{1F4AC}',  // 💬
+      choice: '\u{2194}',     // ↔
+      challenge: '\u{1F3AF}', // 🎯
+      decision: '\u{2696}',   // ⚖
+      builder: '\u{1F527}',   // 🔧
+    };
+
+    // Chapters and scenes
+    for (const chapter of act.chapters) {
+      const chapterEl = document.createElement('div');
+      chapterEl.className = 'da-journey-map__preview-chapter';
+
+      const chapterTitle = document.createElement('div');
+      chapterTitle.className = 'da-journey-map__preview-chapter-title';
+      chapterTitle.textContent = `Ch ${chapter.number}: ${chapter.title}`;
+      chapterEl.appendChild(chapterTitle);
+
+      const sceneList = document.createElement('div');
+      sceneList.className = 'da-journey-map__preview-scenes';
+
+      for (const scene of chapter.scenes) {
+        const sceneEl = document.createElement('button');
+        sceneEl.type = 'button';
+        sceneEl.className = 'da-journey-map__preview-scene';
+
+        const isCurrent = this.currentSceneId === scene.id;
+        const isVisited = this.visitedScenes?.has(scene.id) ?? false;
+
+        if (isCurrent) sceneEl.classList.add('da-journey-map__preview-scene--current');
+        if (isVisited) sceneEl.classList.add('da-journey-map__preview-scene--visited');
+        if (scene.type === 'choice') sceneEl.classList.add('da-journey-map__preview-scene--branch');
+
+        const typeIcon = document.createElement('span');
+        typeIcon.className = 'da-journey-map__preview-scene-icon';
+        typeIcon.textContent = typeIcons[scene.type] ?? '\u25CB'; // ○
+
+        const sceneLabel = document.createElement('span');
+        sceneLabel.className = 'da-journey-map__preview-scene-label';
+        sceneLabel.textContent = this.formatSceneType(scene.type);
+
+        sceneEl.appendChild(typeIcon);
+        sceneEl.appendChild(sceneLabel);
+
+        sceneEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (this.onSceneNavigate) {
+            this.onSceneNavigate(scene.id);
+          } else {
+            this.onNavigate?.(act.number);
+          }
+          this.hide();
+        });
+
+        sceneList.appendChild(sceneEl);
+      }
+
+      chapterEl.appendChild(sceneList);
+      preview.appendChild(chapterEl);
+    }
+
+    return preview;
+  }
+
+  /**
+   * Format scene type for preview display.
+   */
+  private formatSceneType(type: string): string {
+    const typeMap: Record<string, string> = {
+      narrative: 'Story',
+      dialogue: 'Dialogue',
+      choice: 'Branch Point',
+      challenge: 'Challenge',
+      decision: 'Decision',
+      builder: 'Builder',
+    };
+    return typeMap[type] ?? type;
   }
 
   private createConnector(prev: JourneyNode, next: JourneyNode): HTMLElement {

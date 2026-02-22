@@ -11,6 +11,7 @@ import { StoryController } from './StoryController';
 import { StoryBrowser } from './StoryBrowser';
 import { StoryJournal } from './StoryJournal';
 import { ReplayPanel } from './ReplayPanel';
+import { ConnectionPanel } from './ConnectionPanel';
 import { JourneyMap } from '../progress/JourneyMap';
 import type { JourneyMapTab } from '../progress/JourneyMap';
 import { JourneyMapBuilder } from '../progress/JourneyMapBuilder';
@@ -70,6 +71,9 @@ export class StoryModeContainer {
 
   // Story 26.8: Replay panel
   private replayPanel: ReplayPanel | null = null;
+
+  // Story 26.14: "IT WORKS!" connection panel
+  private connectionPanel: ConnectionPanel | null = null;
 
   // Collectible locations & artifacts
   private collectibleStorage: CollectibleStorage | null = null;
@@ -196,6 +200,15 @@ export class StoryModeContainer {
       onReturnToPresent: () => {
         this.replayPanel?.close();
         this.storyController?.stopReplay();
+      },
+    });
+
+    // Story 26.14: Create ConnectionPanel for "IT WORKS!" moments
+    this.connectionPanel = new ConnectionPanel();
+    this.connectionPanel.mount(this.element);
+    this.connectionPanel.setCallbacks({
+      onNavigateToAct: (actNumber: number) => {
+        this.navigateToAct(actNumber);
       },
     });
 
@@ -667,6 +680,11 @@ export class StoryModeContainer {
    * Story 26.10: Accepts optional challengeSceneId for completion tracking.
    */
   advanceAfterChallenge(challengeSceneId?: string): void {
+    // Story 26.14: Look up "IT WORKS!" data from the completed scene BEFORE advancing
+    const itWorksData = challengeSceneId
+      ? this.findItWorksData(challengeSceneId)
+      : undefined;
+
     try {
       if (challengeSceneId) {
         this.storyController?.completeChallengeAndAdvance(challengeSceneId);
@@ -677,8 +695,14 @@ export class StoryModeContainer {
       console.warn('Cannot advance story after challenge:', error);
       return; // don't show banner if advance failed
     }
-    // Show completion acknowledgment after scene renders (AC #3)
-    this.showChallengeCompletionBanner();
+
+    // Story 26.14: Show "IT WORKS!" connections panel if the scene has connection data
+    if (itWorksData) {
+      this.connectionPanel?.show(itWorksData);
+    } else {
+      // Show completion acknowledgment after scene renders (AC #3)
+      this.showChallengeCompletionBanner();
+    }
   }
 
   /**
@@ -700,6 +724,35 @@ export class StoryModeContainer {
 
     // Remove after CSS animation completes
     banner.addEventListener('animationend', () => banner.remove());
+  }
+
+  /**
+   * Story 26.14: Look up "IT WORKS!" data from a scene by its ID.
+   * Searches all acts/chapters to find the scene and return its itWorks data.
+   */
+  private findItWorksData(sceneId: string): import('./content-types').ItWorksData | undefined {
+    if (!this.storyController) return undefined;
+    const acts = this.storyController.getActs();
+    for (const act of acts) {
+      for (const chapter of act.chapters) {
+        for (const scene of chapter.scenes) {
+          if (scene.id === sceneId && scene.itWorks) {
+            return scene.itWorks;
+          }
+        }
+      }
+      // Also search branch scenes (Story 26.9)
+      if (act.branches) {
+        for (const branch of act.branches) {
+          for (const scene of branch.scenes) {
+            if (scene.id === sceneId && scene.itWorks) {
+              return scene.itWorks;
+            }
+          }
+        }
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -738,6 +791,10 @@ export class StoryModeContainer {
     // Story 26.8: Destroy replay panel
     this.replayPanel?.destroy();
     this.replayPanel = null;
+
+    // Story 26.14: Destroy connection panel
+    this.connectionPanel?.destroy();
+    this.connectionPanel = null;
 
     // Story 19.4: Destroy journey map
     this.journeyMap?.destroy();

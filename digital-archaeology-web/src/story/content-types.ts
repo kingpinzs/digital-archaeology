@@ -89,6 +89,42 @@ export interface StoryScene {
   transition?: SceneTransitionData;
   /** ID of the next scene (for linear progression) */
   nextScene?: string;
+  /** Story 26.14: "IT WORKS!" connection data shown after challenge completion */
+  itWorks?: ItWorksData;
+}
+
+/**
+ * Story 26.14: Type of connection link shown after an "IT WORKS!" moment.
+ * - idea: connects to a related concept or topic
+ * - thinker: connects to a historical figure who discovered something similar
+ * - future: connects to a future technology this enables
+ * - next-step: suggests what to try or explore next
+ */
+export type ConnectionLinkType = 'idea' | 'thinker' | 'future' | 'next-step';
+
+/**
+ * Story 26.14: A single connection link within the "IT WORKS!" panel.
+ * Represents one thread in the web of knowledge.
+ */
+export interface ConnectionLink {
+  /** Type of connection (determines icon and section grouping) */
+  type: ConnectionLinkType;
+  /** Human-readable connection text */
+  text: string;
+  /** Optional act number for "explore this topic" navigation */
+  targetActNumber?: number;
+}
+
+/**
+ * Story 26.14: Data for the "IT WORKS!" connection panel.
+ * Shown after a successful discovery/challenge completion to connect
+ * the player's achievement to the broader web of computing knowledge.
+ */
+export interface ItWorksData {
+  /** Celebration headline (e.g., "IT WORKS! You built a working ALU!") */
+  headline: string;
+  /** Connection links to other ideas, thinkers, and future paths */
+  connections: ConnectionLink[];
 }
 
 /**

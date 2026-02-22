@@ -91,3 +91,7 @@ export type { PortalMode } from './TimeTravelPortal';
 export { ReplayPanel } from './ReplayPanel';
 export type { ReplayPanelCallbacks, ReplayPanelData } from './ReplayPanel';
 export type { TimelineEntry } from './StoryState';
+
+// Story 26.14: "IT WORKS!" Connection System
+export { ConnectionPanel } from './ConnectionPanel';
+export type { ConnectionPanelCallbacks } from './ConnectionPanel';

@@ -9425,6 +9425,151 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   "IT WORKS!" Connection Panel (Story 26.14)
+   ============================================================================= */
+
+.da-connection-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--da-z-modal, 1001);
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+
+.da-connection-panel--entering {
+  opacity: 0;
+}
+
+.da-connection-panel--exiting {
+  opacity: 0;
+}
+
+.da-connection-panel--exiting .da-connection-panel__card {
+  transform: scale(0.95);
+}
+
+.da-connection-panel__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: var(--da-z-modal-backdrop, 1000);
+}
+
+.da-connection-panel__card {
+  position: relative;
+  z-index: var(--da-z-modal, 1001);
+  max-width: 520px;
+  width: 90%;
+  padding: 28px 32px;
+  background: var(--da-bg-primary);
+  border: 1px solid var(--da-border);
+  border-radius: 12px;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--da-accent);
+  transform: scale(1);
+  transition: transform 400ms ease-out;
+}
+
+.da-connection-panel__headline {
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--da-accent);
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+.da-connection-panel__links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.da-connection-panel__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--da-bg-secondary, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--da-border);
+  border-radius: 8px;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.da-connection-panel__link--navigable {
+  cursor: pointer;
+}
+
+.da-connection-panel__link--navigable:hover {
+  background: rgba(var(--da-accent-rgb, 255 193 7), 0.08);
+  border-color: var(--da-accent);
+}
+
+.da-connection-panel__link--navigable:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+.da-connection-panel__link-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.da-connection-panel__link-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.da-connection-panel__link-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--da-text-secondary);
+}
+
+.da-connection-panel__link-text {
+  font-size: 0.9rem;
+  color: var(--da-text-primary);
+  line-height: 1.4;
+}
+
+.da-connection-panel__continue {
+  display: block;
+  width: 100%;
+  padding: 10px 32px;
+  background: var(--da-accent);
+  color: var(--da-bg-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.da-connection-panel__continue:hover {
+  opacity: 0.9;
+}
+
+.da-connection-panel__continue:focus {
+  outline: 2px solid var(--da-accent);
+  outline-offset: 2px;
+}
+
+/* =============================================================================
    Achievement Toast Notification (Story 19.3)
    ============================================================================= */
 

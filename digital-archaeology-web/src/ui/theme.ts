@@ -48,7 +48,7 @@ export function setTheme(mode: ThemeMode): void {
 
 /**
  * Get the current theme from localStorage or HTML class.
- * Falls back to 'lab' if no theme is set.
+ * Falls back to 'story' if no theme is set (Story 26.1: first-time users land in Story Mode).
  *
  * @returns The current theme mode
  */
@@ -73,8 +73,8 @@ export function getTheme(): ThemeMode {
     return 'story';
   }
 
-  // Default to lab mode
-  return 'lab';
+  // Default to story mode — first-time users land in the narrative (Story 26.1)
+  return 'story';
 }
 
 /**

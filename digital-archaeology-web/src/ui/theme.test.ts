@@ -69,8 +69,8 @@ describe('Theme System', () => {
   });
 
   describe('getTheme', () => {
-    it('should return lab as default when no theme is set', () => {
-      expect(getTheme()).toBe('lab');
+    it('should return story as default when no theme is set (Story 26.1)', () => {
+      expect(getTheme()).toBe('story');
     });
 
     it('should return theme from localStorage', () => {
@@ -89,11 +89,11 @@ describe('Theme System', () => {
       expect(getTheme()).toBe('story');
     });
 
-    it('should fallback to lab when localStorage throws', () => {
+    it('should fallback to story when localStorage throws (Story 26.1)', () => {
       localStorageMock.getItem.mockImplementationOnce(() => {
         throw new Error('SecurityError');
       });
-      expect(getTheme()).toBe('lab');
+      expect(getTheme()).toBe('story');
     });
 
     it('should detect story-mode from HTML class', () => {
@@ -133,11 +133,11 @@ describe('Theme System', () => {
       expect(document.documentElement.classList.contains('story-mode')).toBe(true);
     });
 
-    it('should initialize with lab mode when no preference stored', () => {
+    it('should initialize with story mode when no preference stored (Story 26.1)', () => {
       localStorageMock.getItem.mockReturnValueOnce(null);
       const result = initTheme();
-      expect(result).toBe('lab');
-      expect(document.documentElement.classList.contains('lab-mode')).toBe(true);
+      expect(result).toBe('story');
+      expect(document.documentElement.classList.contains('story-mode')).toBe(true);
     });
 
     it('should apply theme class to html element', () => {

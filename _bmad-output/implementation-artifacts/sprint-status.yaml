@@ -360,8 +360,8 @@ development_status:
   epic-25-retrospective: optional
 
   # Epic 26: Core Game Experience
-  epic-26: backlog
-  26-1-first-launch-story-mode-entry: backlog
+  epic-26: in-progress
+  26-1-first-launch-story-mode-entry: ready-for-dev
   26-2-story-driven-lab-entry: backlog
   26-3-cumulative-lab-state-persistence: backlog
   26-4-production-ready-completion-standard: backlog

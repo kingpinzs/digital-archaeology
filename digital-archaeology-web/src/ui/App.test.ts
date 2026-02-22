@@ -4975,9 +4975,9 @@ describe('App', () => {
       expect(labBtn).not.toBeNull();
     });
 
-    it('should default to lab mode', () => {
+    it('should default to story mode for first-time users (Story 26.1)', () => {
       const currentMode = app.getCurrentMode();
-      expect(currentMode).toBe('lab');
+      expect(currentMode).toBe('story');
     });
 
     it('should switch to story mode when story button clicked', () => {
@@ -5004,22 +5004,14 @@ describe('App', () => {
       expect(labContainer?.classList.contains('da-mode-container--hidden')).toBe(true);
     });
 
-    it('should show story mode container when in story mode', () => {
-      // Verify story container starts hidden (initial state is lab mode)
-      let storyContainer = container.querySelector('.da-story-mode-container');
+    it('should show story mode container when in story mode (Story 26.1: default is story)', () => {
+      // Default is now story mode (Story 26.1), so story container starts visible
+      const storyContainer = container.querySelector('.da-story-mode-container');
       expect(storyContainer).not.toBeNull();
-      expect(storyContainer?.classList.contains('da-story-mode-container--hidden')).toBe(true);
-
-      // Switch to story mode
-      const storyBtn = container.querySelector('[data-mode="story"]') as HTMLButtonElement;
-      storyBtn.click();
-
-      // Verify mode was switched
-      expect(app.getCurrentMode()).toBe('story');
-
-      // Verify story container is now visible (hidden class removed)
-      storyContainer = container.querySelector('.da-story-mode-container');
       expect(storyContainer?.classList.contains('da-story-mode-container--hidden')).toBe(false);
+
+      // Verify mode is story
+      expect(app.getCurrentMode()).toBe('story');
     });
 
     it('should show lab mode container when switching back to lab mode', () => {
@@ -5035,9 +5027,9 @@ describe('App', () => {
       expect(labContainer?.classList.contains('da-mode-container--hidden')).toBe(false);
     });
 
-    it('should toggle mode with Ctrl+Shift+M keyboard shortcut', () => {
-      // Verify initial state is lab
-      expect(app.getCurrentMode()).toBe('lab');
+    it('should toggle mode with Ctrl+Shift+M keyboard shortcut (Story 26.1: default is story)', () => {
+      // Verify initial state is story (Story 26.1)
+      expect(app.getCurrentMode()).toBe('story');
 
       const event = new KeyboardEvent('keydown', {
         key: 'M',
@@ -5047,7 +5039,7 @@ describe('App', () => {
       });
       window.dispatchEvent(event);
 
-      expect(app.getCurrentMode()).toBe('story');
+      expect(app.getCurrentMode()).toBe('lab');
     });
 
     it('should toggle back to lab mode with Ctrl+Shift+M', () => {
@@ -5067,7 +5059,8 @@ describe('App', () => {
       expect(app.getCurrentMode()).toBe('lab');
     });
 
-    it('should update MenuBar toggle state when keyboard shortcut used', () => {
+    it('should update MenuBar toggle state when keyboard shortcut used (Story 26.1: default is story)', () => {
+      // Default is story, so toggling goes to lab
       const event = new KeyboardEvent('keydown', {
         key: 'M',
         ctrlKey: true,
@@ -5076,15 +5069,15 @@ describe('App', () => {
       });
       window.dispatchEvent(event);
 
-      // Verify the Story button is now active in the MenuBar
-      const storyBtn = container.querySelector('[data-mode="story"]');
-      expect(storyBtn?.classList.contains('da-menubar-toggle-btn--active')).toBe(true);
+      // Verify the Lab button is now active in the MenuBar
+      const labBtn = container.querySelector('[data-mode="lab"]');
+      expect(labBtn?.classList.contains('da-menubar-toggle-btn--active')).toBe(true);
     });
 
-    it('should not affect mode after app is destroyed', () => {
-      // Get initial mode
+    it('should not affect mode after app is destroyed (Story 26.1: default is story)', () => {
+      // Get initial mode — now defaults to story (Story 26.1)
       const initialMode = app.getCurrentMode();
-      expect(initialMode).toBe('lab');
+      expect(initialMode).toBe('story');
 
       // Destroy app - this removes the keyboard listener
       app.destroy();
@@ -5099,7 +5092,7 @@ describe('App', () => {
       window.dispatchEvent(event);
 
       // Mode should still be what it was (the property doesn't reset on destroy)
-      expect(app.getCurrentMode()).toBe('lab');
+      expect(app.getCurrentMode()).toBe('story');
     });
   });
 
@@ -9870,8 +9863,8 @@ describe('App', () => {
     it('should set URL hash on mount when no hash present (backward compat)', () => {
       window.location.hash = '';
       app.mount(container);
-      // Should set default hash via replaceState
-      expect(window.location.hash).toBe('#/lab/micro4');
+      // Should set default hash via replaceState — defaults to story mode (Story 26.1)
+      expect(window.location.hash).toBe('#/story');
     });
 
     it('should read mode from URL hash on mount', () => {

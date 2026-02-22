@@ -111,7 +111,7 @@ export class App {
   private toolbar: Toolbar | null = null;
   private menuBar: MenuBar | null = null;
   private statusBar: StatusBar | null = null;
-  private currentMode: ThemeMode = 'lab';
+  private currentMode: ThemeMode = 'story'; // Story 26.1: first-time users land in story mode
   private currentStage: LabStage = 'micro4';
   private unlockedStages: LabStage[] = ['micro4'];
 

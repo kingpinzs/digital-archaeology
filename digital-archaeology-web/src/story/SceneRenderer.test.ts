@@ -9,6 +9,15 @@ import type { SceneRenderContext } from './SceneRenderer';
 import type { StoryAct, StoryChapter, StoryScene } from './content-types';
 import { MindsetProvider } from './MindsetProvider';
 
+// Mock TimeTravelPortal so play() resolves immediately in tests
+vi.mock('./TimeTravelPortal', () => ({
+  TimeTravelPortal: class {
+    mount() {}
+    destroy() {}
+    play() { return Promise.resolve(); }
+  },
+}));
+
 describe('SceneRenderer', () => {
   let container: HTMLElement;
   let renderer: SceneRenderer;
@@ -919,7 +928,7 @@ describe('SceneRenderer', () => {
   });
 
   describe('transition scene rendering', () => {
-    it('should render ChapterTransitionPanel for chapter transition scenes', () => {
+    it('should render ChapterTransitionPanel for chapter transition scenes', async () => {
       const context = createContext({
         scene: createMockScene({
           type: 'transition',
@@ -937,6 +946,7 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
 
       expect(container.querySelector('.da-chapter-transition-panel')).not.toBeNull();
     });
@@ -977,7 +987,7 @@ describe('SceneRenderer', () => {
       expect(container.querySelector('.da-story-actions-footer')).toBeNull();
     });
 
-    it('should display era labels in chapter transition', () => {
+    it('should display era labels in chapter transition', async () => {
       const context = createContext({
         scene: createMockScene({
           type: 'transition',
@@ -991,6 +1001,7 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
 
       const outgoing = container.querySelector('.da-chapter-transition-era-outgoing');
       const incoming = container.querySelector('.da-chapter-transition-era-incoming');
@@ -998,7 +1009,7 @@ describe('SceneRenderer', () => {
       expect(incoming?.textContent).toContain('Egypt');
     });
 
-    it('should call onContinue callback when chapter transition continue is clicked', () => {
+    it('should call onContinue callback when chapter transition continue is clicked', async () => {
       const onContinue = vi.fn();
       renderer.setCallbacks({ onContinue });
 
@@ -1015,6 +1026,7 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
 
       const btn = container.querySelector('.da-chapter-transition-continue') as HTMLElement;
       btn?.click();
@@ -1022,7 +1034,7 @@ describe('SceneRenderer', () => {
       expect(onContinue).toHaveBeenCalled();
     });
 
-    it('should render PersonaTransitionPanel for act transition scenes', () => {
+    it('should render PersonaTransitionPanel for act transition scenes', async () => {
       const context = createContext({
         act: createMockAct({
           persona: {
@@ -1051,11 +1063,12 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
 
       expect(container.querySelector('.da-persona-transition-panel')).not.toBeNull();
     });
 
-    it('should call onContinue callback when act transition continue is clicked', () => {
+    it('should call onContinue callback when act transition continue is clicked', async () => {
       const onContinue = vi.fn();
       renderer.setCallbacks({ onContinue });
 
@@ -1073,6 +1086,7 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
 
       const btn = container.querySelector('.da-transition-continue') as HTMLElement;
       btn?.click();
@@ -1080,7 +1094,7 @@ describe('SceneRenderer', () => {
       expect(onContinue).toHaveBeenCalled();
     });
 
-    it('should clean up transition panels between renders', () => {
+    it('should clean up transition panels between renders', async () => {
       // First render a transition
       const context1 = createContext({
         scene: createMockScene({
@@ -1095,6 +1109,7 @@ describe('SceneRenderer', () => {
         }),
       });
       renderer.renderScene(context1, container);
+      await new Promise(r => setTimeout(r, 0)); // flush microtasks from portal.play()
       expect(container.querySelector('.da-chapter-transition-panel')).not.toBeNull();
 
       // Then render a normal scene

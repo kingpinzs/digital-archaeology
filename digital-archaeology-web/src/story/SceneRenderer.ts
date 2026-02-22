@@ -20,6 +20,7 @@ import { MindsetProvider } from './MindsetProvider';
 import { createEraFilter } from './AnachronismFilter';
 import { ChapterTransitionPanel } from './ChapterTransitionPanel';
 import { PersonaTransitionPanel } from './PersonaTransitionPanel';
+import { TimeTravelPortal } from './TimeTravelPortal';
 
 /**
  * Scene render context containing act and chapter information.
@@ -67,6 +68,9 @@ export class SceneRenderer {
 
   // Story 10.21: Anachronism filtering
   private filteringEnabled = false;
+
+  // Time travel portal for animated transitions
+  private portal: TimeTravelPortal | null = null;
 
   /**
    * Set callbacks for scene interactions.
@@ -463,13 +467,22 @@ export class SceneRenderer {
     mount.className = 'da-scene-transition-mount';
     this.container!.appendChild(mount);
 
-    if (transitionData.actTransition) {
-      // Epic act transition using PersonaTransitionPanel
-      this.renderActTransition(context, transitionData, mount);
-    } else {
-      // Lighter chapter transition
-      this.renderChapterTransition(transitionData, mount);
+    // Create portal if not yet mounted
+    if (!this.portal) {
+      this.portal = new TimeTravelPortal();
+      this.portal.mount(this.container!);
     }
+
+    const mode = transitionData.actTransition ? 'persona' : 'chapter';
+
+    // Play portal animation, then show panel
+    this.portal.play(mode).then(() => {
+      if (transitionData.actTransition) {
+        this.renderActTransition(context, transitionData, mount);
+      } else {
+        this.renderChapterTransition(transitionData, mount);
+      }
+    });
   }
 
   /**
@@ -627,10 +640,15 @@ export class SceneRenderer {
     this.activeComponents = [];
     this.footer = null;
 
-    // Clear container contents
+    // Clear container contents but preserve portal elements
     if (this.container) {
-      while (this.container.firstChild) {
-        this.container.removeChild(this.container.firstChild);
+      const children = Array.from(this.container.childNodes);
+      for (const child of children) {
+        const el = child as Element;
+        if (el.classList?.contains('da-portal-backdrop') || el.classList?.contains('da-portal-canvas')) {
+          continue; // preserve portal
+        }
+        this.container.removeChild(child);
       }
     }
     this.sceneContainer = null;
@@ -641,6 +659,8 @@ export class SceneRenderer {
    */
   destroy(): void {
     this.cleanup();
+    this.portal?.destroy();
+    this.portal = null;
     this.container = null;
     this.callbacks = {};
   }

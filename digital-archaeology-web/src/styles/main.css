@@ -3127,6 +3127,26 @@ body.da-resizing * {
   outline-offset: 2px;
 }
 
+/* Story 26.12: Return button in StoryNav */
+.da-story-nav-return {
+  padding: 4px 12px;
+  background: rgba(0, 180, 216, 0.15);
+  border: 1px solid var(--da-accent, #00b4d8);
+  border-radius: 4px;
+  color: var(--da-accent, #00b4d8);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.da-story-nav-return:hover {
+  background: rgba(0, 180, 216, 0.25);
+}
+
+.da-story-nav-return--hidden {
+  display: none;
+}
+
 /* =============================================================================
    YourRolePanel - Fixed Left Panel (220px, desktop only)
    ============================================================================= */
@@ -10317,6 +10337,197 @@ body.da-resizing * {
 
 .da-journey-map__era-detail-go:hover {
   opacity: 0.85;
+}
+
+/* =============================================================================
+   Story 26.11: Preview Figures, Inventions, and Era Detail View
+   ============================================================================= */
+
+.da-journey-map__preview-section-label {
+  font-size: 0.65rem;
+  color: rgba(212, 165, 116, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.da-journey-map__preview-figures {
+  padding: 4px 0;
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
+}
+
+.da-journey-map__preview-figures-list {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+.da-journey-map__preview-inventions {
+  padding: 4px 0;
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
+}
+
+.da-journey-map__preview-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.da-journey-map__preview-pill {
+  font-size: 0.6rem;
+  color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.12);
+  border-radius: 8px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.da-journey-map__preview-detail-btn {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 0;
+  background: none;
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  border-radius: 4px;
+  color: var(--persona-gold, #d4a574);
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.da-journey-map__preview-detail-btn:hover {
+  background: rgba(212, 165, 116, 0.1);
+  border-color: var(--persona-gold, #d4a574);
+}
+
+.da-journey-map__era-detail {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.da-journey-map__era-detail-back {
+  background: none;
+  border: none;
+  color: var(--persona-gold, #d4a574);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 16px;
+}
+
+.da-journey-map__era-detail-back:hover {
+  text-decoration: underline;
+}
+
+.da-journey-map__era-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.da-journey-map__era-detail-icon {
+  font-size: 2rem;
+}
+
+.da-journey-map__era-detail-title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--persona-gold, #d4a574);
+  font-family: 'Crimson Text', serif;
+}
+
+.da-journey-map__era-detail-era {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.da-journey-map__era-detail-section {
+  margin-bottom: 20px;
+}
+
+.da-journey-map__era-detail-section-title {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: rgba(212, 165, 116, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.da-journey-map__era-detail-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.da-journey-map__era-detail-figure {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(212, 165, 116, 0.08);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.da-journey-map__era-detail-inventions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.da-journey-map__era-detail-invention {
+  font-size: 0.85rem;
+  color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.da-journey-map__era-detail-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.da-journey-map__era-detail-branch {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+
+/* Story 26.12: Navigable branch in era detail */
+.da-journey-map__era-detail-branch--navigable {
+  cursor: pointer;
+  border-color: var(--da-accent, #00b4d8);
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-journey-map__era-detail-branch--navigable:hover {
+  background: rgba(0, 180, 216, 0.1);
+}
+
+.da-journey-map__era-detail-go {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 8px 24px;
+  background: var(--persona-gold, #d4a574);
+  border: none;
+  border-radius: 6px;
+  color: #0a0a12;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.da-journey-map__era-detail-go:hover {
+  filter: brightness(1.1);
 }
 
 /* =============================================================================

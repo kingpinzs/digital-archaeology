@@ -55,6 +55,42 @@ const ACT_CPU_STAGES: readonly [string, string, string, string, string, string, 
 ];
 
 /**
+ * Story 26.11: Key historical figures per act (0-10).
+ * These appear in the era detail view on the journey map timeline.
+ */
+const ACT_KEY_FIGURES: readonly (readonly string[])[] = [
+  /* Act 0 */ ['Thales of Miletus', 'Aristotle', 'Al-Khwarizmi', 'Pascal', 'Leibniz', 'Babbage', 'Ada Lovelace'],
+  /* Act 1 */ ['George Boole', 'Herman Hollerith', 'Konrad Zuse', 'Alan Turing', 'Claude Shannon'],
+  /* Act 2 */ ['John von Neumann', 'Grace Hopper', 'J. Presper Eckert', 'John Mauchly', 'Maurice Wilkes'],
+  /* Act 3 */ ['William Shockley', 'John Bardeen', 'Walter Brattain', 'Jack Kilby', 'Robert Noyce'],
+  /* Act 4 */ ['Ted Hoff', 'Federico Faggin', 'Stan Mazor', 'Masatoshi Shima'],
+  /* Act 5 */ ['Chuck Peddle', 'Steve Wozniak', 'Bill Gates', 'Gary Kildall'],
+  /* Act 6 */ ['Gordon Moore', 'Andy Grove', 'Bill Joy', 'Richard Stallman'],
+  /* Act 7 */ ['David Patterson', 'John Hennessy', 'Linus Torvalds', 'Tim Berners-Lee'],
+  /* Act 8 */ ['Jim Smith', 'Gurindar Sohi', 'Yale Patt'],
+  /* Act 9 */ ['Jim Keller', 'Sophie Wilson', 'Steve Furber'],
+  /* Act 10 */ ['John Preskill', 'Jensen Huang', 'Lisa Su'],
+];
+
+/**
+ * Story 26.11: Key inventions/technologies per act (0-10).
+ * These appear as pill badges in the era detail view.
+ */
+const ACT_KEY_INVENTIONS: readonly (readonly string[])[] = [
+  /* Act 0 */ ['Abacus', 'Boolean Logic', 'Pascaline', 'Stepped Reckoner', 'Analytical Engine'],
+  /* Act 1 */ ['Tabulating Machine', 'Z3 Computer', 'Turing Machine', 'Information Theory'],
+  /* Act 2 */ ['ENIAC', 'EDVAC', 'Stored Program', 'Assembly Language', 'UNIVAC'],
+  /* Act 3 */ ['Transistor', 'Integrated Circuit', 'Silicon Planar Process'],
+  /* Act 4 */ ['Intel 4004', 'Microprocessor', 'Calculator Chip'],
+  /* Act 5 */ ['MOS 6502', 'Apple II', 'CP/M', 'Altair 8800'],
+  /* Act 6 */ ['Intel 8086', 'IBM PC', 'Motorola 68000', 'Protected Mode'],
+  /* Act 7 */ ['RISC Architecture', 'Virtual Memory', 'Cache Hierarchy', 'Linux Kernel'],
+  /* Act 8 */ ['Instruction Pipeline', 'Branch Prediction', 'Out-of-Order Execution'],
+  /* Act 9 */ ['Superscalar Design', 'ARM Architecture', 'Multi-core Processors'],
+  /* Act 10 */ ['Quantum Computing', 'Neural Processing', 'Chiplet Architecture'],
+];
+
+/**
  * Builds JourneyMapData from act completion state.
  * Pure data builder — reads ActCompletionStorage and maps to JourneyNode array.
  */

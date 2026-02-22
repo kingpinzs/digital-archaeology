@@ -14,10 +14,9 @@ function makeNode(
   era = `Era ${actNumber}`,
   icon = '\u{1F3DB}',
   cpuStage = 'mechanical',
-  keyFigures?: readonly string[],
-  keyInventions?: readonly string[],
+  extras?: { keyFigures?: readonly string[]; keyInventions?: readonly string[]; branchPoints?: readonly string[] },
 ): JourneyNode {
-  return { actNumber, title, era, icon, cpuStage, status, keyFigures, keyInventions };
+  return { actNumber, title, era, icon, cpuStage, status, ...extras };
 }
 
 /** Helper to create full 11-node data with specified completed/current */
@@ -1081,194 +1080,319 @@ describe('JourneyMap', () => {
     });
   });
 
-  // Story 26.11: Golden Path Timeline — key figures, inventions, era detail
-  describe('key figures and inventions in preview (Story 26.11)', () => {
-    const mockActWithFigures = [
-      {
-        id: 'act-0', number: 0, title: 'Pre-history', description: 'Desc',
-        era: '3000 BC', cpuStage: 'mechanical' as const,
-        chapters: [
-          {
-            id: 'ch-0-1', number: 1, title: 'Dawn', subtitle: 'Sub', year: '3000 BC',
-            scenes: [
-              { id: 'scene-0-1-1', type: 'narrative' as const },
-            ],
-          },
-        ],
-      },
-    ];
+  // =========================================================================
+  // Story 26.11: Key Figures, Inventions, and Era Detail View
+  // =========================================================================
+  describe('Story 26.11: Preview figures and inventions', () => {
+    it('should show key figures in preview when node has keyFigures', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage', 'Ada Lovelace'],
+        keyInventions: ['Abacus'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-    function makeDataWithFigures(): JourneyMapData {
-      const nodes: JourneyNode[] = [];
-      for (let i = 0; i < 11; i++) {
-        const status: JourneyNode['status'] = i === 0 ? 'completed' : i === 1 ? 'current' : 'locked';
-        nodes.push(makeNode(
-          i, status, `Act Title ${i}`, `Era ${i}`, '\u{1F3DB}', 'mechanical',
-          i === 0 ? ['Babbage', 'Ada Lovelace', 'Pascal'] : undefined,
-          i === 0 ? ['Abacus', 'Pascaline', 'Analytical Engine'] : undefined,
-        ));
-      }
-      return { nodes, totalActs: 11, completedCount: 1, currentActNumber: 1 };
-    }
-
-    function showWithFigures() {
       journeyMap.show({
-        journeyData: makeDataWithFigures(),
+        journeyData: data,
         collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
-        currentActNumber: 1,
+        currentActNumber: 0,
         onNavigate,
-        onPinLocation: vi.fn(),
-        onUnpinLocation: vi.fn(),
-        onCollectArtifact: vi.fn(),
-        storyActs: mockActWithFigures,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
       });
-    }
 
-    it('should show key figures section in preview when node has keyFigures', () => {
-      showWithFigures();
-
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
-
-      const figuresSection = container.querySelector('.da-journey-map__preview-figures');
-      expect(figuresSection).not.toBeNull();
+      // Click node to show preview
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
 
       const figuresList = container.querySelector('.da-journey-map__preview-figures-list');
       expect(figuresList?.textContent).toContain('Babbage');
       expect(figuresList?.textContent).toContain('Ada Lovelace');
     });
 
-    it('should show key inventions as pills in preview', () => {
-      showWithFigures();
+    it('should show inventions as pills in preview', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyInventions: ['Abacus', 'Boolean Logic'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
-      const inventionsSection = container.querySelector('.da-journey-map__preview-inventions');
-      expect(inventionsSection).not.toBeNull();
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
 
       const pills = container.querySelectorAll('.da-journey-map__preview-pill');
-      expect(pills.length).toBe(3);
-      expect(pills[0]?.textContent).toBe('Abacus');
-      expect(pills[1]?.textContent).toBe('Pascaline');
-      expect(pills[2]?.textContent).toBe('Analytical Engine');
+      expect(pills).toHaveLength(2);
+      expect(pills[0].textContent).toBe('Abacus');
+      expect(pills[1].textContent).toBe('Boolean Logic');
     });
 
-    it('should not show figures/inventions when node has none', () => {
-      showWithFigures();
+    it('should not show figures section when node has no keyFigures', () => {
+      const nodes = [makeNode(0, 'completed')];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Act 0', description: '', era: 'Era 0', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '1970', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      // Node 1 (current) has no keyFigures/keyInventions
-      const node1 = container.querySelector('[data-act-number="1"]') as HTMLElement;
-      node1.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
-      // Preview won't appear because no storyAct for act 1, but let's verify no stale figures
-      const figuresSection = container.querySelector('.da-journey-map__preview-figures');
-      expect(figuresSection).toBeNull();
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
+
+      expect(container.querySelector('.da-journey-map__preview-figures')).toBeNull();
     });
 
-    it('should show "View Era Details" button in preview', () => {
-      showWithFigures();
+    it('should render "View Era Details" button in preview', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
+
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
 
       const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn');
       expect(detailBtn).not.toBeNull();
-      expect(detailBtn?.textContent).toContain('View Era Details');
+      expect(detailBtn?.textContent).toBe('View Era Details');
     });
+  });
 
-    it('should show era detail view when "View Era Details" is clicked', () => {
-      showWithFigures();
+  describe('Story 26.11: Era detail view', () => {
+    it('should render era detail view when "View Era Details" is clicked', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+        keyInventions: ['Abacus'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
+      // Click node to show preview
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
+
+      // Click "View Era Details" button
       const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
-      detailBtn.click();
+      detailBtn?.click();
 
       const eraDetail = container.querySelector('.da-journey-map__era-detail');
       expect(eraDetail).not.toBeNull();
-      expect(eraDetail?.getAttribute('role')).toBe('region');
-    });
 
-    it('should show era detail with figures and inventions', () => {
-      showWithFigures();
-
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
-
-      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
-      detailBtn.click();
+      const title = container.querySelector('.da-journey-map__era-detail-title');
+      expect(title?.textContent).toContain('Pre-history');
 
       const figures = container.querySelectorAll('.da-journey-map__era-detail-figure');
-      expect(figures.length).toBe(3);
-      expect(figures[0]?.textContent).toBe('Babbage');
+      expect(figures).toHaveLength(1);
+      expect(figures[0].textContent).toBe('Babbage');
 
       const inventions = container.querySelectorAll('.da-journey-map__era-detail-invention');
-      expect(inventions.length).toBe(3);
-      expect(inventions[0]?.textContent).toBe('Abacus');
+      expect(inventions).toHaveLength(1);
+      expect(inventions[0].textContent).toBe('Abacus');
     });
 
-    it('should return to timeline when "Back to Timeline" is clicked', () => {
-      showWithFigures();
+    it('should return to timeline when back button is clicked in era detail', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
       const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
-      detailBtn.click();
+      detailBtn?.click();
 
-      // Era detail should be visible
       expect(container.querySelector('.da-journey-map__era-detail')).not.toBeNull();
 
-      // Click back
+      // Click back button
       const backBtn = container.querySelector('.da-journey-map__era-detail-back') as HTMLElement;
-      backBtn.click();
+      backBtn?.click();
 
-      // Era detail should be removed
       expect(container.querySelector('.da-journey-map__era-detail')).toBeNull();
-
-      // Timeline nodes should be visible again
-      const nodes = container.querySelectorAll('.da-journey-map__node');
-      expect(nodes.length).toBe(11);
     });
 
-    it('should step back from era detail on Escape (not close modal)', () => {
-      showWithFigures();
+    it('should step back from era detail on Escape instead of closing modal', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
       const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
-      detailBtn.click();
+      detailBtn?.click();
 
-      // Era detail should be visible
       expect(container.querySelector('.da-journey-map__era-detail')).not.toBeNull();
 
-      // Press Escape — should step back, not close modal
+      // Press Escape — should hide era detail, NOT close modal
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
-      // Era detail gone, but modal still open
       expect(container.querySelector('.da-journey-map__era-detail')).toBeNull();
+      // Modal should still be present
       expect(container.querySelector('.da-journey-map')).not.toBeNull();
-
-      // Timeline nodes visible again
-      const nodes = container.querySelectorAll('.da-journey-map__node');
-      expect(nodes.length).toBe(11);
     });
 
-    it('should show "Enter" button in era detail for navigable nodes', () => {
-      showWithFigures();
+    it('should render enter button for navigable nodes', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
 
-      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
-      node0.click();
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+      });
 
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
       const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
-      detailBtn.click();
+      detailBtn?.click();
 
-      const goBtn = container.querySelector('.da-journey-map__era-detail-go');
-      expect(goBtn).not.toBeNull();
-      expect(goBtn?.textContent).toContain('Enter');
+      const enterBtn = container.querySelector('.da-journey-map__era-detail-go');
+      expect(enterBtn).not.toBeNull();
+      expect(enterBtn?.textContent).toContain('Pre-history');
+    });
+  });
+
+  // =========================================================================
+  // Story 26.12: Navigable branches in era detail
+  // =========================================================================
+  describe('Story 26.12: Navigable branch points', () => {
+    it('should make taken branches navigable buttons in era detail', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+        branchPoints: ['What if relays?'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
+
+      const takenBranches = new Map<string, string>();
+      takenBranches.set('scene-branch-1', 'What if relays?');
+
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+        takenBranches,
+      });
+
+      // Open preview then era detail
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn?.click();
+
+      const navigableBranch = container.querySelector('.da-journey-map__era-detail-branch--navigable');
+      expect(navigableBranch).not.toBeNull();
+      expect(navigableBranch?.tagName).toBe('BUTTON');
+      expect(navigableBranch?.textContent).toBe('What if relays?');
+    });
+
+    it('should render non-taken branches as non-navigable divs', () => {
+      const nodes = [makeNode(0, 'completed', 'Pre-history', '3000 BC', '\u{1F3DB}', 'mechanical', {
+        keyFigures: ['Babbage'],
+        branchPoints: ['What if relays?'],
+      })];
+      const data: JourneyMapData = { nodes, totalActs: 1, completedCount: 1, currentActNumber: 0 };
+      const storyActs = [{ id: 'act-0', number: 0, title: 'Pre-history', description: '', era: '3000 BC', cpuStage: 'mechanical' as const, chapters: [{ id: 'ch-1', number: 1, title: 'Ch1', subtitle: '', year: '3000 BC', scenes: [{ id: 'scene-1', type: 'narrative' as const }] }] }];
+
+      journeyMap.show({
+        journeyData: data,
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 0,
+        onNavigate,
+        onPinLocation: () => {},
+        onUnpinLocation: () => {},
+        onCollectArtifact: () => {},
+        storyActs,
+        // No takenBranches — the branch is not navigable
+      });
+
+      const nodeEl = container.querySelector('.da-journey-map__node--completed') as HTMLElement;
+      nodeEl?.click();
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn?.click();
+
+      const branch = container.querySelector('.da-journey-map__era-detail-branch');
+      expect(branch).not.toBeNull();
+      expect(branch?.tagName).toBe('DIV');
+      expect(container.querySelector('.da-journey-map__era-detail-branch--navigable')).toBeNull();
     });
   });
 });

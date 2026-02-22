@@ -72,13 +72,13 @@ export class JourneyMap {
   private branchActNumbers: Set<number> | null = null;
   private takenBranches: Map<string, string> | null = null;
 
-  // Story 26.11: Era detail view state
-  private eraDetailView: HTMLElement | null = null;
-
   // Tab state
   private activeTab: JourneyMapTab = 'timeline';
   private tabPanels: Map<JourneyMapTab, HTMLElement> = new Map();
   private tabButtons: Map<JourneyMapTab, HTMLElement> = new Map();
+
+  // Story 26.11: Era detail view
+  private eraDetailView: HTMLElement | null = null;
 
   // Child components
   private worldMapView: WorldMapView | null = null;
@@ -568,194 +568,15 @@ export class JourneyMap {
     }
   }
 
-  // =========================================================================
-  // Story 26.11: Era detail zoom view
-  // =========================================================================
-
   /**
-   * Show a full era detail view, hiding the normal timeline content.
+   * Create a preview tooltip showing chapters, scenes, figures, and inventions.
+   * Story 26.11: Enhanced with key figures, inventions pills, and era detail button.
    */
-  private showEraDetail(node: JourneyNode): void {
-    this.dismissPreview();
-
-    // Guard: clean up any existing era detail before replacing
-    if (this.eraDetailView) {
-      this.hideEraDetail();
-    }
-
-    const timelinePanel = this.tabPanels.get('timeline');
-    if (!timelinePanel) return;
-
-    // Hide existing timeline children (golden path label + timeline div)
-    for (const child of Array.from(timelinePanel.children)) {
-      (child as HTMLElement).style.display = 'none';
-    }
-
-    // Build the era detail view
-    const detail = document.createElement('div');
-    detail.className = 'da-journey-map__era-detail';
-    detail.setAttribute('role', 'region');
-    detail.setAttribute('aria-label', `Era detail: ${node.title}`);
-
-    // Back button
-    const backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'da-journey-map__era-detail-back';
-    backBtn.textContent = '\u2190 Back to Timeline';
-    backBtn.addEventListener('click', () => {
-      this.hideEraDetail();
-    });
-    detail.appendChild(backBtn);
-
-    // Era header
-    const header = document.createElement('div');
-    header.className = 'da-journey-map__era-detail-header';
-
-    const icon = document.createElement('span');
-    icon.className = 'da-journey-map__era-detail-icon';
-    icon.textContent = node.icon;
-
-    const titleContainer = document.createElement('div');
-
-    const title = document.createElement('h3');
-    title.className = 'da-journey-map__era-detail-title';
-    title.id = 'da-journey-map-era-detail-title';
-    title.textContent = node.title;
-
-    // Update modal accessible name to point to era detail title
-    if (this.overlay) {
-      this.overlay.setAttribute('aria-labelledby', title.id);
-    }
-
-    const era = document.createElement('div');
-    era.className = 'da-journey-map__era-detail-era';
-    era.textContent = node.era;
-
-    titleContainer.appendChild(title);
-    titleContainer.appendChild(era);
-    header.appendChild(icon);
-    header.appendChild(titleContainer);
-    detail.appendChild(header);
-
-    // Key figures
-    if (node.keyFigures && node.keyFigures.length > 0) {
-      const figuresSection = document.createElement('div');
-      figuresSection.className = 'da-journey-map__era-detail-section';
-
-      const figuresTitle = document.createElement('h4');
-      figuresTitle.className = 'da-journey-map__era-detail-section-title';
-      figuresTitle.textContent = 'Key Figures';
-      figuresSection.appendChild(figuresTitle);
-
-      const figuresList = document.createElement('div');
-      figuresList.className = 'da-journey-map__era-detail-figures';
-      for (const figure of node.keyFigures) {
-        const figureEl = document.createElement('div');
-        figureEl.className = 'da-journey-map__era-detail-figure';
-        figureEl.textContent = figure;
-        figuresList.appendChild(figureEl);
-      }
-      figuresSection.appendChild(figuresList);
-      detail.appendChild(figuresSection);
-    }
-
-    // Key inventions
-    if (node.keyInventions && node.keyInventions.length > 0) {
-      const inventionsSection = document.createElement('div');
-      inventionsSection.className = 'da-journey-map__era-detail-section';
-
-      const inventionsTitle = document.createElement('h4');
-      inventionsTitle.className = 'da-journey-map__era-detail-section-title';
-      inventionsTitle.textContent = 'Key Inventions';
-      inventionsSection.appendChild(inventionsTitle);
-
-      const inventionsList = document.createElement('div');
-      inventionsList.className = 'da-journey-map__era-detail-inventions';
-      for (const invention of node.keyInventions) {
-        const pill = document.createElement('span');
-        pill.className = 'da-journey-map__era-detail-invention';
-        pill.textContent = invention;
-        inventionsList.appendChild(pill);
-      }
-      inventionsSection.appendChild(inventionsList);
-      detail.appendChild(inventionsSection);
-    }
-
-    // Branch points (if any from Story 26.7)
-    if (node.branchPoints && node.branchPoints.length > 0) {
-      const branchSection = document.createElement('div');
-      branchSection.className = 'da-journey-map__era-detail-section';
-
-      const branchTitle = document.createElement('h4');
-      branchTitle.className = 'da-journey-map__era-detail-section-title';
-      branchTitle.textContent = 'Alternate Timelines';
-      branchSection.appendChild(branchTitle);
-
-      const branchList = document.createElement('div');
-      branchList.className = 'da-journey-map__era-detail-branches';
-      for (const branch of node.branchPoints) {
-        const branchEl = document.createElement('div');
-        branchEl.className = 'da-journey-map__era-detail-branch';
-        branchEl.textContent = `\u2B95 ${branch}`;
-        branchList.appendChild(branchEl);
-      }
-      branchSection.appendChild(branchList);
-      detail.appendChild(branchSection);
-    }
-
-    // Navigate to this era button
-    const navigable = node.status === 'completed' || node.status === 'current';
-    if (navigable) {
-      const goBtn = document.createElement('button');
-      goBtn.type = 'button';
-      goBtn.className = 'da-journey-map__era-detail-go';
-      goBtn.textContent = `Enter ${node.title} \u2192`;
-      goBtn.addEventListener('click', () => {
-        this.onNavigate?.(node.actNumber);
-        this.hide();
-      });
-      detail.appendChild(goBtn);
-    }
-
-    timelinePanel.appendChild(detail);
-    this.eraDetailView = detail;
-
-    // Focus the back button
-    requestAnimationFrame(() => {
-      if (this.eraDetailView) backBtn.focus();
-    });
-  }
-
-  /**
-   * Return from era detail view to the normal timeline.
-   */
-  private hideEraDetail(): void {
-    const timelinePanel = this.tabPanels.get('timeline');
-    if (!timelinePanel || !this.eraDetailView) return;
-
-    // Remove the detail view
-    this.eraDetailView.remove();
-    this.eraDetailView = null;
-
-    // Restore modal accessible name to main title
-    if (this.overlay) {
-      this.overlay.setAttribute('aria-labelledby', 'da-journey-map-title');
-    }
-
-    // Restore visibility of original timeline children
-    for (const child of Array.from(timelinePanel.children)) {
-      (child as HTMLElement).style.display = '';
-    }
-  }
-
-  /**
-   * Create a preview tooltip showing chapters, scenes, key figures and inventions for an act.
-   */
-  private createPreview(act: StoryAct, node: JourneyNode): HTMLElement {
+  private createPreview(act: StoryAct, node?: JourneyNode): HTMLElement {
     const preview = document.createElement('div');
     preview.className = 'da-journey-map__preview';
     preview.setAttribute('role', 'region');
-    preview.setAttribute('aria-label', `Preview: Act ${act.number} - ${act.title}`);
+    preview.setAttribute('aria-label', `Preview of Act ${act.number}: ${act.title}`);
 
     // "Go to Act" header with navigate button
     const header = document.createElement('div');
@@ -855,58 +676,277 @@ export class JourneyMap {
     }
 
     // Story 26.11: Key figures section
-    if (node.keyFigures && node.keyFigures.length > 0) {
+    if (node?.keyFigures && node.keyFigures.length > 0) {
       const figuresSection = document.createElement('div');
       figuresSection.className = 'da-journey-map__preview-figures';
 
-      const figuresLabel = document.createElement('div');
+      const figuresLabel = document.createElement('span');
       figuresLabel.className = 'da-journey-map__preview-section-label';
-      figuresLabel.textContent = 'Key Figures';
-      figuresSection.appendChild(figuresLabel);
+      figuresLabel.textContent = 'Key Figures:';
 
-      const figuresList = document.createElement('div');
+      const figuresList = document.createElement('span');
       figuresList.className = 'da-journey-map__preview-figures-list';
       figuresList.textContent = node.keyFigures.join(', ');
-      figuresSection.appendChild(figuresList);
 
+      figuresSection.appendChild(figuresLabel);
+      figuresSection.appendChild(figuresList);
       preview.appendChild(figuresSection);
     }
 
-    // Story 26.11: Key inventions section
-    if (node.keyInventions && node.keyInventions.length > 0) {
+    // Story 26.11: Key inventions as pill badges
+    if (node?.keyInventions && node.keyInventions.length > 0) {
       const inventionsSection = document.createElement('div');
       inventionsSection.className = 'da-journey-map__preview-inventions';
 
-      const inventionsLabel = document.createElement('div');
+      const inventionsLabel = document.createElement('span');
       inventionsLabel.className = 'da-journey-map__preview-section-label';
-      inventionsLabel.textContent = 'Key Inventions';
-      inventionsSection.appendChild(inventionsLabel);
+      inventionsLabel.textContent = 'Key Inventions:';
 
-      const pillContainer = document.createElement('div');
-      pillContainer.className = 'da-journey-map__preview-pills';
+      const pillsContainer = document.createElement('div');
+      pillsContainer.className = 'da-journey-map__preview-pills';
+
       for (const invention of node.keyInventions) {
         const pill = document.createElement('span');
         pill.className = 'da-journey-map__preview-pill';
         pill.textContent = invention;
-        pillContainer.appendChild(pill);
+        pillsContainer.appendChild(pill);
       }
-      inventionsSection.appendChild(pillContainer);
 
+      inventionsSection.appendChild(inventionsLabel);
+      inventionsSection.appendChild(pillsContainer);
       preview.appendChild(inventionsSection);
     }
 
     // Story 26.11: "View Era Details" button
-    const detailBtn = document.createElement('button');
-    detailBtn.type = 'button';
-    detailBtn.className = 'da-journey-map__preview-detail-btn';
-    detailBtn.textContent = 'View Era Details \u2192';
-    detailBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.showEraDetail(node);
-    });
-    preview.appendChild(detailBtn);
+    if (node) {
+      const detailBtn = document.createElement('button');
+      detailBtn.type = 'button';
+      detailBtn.className = 'da-journey-map__preview-detail-btn';
+      detailBtn.textContent = 'View Era Details';
+      detailBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.dismissPreview();
+        this.showEraDetail(node);
+      });
+      preview.appendChild(detailBtn);
+    }
 
     return preview;
+  }
+
+  // =========================================================================
+  // Story 26.11: Era Detail Zoom View
+  // =========================================================================
+
+  /**
+   * Show a full era detail view within the journey map modal.
+   * Hides the timeline children and displays a detailed panel.
+   */
+  private showEraDetail(node: JourneyNode): void {
+    // Guard: clean up any existing detail view first
+    if (this.eraDetailView) {
+      this.hideEraDetail();
+    }
+
+    const content = this.overlay?.querySelector('.da-journey-map__content');
+    if (!content) return;
+
+    // Hide all existing children (tabs, panels, etc.) except the header
+    const children = Array.from(content.children) as HTMLElement[];
+    for (const child of children) {
+      if (!child.classList.contains('da-journey-map__header')) {
+        child.style.display = 'none';
+      }
+    }
+
+    // Create era detail view
+    const detail = document.createElement('div');
+    detail.className = 'da-journey-map__era-detail';
+    detail.setAttribute('role', 'region');
+    detail.setAttribute('aria-label', `Era details: ${node.title}`);
+
+    // Back button
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'da-journey-map__era-detail-back';
+    backBtn.textContent = '\u2190 Back to Timeline';
+    backBtn.addEventListener('click', () => {
+      this.hideEraDetail();
+    });
+    detail.appendChild(backBtn);
+
+    // Header with icon, title, and era
+    const header = document.createElement('div');
+    header.className = 'da-journey-map__era-detail-header';
+
+    const icon = document.createElement('span');
+    icon.className = 'da-journey-map__era-detail-icon';
+    icon.textContent = node.icon;
+
+    const title = document.createElement('h3');
+    title.className = 'da-journey-map__era-detail-title';
+    title.id = 'da-journey-map-era-detail-title';
+    title.textContent = `Act ${node.actNumber}: ${node.title}`;
+
+    const era = document.createElement('span');
+    era.className = 'da-journey-map__era-detail-era';
+    era.textContent = node.era;
+
+    header.appendChild(icon);
+    header.appendChild(title);
+    header.appendChild(era);
+    detail.appendChild(header);
+
+    // Update modal aria-labelledby to point to era detail title
+    if (this.overlay) {
+      this.overlay.setAttribute('aria-labelledby', 'da-journey-map-era-detail-title');
+    }
+
+    // Key figures section
+    if (node.keyFigures && node.keyFigures.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'da-journey-map__era-detail-section';
+
+      const sectionTitle = document.createElement('h4');
+      sectionTitle.className = 'da-journey-map__era-detail-section-title';
+      sectionTitle.textContent = 'Key Figures';
+      section.appendChild(sectionTitle);
+
+      const figuresList = document.createElement('div');
+      figuresList.className = 'da-journey-map__era-detail-figures';
+
+      for (const figure of node.keyFigures) {
+        const figureEl = document.createElement('div');
+        figureEl.className = 'da-journey-map__era-detail-figure';
+        figureEl.textContent = figure;
+        figuresList.appendChild(figureEl);
+      }
+
+      section.appendChild(figuresList);
+      detail.appendChild(section);
+    }
+
+    // Key inventions section
+    if (node.keyInventions && node.keyInventions.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'da-journey-map__era-detail-section';
+
+      const sectionTitle = document.createElement('h4');
+      sectionTitle.className = 'da-journey-map__era-detail-section-title';
+      sectionTitle.textContent = 'Key Inventions';
+      section.appendChild(sectionTitle);
+
+      const inventionsList = document.createElement('div');
+      inventionsList.className = 'da-journey-map__era-detail-inventions';
+
+      for (const invention of node.keyInventions) {
+        const inventionEl = document.createElement('div');
+        inventionEl.className = 'da-journey-map__era-detail-invention';
+        inventionEl.textContent = invention;
+        inventionsList.appendChild(inventionEl);
+      }
+
+      section.appendChild(inventionsList);
+      detail.appendChild(section);
+    }
+
+    // Branch points section (if applicable)
+    if (node.branchPoints && node.branchPoints.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'da-journey-map__era-detail-section';
+
+      const sectionTitle = document.createElement('h4');
+      sectionTitle.className = 'da-journey-map__era-detail-section-title';
+      sectionTitle.textContent = 'Branch Points';
+      section.appendChild(sectionTitle);
+
+      const branchesList = document.createElement('div');
+      branchesList.className = 'da-journey-map__era-detail-branches';
+
+      for (const branchLabel of node.branchPoints) {
+        // Story 26.12: Make branches navigable if user has taken them
+        const branchSceneId = this.findBranchSceneId(branchLabel);
+        const branchEl = document.createElement(branchSceneId ? 'button' : 'div');
+        branchEl.className = 'da-journey-map__era-detail-branch';
+        if (branchSceneId) {
+          branchEl.classList.add('da-journey-map__era-detail-branch--navigable');
+          (branchEl as HTMLButtonElement).type = 'button';
+          branchEl.addEventListener('click', () => {
+            if (this.onSceneNavigate) {
+              this.onSceneNavigate(branchSceneId);
+            }
+            this.hide();
+          });
+        }
+        branchEl.textContent = branchLabel;
+        branchesList.appendChild(branchEl);
+      }
+
+      section.appendChild(branchesList);
+      detail.appendChild(section);
+    }
+
+    // "Enter This Era" button
+    const isNavigable = node.status === 'completed' || node.status === 'current';
+    if (isNavigable) {
+      const enterBtn = document.createElement('button');
+      enterBtn.type = 'button';
+      enterBtn.className = 'da-journey-map__era-detail-go';
+      enterBtn.textContent = `Enter ${node.title} \u2192`;
+      enterBtn.addEventListener('click', () => {
+        this.onNavigate?.(node.actNumber);
+        this.hide();
+      });
+      detail.appendChild(enterBtn);
+    }
+
+    content.appendChild(detail);
+    this.eraDetailView = detail;
+
+    // Focus back button for keyboard navigation
+    requestAnimationFrame(() => {
+      if (this.eraDetailView) {
+        backBtn.focus();
+      }
+    });
+  }
+
+  /**
+   * Hide the era detail view and restore the timeline.
+   */
+  private hideEraDetail(): void {
+    if (!this.eraDetailView) return;
+
+    const content = this.overlay?.querySelector('.da-journey-map__content');
+    if (content) {
+      // Restore hidden children
+      const children = Array.from(content.children) as HTMLElement[];
+      for (const child of children) {
+        if (child !== this.eraDetailView && !child.classList.contains('da-journey-map__header')) {
+          child.style.display = '';
+        }
+      }
+    }
+
+    // Restore original aria-labelledby
+    if (this.overlay) {
+      this.overlay.setAttribute('aria-labelledby', 'da-journey-map-title');
+    }
+
+    this.eraDetailView.remove();
+    this.eraDetailView = null;
+  }
+
+  /**
+   * Story 26.12: Find the scene ID for a branch by its label.
+   * Reverses the takenBranches map (sceneId → label) to find the sceneId.
+   */
+  private findBranchSceneId(branchLabel: string): string | null {
+    if (!this.takenBranches) return null;
+    for (const [sceneId, label] of this.takenBranches) {
+      if (label === branchLabel) return sceneId;
+    }
+    return null;
   }
 
   /**

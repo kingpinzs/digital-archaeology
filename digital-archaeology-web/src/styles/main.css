@@ -11016,6 +11016,52 @@ body.da-resizing * {
   letter-spacing: 0.02em;
 }
 
+/* Story 26.15: Discovery Bridge — contextual transition after lab */
+.da-discovery-bridge {
+  padding: 12px 16px;
+  margin-bottom: 1rem;
+  background: rgba(76, 175, 80, 0.06);
+  border-left: 3px solid var(--accent-green, #4caf50);
+  border-radius: 4px;
+}
+
+.da-discovery-bridge__concepts {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-green, #4caf50);
+  margin-bottom: 6px;
+}
+
+.da-discovery-bridge__text {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--da-text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.da-discovery-bridge__quote {
+  margin: 10px 0 0 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--da-border);
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--da-text-secondary);
+  line-height: 1.4;
+}
+
+.da-discovery-bridge__attribution {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--da-text-secondary);
+}
+
 /* =============================================================================
    World Map View
    ============================================================================= */

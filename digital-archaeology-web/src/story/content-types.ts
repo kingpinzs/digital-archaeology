@@ -91,6 +91,8 @@ export interface StoryScene {
   nextScene?: string;
   /** Story 26.14: "IT WORKS!" connection data shown after challenge completion */
   itWorks?: ItWorksData;
+  /** Story 26.15: Discovery bridge connecting previous learning to this scene */
+  discoveryBridge?: DiscoveryBridge;
 }
 
 /**
@@ -125,6 +127,24 @@ export interface ItWorksData {
   headline: string;
   /** Connection links to other ideas, thinkers, and future paths */
   connections: ConnectionLink[];
+}
+
+/**
+ * Story 26.15: Discovery bridge connecting what was just learned to what comes next.
+ * Makes transitions between discoveries feel natural rather than curriculum-like.
+ * Attached to scenes that follow challenge completion, providing contextual framing.
+ */
+export interface DiscoveryBridge {
+  /** What the player just learned or built (e.g., "a working ALU") */
+  fromConcept: string;
+  /** What comes next (e.g., "storing results in registers") */
+  toConcept: string;
+  /** Narrative bridge text framing the transition naturally */
+  bridgeText: string;
+  /** Optional quote from the era's historical figure about this progression */
+  historicalQuote?: string;
+  /** Optional attribution for the quote */
+  quoteAttribution?: string;
 }
 
 /**

@@ -1624,4 +1624,181 @@ describe('SceneRenderer', () => {
       }
     });
   });
+
+  // ===========================================================================
+  // Story 26.15: Discovery Bridge
+  // ===========================================================================
+
+  describe('Story 26.15: Discovery Bridge', () => {
+    it('should render discovery bridge when scene has discoveryBridge and follows challenge', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'a working ALU',
+            toConcept: 'storing results in registers',
+            bridgeText: 'Now that you have a working ALU, the next question is: where do the results go?',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const bridge = container.querySelector('.da-discovery-bridge');
+      expect(bridge).not.toBeNull();
+      expect(bridge?.getAttribute('role')).toBe('status');
+    });
+
+    it('should display concept transition label', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'a working ALU',
+            toConcept: 'storing results',
+            bridgeText: 'Bridge text here.',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const concepts = container.querySelector('.da-discovery-bridge__concepts');
+      expect(concepts?.textContent).toContain('a working ALU');
+      expect(concepts?.textContent).toContain('\u2192');
+      expect(concepts?.textContent).toContain('storing results');
+    });
+
+    it('should display bridge text', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'ALU',
+            toConcept: 'registers',
+            bridgeText: 'With the ALU working, the next question is where results go.',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const text = container.querySelector('.da-discovery-bridge__text');
+      expect(text?.textContent).toContain('the next question is where results go');
+    });
+
+    it('should render historical quote when provided', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'ALU',
+            toConcept: 'registers',
+            bridgeText: 'Bridge text.',
+            historicalQuote: 'The stored-program concept changed everything.',
+            quoteAttribution: 'John von Neumann',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const quote = container.querySelector('.da-discovery-bridge__quote');
+      expect(quote).not.toBeNull();
+      expect(quote?.textContent).toContain('stored-program concept');
+
+      const attribution = container.querySelector('.da-discovery-bridge__attribution');
+      expect(attribution?.textContent).toContain('von Neumann');
+    });
+
+    it('should NOT render quote when historicalQuote is absent', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'ALU',
+            toConcept: 'registers',
+            bridgeText: 'Bridge text.',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const quote = container.querySelector('.da-discovery-bridge__quote');
+      expect(quote).toBeNull();
+    });
+
+    it('should NOT render attribution when historicalQuote is absent but quoteAttribution is present', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'ALU',
+            toConcept: 'registers',
+            bridgeText: 'Bridge text.',
+            quoteAttribution: 'Ada Lovelace', // attribution without quote
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const quote = container.querySelector('.da-discovery-bridge__quote');
+      expect(quote).toBeNull();
+      const attribution = container.querySelector('.da-discovery-bridge__attribution');
+      expect(attribution).toBeNull();
+    });
+
+    it('should NOT render bridge when lastCompletedChallenge is not set', () => {
+      const context = createContext({
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'ALU',
+            toConcept: 'registers',
+            bridgeText: 'Bridge text.',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      // No bridge without a completed challenge
+      const bridge = container.querySelector('.da-discovery-bridge');
+      expect(bridge).toBeNull();
+
+      // No generic acknowledgment either
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack).toBeNull();
+    });
+
+    it('should render generic acknowledgment when no discoveryBridge on scene', () => {
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene(), // No discoveryBridge
+      });
+      renderer.renderScene(context, container);
+
+      // Falls back to generic acknowledgment
+      const ack = container.querySelector('.da-scene-challenge-acknowledgment');
+      expect(ack).not.toBeNull();
+
+      // No bridge
+      const bridge = container.querySelector('.da-discovery-bridge');
+      expect(bridge).toBeNull();
+    });
+
+    it('should render bridge text even when anachronism filtering is active', () => {
+      // filterText is always called on bridge content — it passes through
+      // when no mindset is set, and filters when one is active.
+      const context = createContext({
+        lastCompletedChallenge: 'scene-1-1-1',
+        scene: createMockScene({
+          discoveryBridge: {
+            fromConcept: 'counting with an abacus',
+            toConcept: 'representing numbers',
+            bridgeText: 'The next question is how to represent numbers.',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const text = container.querySelector('.da-discovery-bridge__text');
+      expect(text).not.toBeNull();
+      expect(text?.textContent).toContain('represent numbers');
+    });
+  });
 });

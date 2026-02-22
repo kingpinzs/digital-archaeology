@@ -3,7 +3,7 @@
 // Story 10.17: Wire Story Mode Integration
 // Story 10.21: Historical Mindset Time-Travel (anachronism filtering)
 
-import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData, SceneTransitionData } from './content-types';
+import type { StoryScene, StoryChapter, StoryAct, BuilderChallengeData, SceneTransitionData, DiscoveryBridge } from './content-types';
 import type { ChoiceData, DialogueData, CharacterData, TechnicalNoteData, PersonaData, TransitionData, HistoricalDecision, ChallengeContext } from './types';
 import { ChapterHeader } from './ChapterHeader';
 import { SceneSetting } from './SceneSetting';
@@ -215,13 +215,18 @@ export class SceneRenderer {
       this.sceneContainer.appendChild(branchBadge);
     }
 
-    // Story 26.10: Show challenge acknowledgment for post-lab scenes
+    // Story 26.10 + 26.15: Show challenge acknowledgment for post-lab scenes
+    // Story 26.15: Use discovery bridge if the scene has one, otherwise generic text
     if (context.lastCompletedChallenge) {
-      const acknowledgment = document.createElement('div');
-      acknowledgment.className = 'da-scene-challenge-acknowledgment';
-      acknowledgment.setAttribute('role', 'status');
-      acknowledgment.textContent = 'Your work in the lab has been verified. The story continues\u2026';
-      this.sceneContainer.appendChild(acknowledgment);
+      if (context.scene.discoveryBridge) {
+        this.renderDiscoveryBridge(context.scene.discoveryBridge);
+      } else {
+        const acknowledgment = document.createElement('div');
+        acknowledgment.className = 'da-scene-challenge-acknowledgment';
+        acknowledgment.setAttribute('role', 'status');
+        acknowledgment.textContent = 'Your work in the lab has been verified. The story continues\u2026';
+        this.sceneContainer.appendChild(acknowledgment);
+      }
     }
 
     // Render chapter header if first scene in chapter
@@ -317,6 +322,45 @@ export class SceneRenderer {
     personaCard.mount(mount);
     personaCard.setPersonaData(persona);
     this.activeComponents.push(personaCard);
+  }
+
+  /**
+   * Story 26.15: Render a discovery bridge connecting the previous learning to this scene.
+   * Replaces the generic "Your work in the lab has been verified" acknowledgment
+   * with a contextual narrative that makes the transition feel natural.
+   */
+  private renderDiscoveryBridge(bridge: DiscoveryBridge): void {
+    const container = document.createElement('div');
+    container.className = 'da-discovery-bridge';
+    container.setAttribute('role', 'status');
+
+    // Concept transition label
+    const conceptLabel = document.createElement('div');
+    conceptLabel.className = 'da-discovery-bridge__concepts';
+    conceptLabel.textContent = `${this.filterText(bridge.fromConcept)} \u2192 ${this.filterText(bridge.toConcept)}`;
+    container.appendChild(conceptLabel);
+
+    // Bridge narrative text
+    const bridgeText = document.createElement('p');
+    bridgeText.className = 'da-discovery-bridge__text';
+    bridgeText.textContent = this.filterText(bridge.bridgeText);
+    container.appendChild(bridgeText);
+
+    // Optional historical quote
+    if (bridge.historicalQuote) {
+      const quoteBlock = document.createElement('blockquote');
+      quoteBlock.className = 'da-discovery-bridge__quote';
+      quoteBlock.textContent = this.filterText(bridge.historicalQuote);
+      if (bridge.quoteAttribution) {
+        const attribution = document.createElement('cite');
+        attribution.className = 'da-discovery-bridge__attribution';
+        attribution.textContent = `\u2014 ${bridge.quoteAttribution}`;
+        quoteBlock.appendChild(attribution);
+      }
+      container.appendChild(quoteBlock);
+    }
+
+    this.sceneContainer!.appendChild(container);
   }
 
   /**

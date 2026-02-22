@@ -20,7 +20,7 @@ export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, Character
 
 // Story 10.14: Story content data structures and loader
 export { StoryLoader, isStoryAct, isStoryChapter, isStoryScene, isStoryContent, isBranchContent, validateStoryContent } from './StoryLoader';
-export type { StoryContent as StoryContentData, StoryAct, StoryChapter, StoryScene, StoryMetadata, ValidationResult, CpuStage, SceneType } from './content-types';
+export type { StoryContent as StoryContentData, StoryAct, StoryChapter, StoryScene, StoryMetadata, ValidationResult, CpuStage, SceneType, DiscoveryBridge, ItWorksData, ConnectionLink, ConnectionLinkType } from './content-types';
 export { StoryLoadError, StoryValidationError } from './content-types';
 
 // Story 10.15: Story progression engine

@@ -1424,4 +1424,286 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       expect(scene2Entries.length).toBe(1);
     });
   });
+
+  // =========================================================================
+  // Story 26.9: Branch Content Indexing & Queries
+  // =========================================================================
+
+  describe('Branch Content (Story 26.9)', () => {
+    const createBranchActs = (): StoryAct[] => [
+      {
+        id: 'act-1',
+        number: 1,
+        title: 'Test Act 1',
+        description: 'Test description',
+        era: '1971',
+        cpuStage: 'micro4',
+        chapters: [
+          {
+            id: 'chapter-1-1',
+            number: 1,
+            title: 'Main Chapter',
+            subtitle: 'Golden Path',
+            year: '1971',
+            scenes: [
+              {
+                id: 'scene-1-1-1',
+                type: 'narrative',
+                narrative: ['Intro scene'],
+                nextScene: 'scene-1-1-2',
+              },
+              {
+                id: 'scene-1-1-2',
+                type: 'choice',
+                choices: [
+                  { id: 'choice-golden', icon: '>', title: 'Stay on path', description: 'Golden path', nextScene: 'scene-1-1-3' },
+                  { id: 'choice-branch', icon: '?', title: 'What if?', description: 'Branch off', isBranchPoint: true, branchLabel: 'Stack Machine Path', nextScene: 'scene-branch-1' },
+                ],
+              },
+              {
+                id: 'scene-1-1-3',
+                type: 'narrative',
+                narrative: ['Golden path continues'],
+              },
+            ],
+          },
+        ],
+        branches: [
+          {
+            id: 'branch-stack-machine',
+            label: 'What if stack machines won?',
+            divergeSceneId: 'scene-1-1-2',
+            choiceId: 'choice-branch',
+            scenes: [
+              {
+                id: 'scene-branch-1',
+                type: 'narrative',
+                narrative: ['In the stack machine timeline...'],
+                nextScene: 'scene-branch-2',
+              },
+              {
+                id: 'scene-branch-2',
+                type: 'dialogue',
+                dialogues: [{ speaker: 'Dr. Stack', text: 'Fascinating approach.' }],
+                nextScene: 'scene-1-1-3', // rejoin golden path
+              },
+            ],
+            rejoinsAtSceneId: 'scene-1-1-3',
+          },
+        ],
+      },
+    ];
+
+    let engine: StoryEngine;
+
+    beforeEach(() => {
+      localStorage.clear();
+      engine = new StoryEngine();
+    });
+
+    describe('initialize with branches', () => {
+      it('should index branch scenes alongside golden-path scenes', () => {
+        const acts = createBranchActs();
+        engine.initialize(acts);
+        // Golden path scenes are accessible
+        const goldenScene = engine.getSceneById('scene-1-1-1');
+        expect(goldenScene).not.toBeNull();
+        expect(goldenScene!.id).toBe('scene-1-1-1');
+        // Branch scenes are also accessible
+        const branchScene1 = engine.getSceneById('scene-branch-1');
+        expect(branchScene1).not.toBeNull();
+        expect(branchScene1!.id).toBe('scene-branch-1');
+        const branchScene2 = engine.getSceneById('scene-branch-2');
+        expect(branchScene2).not.toBeNull();
+      });
+
+      it('should work normally when acts have no branches', () => {
+        const acts = createTestActs();
+        engine.initialize(acts);
+        expect(engine.getSceneById('scene-1-1-1')).not.toBeNull();
+      });
+    });
+
+    describe('getBranchForScene', () => {
+      it('should return null for golden-path scenes', () => {
+        engine.initialize(createBranchActs());
+        expect(engine.getBranchForScene('scene-1-1-1')).toBeNull();
+        expect(engine.getBranchForScene('scene-1-1-2')).toBeNull();
+        expect(engine.getBranchForScene('scene-1-1-3')).toBeNull();
+      });
+
+      it('should return branch ID for branch scenes', () => {
+        engine.initialize(createBranchActs());
+        expect(engine.getBranchForScene('scene-branch-1')).toBe('branch-stack-machine');
+        expect(engine.getBranchForScene('scene-branch-2')).toBe('branch-stack-machine');
+      });
+
+      it('should return null for unknown scene IDs', () => {
+        engine.initialize(createBranchActs());
+        expect(engine.getBranchForScene('nonexistent')).toBeNull();
+      });
+
+      it('should return null when engine is not initialized', () => {
+        expect(engine.getBranchForScene('scene-branch-1')).toBeNull();
+      });
+    });
+
+    describe('getActBranches', () => {
+      it('should return branches for an act that has them', () => {
+        engine.initialize(createBranchActs());
+        const branches = engine.getActBranches(1);
+        expect(branches).toHaveLength(1);
+        expect(branches[0].id).toBe('branch-stack-machine');
+        expect(branches[0].label).toBe('What if stack machines won?');
+        expect(branches[0].scenes).toHaveLength(2);
+      });
+
+      it('should return empty array for acts without branches', () => {
+        engine.initialize(createTestActs());
+        expect(engine.getActBranches(1)).toEqual([]);
+      });
+
+      it('should return empty array for nonexistent act', () => {
+        engine.initialize(createBranchActs());
+        expect(engine.getActBranches(99)).toEqual([]);
+      });
+
+      it('should return empty array when engine is not initialized', () => {
+        expect(engine.getActBranches(1)).toEqual([]);
+      });
+    });
+
+    describe('navigation through branch scenes', () => {
+      it('should navigate to a branch scene via goToScene', () => {
+        engine.initialize(createBranchActs());
+        engine.startNewGame();
+        engine.goToScene('scene-branch-1');
+        const scene = engine.getCurrentScene();
+        expect(scene).not.toBeNull();
+        expect(scene!.id).toBe('scene-branch-1');
+        expect(scene!.narrative).toEqual(['In the stack machine timeline...']);
+      });
+
+      it('should navigate through branch scenes using nextScene', () => {
+        engine.initialize(createBranchActs());
+        engine.startNewGame();
+        engine.goToScene('scene-branch-1');
+        engine.nextScene(); // follows nextScene to scene-branch-2
+        const scene = engine.getCurrentScene();
+        expect(scene!.id).toBe('scene-branch-2');
+      });
+
+      it('should rejoin golden path from branch via nextScene', () => {
+        engine.initialize(createBranchActs());
+        engine.startNewGame();
+        engine.goToScene('scene-branch-1');
+        engine.nextScene(); // scene-branch-2
+        engine.nextScene(); // scene-1-1-3 (rejoin golden path)
+        const scene = engine.getCurrentScene();
+        expect(scene!.id).toBe('scene-1-1-3');
+        expect(engine.getBranchForScene('scene-1-1-3')).toBeNull();
+      });
+
+      it('should track branch scene position with chapterNumber 0', () => {
+        engine.initialize(createBranchActs());
+        engine.startNewGame();
+        engine.goToScene('scene-branch-1');
+        const progress = engine.getProgress();
+        expect(progress!.position.sceneId).toBe('scene-branch-1');
+        expect(progress!.position.actNumber).toBe(1);
+        expect(progress!.position.chapterNumber).toBe(0);
+      });
+    });
+
+    describe('duplicate scene ID warning', () => {
+      it('should warn when branch scene ID collides with golden-path scene', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const acts: StoryAct[] = [
+          {
+            id: 'act-1',
+            number: 1,
+            title: 'Act',
+            description: 'desc',
+            era: '1971',
+            cpuStage: 'micro4',
+            chapters: [{
+              id: 'ch-1',
+              number: 1,
+              title: 'Ch',
+              subtitle: 'Sub',
+              year: '1971',
+              scenes: [{ id: 'dupe-scene', type: 'narrative' }],
+            }],
+            branches: [{
+              id: 'branch-1',
+              label: 'Branch',
+              divergeSceneId: 'dupe-scene',
+              choiceId: 'c1',
+              scenes: [{ id: 'dupe-scene', type: 'dialogue' }],
+            }],
+          },
+        ];
+        engine.initialize(acts);
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('duplicate scene ID "dupe-scene"')
+        );
+        warnSpy.mockRestore();
+      });
+    });
+
+    describe('getVisitedSceneTimeline with branch scenes', () => {
+      it('should use branch label as chapter title for branch scenes', () => {
+        engine.initialize(createBranchActs());
+        engine.startNewGame();
+        // Navigate through golden path then into a branch
+        engine.goToScene('scene-1-1-2'); // golden path choice scene
+        engine.goToScene('scene-branch-1'); // enter branch
+
+        const timeline = engine.getVisitedSceneTimeline();
+        // Golden path scene should have normal chapter title
+        const goldenEntry = timeline.find(e => e.sceneId === 'scene-1-1-1');
+        expect(goldenEntry?.chapterTitle).toBe('Main Chapter');
+        // Branch scene should use branch label
+        const branchEntry = timeline.find(e => e.sceneId === 'scene-branch-1');
+        expect(branchEntry?.chapterTitle).toBe('What if stack machines won?');
+      });
+
+      it('should use "Alternate Timeline" fallback when branch has no label match', () => {
+        // Create acts where branch scenes exist but branch metadata is missing from acts
+        const acts: StoryAct[] = [
+          {
+            id: 'act-1',
+            number: 1,
+            title: 'Act 1',
+            description: 'desc',
+            era: '1971',
+            cpuStage: 'micro4',
+            chapters: [{
+              id: 'ch-1',
+              number: 1,
+              title: 'Ch 1',
+              subtitle: 'Sub',
+              year: '1971',
+              scenes: [
+                { id: 'scene-g-1', type: 'narrative', nextScene: 'scene-orphan-branch' },
+              ],
+            }],
+            branches: [{
+              id: 'branch-orphan',
+              label: 'Orphan Branch',
+              divergeSceneId: 'scene-g-1',
+              choiceId: 'c1',
+              scenes: [{ id: 'scene-orphan-branch', type: 'narrative' }],
+            }],
+          },
+        ];
+        engine.initialize(acts);
+        engine.startNewGame();
+        engine.nextScene(); // goes to scene-orphan-branch
+        const timeline = engine.getVisitedSceneTimeline();
+        const branchEntry = timeline.find(e => e.sceneId === 'scene-orphan-branch');
+        expect(branchEntry?.chapterTitle).toBe('Orphan Branch');
+      });
+    });
+  });
 });

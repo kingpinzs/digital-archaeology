@@ -19,7 +19,7 @@ export { ChallengeObjectives } from './ChallengeObjectives';
 export type { RoleData, DiscoveryBadge, ChapterData, SceneSettingData, CharacterData, CharacterStat, DialogueData, ChoiceData, TechnicalNoteData, ChallengeData, ChallengeObjective, PersonaConstraint, PersonaData, SimulatorType, ChallengeContext } from './types';
 
 // Story 10.14: Story content data structures and loader
-export { StoryLoader, isStoryAct, isStoryChapter, isStoryScene, isStoryContent, validateStoryContent } from './StoryLoader';
+export { StoryLoader, isStoryAct, isStoryChapter, isStoryScene, isStoryContent, isBranchContent, validateStoryContent } from './StoryLoader';
 export type { StoryContent as StoryContentData, StoryAct, StoryChapter, StoryScene, StoryMetadata, ValidationResult, CpuStage, SceneType } from './content-types';
 export { StoryLoadError, StoryValidationError } from './content-types';
 
@@ -76,7 +76,7 @@ export { DecisionMakerScene } from './DecisionMakerScene';
 export { BuilderModeScene } from './BuilderModeScene';
 export { ConsequenceRevealPanel } from './ConsequenceRevealPanel';
 export type { DecisionBuilderCycleEvent } from './StoryEngine';
-export type { BuilderChallengeData } from './content-types';
+export type { BuilderChallengeData, BranchContent } from './content-types';
 
 // Story 10.23: First Discoverer's Mind Experience
 export { DiscovererExperience } from './DiscovererExperience';

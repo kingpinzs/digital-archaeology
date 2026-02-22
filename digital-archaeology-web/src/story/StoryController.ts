@@ -461,14 +461,32 @@ export class StoryController {
    * Build a SceneRenderContext for an arbitrary scene (used for replay).
    */
   private buildSceneContext(scene: StoryScene): SceneRenderContext | null {
+    // Story 26.9: Check if this is a branch scene first
+    const branchId = this.engine.getBranchForScene(scene.id) ?? undefined;
+    let branchLabel: string | undefined;
+
     // Find the act and chapter that contain this scene
     for (const act of this.acts) {
+      // Check golden-path chapters
       for (const chapter of act.chapters) {
         const found = chapter.scenes.find(s => s.id === scene.id);
         if (found) {
           const isFirstSceneInChapter = chapter.scenes.length > 0 &&
             chapter.scenes[0].id === scene.id;
-          return { act, chapter, scene, isFirstSceneInChapter };
+          return { act, chapter, scene, isFirstSceneInChapter, branchId, branchLabel };
+        }
+      }
+
+      // Story 26.9: Check branch scenes
+      if (act.branches) {
+        for (const branch of act.branches) {
+          const found = branch.scenes.find(s => s.id === scene.id);
+          if (found) {
+            branchLabel = branch.label;
+            // Use act's first chapter as fallback context for branch scenes
+            const chapter = act.chapters[0];
+            return { act, chapter, scene, isFirstSceneInChapter: false, branchId, branchLabel };
+          }
         }
       }
     }
@@ -606,6 +624,20 @@ export class StoryController {
     const act = this.acts.find(a => a.number === progress.position.actNumber);
     if (!act) return null;
 
+    // Story 26.9: Look up branch context for the current scene
+    const branchId = this.engine.getBranchForScene(scene.id) ?? undefined;
+    let branchLabel: string | undefined;
+
+    // Story 26.9: Branch scenes use chapterNumber 0 — they have no real chapter.
+    // Fall back to the act's first chapter as surrogate context.
+    if (branchId) {
+      const branches = this.engine.getActBranches(progress.position.actNumber);
+      branchLabel = branches.find(b => b.id === branchId)?.label;
+      const chapter = act.chapters[0];
+      if (!chapter) return null;
+      return { act, chapter, scene, isFirstSceneInChapter: false, branchId, branchLabel };
+    }
+
     const chapter = act.chapters.find(c => c.number === progress.position.chapterNumber);
     if (!chapter) return null;
 
@@ -618,6 +650,8 @@ export class StoryController {
       chapter,
       scene,
       isFirstSceneInChapter,
+      branchId,
+      branchLabel,
     };
   }
 

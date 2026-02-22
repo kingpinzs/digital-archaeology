@@ -86,6 +86,24 @@ export function isStoryChapter(value: unknown): value is StoryChapter {
 }
 
 /**
+ * Story 26.9: Type guard to check if a value is valid BranchContent.
+ */
+export function isBranchContent(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.label === 'string' &&
+    typeof obj.divergeSceneId === 'string' &&
+    typeof obj.choiceId === 'string' &&
+    Array.isArray(obj.scenes) &&
+    obj.scenes.length > 0 &&
+    (obj.scenes as unknown[]).every((s: unknown) => isStoryScene(s))
+  );
+}
+
+/**
  * Type guard to check if a value is a valid StoryAct.
  */
 export function isStoryAct(value: unknown): value is StoryAct {
@@ -109,6 +127,14 @@ export function isStoryAct(value: unknown): value is StoryAct {
 
   // Validate optional transition field if present (Issue 4 fix)
   if (obj.transition !== undefined && !isTransitionData(obj.transition)) return false;
+
+  // Story 26.9: Validate optional branches field
+  if (obj.branches !== undefined) {
+    if (!Array.isArray(obj.branches)) return false;
+    for (const branch of obj.branches) {
+      if (!isBranchContent(branch)) return false;
+    }
+  }
 
   return true;
 }

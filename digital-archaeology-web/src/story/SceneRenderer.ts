@@ -30,6 +30,10 @@ export interface SceneRenderContext {
   chapter: StoryChapter;
   scene: StoryScene;
   isFirstSceneInChapter: boolean;
+  /** Story 26.9: Branch ID if this scene is on an alternate timeline */
+  branchId?: string;
+  /** Story 26.9: Branch label for display (e.g., "What if stack machines won?") */
+  branchLabel?: string;
 }
 
 /**
@@ -197,6 +201,16 @@ export class SceneRenderer {
       replayBadge.setAttribute('aria-label', 'Replaying past scene');
       replayBadge.textContent = '\u23F1 REPLAYING'; // ⏱ REPLAYING
       this.sceneContainer.appendChild(replayBadge);
+    }
+
+    // Story 26.9: Add branch badge when on an alternate timeline
+    if (context.branchId) {
+      this.sceneContainer.classList.add('da-scene-container--branch');
+      const branchBadge = document.createElement('div');
+      branchBadge.className = 'da-scene-branch-badge';
+      branchBadge.setAttribute('aria-label', 'Alternate timeline');
+      branchBadge.textContent = context.branchLabel ?? 'Alternate Timeline';
+      this.sceneContainer.appendChild(branchBadge);
     }
 
     // Render chapter header if first scene in chapter

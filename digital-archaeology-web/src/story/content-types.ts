@@ -160,6 +160,26 @@ export type CpuStage =
   | 'future';
 
 /**
+ * Story 26.9: A self-contained alternate timeline path embedded in an act.
+ * Contains its own scenes that the player navigates when they branch
+ * off the golden path at a specific choice.
+ */
+export interface BranchContent {
+  /** Branch ID (e.g., "branch-stack-machine") */
+  id: string;
+  /** Human-readable label (e.g., "What if stack machines won?") */
+  label: string;
+  /** Scene ID where the branch diverges from the golden path */
+  divergeSceneId: string;
+  /** Choice ID that triggers entry into this branch */
+  choiceId: string;
+  /** Scenes forming this alternate timeline (ordered) */
+  scenes: StoryScene[];
+  /** Scene ID where this branch rejoins the golden path (optional) */
+  rejoinsAtSceneId?: string;
+}
+
+/**
  * Represents an act in the story.
  * Acts are major story divisions corresponding to computing eras.
  * The story spans 10 acts from 3000 BC (abacus) to modern superscalar CPUs.
@@ -185,6 +205,8 @@ export interface StoryAct {
   transition?: TransitionData;
   /** Historical mindset context for this act (Story 10.21) */
   mindset?: MindsetContext;
+  /** Alternate timeline branches available in this act (Story 26.9) */
+  branches?: BranchContent[];
 }
 
 /**

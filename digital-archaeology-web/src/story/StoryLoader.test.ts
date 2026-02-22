@@ -10,6 +10,7 @@ import {
   isStoryChapter,
   isStoryScene,
   isStoryContent,
+  isBranchContent,
   validateStoryContent,
 } from './StoryLoader';
 import type {
@@ -631,5 +632,132 @@ describe('validateStoryContent', () => {
     const result = validateStoryContent(content);
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.includes('scenes'))).toBe(true);
+  });
+});
+
+// =========================================================================
+// Story 26.9: Branch Content Validation
+// =========================================================================
+
+describe('isBranchContent (Story 26.9)', () => {
+  const createValidBranch = () => ({
+    id: 'branch-stack',
+    label: 'What if stack machines won?',
+    divergeSceneId: 'scene-1-1-2',
+    choiceId: 'choice-branch',
+    scenes: [
+      { id: 'scene-branch-1', type: 'narrative', narrative: ['Branch content'] },
+    ],
+  });
+
+  it('should accept valid branch content', () => {
+    expect(isBranchContent(createValidBranch())).toBe(true);
+  });
+
+  it('should accept branch with optional rejoinsAtSceneId', () => {
+    const branch = { ...createValidBranch(), rejoinsAtSceneId: 'scene-1-1-3' };
+    expect(isBranchContent(branch)).toBe(true);
+  });
+
+  it('should reject null', () => {
+    expect(isBranchContent(null)).toBe(false);
+  });
+
+  it('should reject non-object', () => {
+    expect(isBranchContent('string')).toBe(false);
+  });
+
+  it('should reject missing id', () => {
+    const branch = createValidBranch();
+    delete (branch as Record<string, unknown>).id;
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject missing label', () => {
+    const branch = createValidBranch();
+    delete (branch as Record<string, unknown>).label;
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject missing divergeSceneId', () => {
+    const branch = createValidBranch();
+    delete (branch as Record<string, unknown>).divergeSceneId;
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject missing choiceId', () => {
+    const branch = createValidBranch();
+    delete (branch as Record<string, unknown>).choiceId;
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject empty scenes array', () => {
+    const branch = { ...createValidBranch(), scenes: [] };
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject non-array scenes', () => {
+    const branch = { ...createValidBranch(), scenes: 'not-array' };
+    expect(isBranchContent(branch)).toBe(false);
+  });
+
+  it('should reject scenes with invalid scene objects', () => {
+    const branch = { ...createValidBranch(), scenes: [{ invalid: true }] };
+    expect(isBranchContent(branch)).toBe(false);
+  });
+});
+
+describe('isStoryAct with branches (Story 26.9)', () => {
+  const createActWithBranches = () => ({
+    id: 'act-1',
+    number: 1,
+    title: 'Test Act',
+    description: 'Test',
+    era: '1971',
+    cpuStage: 'micro4',
+    chapters: [
+      {
+        id: 'chapter-1-1',
+        number: 1,
+        title: 'Chapter',
+        subtitle: 'Sub',
+        year: '1971',
+        scenes: [{ id: 'scene-1-1-1', type: 'narrative' }],
+      },
+    ],
+    branches: [
+      {
+        id: 'branch-1',
+        label: 'What if?',
+        divergeSceneId: 'scene-1-1-1',
+        choiceId: 'choice-1',
+        scenes: [{ id: 'scene-b-1', type: 'narrative' }],
+      },
+    ],
+  });
+
+  it('should accept act with valid branches', () => {
+    expect(isStoryAct(createActWithBranches())).toBe(true);
+  });
+
+  it('should accept act without branches (backward compatible)', () => {
+    const act = createActWithBranches();
+    delete (act as Record<string, unknown>).branches;
+    expect(isStoryAct(act)).toBe(true);
+  });
+
+  it('should reject act with non-array branches', () => {
+    const act = { ...createActWithBranches(), branches: 'not-array' };
+    expect(isStoryAct(act)).toBe(false);
+  });
+
+  it('should reject act with invalid branch in branches array', () => {
+    const act = { ...createActWithBranches(), branches: [{ invalid: true }] };
+    expect(isStoryAct(act)).toBe(false);
+  });
+
+  it('should accept act with empty branches array', () => {
+    const act = { ...createActWithBranches(), branches: [] };
+    expect(isStoryAct(act)).toBe(true);
   });
 });

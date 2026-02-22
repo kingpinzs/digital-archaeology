@@ -1413,4 +1413,82 @@ describe('SceneRenderer', () => {
       expect(container.querySelector('.da-scene-container')).not.toBeNull();
     });
   });
+
+  // =========================================================================
+  // Story 26.9: Branch badge rendering
+  // =========================================================================
+
+  describe('branch badge (Story 26.9)', () => {
+    it('should add branch badge when branchId is present', () => {
+      const context = createContext({
+        branchId: 'branch-stack-machine',
+        branchLabel: 'What if stack machines won?',
+      });
+      renderer.renderScene(context, container);
+
+      const badge = container.querySelector('.da-scene-branch-badge');
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toBe('What if stack machines won?');
+    });
+
+    it('should add --branch class to scene container', () => {
+      const context = createContext({
+        branchId: 'branch-test',
+        branchLabel: 'Test Branch',
+      });
+      renderer.renderScene(context, container);
+
+      const sceneContainer = container.querySelector('.da-scene-container--branch');
+      expect(sceneContainer).not.toBeNull();
+    });
+
+    it('should use "Alternate Timeline" as fallback label when branchLabel is absent', () => {
+      const context = createContext({
+        branchId: 'branch-no-label',
+      });
+      renderer.renderScene(context, container);
+
+      const badge = container.querySelector('.da-scene-branch-badge');
+      expect(badge).not.toBeNull();
+      expect(badge?.textContent).toBe('Alternate Timeline');
+    });
+
+    it('should not show branch badge when branchId is absent', () => {
+      const context = createContext();
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-branch-badge')).toBeNull();
+      expect(container.querySelector('.da-scene-container--branch')).toBeNull();
+    });
+
+    it('should not show branch badge when branchId is undefined', () => {
+      const context = createContext({ branchId: undefined });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-branch-badge')).toBeNull();
+    });
+
+    it('should have aria-label for accessibility', () => {
+      const context = createContext({
+        branchId: 'branch-test',
+        branchLabel: 'Test Path',
+      });
+      renderer.renderScene(context, container);
+
+      const badge = container.querySelector('.da-scene-branch-badge');
+      expect(badge?.getAttribute('aria-label')).toBe('Alternate timeline');
+    });
+
+    it('should show both branch badge and replay badge when both are active', () => {
+      renderer.setReplayMode(true);
+      const context = createContext({
+        branchId: 'branch-test',
+        branchLabel: 'Test',
+      });
+      renderer.renderScene(context, container);
+
+      expect(container.querySelector('.da-scene-replay-badge')).not.toBeNull();
+      expect(container.querySelector('.da-scene-branch-badge')).not.toBeNull();
+    });
+  });
 });

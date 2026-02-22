@@ -4,7 +4,7 @@
 // Story 10.18: Create Historical Personas System
 // Story 10.21: Historical Mindset Time-Travel
 
-import type { StoryScene, StoryAct } from './content-types';
+import type { StoryScene, StoryAct, BranchContent } from './content-types';
 import type { StoryProgress, StoryPosition, StoryChoice, StoryEngineState, TimelineEntry } from './StoryState';
 import type { PersonaData, MindsetContext } from './types';
 import { createDefaultProgress, createDefaultEngineState } from './StoryState';
@@ -60,7 +60,7 @@ export class StoryEngine {
   private sceneHistory: string[] = [];
   private content: {
     acts: StoryAct[];
-    sceneIndex: Map<string, { scene: StoryScene; actNumber: number; chapterNumber: number }>;
+    sceneIndex: Map<string, { scene: StoryScene; actNumber: number; chapterNumber: number; branchId?: string }>;
   } | null = null;
 
   // Story 10.22: Decision-builder state tracking
@@ -77,7 +77,7 @@ export class StoryEngine {
    */
   initialize(acts: StoryAct[]): void {
     // Build scene index for O(1) lookups
-    const sceneIndex = new Map<string, { scene: StoryScene; actNumber: number; chapterNumber: number }>();
+    const sceneIndex = new Map<string, { scene: StoryScene; actNumber: number; chapterNumber: number; branchId?: string }>();
 
     for (const act of acts) {
       for (const chapter of act.chapters) {
@@ -87,6 +87,26 @@ export class StoryEngine {
             actNumber: act.number,
             chapterNumber: chapter.number,
           });
+        }
+      }
+
+      // Story 26.9: Index branch scenes alongside golden-path scenes
+      if (act.branches) {
+        for (const branch of act.branches) {
+          for (const scene of branch.scenes) {
+            if (sceneIndex.has(scene.id)) {
+              console.warn(
+                `StoryEngine: duplicate scene ID "${scene.id}" in branch "${branch.id}" ` +
+                `(already indexed from golden path or earlier branch)`
+              );
+            }
+            sceneIndex.set(scene.id, {
+              scene,
+              actNumber: act.number,
+              chapterNumber: 0, // branch scenes don't belong to a numbered chapter
+              branchId: branch.id,
+            });
+          }
         }
       }
     }
@@ -343,6 +363,28 @@ export class StoryEngine {
     return this.state.replaySceneId;
   }
 
+  // =========================================================================
+  // Story 26.9: Branch Content Queries
+  // =========================================================================
+
+  /**
+   * Get the branch ID for a scene (null = golden path).
+   * Story 26.9: Alternate Timeline Story Content
+   */
+  getBranchForScene(sceneId: string): string | null {
+    return this.content?.sceneIndex.get(sceneId)?.branchId ?? null;
+  }
+
+  /**
+   * Get all branches for a specific act.
+   * Story 26.9: Alternate Timeline Story Content
+   */
+  getActBranches(actNumber: number): BranchContent[] {
+    if (!this.content) return [];
+    const act = this.content.acts.find(a => a.number === actNumber);
+    return act?.branches ?? [];
+  }
+
   /**
    * Build a chronological timeline of visited scenes with context.
    * Uses scene history + choices to reconstruct the journey.
@@ -360,6 +402,17 @@ export class StoryEngine {
     const timeline: TimelineEntry[] = [];
     const seen = new Set<string>();
 
+    // Story 26.9: Helper to resolve chapter title — uses branch label for branch scenes
+    const resolveChapterTitle = (entry: { actNumber: number; chapterNumber: number; branchId?: string }): string => {
+      const act = this.content!.acts.find(a => a.number === entry.actNumber);
+      if (entry.branchId) {
+        const branch = act?.branches?.find(b => b.id === entry.branchId);
+        return branch?.label ?? 'Alternate Timeline';
+      }
+      const chapter = act?.chapters.find(c => c.number === entry.chapterNumber);
+      return chapter?.title ?? `Chapter ${entry.chapterNumber}`;
+    };
+
     for (const sceneId of this.sceneHistory) {
       if (seen.has(sceneId)) continue;
       seen.add(sceneId);
@@ -368,7 +421,6 @@ export class StoryEngine {
       if (!entry) continue;
 
       const act = this.content.acts.find(a => a.number === entry.actNumber);
-      const chapter = act?.chapters.find(c => c.number === entry.chapterNumber);
 
       timeline.push({
         sceneId,
@@ -376,7 +428,7 @@ export class StoryEngine {
         chapterNumber: entry.chapterNumber,
         sceneType: entry.scene.type,
         actTitle: act?.title ?? `Act ${entry.actNumber}`,
-        chapterTitle: chapter?.title ?? `Chapter ${entry.chapterNumber}`,
+        chapterTitle: resolveChapterTitle(entry),
         visitedAt: this.state.progress!.startedAt + timeline.length * 1000,
         choiceMade: choicesByScene.get(sceneId),
       });
@@ -388,14 +440,13 @@ export class StoryEngine {
       const entry = this.content.sceneIndex.get(currentSceneId);
       if (entry) {
         const act = this.content.acts.find(a => a.number === entry.actNumber);
-        const chapter = act?.chapters.find(c => c.number === entry.chapterNumber);
         timeline.push({
           sceneId: currentSceneId,
           actNumber: entry.actNumber,
           chapterNumber: entry.chapterNumber,
           sceneType: entry.scene.type,
           actTitle: act?.title ?? `Act ${entry.actNumber}`,
-          chapterTitle: chapter?.title ?? `Chapter ${entry.chapterNumber}`,
+          chapterTitle: resolveChapterTitle(entry),
           visitedAt: this.state.progress!.lastPlayedAt,
           choiceMade: choicesByScene.get(currentSceneId),
         });

@@ -383,7 +383,7 @@ describe('StoryModeContainer', () => {
 
       const banner = container.querySelector('.da-challenge-complete-banner');
       expect(banner).not.toBeNull();
-      expect(banner?.textContent).toBe('Challenge Complete!');
+      expect(banner?.textContent).toBe('Solution Verified \u2014 Production Ready!');
       expect(banner?.getAttribute('role')).toBe('status');
       expect(banner?.getAttribute('aria-live')).toBe('polite');
     });

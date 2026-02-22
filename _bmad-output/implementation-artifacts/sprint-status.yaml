@@ -363,8 +363,8 @@ development_status:
   epic-26: in-progress
   26-1-first-launch-story-mode-entry: done
   26-2-story-driven-lab-entry: done
-  26-3-cumulative-lab-state-persistence: backlog
-  26-4-production-ready-completion-standard: backlog
+  26-3-cumulative-lab-state-persistence: done
+  26-4-production-ready-completion-standard: in-progress
   26-5-act-unlock-system: backlog
   26-6-timeline-visualization-interface: backlog
   26-7-alternate-timeline-branches: backlog

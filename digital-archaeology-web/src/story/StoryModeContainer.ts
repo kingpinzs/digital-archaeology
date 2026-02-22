@@ -503,8 +503,8 @@ export class StoryModeContainer {
   }
 
   /**
-   * Show a brief "Challenge Complete!" banner after returning from a completed challenge.
-   * Satisfies AC #3: visual acknowledgment of challenge completion on the next scene.
+   * Show a brief verification banner after returning from a completed challenge.
+   * Story 26.4: Upgraded text to "Solution Verified — Production Ready!"
    */
   private showChallengeCompletionBanner(): void {
     if (!this.element) return;
@@ -516,7 +516,7 @@ export class StoryModeContainer {
     banner.className = 'da-challenge-complete-banner';
     banner.setAttribute('role', 'status');
     banner.setAttribute('aria-live', 'polite');
-    banner.textContent = 'Challenge Complete!';
+    banner.textContent = 'Solution Verified \u2014 Production Ready!';
     this.element.prepend(banner);
 
     // Remove after CSS animation completes

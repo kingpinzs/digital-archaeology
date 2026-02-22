@@ -482,6 +482,141 @@ describe('ChallengeStation', () => {
     });
   });
 
+  describe('Verification panel (Story 26.4)', () => {
+    it('should render verification panel when all objectives complete', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+
+      const panel = container.querySelector('.da-verification-panel');
+      expect(panel).not.toBeNull();
+      expect(panel?.getAttribute('role')).toBe('status');
+    });
+
+    it('should show "VERIFIED — Production Ready" header', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+
+      const header = container.querySelector('.da-verification-panel-header');
+      expect(header).not.toBeNull();
+      expect(header?.textContent).toBe('VERIFIED \u2014 Production Ready');
+    });
+
+    it('should list each objective as PASS', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+
+      const results = container.querySelectorAll('.da-verification-panel-result');
+      expect(results.length).toBe(3);
+
+      // Each result should have PASS badge and objective text
+      results.forEach((result, i) => {
+        expect(result.classList.contains('da-verification-panel-result--pass')).toBe(true);
+        const badge = result.querySelector('.da-verification-panel-badge');
+        expect(badge?.textContent).toBe('PASS');
+        const label = result.querySelector('.da-verification-panel-label');
+        expect(label?.textContent).toBe(context.challengeData.objectives[i].text);
+      });
+    });
+
+    it('should insert verification panel before the return button', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+
+      const sidebar = container.querySelector('.da-challenge-station-sidebar');
+      const panel = sidebar?.querySelector('.da-verification-panel');
+      const returnBtn = sidebar?.querySelector('.da-challenge-station-return-btn');
+
+      // Verification panel should come before return button in DOM order
+      expect(panel).not.toBeNull();
+      expect(returnBtn).not.toBeNull();
+      const children = Array.from(sidebar!.children);
+      expect(children.indexOf(panel as Element)).toBeLessThan(children.indexOf(returnBtn as Element));
+    });
+
+    it('should not render verification panel before objectives are complete', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      // Only complete one objective, not all
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onObjectiveComplete('obj-1');
+
+      const panel = container.querySelector('.da-verification-panel');
+      expect(panel).toBeNull();
+    });
+
+    it('should clear verification panel when new challenge context is set', () => {
+      const context1 = createMockContext({ sceneId: 'scene-a' });
+      station.setChallengeContext(context1);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+      expect(container.querySelector('.da-verification-panel')).not.toBeNull();
+
+      // Set new challenge context — clears sidebar
+      const context2 = createMockContext({ sceneId: 'scene-b' });
+      station.setChallengeContext(context2);
+      expect(container.querySelector('.da-verification-panel')).toBeNull();
+    });
+
+    it('should remove verification panel when reset button is clicked', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const callbacks = getWiredCallbacks(station);
+      callbacks.onAllObjectivesComplete?.();
+      expect(container.querySelector('.da-verification-panel')).not.toBeNull();
+
+      // Click reset
+      const resetBtn = container.querySelector('.da-sim-btn-reset') as HTMLButtonElement;
+      resetBtn.click();
+
+      expect(container.querySelector('.da-verification-panel')).toBeNull();
+    });
+
+    it('should show verification panel on saved-state re-entry for completed challenge', () => {
+      // Use a station with pre-populated progress storage
+      const PERSIST_KEY = 'test-verify-reentry';
+      localStorage.removeItem(PERSIST_KEY);
+      const storage = new ChallengeProgressStorage(PERSIST_KEY);
+      const reentryStation = new ChallengeStation(storage);
+      reentryStation.mount(container);
+
+      // Pre-populate all 3 objectives as completed
+      storage.markCompleted('verify-scene', 'obj-1');
+      storage.markCompleted('verify-scene', 'obj-2');
+      storage.markCompleted('verify-scene', 'obj-3');
+
+      const context = createMockContext({ sceneId: 'verify-scene' });
+      reentryStation.setChallengeContext(context);
+
+      // Verification panel should appear from saved state
+      const panel = container.querySelector('.da-verification-panel');
+      expect(panel).not.toBeNull();
+
+      const header = panel?.querySelector('.da-verification-panel-header');
+      expect(header?.textContent).toBe('VERIFIED \u2014 Production Ready');
+
+      const results = panel?.querySelectorAll('.da-verification-panel-result');
+      expect(results?.length).toBe(3);
+
+      reentryStation.destroy();
+      localStorage.removeItem(PERSIST_KEY);
+    });
+  });
+
   describe('Cleanup', () => {
     it('should reset allObjectivesCompleted on destroy', () => {
       const onReturn = vi.fn();

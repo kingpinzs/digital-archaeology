@@ -146,6 +146,8 @@ export class ChallengeStation {
       this.progressStorage.clearScene(context.sceneId);
       this.allObjectivesCompleted = false;
       this.returnButton?.classList.add('da-challenge-station-return-btn--hidden');
+      // Story 26.4: Remove verification panel on reset
+      this.sidebarContainer?.querySelector('.da-verification-panel')?.remove();
     });
     this.sidebarContainer.appendChild(resetBtn);
 
@@ -160,9 +162,11 @@ export class ChallengeStation {
     });
     this.sidebarContainer.appendChild(this.returnButton);
 
-    // Story 26.3: If all objectives were already completed from saved state, show return button
+    // Story 26.3 + 26.4: If all objectives were already completed from saved state,
+    // show return button and verification panel
     if (this.allObjectivesCompleted) {
       this.returnButton.classList.remove('da-challenge-station-return-btn--hidden');
+      this.renderVerificationPanel(context);
     }
 
     // Create the simulator
@@ -181,6 +185,8 @@ export class ChallengeStation {
       onAllObjectivesComplete: () => {
         this.allObjectivesCompleted = true;
         this.returnButton?.classList.remove('da-challenge-station-return-btn--hidden');
+        // Story 26.4: Show verification result panel
+        this.renderVerificationPanel(context);
       },
     };
     simulator.setCallbacks(callbacks);
@@ -236,6 +242,56 @@ export class ChallengeStation {
       default:
         console.warn(`Unknown simulator type: ${type as string}`);
         return null;
+    }
+  }
+
+  /**
+   * Story 26.4: Render the verification result panel in the sidebar.
+   * Shows each objective as "PASS" with a "VERIFIED — Production Ready" header.
+   */
+  private renderVerificationPanel(context: ChallengeContext): void {
+    if (!this.sidebarContainer) return;
+
+    // Remove any existing verification panel
+    this.sidebarContainer.querySelector('.da-verification-panel')?.remove();
+
+    const panel = document.createElement('div');
+    panel.className = 'da-verification-panel';
+    panel.setAttribute('role', 'status');
+    panel.setAttribute('aria-label', 'Verification results');
+
+    const header = document.createElement('h3');
+    header.className = 'da-verification-panel-header';
+    header.textContent = 'VERIFIED \u2014 Production Ready';
+    panel.appendChild(header);
+
+    const resultsList = document.createElement('ul');
+    resultsList.className = 'da-verification-panel-results';
+
+    for (const objective of context.challengeData.objectives) {
+      const item = document.createElement('li');
+      item.className = 'da-verification-panel-result da-verification-panel-result--pass';
+
+      const badge = document.createElement('span');
+      badge.className = 'da-verification-panel-badge';
+      badge.textContent = 'PASS';
+
+      const label = document.createElement('span');
+      label.className = 'da-verification-panel-label';
+      label.textContent = objective.text;
+
+      item.appendChild(badge);
+      item.appendChild(label);
+      resultsList.appendChild(item);
+    }
+
+    panel.appendChild(resultsList);
+
+    // Insert before the return button so it's visible above the CTA
+    if (this.returnButton) {
+      this.sidebarContainer.insertBefore(panel, this.returnButton);
+    } else {
+      this.sidebarContainer.appendChild(panel);
     }
   }
 

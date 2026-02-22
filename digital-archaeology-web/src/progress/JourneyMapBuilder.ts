@@ -9,36 +9,6 @@ import { ActCompletionStorage } from './ActCompletionStorage';
 /** Total number of acts in the story (Act 0 through Act 10) */
 const TOTAL_ACTS = 11;
 
-/** Story 26.11: Key historical figures per act */
-const ACT_KEY_FIGURES: readonly (readonly string[])[] = [
-  /* Act 0 */ ['Thales of Miletus', 'Aristotle', 'Al-Khwarizmi', 'Pascal', 'Leibniz', 'Babbage', 'Ada Lovelace'],
-  /* Act 1 */ ['George Boole', 'Herman Hollerith', 'Konrad Zuse', 'Alan Turing', 'Claude Shannon'],
-  /* Act 2 */ ['John von Neumann', 'J. Presper Eckert', 'John Mauchly', 'Grace Hopper', 'Maurice Wilkes'],
-  /* Act 3 */ ['William Shockley', 'Jack Kilby', 'Robert Noyce', 'Gordon Moore', 'Douglas Engelbart'],
-  /* Act 4 */ ['Ted Hoff', 'Federico Faggin', 'Stan Mazor', 'Masatoshi Shima'],
-  /* Act 5 */ ['Chuck Peddle', 'Steve Wozniak', 'Gary Kildall', 'Bill Gates'],
-  /* Act 6 */ ['Stephen Morse', 'John Crawford', 'Sophie Wilson', 'Steve Furber'],
-  /* Act 7 */ ['David Patterson', 'John Hennessy', 'Linus Torvalds'],
-  /* Act 8 */ ['John Cocke', 'Jim Smith', 'Mike Johnson'],
-  /* Act 9 */ ['Seymour Cray', 'Jim Keller', 'Jensen Huang'],
-  /* Act 10 */ ['David Deutsch', 'Carver Mead', 'John Preskill'],
-];
-
-/** Story 26.11: Key inventions/technologies per act */
-const ACT_KEY_INVENTIONS: readonly (readonly string[])[] = [
-  /* Act 0 */ ['Abacus', 'Boolean Logic', 'Pascaline', 'Stepped Reckoner', 'Analytical Engine'],
-  /* Act 1 */ ['Relay Computer', 'Z3', 'Colossus', 'Harvard Mark I'],
-  /* Act 2 */ ['ENIAC', 'EDVAC', 'Stored Program', 'Assembly Language', 'Magnetic Core Memory'],
-  /* Act 3 */ ['Transistor', 'Integrated Circuit', 'MOSFET', 'Mainframe Computer'],
-  /* Act 4 */ ['Intel 4004', 'Microprocessor', '4-bit CPU', 'Calculator Chip'],
-  /* Act 5 */ ['Intel 8080', 'MOS 6502', 'Z80', 'Personal Computer'],
-  /* Act 6 */ ['Intel 8086', 'x86 Architecture', 'Protected Mode', 'ARM Architecture'],
-  /* Act 7 */ ['Intel 80386', 'RISC', 'Virtual Memory', 'Paging'],
-  /* Act 8 */ ['Instruction Pipeline', 'Branch Prediction', 'Out-of-Order Execution', 'Cache Hierarchy'],
-  /* Act 9 */ ['Superscalar', 'Speculative Execution', 'Multi-core', 'SIMD'],
-  /* Act 10 */ ['Quantum Computing', 'Neuromorphic Chips', 'Photonic Computing'],
-];
-
 /** Mapping from act number (0-10) to CpuStage string — tuple enforces exactly 11 entries at compile time */
 const ACT_CPU_STAGES: readonly [string, string, string, string, string, string, string, string, string, string, string] = [
   'mechanical',   // Act 0

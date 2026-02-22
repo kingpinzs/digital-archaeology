@@ -4918,6 +4918,33 @@ body.da-resizing * {
 }
 
 /* =============================================================================
+   Time Travel Portal Canvas (Story — vortex animation overlay)
+   ============================================================================= */
+
+.da-portal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: var(--da-z-modal-backdrop, 1000);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.da-portal-backdrop--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.da-portal-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: calc(var(--da-z-modal, 1001) + 1);
+  pointer-events: none;
+}
+
+/* =============================================================================
    Dialogue Block Component (Story 10.8)
    ============================================================================= */
 

@@ -82,3 +82,7 @@ export type { BuilderChallengeData } from './content-types';
 export { DiscovererExperience } from './DiscovererExperience';
 export type { DiscovererPhase } from './DiscovererExperience';
 export { DISCOVERER_COMPLETE_KEY } from './StoryStorage';
+
+// Time Travel Portal
+export { TimeTravelPortal } from './TimeTravelPortal';
+export type { PortalMode } from './TimeTravelPortal';

@@ -360,7 +360,7 @@ development_status:
   epic-25-retrospective: optional
 
   # Epic 26: Core Game Experience
-  epic-26: in-progress
+  epic-26: done
   26-1-first-launch-story-mode-entry: done
   26-2-story-driven-lab-entry: done
   26-3-cumulative-lab-state-persistence: done
@@ -376,7 +376,7 @@ development_status:
   26-13-open-doors-no-blockers-navigation: done
   26-14-it-works-connection-system: done
   26-15-the-discovery-path-live-each-step: done
-  26-16-brave-alternatives-what-if-dared: backlog
+  26-16-brave-alternatives-what-if-dared: done
   epic-26-retrospective: optional
 
   # Epic 27: Historical Immersion System

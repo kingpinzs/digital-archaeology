@@ -188,4 +188,60 @@ describe('JourneyMapBuilder', () => {
     const data = builder.build(0);
     expect(data.totalActs).toBe(11);
   });
+
+  // Story 26.11: Key figures and inventions
+  describe('Story 26.11: Historical data', () => {
+    it('should populate keyFigures for every node', () => {
+      const data = builder.build(0);
+
+      for (const node of data.nodes) {
+        expect(node.keyFigures).toBeDefined();
+        expect(Array.isArray(node.keyFigures)).toBe(true);
+        expect(node.keyFigures!.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should populate keyInventions for every node', () => {
+      const data = builder.build(0);
+
+      for (const node of data.nodes) {
+        expect(node.keyInventions).toBeDefined();
+        expect(Array.isArray(node.keyInventions)).toBe(true);
+        expect(node.keyInventions!.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should have readonly arrays for keyFigures and keyInventions', () => {
+      const data = builder.build(0);
+      const node = data.nodes[0];
+
+      // They should be arrays (readonly at compile time, but arrays at runtime)
+      expect(Array.isArray(node.keyFigures)).toBe(true);
+      expect(Array.isArray(node.keyInventions)).toBe(true);
+    });
+
+    it('should include well-known figures in act 0 (Pre-history)', () => {
+      const data = builder.build(0);
+      const act0 = data.nodes[0];
+
+      expect(act0.keyFigures).toContain('Babbage');
+      expect(act0.keyFigures).toContain('Ada Lovelace');
+    });
+
+    it('should include well-known inventions in act 4 (First Microprocessor)', () => {
+      const data = builder.build(0);
+      const act4 = data.nodes[4];
+
+      expect(act4.keyInventions).toContain('Intel 4004');
+      expect(act4.keyInventions).toContain('Microprocessor');
+    });
+
+    it('should include well-known figures in act 2 (Vacuum Tubes)', () => {
+      const data = builder.build(0);
+      const act2 = data.nodes[2];
+
+      expect(act2.keyFigures).toContain('John von Neumann');
+      expect(act2.keyFigures).toContain('Grace Hopper');
+    });
+  });
 });

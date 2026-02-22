@@ -72,6 +72,9 @@ export class JourneyMap {
   private branchActNumbers: Set<number> | null = null;
   private takenBranches: Map<string, string> | null = null;
 
+  // Story 26.11: Era detail view state
+  private eraDetailView: HTMLElement | null = null;
+
   // Tab state
   private activeTab: JourneyMapTab = 'timeline';
   private tabPanels: Map<JourneyMapTab, HTMLElement> = new Map();
@@ -275,6 +278,9 @@ export class JourneyMap {
       this.exitTimeout = null;
     }
     this.dismissPreview();
+    if (this.eraDetailView) {
+      this.hideEraDetail();
+    }
     this.destroyChildComponents();
     this.removeOverlay();
     document.removeEventListener('keydown', this.boundHandleKeydown);
@@ -547,7 +553,7 @@ export class JourneyMap {
       return;
     }
 
-    const preview = this.createPreview(act);
+    const preview = this.createPreview(act, node);
     nodeEl.appendChild(preview);
     this.activePreview = preview;
   }
@@ -562,13 +568,194 @@ export class JourneyMap {
     }
   }
 
+  // =========================================================================
+  // Story 26.11: Era detail zoom view
+  // =========================================================================
+
   /**
-   * Create a preview tooltip showing chapters and scenes for an act.
+   * Show a full era detail view, hiding the normal timeline content.
    */
-  private createPreview(act: StoryAct): HTMLElement {
+  private showEraDetail(node: JourneyNode): void {
+    this.dismissPreview();
+
+    // Guard: clean up any existing era detail before replacing
+    if (this.eraDetailView) {
+      this.hideEraDetail();
+    }
+
+    const timelinePanel = this.tabPanels.get('timeline');
+    if (!timelinePanel) return;
+
+    // Hide existing timeline children (golden path label + timeline div)
+    for (const child of Array.from(timelinePanel.children)) {
+      (child as HTMLElement).style.display = 'none';
+    }
+
+    // Build the era detail view
+    const detail = document.createElement('div');
+    detail.className = 'da-journey-map__era-detail';
+    detail.setAttribute('role', 'region');
+    detail.setAttribute('aria-label', `Era detail: ${node.title}`);
+
+    // Back button
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'da-journey-map__era-detail-back';
+    backBtn.textContent = '\u2190 Back to Timeline';
+    backBtn.addEventListener('click', () => {
+      this.hideEraDetail();
+    });
+    detail.appendChild(backBtn);
+
+    // Era header
+    const header = document.createElement('div');
+    header.className = 'da-journey-map__era-detail-header';
+
+    const icon = document.createElement('span');
+    icon.className = 'da-journey-map__era-detail-icon';
+    icon.textContent = node.icon;
+
+    const titleContainer = document.createElement('div');
+
+    const title = document.createElement('h3');
+    title.className = 'da-journey-map__era-detail-title';
+    title.id = 'da-journey-map-era-detail-title';
+    title.textContent = node.title;
+
+    // Update modal accessible name to point to era detail title
+    if (this.overlay) {
+      this.overlay.setAttribute('aria-labelledby', title.id);
+    }
+
+    const era = document.createElement('div');
+    era.className = 'da-journey-map__era-detail-era';
+    era.textContent = node.era;
+
+    titleContainer.appendChild(title);
+    titleContainer.appendChild(era);
+    header.appendChild(icon);
+    header.appendChild(titleContainer);
+    detail.appendChild(header);
+
+    // Key figures
+    if (node.keyFigures && node.keyFigures.length > 0) {
+      const figuresSection = document.createElement('div');
+      figuresSection.className = 'da-journey-map__era-detail-section';
+
+      const figuresTitle = document.createElement('h4');
+      figuresTitle.className = 'da-journey-map__era-detail-section-title';
+      figuresTitle.textContent = 'Key Figures';
+      figuresSection.appendChild(figuresTitle);
+
+      const figuresList = document.createElement('div');
+      figuresList.className = 'da-journey-map__era-detail-figures';
+      for (const figure of node.keyFigures) {
+        const figureEl = document.createElement('div');
+        figureEl.className = 'da-journey-map__era-detail-figure';
+        figureEl.textContent = figure;
+        figuresList.appendChild(figureEl);
+      }
+      figuresSection.appendChild(figuresList);
+      detail.appendChild(figuresSection);
+    }
+
+    // Key inventions
+    if (node.keyInventions && node.keyInventions.length > 0) {
+      const inventionsSection = document.createElement('div');
+      inventionsSection.className = 'da-journey-map__era-detail-section';
+
+      const inventionsTitle = document.createElement('h4');
+      inventionsTitle.className = 'da-journey-map__era-detail-section-title';
+      inventionsTitle.textContent = 'Key Inventions';
+      inventionsSection.appendChild(inventionsTitle);
+
+      const inventionsList = document.createElement('div');
+      inventionsList.className = 'da-journey-map__era-detail-inventions';
+      for (const invention of node.keyInventions) {
+        const pill = document.createElement('span');
+        pill.className = 'da-journey-map__era-detail-invention';
+        pill.textContent = invention;
+        inventionsList.appendChild(pill);
+      }
+      inventionsSection.appendChild(inventionsList);
+      detail.appendChild(inventionsSection);
+    }
+
+    // Branch points (if any from Story 26.7)
+    if (node.branchPoints && node.branchPoints.length > 0) {
+      const branchSection = document.createElement('div');
+      branchSection.className = 'da-journey-map__era-detail-section';
+
+      const branchTitle = document.createElement('h4');
+      branchTitle.className = 'da-journey-map__era-detail-section-title';
+      branchTitle.textContent = 'Alternate Timelines';
+      branchSection.appendChild(branchTitle);
+
+      const branchList = document.createElement('div');
+      branchList.className = 'da-journey-map__era-detail-branches';
+      for (const branch of node.branchPoints) {
+        const branchEl = document.createElement('div');
+        branchEl.className = 'da-journey-map__era-detail-branch';
+        branchEl.textContent = `\u2B95 ${branch}`;
+        branchList.appendChild(branchEl);
+      }
+      branchSection.appendChild(branchList);
+      detail.appendChild(branchSection);
+    }
+
+    // Navigate to this era button
+    const navigable = node.status === 'completed' || node.status === 'current';
+    if (navigable) {
+      const goBtn = document.createElement('button');
+      goBtn.type = 'button';
+      goBtn.className = 'da-journey-map__era-detail-go';
+      goBtn.textContent = `Enter ${node.title} \u2192`;
+      goBtn.addEventListener('click', () => {
+        this.onNavigate?.(node.actNumber);
+        this.hide();
+      });
+      detail.appendChild(goBtn);
+    }
+
+    timelinePanel.appendChild(detail);
+    this.eraDetailView = detail;
+
+    // Focus the back button
+    requestAnimationFrame(() => {
+      if (this.eraDetailView) backBtn.focus();
+    });
+  }
+
+  /**
+   * Return from era detail view to the normal timeline.
+   */
+  private hideEraDetail(): void {
+    const timelinePanel = this.tabPanels.get('timeline');
+    if (!timelinePanel || !this.eraDetailView) return;
+
+    // Remove the detail view
+    this.eraDetailView.remove();
+    this.eraDetailView = null;
+
+    // Restore modal accessible name to main title
+    if (this.overlay) {
+      this.overlay.setAttribute('aria-labelledby', 'da-journey-map-title');
+    }
+
+    // Restore visibility of original timeline children
+    for (const child of Array.from(timelinePanel.children)) {
+      (child as HTMLElement).style.display = '';
+    }
+  }
+
+  /**
+   * Create a preview tooltip showing chapters, scenes, key figures and inventions for an act.
+   */
+  private createPreview(act: StoryAct, node: JourneyNode): HTMLElement {
     const preview = document.createElement('div');
     preview.className = 'da-journey-map__preview';
-    preview.setAttribute('role', 'dialog');
+    preview.setAttribute('role', 'region');
+    preview.setAttribute('aria-label', `Preview: Act ${act.number} - ${act.title}`);
 
     // "Go to Act" header with navigate button
     const header = document.createElement('div');
@@ -667,6 +854,58 @@ export class JourneyMap {
       preview.appendChild(chapterEl);
     }
 
+    // Story 26.11: Key figures section
+    if (node.keyFigures && node.keyFigures.length > 0) {
+      const figuresSection = document.createElement('div');
+      figuresSection.className = 'da-journey-map__preview-figures';
+
+      const figuresLabel = document.createElement('div');
+      figuresLabel.className = 'da-journey-map__preview-section-label';
+      figuresLabel.textContent = 'Key Figures';
+      figuresSection.appendChild(figuresLabel);
+
+      const figuresList = document.createElement('div');
+      figuresList.className = 'da-journey-map__preview-figures-list';
+      figuresList.textContent = node.keyFigures.join(', ');
+      figuresSection.appendChild(figuresList);
+
+      preview.appendChild(figuresSection);
+    }
+
+    // Story 26.11: Key inventions section
+    if (node.keyInventions && node.keyInventions.length > 0) {
+      const inventionsSection = document.createElement('div');
+      inventionsSection.className = 'da-journey-map__preview-inventions';
+
+      const inventionsLabel = document.createElement('div');
+      inventionsLabel.className = 'da-journey-map__preview-section-label';
+      inventionsLabel.textContent = 'Key Inventions';
+      inventionsSection.appendChild(inventionsLabel);
+
+      const pillContainer = document.createElement('div');
+      pillContainer.className = 'da-journey-map__preview-pills';
+      for (const invention of node.keyInventions) {
+        const pill = document.createElement('span');
+        pill.className = 'da-journey-map__preview-pill';
+        pill.textContent = invention;
+        pillContainer.appendChild(pill);
+      }
+      inventionsSection.appendChild(pillContainer);
+
+      preview.appendChild(inventionsSection);
+    }
+
+    // Story 26.11: "View Era Details" button
+    const detailBtn = document.createElement('button');
+    detailBtn.type = 'button';
+    detailBtn.className = 'da-journey-map__preview-detail-btn';
+    detailBtn.textContent = 'View Era Details \u2192';
+    detailBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.showEraDetail(node);
+    });
+    preview.appendChild(detailBtn);
+
     return preview;
   }
 
@@ -743,7 +982,12 @@ export class JourneyMap {
 
   private handleKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
-      this.hide();
+      // Story 26.11: Step back from era detail before closing modal
+      if (this.eraDetailView) {
+        this.hideEraDetail();
+      } else {
+        this.hide();
+      }
     } else if (e.key === 'Tab' && this.overlay) {
       // Focus trap: keep focus within the journey map
       const focusableElements = this.overlay.querySelectorAll(

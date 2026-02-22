@@ -10125,6 +10125,200 @@ body.da-resizing * {
   flex-shrink: 0;
 }
 
+/* Story 26.11: Preview - Key Figures & Inventions */
+
+.da-journey-map__preview-section-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--da-text-secondary, rgba(255, 255, 255, 0.5));
+  margin-bottom: 0.25rem;
+}
+
+.da-journey-map__preview-figures {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.da-journey-map__preview-figures-list {
+  font-size: 0.65rem;
+  color: var(--da-text-secondary, rgba(255, 255, 255, 0.65));
+  line-height: 1.4;
+}
+
+.da-journey-map__preview-inventions {
+  margin-top: 0.4rem;
+}
+
+.da-journey-map__preview-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.da-journey-map__preview-pill {
+  font-size: 0.55rem;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(255, 180, 0, 0.12);
+  color: var(--da-accent-warm, #f0a500);
+  white-space: nowrap;
+}
+
+.da-journey-map__preview-detail-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--da-accent, #00b4d8);
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.da-journey-map__preview-detail-btn:hover {
+  background: rgba(0, 180, 216, 0.15);
+  border-color: rgba(0, 180, 216, 0.4);
+}
+
+/* Story 26.11: Era Detail View */
+
+.da-journey-map__era-detail {
+  padding: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.da-journey-map__era-detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--da-text-secondary, rgba(255, 255, 255, 0.6));
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.da-journey-map__era-detail-back:hover {
+  color: var(--da-text-primary, #fff);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.da-journey-map__era-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.da-journey-map__era-detail-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.da-journey-map__era-detail-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--da-text-primary, #fff);
+  font-family: 'Crimson Text', Georgia, serif;
+}
+
+.da-journey-map__era-detail-era {
+  font-size: 0.8rem;
+  color: var(--da-text-secondary, rgba(255, 255, 255, 0.6));
+  margin-top: 0.15rem;
+}
+
+.da-journey-map__era-detail-section {
+  margin-bottom: 1.25rem;
+}
+
+.da-journey-map__era-detail-section-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--da-accent, #00b4d8);
+}
+
+.da-journey-map__era-detail-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.da-journey-map__era-detail-figure {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--da-text-primary, rgba(255, 255, 255, 0.85));
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.da-journey-map__era-detail-inventions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.da-journey-map__era-detail-invention {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.7rem;
+  color: var(--da-accent-warm, #f0a500);
+  background: rgba(255, 180, 0, 0.1);
+  border: 1px solid rgba(255, 180, 0, 0.2);
+  border-radius: 12px;
+}
+
+.da-journey-map__era-detail-branches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.da-journey-map__era-detail-branch {
+  font-size: 0.75rem;
+  color: var(--da-accent, #00b4d8);
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 180, 216, 0.06);
+  border-radius: 4px;
+}
+
+.da-journey-map__era-detail-go {
+  display: block;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--da-accent, #00b4d8);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.15s;
+}
+
+.da-journey-map__era-detail-go:hover {
+  opacity: 0.85;
+}
+
 /* =============================================================================
    Story 26.8: Replay Panel
    ============================================================================= */

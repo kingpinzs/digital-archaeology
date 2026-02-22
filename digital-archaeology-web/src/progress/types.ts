@@ -554,6 +554,10 @@ export interface JourneyNode {
   readonly status: JourneyNodeStatus;
   /** Story 26.7: Labels of branch points in this act (empty = no branches) */
   readonly branchPoints?: readonly string[];
+  /** Story 26.11: Key historical figures associated with this era */
+  readonly keyFigures?: readonly string[];
+  /** Story 26.11: Key inventions/technologies introduced in this era */
+  readonly keyInventions?: readonly string[];
 }
 
 /**

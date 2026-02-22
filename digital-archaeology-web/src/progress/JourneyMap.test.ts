@@ -14,8 +14,10 @@ function makeNode(
   era = `Era ${actNumber}`,
   icon = '\u{1F3DB}',
   cpuStage = 'mechanical',
+  keyFigures?: readonly string[],
+  keyInventions?: readonly string[],
 ): JourneyNode {
-  return { actNumber, title, era, icon, cpuStage, status };
+  return { actNumber, title, era, icon, cpuStage, status, keyFigures, keyInventions };
 }
 
 /** Helper to create full 11-node data with specified completed/current */
@@ -1076,6 +1078,197 @@ describe('JourneyMap', () => {
 
       expect(container.querySelector('.da-journey-map__branch-badge')).toBeNull();
       expect(container.querySelectorAll('.da-journey-map__branch-indicator')).toHaveLength(0);
+    });
+  });
+
+  // Story 26.11: Golden Path Timeline — key figures, inventions, era detail
+  describe('key figures and inventions in preview (Story 26.11)', () => {
+    const mockActWithFigures = [
+      {
+        id: 'act-0', number: 0, title: 'Pre-history', description: 'Desc',
+        era: '3000 BC', cpuStage: 'mechanical' as const,
+        chapters: [
+          {
+            id: 'ch-0-1', number: 1, title: 'Dawn', subtitle: 'Sub', year: '3000 BC',
+            scenes: [
+              { id: 'scene-0-1-1', type: 'narrative' as const },
+            ],
+          },
+        ],
+      },
+    ];
+
+    function makeDataWithFigures(): JourneyMapData {
+      const nodes: JourneyNode[] = [];
+      for (let i = 0; i < 11; i++) {
+        const status: JourneyNode['status'] = i === 0 ? 'completed' : i === 1 ? 'current' : 'locked';
+        nodes.push(makeNode(
+          i, status, `Act Title ${i}`, `Era ${i}`, '\u{1F3DB}', 'mechanical',
+          i === 0 ? ['Babbage', 'Ada Lovelace', 'Pascal'] : undefined,
+          i === 0 ? ['Abacus', 'Pascaline', 'Analytical Engine'] : undefined,
+        ));
+      }
+      return { nodes, totalActs: 11, completedCount: 1, currentActNumber: 1 };
+    }
+
+    function showWithFigures() {
+      journeyMap.show({
+        journeyData: makeDataWithFigures(),
+        collectibleProfile: { pinnedLocations: [], collectedArtifacts: [], version: 1 },
+        currentActNumber: 1,
+        onNavigate,
+        onPinLocation: vi.fn(),
+        onUnpinLocation: vi.fn(),
+        onCollectArtifact: vi.fn(),
+        storyActs: mockActWithFigures,
+      });
+    }
+
+    it('should show key figures section in preview when node has keyFigures', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const figuresSection = container.querySelector('.da-journey-map__preview-figures');
+      expect(figuresSection).not.toBeNull();
+
+      const figuresList = container.querySelector('.da-journey-map__preview-figures-list');
+      expect(figuresList?.textContent).toContain('Babbage');
+      expect(figuresList?.textContent).toContain('Ada Lovelace');
+    });
+
+    it('should show key inventions as pills in preview', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const inventionsSection = container.querySelector('.da-journey-map__preview-inventions');
+      expect(inventionsSection).not.toBeNull();
+
+      const pills = container.querySelectorAll('.da-journey-map__preview-pill');
+      expect(pills.length).toBe(3);
+      expect(pills[0]?.textContent).toBe('Abacus');
+      expect(pills[1]?.textContent).toBe('Pascaline');
+      expect(pills[2]?.textContent).toBe('Analytical Engine');
+    });
+
+    it('should not show figures/inventions when node has none', () => {
+      showWithFigures();
+
+      // Node 1 (current) has no keyFigures/keyInventions
+      const node1 = container.querySelector('[data-act-number="1"]') as HTMLElement;
+      node1.click();
+
+      // Preview won't appear because no storyAct for act 1, but let's verify no stale figures
+      const figuresSection = container.querySelector('.da-journey-map__preview-figures');
+      expect(figuresSection).toBeNull();
+    });
+
+    it('should show "View Era Details" button in preview', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn');
+      expect(detailBtn).not.toBeNull();
+      expect(detailBtn?.textContent).toContain('View Era Details');
+    });
+
+    it('should show era detail view when "View Era Details" is clicked', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn.click();
+
+      const eraDetail = container.querySelector('.da-journey-map__era-detail');
+      expect(eraDetail).not.toBeNull();
+      expect(eraDetail?.getAttribute('role')).toBe('region');
+    });
+
+    it('should show era detail with figures and inventions', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn.click();
+
+      const figures = container.querySelectorAll('.da-journey-map__era-detail-figure');
+      expect(figures.length).toBe(3);
+      expect(figures[0]?.textContent).toBe('Babbage');
+
+      const inventions = container.querySelectorAll('.da-journey-map__era-detail-invention');
+      expect(inventions.length).toBe(3);
+      expect(inventions[0]?.textContent).toBe('Abacus');
+    });
+
+    it('should return to timeline when "Back to Timeline" is clicked', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn.click();
+
+      // Era detail should be visible
+      expect(container.querySelector('.da-journey-map__era-detail')).not.toBeNull();
+
+      // Click back
+      const backBtn = container.querySelector('.da-journey-map__era-detail-back') as HTMLElement;
+      backBtn.click();
+
+      // Era detail should be removed
+      expect(container.querySelector('.da-journey-map__era-detail')).toBeNull();
+
+      // Timeline nodes should be visible again
+      const nodes = container.querySelectorAll('.da-journey-map__node');
+      expect(nodes.length).toBe(11);
+    });
+
+    it('should step back from era detail on Escape (not close modal)', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn.click();
+
+      // Era detail should be visible
+      expect(container.querySelector('.da-journey-map__era-detail')).not.toBeNull();
+
+      // Press Escape — should step back, not close modal
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      // Era detail gone, but modal still open
+      expect(container.querySelector('.da-journey-map__era-detail')).toBeNull();
+      expect(container.querySelector('.da-journey-map')).not.toBeNull();
+
+      // Timeline nodes visible again
+      const nodes = container.querySelectorAll('.da-journey-map__node');
+      expect(nodes.length).toBe(11);
+    });
+
+    it('should show "Enter" button in era detail for navigable nodes', () => {
+      showWithFigures();
+
+      const node0 = container.querySelector('[data-act-number="0"]') as HTMLElement;
+      node0.click();
+
+      const detailBtn = container.querySelector('.da-journey-map__preview-detail-btn') as HTMLElement;
+      detailBtn.click();
+
+      const goBtn = container.querySelector('.da-journey-map__era-detail-go');
+      expect(goBtn).not.toBeNull();
+      expect(goBtn?.textContent).toContain('Enter');
     });
   });
 });

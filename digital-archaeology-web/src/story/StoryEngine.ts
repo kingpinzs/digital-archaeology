@@ -494,14 +494,22 @@ export class StoryEngine {
   /**
    * Story 26.13: Get scene IDs between current position and target act (for skip warning).
    */
-  getScenesBetween(currentActNumber: number, targetActNumber: number): string[] {
-    if (!this.content || targetActNumber <= currentActNumber) return [];
+  getScenesBetween(fromActNumber: number, targetActNumber: number): string[] {
+    if (!this.content || targetActNumber <= fromActNumber) return [];
     const sceneIds: string[] = [];
     for (const act of this.content.acts) {
-      if (act.number >= currentActNumber && act.number < targetActNumber) {
+      if (act.number >= fromActNumber && act.number < targetActNumber) {
         for (const chapter of act.chapters) {
           for (const scene of chapter.scenes) {
             sceneIds.push(scene.id);
+          }
+        }
+        // Include branch scenes (Story 26.9 alternate timelines)
+        if (act.branches) {
+          for (const branch of act.branches) {
+            for (const scene of branch.scenes) {
+              sceneIds.push(scene.id);
+            }
           }
         }
       }

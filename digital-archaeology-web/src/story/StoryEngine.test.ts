@@ -1881,6 +1881,36 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       expect(scenes).toContain('scene-1-1-1');
     });
 
+    it('should include branch scenes in getScenesBetween', () => {
+      // Re-initialize with acts that have branches
+      const actsWithBranches: StoryAct[] = [{
+        id: 'act-1', number: 1, title: 'Act', description: 'Test',
+        era: '1970', cpuStage: 'micro4',
+        chapters: [{
+          id: 'ch-1', number: 1, title: 'Ch', subtitle: 'Sub', year: '1970',
+          scenes: [
+            { id: 'scene-g-1', type: 'narrative', nextScene: 'scene-g-2' },
+            { id: 'scene-g-2', type: 'narrative' },
+          ],
+        }],
+        branches: [{
+          id: 'branch-alt', label: 'Alt Path',
+          divergeSceneId: 'scene-g-1', choiceId: 'c1',
+          scenes: [
+            { id: 'scene-b-1', type: 'narrative' },
+            { id: 'scene-b-2', type: 'narrative' },
+          ],
+        }],
+      }];
+      engine.initialize(actsWithBranches);
+      const scenes = engine.getScenesBetween(1, 2);
+      // Should include golden path scenes AND branch scenes
+      expect(scenes).toContain('scene-g-1');
+      expect(scenes).toContain('scene-g-2');
+      expect(scenes).toContain('scene-b-1');
+      expect(scenes).toContain('scene-b-2');
+    });
+
     it('should return empty array when target is not ahead', () => {
       expect(engine.getScenesBetween(3, 1)).toEqual([]);
       expect(engine.getScenesBetween(1, 1)).toEqual([]);

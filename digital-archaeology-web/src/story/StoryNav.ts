@@ -38,6 +38,8 @@ export interface StoryNavOptions {
   onLiteratureClick?: () => void;
   /** Callback when replay button is clicked (Story 26.8) */
   onReplayClick?: () => void;
+  /** Story 26.12: Callback when return button is clicked */
+  onReturnClick?: () => void;
 }
 
 /**
@@ -68,6 +70,8 @@ export class StoryNav {
   private onStatisticsClick: (() => void) | undefined;
   private onLiteratureClick: (() => void) | undefined;
   private onReplayClick: (() => void) | undefined;
+  private onReturnClick: (() => void) | undefined;
+  private returnButton: HTMLElement | null = null;
 
   constructor(options: StoryNavOptions) {
     this.currentMode = options.currentMode;
@@ -81,6 +85,7 @@ export class StoryNav {
     this.onStatisticsClick = options.onStatisticsClick;
     this.onLiteratureClick = options.onLiteratureClick;
     this.onReplayClick = options.onReplayClick;
+    this.onReturnClick = options.onReturnClick;
   }
 
   /**
@@ -213,6 +218,18 @@ export class StoryNav {
       this.onReplayClick?.();
     });
 
+    // Story 26.12: Return to bookmark button (hidden by default)
+    const returnButton = document.createElement('button');
+    returnButton.type = 'button';
+    returnButton.className = 'da-story-nav-return da-story-nav-return--hidden';
+    returnButton.setAttribute('aria-label', 'Return to previous position');
+    returnButton.textContent = '\u2190 Return';
+    returnButton.addEventListener('click', () => {
+      this.onReturnClick?.();
+    });
+    this.returnButton = returnButton;
+
+    right.appendChild(returnButton);
     right.appendChild(eraBadgeContainer);
     right.appendChild(journeyMapButton);
     right.appendChild(replayButton);
@@ -394,6 +411,30 @@ export class StoryNav {
   }
 
   /**
+   * Story 26.12: Show the return button with an era name label.
+   */
+  showReturnButton(eraName?: string): void {
+    if (!this.returnButton) return;
+    this.returnButton.textContent = eraName ? `\u2190 Return to ${eraName}` : '\u2190 Return';
+    this.returnButton.classList.remove('da-story-nav-return--hidden');
+  }
+
+  /**
+   * Story 26.12: Hide the return button.
+   */
+  hideReturnButton(): void {
+    if (!this.returnButton) return;
+    this.returnButton.classList.add('da-story-nav-return--hidden');
+  }
+
+  /**
+   * Story 26.12: Check if the return button is currently visible.
+   */
+  isReturnButtonVisible(): boolean {
+    return this.returnButton ? !this.returnButton.classList.contains('da-story-nav-return--hidden') : false;
+  }
+
+  /**
    * Get the EraBadge component (for testing).
    */
   getEraBadge(): EraBadge | null {
@@ -431,6 +472,8 @@ export class StoryNav {
       this.progressDots.destroy();
       this.progressDots = null;
     }
+
+    this.returnButton = null;
 
     if (this.element) {
       this.element.remove();

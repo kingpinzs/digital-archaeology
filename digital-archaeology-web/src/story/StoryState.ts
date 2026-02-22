@@ -55,6 +55,8 @@ export interface StoryProgress {
   currentBranchId?: string | null;
   /** Story 26.10: Scene IDs of completed lab challenges (for post-lab acknowledgment) */
   completedChallenges?: string[];
+  /** Story 26.12: Saved position before timeline jump (for "return" navigation) */
+  navigationBookmark?: StoryPosition;
 }
 
 /**

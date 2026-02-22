@@ -421,6 +421,54 @@ export class StoryEngine {
     return this.state.progress?.completedChallenges ?? [];
   }
 
+  // =========================================================================
+  // Story 26.12: Navigation Bookmark
+  // =========================================================================
+
+  /**
+   * Save the current position as a navigation bookmark.
+   * Used before timeline jumps so the user can "return" later.
+   */
+  setNavigationBookmark(): void {
+    if (!this.state.progress) return;
+    this.state.progress = {
+      ...this.state.progress,
+      navigationBookmark: { ...this.state.progress.position },
+      lastPlayedAt: Date.now(),
+    };
+    this.saveProgress();
+  }
+
+  /**
+   * Get the current navigation bookmark (null if none set).
+   */
+  getNavigationBookmark(): StoryPosition | null {
+    return this.state.progress?.navigationBookmark ?? null;
+  }
+
+  /**
+   * Clear the navigation bookmark.
+   */
+  clearNavigationBookmark(): void {
+    if (!this.state.progress?.navigationBookmark) return;
+    this.state.progress = {
+      ...this.state.progress,
+      navigationBookmark: undefined,
+      lastPlayedAt: Date.now(),
+    };
+    this.saveProgress();
+  }
+
+  /**
+   * Return to the bookmarked position (clears bookmark and navigates).
+   */
+  returnToBookmark(): void {
+    const bookmark = this.getNavigationBookmark();
+    if (!bookmark) return;
+    this.clearNavigationBookmark();
+    this.goToScene(bookmark.sceneId);
+  }
+
   /**
    * Build a chronological timeline of visited scenes with context.
    * Uses scene history + choices to reconstruct the journey.

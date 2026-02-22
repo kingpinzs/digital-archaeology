@@ -596,6 +596,107 @@ describe('StoryNav', () => {
     });
   });
 
+  // Story 26.12: Return Button Tests
+  describe('Story 26.12: Return Button', () => {
+    it('should render return button hidden by default', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      const returnBtn = container.querySelector('.da-story-nav-return');
+      expect(returnBtn).not.toBeNull();
+      expect(returnBtn?.classList.contains('da-story-nav-return--hidden')).toBe(true);
+    });
+
+    it('should show return button when showReturnButton() is called', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.showReturnButton();
+
+      expect(storyNav.isReturnButtonVisible()).toBe(true);
+      const returnBtn = container.querySelector('.da-story-nav-return');
+      expect(returnBtn?.classList.contains('da-story-nav-return--hidden')).toBe(false);
+    });
+
+    it('should include era name in return button text', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.showReturnButton('Vacuum Tubes');
+
+      const returnBtn = container.querySelector('.da-story-nav-return');
+      expect(returnBtn?.textContent).toBe('\u2190 Return to Vacuum Tubes');
+    });
+
+    it('should show generic text when no era name is provided', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.showReturnButton();
+
+      const returnBtn = container.querySelector('.da-story-nav-return');
+      expect(returnBtn?.textContent).toBe('\u2190 Return');
+    });
+
+    it('should hide return button when hideReturnButton() is called', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.showReturnButton();
+      expect(storyNav.isReturnButtonVisible()).toBe(true);
+
+      storyNav.hideReturnButton();
+      expect(storyNav.isReturnButtonVisible()).toBe(false);
+    });
+
+    it('should report visibility correctly via isReturnButtonVisible()', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      expect(storyNav.isReturnButtonVisible()).toBe(false);
+      storyNav.showReturnButton();
+      expect(storyNav.isReturnButtonVisible()).toBe(true);
+      storyNav.hideReturnButton();
+      expect(storyNav.isReturnButtonVisible()).toBe(false);
+    });
+
+    it('should fire onReturnClick callback when clicked', () => {
+      const onReturnClick = vi.fn();
+      storyNav = new StoryNav({
+        currentMode: 'story',
+        onModeChange: vi.fn(),
+        onReturnClick,
+      });
+      storyNav.mount(container);
+
+      storyNav.showReturnButton();
+      const returnBtn = container.querySelector('.da-story-nav-return') as HTMLButtonElement;
+      returnBtn.click();
+
+      expect(onReturnClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not throw when clicked without onReturnClick callback', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.showReturnButton();
+      const returnBtn = container.querySelector('.da-story-nav-return') as HTMLButtonElement;
+
+      expect(() => returnBtn.click()).not.toThrow();
+    });
+
+    it('should clean up return button reference on destroy', () => {
+      storyNav = createStoryNav();
+      storyNav.mount(container);
+
+      storyNav.destroy();
+
+      // After destroy, isReturnButtonVisible should return false (returnButton is null)
+      expect(storyNav.isReturnButtonVisible()).toBe(false);
+    });
+  });
+
   describe('Task 7: Accessibility - Progress Dots (Story 10.16)', () => {
     it('should have correct aria-labels on progress dots', () => {
       storyNav = createStoryNav();

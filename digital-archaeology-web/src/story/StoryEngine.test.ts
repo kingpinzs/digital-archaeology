@@ -1772,4 +1772,65 @@ describe('StoryEngine Branch Tracking (Story 26.7)', () => {
       expect(engine.isChallengeCompleted('scene-1-1-2')).toBe(true);
     });
   });
+
+  // =========================================================================
+  // Story 26.12: Navigation Bookmark
+  // =========================================================================
+  describe('Story 26.12: Navigation Bookmark', () => {
+    beforeEach(() => {
+      engine.startNewGame();
+    });
+
+    it('should set a navigation bookmark from current position', () => {
+      engine.setNavigationBookmark();
+      const bookmark = engine.getNavigationBookmark();
+      expect(bookmark).not.toBeNull();
+      expect(bookmark?.sceneId).toBe('scene-1-1-1');
+      expect(bookmark?.actNumber).toBe(1);
+    });
+
+    it('should return null when no bookmark is set', () => {
+      expect(engine.getNavigationBookmark()).toBeNull();
+    });
+
+    it('should clear the navigation bookmark', () => {
+      engine.setNavigationBookmark();
+      expect(engine.getNavigationBookmark()).not.toBeNull();
+      engine.clearNavigationBookmark();
+      expect(engine.getNavigationBookmark()).toBeNull();
+    });
+
+    it('should save progress when bookmark is set', () => {
+      engine.setNavigationBookmark();
+      expect(mockStorage.saveProgress).toHaveBeenCalled();
+    });
+
+    it('should return to bookmarked position', () => {
+      // Start at scene-1-1-1, navigate to scene-1-1-2
+      engine.goToScene('scene-1-1-2');
+      engine.setNavigationBookmark();
+
+      // Navigate somewhere else
+      engine.goToScene('scene-1-1-3');
+      expect(engine.getProgress()?.position.sceneId).toBe('scene-1-1-3');
+
+      // Return to bookmark
+      engine.returnToBookmark();
+      expect(engine.getProgress()?.position.sceneId).toBe('scene-1-1-2');
+      expect(engine.getNavigationBookmark()).toBeNull();
+    });
+
+    it('should do nothing when returnToBookmark called with no bookmark', () => {
+      engine.goToScene('scene-1-1-2');
+      engine.returnToBookmark(); // no bookmark set
+      // Should still be at scene-1-1-2
+      expect(engine.getProgress()?.position.sceneId).toBe('scene-1-1-2');
+    });
+
+    it('should not set bookmark when no progress exists', () => {
+      engine.clearProgress();
+      engine.setNavigationBookmark();
+      expect(engine.getNavigationBookmark()).toBeNull();
+    });
+  });
 });

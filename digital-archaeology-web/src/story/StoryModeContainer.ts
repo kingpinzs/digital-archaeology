@@ -157,6 +157,9 @@ export class StoryModeContainer {
         onReplayClick: () => {
           this.openReplayPanel();
         },
+        onReturnClick: () => {
+          this.returnToBookmark();
+        },
       });
       this.storyNav.mount(navMount as HTMLElement);
     }
@@ -359,13 +362,22 @@ export class StoryModeContainer {
 
   /**
    * Navigate to a specific scene by ID.
+   * Story 26.12: Sets a navigation bookmark before jumping.
    */
   private navigateToScene(sceneId: string): void {
     if (!this.storyController) return;
 
     const engine = this.storyController.getEngine();
+
+    // Story 26.12: Save bookmark before scene jump (skip if same scene)
+    const currentSceneId = engine.getProgress()?.position.sceneId;
+    if (currentSceneId && currentSceneId !== sceneId) {
+      engine.setNavigationBookmark();
+    }
+
     try {
       engine.goToScene(sceneId);
+      this.updateReturnButton();
     } catch (error) {
       console.warn('Failed to navigate to scene:', sceneId, error);
     }
@@ -470,6 +482,7 @@ export class StoryModeContainer {
 
   /**
    * Navigate to the first scene of a specific act (Story 19.4).
+   * Story 26.12: Sets a navigation bookmark before jumping to a different act.
    */
   private navigateToAct(actNumber: number): void {
     if (!this.storyController) return;
@@ -481,12 +494,46 @@ export class StoryModeContainer {
       return;
     }
 
-    const firstSceneId = targetAct.chapters[0].scenes[0].id;
     const engine = this.storyController.getEngine();
+    const currentActNumber = engine.getProgress()?.position.actNumber;
+
+    // Story 26.12: Save bookmark before jumping to a different act
+    if (currentActNumber !== undefined && currentActNumber !== actNumber) {
+      engine.setNavigationBookmark();
+    }
+
+    const firstSceneId = targetAct.chapters[0].scenes[0].id;
     try {
       engine.goToScene(firstSceneId);
+      this.updateReturnButton();
     } catch (error) {
       console.warn('Failed to navigate to act scene:', firstSceneId, error);
+    }
+  }
+
+  /**
+   * Story 26.12: Return to the bookmarked position.
+   */
+  private returnToBookmark(): void {
+    if (!this.storyController) return;
+    const engine = this.storyController.getEngine();
+    engine.returnToBookmark();
+    this.storyNav?.hideReturnButton();
+  }
+
+  /**
+   * Story 26.12: Update the return button visibility based on bookmark state.
+   */
+  private updateReturnButton(): void {
+    if (!this.storyController) return;
+    const engine = this.storyController.getEngine();
+    const bookmark = engine.getNavigationBookmark();
+    if (bookmark) {
+      // Show return button with era name from bookmark act
+      const eraName = this.storyController.getEraForAct(bookmark.actNumber);
+      this.storyNav?.showReturnButton(eraName);
+    } else {
+      this.storyNav?.hideReturnButton();
     }
   }
 

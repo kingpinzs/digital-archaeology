@@ -163,8 +163,11 @@ export class TimeTravelPortal {
         if (progress < 1) {
           this.animationFrameId = requestAnimationFrame(tick);
         } else {
-          // Animation complete
+          // Animation complete — clear canvas so it doesn't obscure content beneath
           this.animationFrameId = null;
+          if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          }
           if (this.backdropElement) {
             this.backdropElement.classList.remove('da-portal-backdrop--visible');
           }

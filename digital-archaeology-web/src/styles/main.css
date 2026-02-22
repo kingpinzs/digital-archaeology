@@ -5462,6 +5462,20 @@ body.da-resizing * {
   background: rgba(212, 165, 116, 0.1);
 }
 
+/* Story 26.5: Locked act styles */
+.da-story-browser-act-header--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.da-story-browser-lock-badge {
+  font-size: 10px;
+  color: var(--da-text-secondary, #a0a0b0);
+  font-style: italic;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .da-story-browser-act-icon {
   font-size: 10px;
   color: var(--da-text-secondary, #a0a0b0);

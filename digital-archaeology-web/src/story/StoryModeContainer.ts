@@ -321,10 +321,16 @@ export class StoryModeContainer {
       visitedScenes.add(progress.position.sceneId);
     }
 
+    // Story 26.5: Pass completed act numbers for lock enforcement
+    const completedActNumbers = new Set(
+      this.storyController.getCompletedActNumbers()
+    );
+
     this.storyBrowser.open({
       acts,
       progress,
       visitedScenes,
+      completedActNumbers,
     });
   }
 

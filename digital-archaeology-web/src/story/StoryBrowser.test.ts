@@ -320,6 +320,81 @@ describe('StoryBrowser', () => {
     });
   });
 
+  describe('act lock enforcement (Story 26.5)', () => {
+    it('should lock acts beyond current act number', () => {
+      // Player is on act 1 — act 2 should be locked
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      expect(acts[2].classList.contains('da-story-browser-act--locked')).toBe(true);
+    });
+
+    it('should not lock current or previous acts', () => {
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      expect(acts[0].classList.contains('da-story-browser-act--locked')).toBe(false);
+      expect(acts[1].classList.contains('da-story-browser-act--locked')).toBe(false);
+    });
+
+    it('should show lock icon on locked act header', () => {
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      const lockedIcon = acts[2].querySelector('.da-story-browser-act-icon');
+      expect(lockedIcon?.textContent).toBe('\uD83D\uDD12'); // 🔒
+    });
+
+    it('should show unlock requirement on locked act', () => {
+      browser.open(mockData);
+
+      const lockBadge = document.querySelector('.da-story-browser-lock-badge');
+      expect(lockBadge).not.toBeNull();
+      expect(lockBadge?.textContent).toBe('Complete Act 1 to unlock');
+    });
+
+    it('should disable locked act header button', () => {
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      const lockedHeader = acts[2].querySelector('.da-story-browser-act-header') as HTMLButtonElement;
+      expect(lockedHeader.disabled).toBe(true);
+    });
+
+    it('should not render chapters for locked acts', () => {
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      const lockedChapters = acts[2].querySelector('.da-story-browser-chapters');
+      expect(lockedChapters).toBeNull();
+    });
+
+    it('should not expand locked act on click', () => {
+      browser.open(mockData);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      const lockedHeader = acts[2].querySelector('.da-story-browser-act-header') as HTMLElement;
+      lockedHeader.click();
+
+      // Should still have no chapters container
+      const lockedChapters = acts[2].querySelector('.da-story-browser-chapters');
+      expect(lockedChapters).toBeNull();
+    });
+
+    it('should unlock a completed act even if beyond current position', () => {
+      // Edge case: act 2 is completed but player went back to act 1
+      const dataWithCompleted: StoryBrowserData = {
+        ...mockData,
+        completedActNumbers: new Set([0, 2]),
+      };
+      browser.open(dataWithCompleted);
+
+      const acts = document.querySelectorAll('.da-story-browser-act');
+      // Act 2 is completed, so it should be accessible
+      expect(acts[2].classList.contains('da-story-browser-act--locked')).toBe(false);
+    });
+  });
+
   describe('destroy', () => {
     it('should clean up resources', () => {
       browser.open(mockData);

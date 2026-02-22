@@ -25,6 +25,8 @@ export interface StoryBrowserData {
   progress: StoryProgress | null;
   /** Set of visited scene IDs */
   visitedScenes?: Set<string>;
+  /** Story 26.5: Set of completed act numbers for lock enforcement */
+  completedActNumbers?: Set<number>;
 }
 
 /**
@@ -163,6 +165,18 @@ export class StoryBrowser {
   }
 
   /**
+   * Story 26.5: Check if an act is accessible to the player.
+   * An act is accessible if completed, current, or act 0 (always accessible).
+   */
+  private isActAccessible(actNumber: number): boolean {
+    const currentActNumber = this.data?.progress?.position.actNumber ?? 0;
+    if (actNumber <= currentActNumber) return true;
+    const completedActs = this.data?.completedActNumbers;
+    if (completedActs && completedActs.has(actNumber)) return true;
+    return false;
+  }
+
+  /**
    * Create an act section with expandable chapters.
    */
   private createActSection(act: StoryAct): HTMLElement {
@@ -171,19 +185,34 @@ export class StoryBrowser {
 
     const isExpanded = this.expandedActs.has(act.number);
     const isCurrent = this.data?.progress?.position.actNumber === act.number;
+    const isLocked = !this.isActAccessible(act.number);
 
-    // Act header (clickable to expand/collapse)
+    if (isLocked) {
+      section.classList.add('da-story-browser-act--locked');
+    }
+
+    // Act header (clickable to expand/collapse, or locked)
     const actHeader = document.createElement('button');
     actHeader.type = 'button';
     actHeader.className = 'da-story-browser-act-header';
     if (isCurrent) {
       actHeader.classList.add('da-story-browser-act-header--current');
     }
-    actHeader.setAttribute('aria-expanded', String(isExpanded));
+    if (isLocked) {
+      actHeader.classList.add('da-story-browser-act-header--locked');
+      actHeader.disabled = true;
+      actHeader.setAttribute('aria-expanded', 'false');
+    } else {
+      actHeader.setAttribute('aria-expanded', String(isExpanded));
+    }
 
     const actIcon = document.createElement('span');
     actIcon.className = 'da-story-browser-act-icon';
-    actIcon.textContent = isExpanded ? '\u25BC' : '\u25B6'; // ▼ or ▶
+    if (isLocked) {
+      actIcon.textContent = '\uD83D\uDD12'; // 🔒
+    } else {
+      actIcon.textContent = isExpanded ? '\u25BC' : '\u25B6'; // ▼ or ▶
+    }
 
     const actInfo = document.createElement('span');
     actInfo.className = 'da-story-browser-act-info';
@@ -203,6 +232,11 @@ export class StoryBrowser {
     actEra.className = 'da-story-browser-act-era';
     actEra.textContent = act.era;
 
+    // Append in visual order: icon → info → era → badge (badge last for flex layout)
+    actHeader.appendChild(actIcon);
+    actHeader.appendChild(actInfo);
+    actHeader.appendChild(actEra);
+
     if (isCurrent) {
       const currentBadge = document.createElement('span');
       currentBadge.className = 'da-story-browser-current-badge';
@@ -210,29 +244,38 @@ export class StoryBrowser {
       actHeader.appendChild(currentBadge);
     }
 
-    actHeader.appendChild(actIcon);
-    actHeader.appendChild(actInfo);
-    actHeader.appendChild(actEra);
+    // Story 26.5: Show lock requirement for locked acts
+    if (isLocked) {
+      const currentActNum = this.data?.progress?.position.actNumber ?? 0;
+      const lockBadge = document.createElement('span');
+      lockBadge.className = 'da-story-browser-lock-badge';
+      lockBadge.textContent = `Complete Act ${currentActNum} to unlock`;
+      actHeader.appendChild(lockBadge);
+    }
 
-    actHeader.addEventListener('click', () => {
-      this.toggleAct(act.number, section, actHeader, actIcon);
-    });
+    if (!isLocked) {
+      actHeader.addEventListener('click', () => {
+        this.toggleAct(act.number, section, actHeader, actIcon);
+      });
+    }
 
     section.appendChild(actHeader);
 
-    // Chapters container (collapsible)
-    const chaptersContainer = document.createElement('div');
-    chaptersContainer.className = 'da-story-browser-chapters';
-    if (!isExpanded) {
-      chaptersContainer.classList.add('da-story-browser-chapters--collapsed');
-    }
+    // Chapters container — locked acts have no expandable content
+    if (!isLocked) {
+      const chaptersContainer = document.createElement('div');
+      chaptersContainer.className = 'da-story-browser-chapters';
+      if (!isExpanded) {
+        chaptersContainer.classList.add('da-story-browser-chapters--collapsed');
+      }
 
-    for (const chapter of act.chapters) {
-      const chapterSection = this.createChapterSection(act, chapter);
-      chaptersContainer.appendChild(chapterSection);
-    }
+      for (const chapter of act.chapters) {
+        const chapterSection = this.createChapterSection(act, chapter);
+        chaptersContainer.appendChild(chapterSection);
+      }
 
-    section.appendChild(chaptersContainer);
+      section.appendChild(chaptersContainer);
+    }
 
     return section;
   }

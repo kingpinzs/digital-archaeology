@@ -369,6 +369,61 @@ describe('ChallengeStation', () => {
     });
   });
 
+  describe('Era/context banner (Story 26.2)', () => {
+    it('should display era banner when era and actTitle provided', () => {
+      const context = createMockContext({ era: '1642', actTitle: 'The Age of Gears' });
+      station.setChallengeContext(context);
+
+      const banner = container.querySelector('.da-challenge-station-era-banner');
+      expect(banner).not.toBeNull();
+
+      const eraLabel = banner!.querySelector('.da-challenge-station-era-label');
+      expect(eraLabel?.textContent).toBe('1642');
+
+      const actLabel = banner!.querySelector('.da-challenge-station-act-label');
+      expect(actLabel?.textContent).toBe('The Age of Gears');
+    });
+
+    it('should not display era banner when no era/actTitle provided', () => {
+      const context = createMockContext();
+      station.setChallengeContext(context);
+
+      const banner = container.querySelector('.da-challenge-station-era-banner');
+      expect(banner).toBeNull();
+    });
+
+    it('should display only era when actTitle is missing', () => {
+      const context = createMockContext({ era: '3000 BC' });
+      station.setChallengeContext(context);
+
+      const banner = container.querySelector('.da-challenge-station-era-banner');
+      expect(banner).not.toBeNull();
+      expect(banner!.querySelector('.da-challenge-station-era-label')?.textContent).toBe('3000 BC');
+      expect(banner!.querySelector('.da-challenge-station-act-label')).toBeNull();
+    });
+
+    it('should display only actTitle when era is missing', () => {
+      const context = createMockContext({ actTitle: 'The Age of Gears' });
+      station.setChallengeContext(context);
+
+      const banner = container.querySelector('.da-challenge-station-era-banner');
+      expect(banner).not.toBeNull();
+      expect(banner!.querySelector('.da-challenge-station-era-label')).toBeNull();
+      expect(banner!.querySelector('.da-challenge-station-act-label')?.textContent).toBe('The Age of Gears');
+    });
+
+    it('should clear era banner when new challenge context set', () => {
+      const context1 = createMockContext({ era: '1642', actTitle: 'Gears' });
+      station.setChallengeContext(context1);
+      expect(container.querySelector('.da-challenge-station-era-banner')).not.toBeNull();
+
+      // Setting new context without era should clear sidebar
+      const context2 = createMockContext({ sceneId: 'new-scene' });
+      station.setChallengeContext(context2);
+      expect(container.querySelector('.da-challenge-station-era-banner')).toBeNull();
+    });
+  });
+
   describe('Cleanup', () => {
     it('should reset allObjectivesCompleted on destroy', () => {
       const onReturn = vi.fn();

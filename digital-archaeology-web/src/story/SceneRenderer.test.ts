@@ -363,6 +363,87 @@ describe('SceneRenderer', () => {
       const continueButton = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
       expect(continueButton?.disabled).toBe(true);
     });
+
+    it('should disable continue on challenge scenes even with nextScene (Story 26.2)', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'challenge',
+          nextScene: 'scene-1-1-2',
+          challenge: {
+            title: 'Test Challenge',
+            objectives: [],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const continueButton = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
+      expect(continueButton?.disabled).toBe(true);
+    });
+
+    it('should keep continue disabled after updateFooterState on challenge scenes (Story 26.2)', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'challenge',
+          nextScene: 'scene-1-1-2',
+          challenge: {
+            title: 'Test Challenge',
+            objectives: [],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      // Simulate StoryController calling updateFooterState
+      renderer.updateFooterState(true, true);
+
+      const continueButton = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
+      expect(continueButton?.disabled).toBe(true);
+    });
+
+    it('should keep continue disabled after updateFooterState on decision scenes (Story 26.2)', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'decision',
+          nextScene: 'scene-1-1-2',
+          decision: {
+            id: 'd1',
+            question: 'What should we build?',
+            context: 'The era demands it',
+            options: [{ id: 'o1', description: 'Opt A', visiblePros: [], visibleCons: [], isHistorical: false }],
+            historicalChoice: 'o1',
+            historicalOutcome: 'It worked',
+            alternateOutcomes: [],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      renderer.updateFooterState(true, true);
+
+      const continueButton = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
+      expect(continueButton?.disabled).toBe(true);
+    });
+
+    it('should keep continue disabled after updateFooterState on builder scenes (Story 26.2)', () => {
+      const context = createContext({
+        scene: createMockScene({
+          type: 'builder',
+          nextScene: 'scene-1-1-2',
+          builderChallenge: {
+            title: 'Build It',
+            description: 'Build.',
+            objectives: [{ id: 'obj-1', text: 'Step', completed: false }],
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      renderer.updateFooterState(true, true);
+
+      const continueButton = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
+      expect(continueButton?.disabled).toBe(true);
+    });
   });
 
   describe('Collectible stat click callback', () => {
@@ -924,6 +1005,65 @@ describe('SceneRenderer', () => {
 
       const continueBtn = container.querySelector('.da-story-action-btn--primary') as HTMLButtonElement;
       expect(continueBtn?.disabled).toBe(true);
+    });
+  });
+
+  describe('ChallengeContext includes era/actTitle (Story 26.2)', () => {
+    it('should include era and actTitle in ChallengeContext from Enter Lab button', () => {
+      const callback = vi.fn();
+      renderer.setCallbacks({ onEnterLab: callback });
+
+      const context = createContext({
+        act: createMockAct({ era: '1642', title: 'The Age of Gears' }),
+        scene: createMockScene({
+          type: 'challenge',
+          challenge: {
+            title: 'Build the Pascaline',
+            objectives: [{ id: 'obj-1', text: 'Add gear', completed: false }],
+            simulatorId: 'pascaline',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const enterLabButton = container.querySelector('.da-enter-lab-button') as HTMLElement;
+      enterLabButton.click();
+
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          era: '1642',
+          actTitle: 'The Age of Gears',
+          simulatorType: 'pascaline',
+        })
+      );
+    });
+
+    it('should include era and actTitle in ChallengeContext from footer Enter Lab', () => {
+      const callback = vi.fn();
+      renderer.setCallbacks({ onEnterLab: callback });
+
+      const context = createContext({
+        act: createMockAct({ era: '1642', title: 'The Age of Gears' }),
+        scene: createMockScene({
+          type: 'challenge',
+          challenge: {
+            title: 'Build the Pascaline',
+            objectives: [{ id: 'obj-1', text: 'Add gear', completed: false }],
+            simulatorId: 'pascaline',
+          },
+        }),
+      });
+      renderer.renderScene(context, container);
+
+      const footerLabBtn = container.querySelector('.da-story-action-btn--lab') as HTMLElement;
+      footerLabBtn.click();
+
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          era: '1642',
+          actTitle: 'The Age of Gears',
+        })
+      );
     });
   });
 

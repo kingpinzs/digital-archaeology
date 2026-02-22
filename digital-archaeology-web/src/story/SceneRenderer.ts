@@ -423,6 +423,8 @@ export class SceneRenderer {
             sceneId: scene!.id,
             challengeData: challenge,
             simulatorType: challenge.simulatorId,
+            era: this.currentContext?.act.era,
+            actTitle: this.currentContext?.act.title,
           };
           this.callbacks.onEnterLab(context);
         } else {
@@ -603,7 +605,8 @@ export class SceneRenderer {
     const isBuilder = context.scene.type === 'builder';
 
     // Disable continue if no next scene or if choices/challenge/decision/builder present
-    this.footer.setContinueEnabled(hasNextScene && !hasChoices && !isDecision && !isBuilder);
+    // Story 26.2: challenge scenes MUST go through "Enter the Lab" — no skipping
+    this.footer.setContinueEnabled(hasNextScene && !hasChoices && !isChallenge && !isDecision && !isBuilder);
 
     // Show Enter Lab button only for challenge scenes (builder has its own)
     this.footer.setEnterLabVisible(isChallenge);
@@ -638,6 +641,8 @@ export class SceneRenderer {
             sceneId: scene!.id,
             challengeData: challenge,
             simulatorType: challenge.simulatorId,
+            era: this.currentContext?.act.era,
+            actTitle: this.currentContext?.act.title,
           };
           this.callbacks.onEnterLab(context);
         } else {
@@ -649,11 +654,14 @@ export class SceneRenderer {
 
   /**
    * Update footer state (e.g., after navigation).
+   * Story 26.2: respects scene gating — Continue stays disabled on challenge/decision/builder scenes.
    */
   updateFooterState(hasPrevious: boolean, hasNext: boolean): void {
     if (this.footer) {
       this.footer.setPreviousEnabled(hasPrevious);
-      this.footer.setContinueEnabled(hasNext);
+      const sceneType = this.currentContext?.scene.type;
+      const isGated = sceneType === 'challenge' || sceneType === 'decision' || sceneType === 'builder';
+      this.footer.setContinueEnabled(hasNext && !isGated);
     }
   }
 

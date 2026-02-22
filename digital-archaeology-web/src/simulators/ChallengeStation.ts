@@ -76,6 +76,27 @@ export class ChallengeStation {
 
     if (!this.simulatorContainer || !this.sidebarContainer) return;
 
+    // Story 26.2: Show era/context banner so the user knows where they are
+    if (context.era || context.actTitle) {
+      const eraBanner = document.createElement('div');
+      eraBanner.className = 'da-challenge-station-era-banner';
+      eraBanner.setAttribute('role', 'status');
+      eraBanner.setAttribute('aria-label', 'Current era context');
+      if (context.era) {
+        const eraLabel = document.createElement('span');
+        eraLabel.className = 'da-challenge-station-era-label';
+        eraLabel.textContent = context.era;
+        eraBanner.appendChild(eraLabel);
+      }
+      if (context.actTitle) {
+        const actLabel = document.createElement('span');
+        actLabel.className = 'da-challenge-station-act-label';
+        actLabel.textContent = context.actTitle;
+        eraBanner.appendChild(actLabel);
+      }
+      this.sidebarContainer.appendChild(eraBanner);
+    }
+
     // Set up objectives sidebar
     this.challengeObjectives = new ChallengeObjectives();
     const objectivesMount = document.createElement('div');

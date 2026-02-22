@@ -142,6 +142,10 @@ export interface ChallengeContext {
   sceneId: string;
   challengeData: ChallengeData;
   simulatorType: SimulatorType;
+  /** Historical era label (e.g., "1642") — Story 26.2: visible context in lab */
+  era?: string;
+  /** Act title (e.g., "The Age of Gears") — Story 26.2: visible context in lab */
+  actTitle?: string;
 }
 
 /**

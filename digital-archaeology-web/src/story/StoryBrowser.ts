@@ -69,6 +69,10 @@ export class StoryBrowser {
   open(data: StoryBrowserData): void {
     this.data = data;
 
+    // Clear previous expanded state before setting defaults
+    this.expandedActs.clear();
+    this.expandedChapters.clear();
+
     // Expand current act by default
     if (data.progress) {
       this.expandedActs.add(data.progress.position.actNumber);

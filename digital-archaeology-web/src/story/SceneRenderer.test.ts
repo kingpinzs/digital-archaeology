@@ -1705,6 +1705,8 @@ describe('SceneRenderer', () => {
 
       const attribution = container.querySelector('.da-discovery-bridge__attribution');
       expect(attribution?.textContent).toContain('von Neumann');
+      // L7: Verify attribution is a child of the quote blockquote
+      expect(quote?.contains(attribution)).toBe(true);
     });
 
     it('should NOT render quote when historicalQuote is absent', () => {

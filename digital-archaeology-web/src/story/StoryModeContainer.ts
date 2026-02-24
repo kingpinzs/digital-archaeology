@@ -236,8 +236,8 @@ export class StoryModeContainer {
         this.options.onModeChange('lab', context);
       },
       onEraChange: (_era: string) => {
-        // StoryNav updates via story-state-changed event
-        // This callback is for additional handling if needed
+        // M2 fix: Keep return button in sync on every scene change
+        this.updateReturnButton();
       },
       onRoleUpdate: (roleData: RoleData) => {
         this.yourRolePanel?.setRoleData(roleData);
@@ -553,7 +553,13 @@ export class StoryModeContainer {
   private returnToBookmark(): void {
     if (!this.storyController) return;
     const engine = this.storyController.getEngine();
-    engine.returnToBookmark();
+    try {
+      engine.returnToBookmark();
+    } catch (error) {
+      // H1 fix: if bookmarked scene no longer exists, clear stale bookmark gracefully
+      console.warn('Bookmark target no longer exists; clearing stale bookmark:', error);
+      engine.clearNavigationBookmark();
+    }
     this.storyNav?.hideReturnButton();
   }
 
@@ -679,29 +685,41 @@ export class StoryModeContainer {
    * Shows a completion banner (AC #3) then advances to the next scene.
    * Story 26.10: Accepts optional challengeSceneId for completion tracking.
    */
+  /** Guard against double-invocation of advanceAfterChallenge */
+  private advancingChallenges = new Set<string>();
+
   advanceAfterChallenge(challengeSceneId?: string): void {
-    // Story 26.14: Look up "IT WORKS!" data from the completed scene BEFORE advancing
-    const itWorksData = challengeSceneId
-      ? this.findItWorksData(challengeSceneId)
-      : undefined;
+    // H2 fix: re-entry guard prevents double-call advancing story twice
+    const key = challengeSceneId ?? '__no_id__';
+    if (this.advancingChallenges.has(key)) return;
+    this.advancingChallenges.add(key);
 
     try {
-      if (challengeSceneId) {
-        this.storyController?.completeChallengeAndAdvance(challengeSceneId);
-      } else {
-        this.storyController?.nextScene();
-      }
-    } catch (error) {
-      console.warn('Cannot advance story after challenge:', error);
-      return; // don't show banner if advance failed
-    }
+      // Story 26.14: Look up "IT WORKS!" data from the completed scene BEFORE advancing
+      const itWorksData = challengeSceneId
+        ? this.findItWorksData(challengeSceneId)
+        : undefined;
 
-    // Story 26.14: Show "IT WORKS!" connections panel if the scene has connection data
-    if (itWorksData) {
-      this.connectionPanel?.show(itWorksData);
-    } else {
-      // Show completion acknowledgment after scene renders (AC #3)
-      this.showChallengeCompletionBanner();
+      try {
+        if (challengeSceneId) {
+          this.storyController?.completeChallengeAndAdvance(challengeSceneId);
+        } else {
+          this.storyController?.nextScene();
+        }
+      } catch (error) {
+        console.warn('Cannot advance story after challenge:', error);
+        return; // don't show banner if advance failed
+      }
+
+      // Story 26.14: Show "IT WORKS!" connections panel if the scene has connection data
+      if (itWorksData) {
+        this.connectionPanel?.show(itWorksData);
+      } else {
+        // Show completion acknowledgment after scene renders (AC #3)
+        this.showChallengeCompletionBanner();
+      }
+    } finally {
+      this.advancingChallenges.delete(key);
     }
   }
 

@@ -89,6 +89,7 @@
   --da-z-toast: 900;
   --da-z-modal-backdrop: 1000;
   --da-z-modal: 1001;
+  --da-z-journey-map: 1100;
 
   /* Achievement tier colors (Story 19.6 code review) */
   --da-tier-common: #9e9e9e;
@@ -7697,7 +7698,7 @@ body.da-resizing * {
 }
 
 .da-brave-alternative__card-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -9675,7 +9676,7 @@ body.da-resizing * {
   border-color: var(--da-accent);
 }
 
-.da-connection-panel__link--navigable:focus {
+.da-connection-panel__link--navigable:focus-visible {
   outline: 2px solid var(--da-accent);
   outline-offset: 2px;
 }
@@ -9726,7 +9727,7 @@ body.da-resizing * {
   opacity: 0.9;
 }
 
-.da-connection-panel__continue:focus {
+.da-connection-panel__continue:focus-visible {
   outline: 2px solid var(--da-accent);
   outline-offset: 2px;
 }
@@ -10011,7 +10012,7 @@ body.da-resizing * {
 .da-journey-map {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: var(--da-z-journey-map, 1100);
   display: flex;
   align-items: center;
   justify-content: center;

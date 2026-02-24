@@ -424,7 +424,7 @@ export class StoryEngine {
    * Story 26.10: Seamless Story-Lab-Story Loop
    */
   getCompletedChallenges(): string[] {
-    return this.state.progress?.completedChallenges ?? [];
+    return [...(this.state.progress?.completedChallenges ?? [])];
   }
 
   // =========================================================================
@@ -449,7 +449,8 @@ export class StoryEngine {
    * Get the current navigation bookmark (null if none set).
    */
   getNavigationBookmark(): StoryPosition | null {
-    return this.state.progress?.navigationBookmark ?? null;
+    const bm = this.state.progress?.navigationBookmark;
+    return bm ? { ...bm } : null;
   }
 
   /**
@@ -471,8 +472,8 @@ export class StoryEngine {
   returnToBookmark(): void {
     const bookmark = this.getNavigationBookmark();
     if (!bookmark) return;
-    this.clearNavigationBookmark();
     this.goToScene(bookmark.sceneId);
+    this.clearNavigationBookmark();
   }
 
   /**
@@ -494,7 +495,7 @@ export class StoryEngine {
    * Story 26.13: Get all skipped scene IDs.
    */
   getSkippedSceneIds(): readonly string[] {
-    return this.state.progress?.skippedSceneIds ?? [];
+    return [...(this.state.progress?.skippedSceneIds ?? [])];
   }
 
   /**
@@ -859,8 +860,12 @@ export class StoryEngine {
   private saveProgress(): void {
     if (this.state.progress) {
       // Story 10.22: Persist pendingDecision in progress
-      this.state.progress.pendingDecision = this.pendingDecision;
-      this.storage.saveProgress(this.state.progress);
+      // M8 fix: Use spread to avoid mutating live progress object
+      const progressToSave = {
+        ...this.state.progress,
+        pendingDecision: this.pendingDecision,
+      };
+      this.storage.saveProgress(progressToSave);
     }
   }
 

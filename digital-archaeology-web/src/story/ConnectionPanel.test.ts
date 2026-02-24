@@ -86,7 +86,7 @@ describe('ConnectionPanel', () => {
       const overlay = container.querySelector('.da-connection-panel');
       expect(overlay?.getAttribute('role')).toBe('dialog');
       expect(overlay?.getAttribute('aria-modal')).toBe('true');
-      expect(overlay?.getAttribute('aria-labelledby')).toBe('da-connection-panel-title');
+      expect(overlay?.getAttribute('aria-labelledby')).toMatch(/^da-connection-panel-title-\d+$/);
     });
 
     it('should render continue button', () => {
@@ -325,6 +325,7 @@ describe('ConnectionPanel', () => {
 
       // Simulate Tab at last element — should wrap to first
       (last as HTMLElement).focus();
+      expect(document.activeElement).toBe(last); // L8: verify focus precondition
       const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
       Object.defineProperty(tabEvent, 'shiftKey', { value: false });
       document.dispatchEvent(tabEvent);
@@ -347,6 +348,7 @@ describe('ConnectionPanel', () => {
 
       // Simulate Shift+Tab at first element — should wrap to last
       (first as HTMLElement).focus();
+      expect(document.activeElement).toBe(first); // L8: verify focus precondition
       const shiftTabEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true });
       document.dispatchEvent(shiftTabEvent);
 

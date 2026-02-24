@@ -10,6 +10,9 @@ const DISMISS_DELAY_MS = 12000;
 /** Exit animation duration in milliseconds */
 const EXIT_DURATION_MS = 300;
 
+/** Incrementing counter for unique panel title IDs */
+let panelInstanceCounter = 0;
+
 /** Icon mapping for connection link types */
 const LINK_TYPE_ICONS: Record<ConnectionLinkType, string> = {
   idea: '\u{1F4A1}',      // 💡 Light bulb
@@ -102,7 +105,7 @@ export class ConnectionPanel {
     // Headline
     const headlineEl = document.createElement('h2');
     headlineEl.className = 'da-connection-panel__headline';
-    headlineEl.id = 'da-connection-panel-title';
+    headlineEl.id = `da-connection-panel-title-${++panelInstanceCounter}`;
     headlineEl.textContent = data.headline;
     this.overlay.setAttribute('aria-labelledby', headlineEl.id);
 
@@ -157,20 +160,27 @@ export class ConnectionPanel {
   }
 
   /**
-   * Whether the panel is currently visible.
+   * Whether the panel is currently visible (not during exit animation).
    */
   isVisible(): boolean {
-    return this.overlay !== null;
+    return this.overlay !== null && this.exitTimeout === null;
   }
 
   /**
    * Clean up all resources.
    */
   destroy(): void {
+    const wasExiting = this.exitTimeout !== null;
     this.clearAllTimeouts();
     this.removeOverlay();
     document.removeEventListener('keydown', this.boundHandleKeydown);
+    this.previouslyFocusedElement = null;
     this.container = null;
+    // H5: If destroy() interrupted an exit animation, the onDismiss callback
+    // would never have fired. Fire it now so consumers aren't left waiting.
+    if (wasExiting) {
+      this.callbacks.onDismiss?.();
+    }
   }
 
   private createLinkElement(link: ConnectionLink): HTMLElement {

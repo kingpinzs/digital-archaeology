@@ -294,7 +294,6 @@ export class JourneyMap {
     if (this.eraDetailView) {
       this.hideEraDetail();
     }
-    this.destroyChildComponents();
     this.removeOverlay();
     document.removeEventListener('keydown', this.boundHandleKeydown);
     this.container = null;
@@ -903,6 +902,14 @@ export class JourneyMap {
       detail.appendChild(section);
     }
 
+    // Story 26.13: Skip warning for locked/upcoming eras (before Enter button)
+    if (node.status === 'locked' || node.status === 'upcoming') {
+      const skipWarning = document.createElement('div');
+      skipWarning.className = 'da-journey-map__era-detail-skip-warning';
+      skipWarning.textContent = 'Jumping here will skip earlier content. You can always return later.';
+      detail.appendChild(skipWarning);
+    }
+
     // "Enter This Era" button — Story 26.13: always shown (open doors)
     const enterBtn = document.createElement('button');
     enterBtn.type = 'button';
@@ -913,14 +920,6 @@ export class JourneyMap {
       this.hide();
     });
     detail.appendChild(enterBtn);
-
-    // Story 26.13: Skip warning for locked/upcoming eras
-    if (node.status === 'locked' || node.status === 'upcoming') {
-      const skipWarning = document.createElement('div');
-      skipWarning.className = 'da-journey-map__era-detail-skip-warning';
-      skipWarning.textContent = 'Jumping here will skip earlier content. You can always return later.';
-      detail.appendChild(skipWarning);
-    }
 
     content.appendChild(detail);
     this.eraDetailView = detail;
@@ -1010,6 +1009,8 @@ export class JourneyMap {
       this.exitTimeout = null;
     }
     this.destroyChildComponents();
+    this.eraDetailView = null;
+    this.activePreview = null;
     if (this.overlay) {
       this.overlay.remove();
       this.overlay = null;

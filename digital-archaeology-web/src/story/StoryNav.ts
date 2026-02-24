@@ -415,7 +415,9 @@ export class StoryNav {
    */
   showReturnButton(eraName?: string): void {
     if (!this.returnButton) return;
+    const label = eraName ? `Return to ${eraName}` : 'Return to previous position';
     this.returnButton.textContent = eraName ? `\u2190 Return to ${eraName}` : '\u2190 Return';
+    this.returnButton.setAttribute('aria-label', label);
     this.returnButton.classList.remove('da-story-nav-return--hidden');
   }
 

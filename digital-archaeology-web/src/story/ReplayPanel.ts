@@ -3,6 +3,7 @@
 // Story 26.8: Time-Travel Replay
 
 import type { TimelineEntry } from './StoryState';
+import { formatSceneType } from './scene-utils';
 
 /**
  * Callbacks for ReplayPanel events.
@@ -243,7 +244,7 @@ export class ReplayPanel {
 
     const label = document.createElement('span');
     label.className = 'da-replay-panel__item-label';
-    label.textContent = `${this.formatSceneType(entry.sceneType)}`;
+    label.textContent = `${formatSceneType(entry.sceneType)}`;
     info.appendChild(label);
 
     const context = document.createElement('span');
@@ -281,17 +282,7 @@ export class ReplayPanel {
     return item;
   }
 
-  private formatSceneType(type: string): string {
-    const map: Record<string, string> = {
-      narrative: 'Story',
-      dialogue: 'Dialogue',
-      choice: 'Branch Point',
-      challenge: 'Challenge',
-      decision: 'Decision',
-      builder: 'Builder',
-    };
-    return map[type] ?? type;
-  }
+  // Code Review Fix M6: formatSceneType extracted to scene-utils.ts
 
   // =========================================================================
   // Event handling

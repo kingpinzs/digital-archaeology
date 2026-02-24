@@ -4,6 +4,7 @@
 
 import type { StoryAct, StoryChapter, StoryScene } from './content-types';
 import type { StoryProgress } from './StoryState';
+import { formatSceneType } from './scene-utils';
 
 /**
  * Callback interface for StoryBrowser events.
@@ -381,7 +382,7 @@ export class StoryBrowser {
 
     const sceneType = document.createElement('span');
     sceneType.className = 'da-story-browser-scene-type';
-    sceneType.textContent = this.formatSceneType(scene.type);
+    sceneType.textContent = formatSceneType(scene.type);
 
     item.appendChild(sceneIcon);
     item.appendChild(sceneLabel);
@@ -395,18 +396,7 @@ export class StoryBrowser {
     return item;
   }
 
-  /**
-   * Format scene type for display.
-   */
-  private formatSceneType(type: string): string {
-    const typeMap: Record<string, string> = {
-      narrative: 'Story',
-      dialogue: 'Dialogue',
-      choice: 'Choice',
-      challenge: 'Challenge',
-    };
-    return typeMap[type] ?? type;
-  }
+  // Code Review Fix M6: formatSceneType extracted to scene-utils.ts
 
   /**
    * Toggle act expanded state.

@@ -80,7 +80,14 @@ export class ChallengeProgressStorage {
       if (!raw) return {};
       const parsed = JSON.parse(raw);
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
-      return parsed as ChallengeProgressData;
+      // Code Review Fix M5: Validate that values are string arrays to prevent corrupted data
+      const result: ChallengeProgressData = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (Array.isArray(value) && value.every((v: unknown) => typeof v === 'string')) {
+          result[key] = value as string[];
+        }
+      }
+      return result;
     } catch {
       return {};
     }

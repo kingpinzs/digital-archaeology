@@ -1,6 +1,6 @@
 # Story 26-11: Golden Path Timeline BC to CPU
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

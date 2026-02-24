@@ -1,6 +1,6 @@
 # Story 26.7: Alternate Timeline Branches
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

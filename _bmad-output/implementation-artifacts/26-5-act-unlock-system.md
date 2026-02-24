@@ -1,6 +1,6 @@
 # Story 26.5: Act Unlock System
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -74,6 +74,9 @@ export class SceneRenderer {
 
   // Story 10.21: Anachronism filtering
   private filteringEnabled = false;
+  // Code Review Fix H1: Cache era filter per mindset year to avoid re-creating per text node
+  private cachedEraFilter: ReturnType<typeof createEraFilter> | null = null;
+  private cachedFilterYear: number | null = null;
 
   // Time travel portal for animated transitions
   private portal: TimeTravelPortal | null = null;
@@ -151,25 +154,36 @@ export class SceneRenderer {
       return text;
     }
 
+    // Code Review Fix H1: Reuse cached filter when mindset year hasn't changed
+    const eraFilter = this.getOrCreateEraFilter(mindset);
+
+    const result = eraFilter.analyze(text, { mode: 'replace', year: mindset.year });
+    return result.filtered;
+  }
+
+  /**
+   * Get or create an era filter, caching by mindset year.
+   * Avoids recreating the filter for every text node in the same scene.
+   */
+  private getOrCreateEraFilter(mindset: { year: number; unknownTechnology: string[] }): ReturnType<typeof createEraFilter> {
+    if (this.cachedEraFilter && this.cachedFilterYear === mindset.year) {
+      return this.cachedEraFilter;
+    }
+
     // Create era-specific filter with pre-loaded common anachronistic terms
-    // createEraFilter includes terms like smartphone->mobile phone, internet->ARPANET
     const eraFilter = createEraFilter(mindset.year);
 
     // Add terms from the mindset's unknownTechnology list that aren't already in filter
-    // Note: We don't overwrite existing terms to preserve their replacements
     for (const tech of mindset.unknownTechnology) {
-      // Only add if not already an anachronism (i.e., not already in the filter)
-      // This check is done against the filter's internal year check
       const alreadyFiltered = eraFilter.isAnachronism(tech, mindset.year);
       if (!alreadyFiltered) {
-        // Add with a year after the current mindset year to ensure filtering
-        // These won't have replacements, so they'll just be flagged if no replacement exists
         eraFilter.addCustomTerm(tech, mindset.year + 1);
       }
     }
 
-    const result = eraFilter.analyze(text, { mode: 'replace', year: mindset.year });
-    return result.filtered;
+    this.cachedEraFilter = eraFilter;
+    this.cachedFilterYear = mindset.year;
+    return eraFilter;
   }
 
   /**
@@ -508,6 +522,41 @@ export class SceneRenderer {
   }
 
   /**
+   * Build a ChallengeContext from the current scene's challenge or builder data.
+   * Code Review Fix M3: Extracted to avoid duplication across renderEnterLabButton/renderBuilderScene/wireFooterCallbacks.
+   */
+  private buildChallengeContext(): ChallengeContext | undefined {
+    const scene = this.currentContext?.scene;
+    if (!scene) return undefined;
+
+    // Challenge scene context
+    const challenge = scene.challenge;
+    if (challenge?.simulatorId) {
+      return {
+        sceneId: scene.id,
+        challengeData: challenge,
+        simulatorType: challenge.simulatorId,
+        era: this.currentContext?.act.era,
+        actTitle: this.currentContext?.act.title,
+      };
+    }
+
+    // Builder scene context
+    const builder = scene.builderChallenge;
+    if (builder) {
+      return {
+        sceneId: scene.id,
+        challengeData: { title: builder.title, objectives: builder.objectives },
+        simulatorType: 'counting-board',
+        era: this.currentContext?.act.era,
+        actTitle: this.currentContext?.act.title,
+      };
+    }
+
+    return undefined;
+  }
+
+  /**
    * Render Enter Lab button for challenge scenes.
    * Story 26.8: Lab button is hidden during replay mode.
    */
@@ -522,21 +571,8 @@ export class SceneRenderer {
     labButton.mount(mount);
     labButton.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        // Build ChallengeContext if scene has challenge data with a simulatorId
-        const scene = this.currentContext?.scene;
-        const challenge = scene?.challenge;
-        if (challenge?.simulatorId) {
-          const context: ChallengeContext = {
-            sceneId: scene!.id,
-            challengeData: challenge,
-            simulatorType: challenge.simulatorId,
-            era: this.currentContext?.act.era,
-            actTitle: this.currentContext?.act.title,
-          };
-          this.callbacks.onEnterLab(context);
-        } else {
-          this.callbacks.onEnterLab();
-        }
+        const context = this.buildChallengeContext();
+        this.callbacks.onEnterLab(context);
       }
     });
     this.activeComponents.push(labButton);
@@ -576,23 +612,8 @@ export class SceneRenderer {
     // receives era/act context and shows the correct objectives sidebar.
     builderScene.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        const scene = this.currentContext?.scene;
-        const builder = scene?.builderChallenge;
-        if (builder) {
-          const context: ChallengeContext = {
-            sceneId: scene!.id,
-            challengeData: {
-              title: builder.title,
-              objectives: builder.objectives,
-            },
-            simulatorType: 'counting-board',
-            era: this.currentContext?.act.era,
-            actTitle: this.currentContext?.act.title,
-          };
-          this.callbacks.onEnterLab(context);
-        } else {
-          this.callbacks.onEnterLab();
-        }
+        const context = this.buildChallengeContext();
+        this.callbacks.onEnterLab(context);
       }
     });
     builderScene.onComplete(() => {
@@ -800,20 +821,8 @@ export class SceneRenderer {
 
     this.footer.onEnterLab(() => {
       if (this.callbacks.onEnterLab) {
-        const scene = this.currentContext?.scene;
-        const challenge = scene?.challenge;
-        if (challenge?.simulatorId) {
-          const context: ChallengeContext = {
-            sceneId: scene!.id,
-            challengeData: challenge,
-            simulatorType: challenge.simulatorId,
-            era: this.currentContext?.act.era,
-            actTitle: this.currentContext?.act.title,
-          };
-          this.callbacks.onEnterLab(context);
-        } else {
-          this.callbacks.onEnterLab();
-        }
+        const context = this.buildChallengeContext();
+        this.callbacks.onEnterLab(context);
       }
     });
   }
@@ -840,6 +849,9 @@ export class SceneRenderer {
     }
     this.activeComponents = [];
     this.footer = null;
+    // Code Review Fix H1: Invalidate cached era filter on scene change
+    this.cachedEraFilter = null;
+    this.cachedFilterYear = null;
 
     // Clear container contents but preserve portal elements
     if (this.container) {

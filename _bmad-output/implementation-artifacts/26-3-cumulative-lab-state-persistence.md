@@ -1,6 +1,6 @@
 # Story 26.3: Cumulative Lab State Persistence
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

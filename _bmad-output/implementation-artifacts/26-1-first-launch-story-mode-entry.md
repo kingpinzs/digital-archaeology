@@ -1,6 +1,6 @@
 # Story 26.1: First Launch - Story Mode Entry
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

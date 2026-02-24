@@ -77,13 +77,18 @@ export class JourneyMapBuilder {
    * @returns Complete JourneyMapData with all 11 nodes
    */
   build(currentActNumber: number): JourneyMapData {
+    // Code Review Fix M4: Clamp act number to valid range
+    const clampedActNumber = Math.max(0, Math.min(currentActNumber, TOTAL_ACTS - 1));
+    if (clampedActNumber !== currentActNumber) {
+      console.warn(`JourneyMapBuilder: currentActNumber ${currentActNumber} clamped to ${clampedActNumber}`);
+    }
     const completedActNumbers = new Set(this.storage.getCompletedActNumbers());
     const nodes: JourneyNode[] = [];
 
     for (let i = 0; i < TOTAL_ACTS; i++) {
       const actId = `act-${i}` as ActCompletionType;
       const metadata = ACT_COMPLETION_METADATA[actId];
-      const status = this.resolveStatus(i, currentActNumber, completedActNumbers);
+      const status = this.resolveStatus(i, clampedActNumber, completedActNumbers);
 
       nodes.push({
         actNumber: i,
@@ -101,7 +106,7 @@ export class JourneyMapBuilder {
       nodes,
       totalActs: TOTAL_ACTS,
       completedCount: completedActNumbers.size,
-      currentActNumber,
+      currentActNumber: clampedActNumber,
     };
   }
 

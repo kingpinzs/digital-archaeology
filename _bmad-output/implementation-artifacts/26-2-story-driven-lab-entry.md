@@ -1,6 +1,6 @@
 # Story 26.2: Story-Driven Lab Entry
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

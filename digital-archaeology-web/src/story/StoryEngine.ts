@@ -257,6 +257,12 @@ export class StoryEngine {
 
     // Story 26.7: Check if this choice creates a timeline branch
     const currentScene = this.getCurrentScene();
+    if (!currentScene) {
+      console.warn(
+        `StoryEngine.recordChoice: current scene not found for position ` +
+        `"${this.state.progress.position.sceneId}" — branch detection skipped for choice "${choiceId}"`
+      );
+    }
     const choiceData = currentScene?.choices?.find(c => c.id === choiceId);
     const isBranchPoint = choiceData?.isBranchPoint ?? false;
     const branchLabel = choiceData?.branchLabel;
@@ -860,13 +866,17 @@ export class StoryEngine {
 
   private dispatchStateChanged(previousSceneId: string | null): void {
     if (typeof window !== 'undefined') {
-      const event = new CustomEvent('story-state-changed', {
-        detail: {
-          progress: this.state.progress,
-          previousSceneId,
-        },
-      });
-      window.dispatchEvent(event);
+      try {
+        const event = new CustomEvent('story-state-changed', {
+          detail: {
+            progress: this.state.progress,
+            previousSceneId,
+          },
+        });
+        window.dispatchEvent(event);
+      } catch (err) {
+        console.error('StoryEngine: event listener error in story-state-changed', err);
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 # Story 26.6: Timeline Visualization Interface
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

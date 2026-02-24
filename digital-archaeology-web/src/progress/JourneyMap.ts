@@ -9,6 +9,7 @@ import { DEFAULT_COLLECTIBLE_PROFILE } from './collectible-types';
 import { WorldMapView } from './WorldMapView';
 import { ArtifactGallery } from './ArtifactGallery';
 import type { StoryAct } from '@story/content-types';
+import { formatSceneType } from '@story/scene-utils';
 
 /** Exit animation duration in milliseconds */
 const EXIT_DURATION_MS = 300;
@@ -649,7 +650,7 @@ export class JourneyMap {
 
         const sceneLabel = document.createElement('span');
         sceneLabel.className = 'da-journey-map__preview-scene-label';
-        sceneLabel.textContent = this.formatSceneType(scene.type);
+        sceneLabel.textContent = formatSceneType(scene.type);
 
         sceneEl.appendChild(typeIcon);
         sceneEl.appendChild(sceneLabel);
@@ -958,20 +959,7 @@ export class JourneyMap {
     return null;
   }
 
-  /**
-   * Format scene type for preview display.
-   */
-  private formatSceneType(type: string): string {
-    const typeMap: Record<string, string> = {
-      narrative: 'Story',
-      dialogue: 'Dialogue',
-      choice: 'Branch Point',
-      challenge: 'Challenge',
-      decision: 'Decision',
-      builder: 'Builder',
-    };
-    return typeMap[type] ?? type;
-  }
+  // Code Review Fix M6: formatSceneType extracted to @story/scene-utils
 
   private createConnector(prev: JourneyNode, next: JourneyNode): HTMLElement {
     const connector = document.createElement('div');

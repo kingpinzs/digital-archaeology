@@ -360,6 +360,9 @@ development_status:
   epic-25-retrospective: optional
 
   # Epic 26: Core Game Experience
+  # Code Review 2026-02-23: 2C/3H/6M/4L findings — C2/H1/H2(false-positive)/H3/M1-M6 fixed, 5969 tests passing
+  # Note: Stories 26-13 through 26-16 have no story files (implemented directly from commits)
+  # Note: Stories 26-1 through 26-12 story files had stale status (ready-for-dev) — corrected
   epic-26: done
   26-1-first-launch-story-mode-entry: done
   26-2-story-driven-lab-entry: done
@@ -373,10 +376,10 @@ development_status:
   26-10-seamless-story-lab-story-loop: done
   26-11-golden-path-timeline-bc-to-cpu: done
   26-12-timeline-navigation-jump-between-eras: done
-  26-13-open-doors-no-blockers-navigation: done
-  26-14-it-works-connection-system: done
-  26-15-the-discovery-path-live-each-step: done
-  26-16-brave-alternatives-what-if-dared: done
+  26-13-open-doors-no-blockers-navigation: done  # No story file — implemented from commit spec
+  26-14-it-works-connection-system: done  # No story file — implemented from commit spec
+  26-15-the-discovery-path-live-each-step: done  # No story file — implemented from commit spec
+  26-16-brave-alternatives-what-if-dared: done  # No story file — implemented from commit spec
   epic-26-retrospective: optional
 
   # Epic 27: Historical Immersion System

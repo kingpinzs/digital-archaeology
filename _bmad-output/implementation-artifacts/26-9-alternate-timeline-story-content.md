@@ -1,6 +1,6 @@
 # Story 26-9: Alternate Timeline Story Content
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

@@ -1,6 +1,6 @@
 # Story 26-10: Seamless Story-Lab-Story Loop
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

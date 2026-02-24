@@ -82,6 +82,8 @@ export class ConnectionPanel {
     if (!this.container) return;
 
     this.previouslyFocusedElement = document.activeElement;
+    // Code Review Fix H3: Clear pending timeouts before re-show to prevent stale dismiss/exit
+    this.clearAllTimeouts();
     this.removeOverlay();
 
     this.overlay = document.createElement('div');
@@ -260,8 +262,9 @@ export class ConnectionPanel {
       this.dismiss();
     } else if (e.key === 'Tab' && this.overlay) {
       // Focus trap within modal
+      // Code Review Fix M2: Exclude disabled/hidden elements from focus trap
       const focusable = this.overlay.querySelectorAll<HTMLElement>(
-        'button, [tabindex="0"]'
+        'button:not([disabled]):not([aria-hidden="true"]), [tabindex="0"]:not([disabled]):not([aria-hidden="true"])'
       );
       if (focusable.length === 0) return;
 

@@ -876,5 +876,6 @@ export class SceneRenderer {
     this.portal = null;
     this.container = null;
     this.callbacks = {};
+    this.onExitReplay = null;
   }
 }

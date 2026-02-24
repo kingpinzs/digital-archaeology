@@ -361,6 +361,9 @@ development_status:
 
   # Epic 26: Core Game Experience
   # Code Review 2026-02-23: 2C/3H/6M/4L findings — C2/H1/H2(false-positive)/H3/M1-M6 fixed, 5969 tests passing
+  # Re-Review 2026-02-23: 0C/1H/3M/3L — all previous fixes verified correct
+  #   H1: JourneyMap.ts 1,051 lines (documented, refactoring deferred to own story)
+  #   M1: ConnectionPanel focus trap tests added, M2: type validation tests added, M3: onExitReplay cleanup fixed
   # Note: Stories 26-13 through 26-16 have no story files (implemented directly from commits)
   # Note: Stories 26-1 through 26-12 story files had stale status (ready-for-dev) — corrected
   epic-26: done

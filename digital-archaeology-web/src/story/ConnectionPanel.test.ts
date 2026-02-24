@@ -287,6 +287,73 @@ describe('ConnectionPanel', () => {
       expect(headline?.textContent).toBe('Second!');
     });
 
+    it('should save and restore focus on show/dismiss', () => {
+      vi.useFakeTimers();
+
+      // Create a button that has focus before the panel opens
+      const outerBtn = document.createElement('button');
+      outerBtn.textContent = 'Outside';
+      document.body.appendChild(outerBtn);
+      outerBtn.focus();
+      expect(document.activeElement).toBe(outerBtn);
+
+      panel.show(mockData);
+
+      // Dismiss via continue button
+      const continueBtn = container.querySelector('.da-connection-panel__continue') as HTMLElement;
+      continueBtn.click();
+      vi.advanceTimersByTime(300);
+
+      // Focus should be restored to the previously focused element
+      expect(document.activeElement).toBe(outerBtn);
+
+      outerBtn.remove();
+      vi.useRealTimers();
+    });
+
+    it('should trap Tab focus within the panel', () => {
+      panel.show(mockData);
+
+      const overlay = container.querySelector('.da-connection-panel')!;
+      const focusable = overlay.querySelectorAll<HTMLElement>(
+        'button:not([disabled]):not([aria-hidden="true"]), [tabindex="0"]:not([disabled]):not([aria-hidden="true"])'
+      );
+      expect(focusable.length).toBeGreaterThan(0);
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      // Simulate Tab at last element — should wrap to first
+      (last as HTMLElement).focus();
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
+      Object.defineProperty(tabEvent, 'shiftKey', { value: false });
+      document.dispatchEvent(tabEvent);
+
+      // Focus should wrap to first element
+      expect(document.activeElement).toBe(first);
+    });
+
+    it('should trap Shift+Tab focus within the panel', () => {
+      panel.show(mockData);
+
+      const overlay = container.querySelector('.da-connection-panel')!;
+      const focusable = overlay.querySelectorAll<HTMLElement>(
+        'button:not([disabled]):not([aria-hidden="true"]), [tabindex="0"]:not([disabled]):not([aria-hidden="true"])'
+      );
+      expect(focusable.length).toBeGreaterThan(0);
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      // Simulate Shift+Tab at first element — should wrap to last
+      (first as HTMLElement).focus();
+      const shiftTabEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true });
+      document.dispatchEvent(shiftTabEvent);
+
+      // Focus should wrap to last element
+      expect(document.activeElement).toBe(last);
+    });
+
     it('should allow dismiss on second show after first was dismissed', () => {
       vi.useFakeTimers();
 

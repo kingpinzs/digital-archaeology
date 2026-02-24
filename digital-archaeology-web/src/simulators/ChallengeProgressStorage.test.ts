@@ -107,5 +107,34 @@ describe('ChallengeProgressStorage', () => {
       localStorage.setItem(TEST_KEY, '[1, 2, 3]');
       expect(storage.getCompleted('scene-1')).toEqual([]);
     });
+
+    it('should skip entries where value is not an array', () => {
+      localStorage.setItem(TEST_KEY, JSON.stringify({
+        'scene-1': ['obj-1', 'obj-2'],
+        'scene-2': 42,
+        'scene-3': 'not-an-array',
+      }));
+      expect(storage.getCompleted('scene-1')).toEqual(['obj-1', 'obj-2']);
+      expect(storage.getCompleted('scene-2')).toEqual([]);
+      expect(storage.getCompleted('scene-3')).toEqual([]);
+    });
+
+    it('should skip entries where array contains non-strings', () => {
+      localStorage.setItem(TEST_KEY, JSON.stringify({
+        'scene-1': ['valid-obj'],
+        'scene-2': ['mixed', 123, true],
+      }));
+      expect(storage.getCompleted('scene-1')).toEqual(['valid-obj']);
+      expect(storage.getCompleted('scene-2')).toEqual([]);
+    });
+
+    it('should skip entries where value is null', () => {
+      localStorage.setItem(TEST_KEY, JSON.stringify({
+        'scene-1': null,
+        'scene-2': ['obj-a'],
+      }));
+      expect(storage.getCompleted('scene-1')).toEqual([]);
+      expect(storage.getCompleted('scene-2')).toEqual(['obj-a']);
+    });
   });
 });

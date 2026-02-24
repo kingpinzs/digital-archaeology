@@ -53,6 +53,18 @@ export interface JourneyMapShowOptions {
  * The Timeline tab shows a horizontal timeline of all 11 acts.
  * The World Map tab shows an interactive SVG world map with location pins.
  * The Artifacts tab shows a collectible card gallery.
+ *
+ * NOTE: This file is 1,051 lines and a candidate for refactoring.
+ * Recommended split: extract timeline rendering into JourneyTimelineTab.ts,
+ * keeping this class as a lightweight modal/tab shell.
+ *
+ * Section guide:
+ *  - Lines ~57-297:   Modal lifecycle (mount, show, hide, destroy)
+ *  - Lines ~299-356:  Tab bar creation and switching
+ *  - Lines ~358-530:  Timeline tab rendering (nodes, labels, branch indicators)
+ *  - Lines ~530-570:  Preview tooltip management
+ *  - Lines ~570-950:  Era detail view, preview rendering, branch navigation
+ *  - Lines ~950-1051: Cleanup helpers (removeOverlay, restoreFocus, child components)
  */
 export class JourneyMap {
   private container: HTMLElement | null = null;

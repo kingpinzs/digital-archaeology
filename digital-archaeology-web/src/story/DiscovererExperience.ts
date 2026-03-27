@@ -186,7 +186,7 @@ export class DiscovererExperience {
    * Load intro data from JSON with validation.
    */
   private async loadData(): Promise<void> {
-    const response = await fetch('/story/data/discoverer-intro.json');
+    const response = await fetch(`${import.meta.env.BASE_URL}story/data/discoverer-intro.json`);
     if (!response.ok) {
       throw new Error('Failed to load discoverer experience data');
     }

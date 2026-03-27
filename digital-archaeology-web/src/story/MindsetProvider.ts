@@ -58,7 +58,7 @@ export class MindsetProvider {
     }
 
     try {
-      const response = await fetch('/story/data/technology-timeline.json');
+      const response = await fetch(`${import.meta.env.BASE_URL}story/data/technology-timeline.json`);
       if (!response.ok) {
         throw new Error(`Failed to load technology timeline: ${response.statusText}`);
       }
